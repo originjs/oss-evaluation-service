@@ -4,9 +4,10 @@
  * Module dependencies.
  */
 
-const app = require('../app');
-const debug = require('debug')('oss-evaluation-service:server');
-const http = require('http');
+import app from '../app.js';
+import debugLib from 'debug';
+import http from 'http';
+const debug = debugLib('oss-evaluation-service:server');
 
 /**
  * Get port from environment and store in Express.

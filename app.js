@@ -1,18 +1,17 @@
-const createError = require('http-errors');
-const express = require('express');
-const path = require('path');
-const logger = require('morgan');
+import createError from 'http-errors';
+import express from 'express';
+import logger from 'morgan';
+
+
+import indexRouter from './routes/index.js';
+import compass from './routes/compass.js';
 
 const app = express();
 
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, 'public')));
-
-// route files
-const indexRouter = require('./routes/index');
-const compass = require('./routes/integration/compass');
+app.use(express.static('public'));
 
 // mount routers
 app.use('/', indexRouter);
@@ -34,4 +33,4 @@ app.use(function (err, req, res, next) {
   res.render('error');
 });
 
-module.exports = app;
+export default app;
