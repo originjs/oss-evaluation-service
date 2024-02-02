@@ -1,5 +1,6 @@
 import express from 'express';
 const router = express.Router();
+import { syncOpendigger } from '../controllers/opendigger.js';
 import { getMetricActivity } from '../controllers/compass.js';
 
 /**
@@ -23,5 +24,28 @@ import { getMetricActivity } from '../controllers/compass.js';
  *
  */
 router.route('/compass').post(getMetricActivity);
+
+/**
+ * @swagger
+ * /opendigger:
+ *   post:
+ *     summary: 获取Opendigger数据
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *               path:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: The created book.
+ *
+ */
+router.route('/opendigger').post(syncOpendigger);
 
 export default router;

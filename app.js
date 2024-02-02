@@ -3,10 +3,10 @@ import express from 'express';
 import logger from 'morgan';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
-
+import 'dotenv/config';
 
 import indexRouter from './routes/index.js';
-import compass from './routes/compass.js';
+import router from './routes/sync.js';
 
 const app = express();
 
@@ -22,12 +22,7 @@ const options = {
     info: {
       title: "oss-integration-service API",
       version: "0.1.0"
-    },
-    servers: [
-      {
-        url: "http://localhost:3000",
-      },
-    ],
+    }
   },
   apis: ["./routes/*.js"],
 };
@@ -38,7 +33,7 @@ app.use("/api-docs",
   swaggerUi.setup(specs, { explorer: true }));
 // mount routers
 app.use('/', indexRouter);
-app.use(compass);
+app.use(router);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
