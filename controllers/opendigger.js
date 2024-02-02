@@ -23,7 +23,7 @@ export async function syncOpendigger(req, res, next) {
     if (!created) {
         data.update(row);
     }
-    res.status(200).json(row);
+    res.status(500).json(row);
 }
 
 export async function getOpenRank(projectPath) {

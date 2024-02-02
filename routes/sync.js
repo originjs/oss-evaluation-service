@@ -18,7 +18,7 @@ import { getMetricActivity } from '../controllers/compass.js';
  *         application/json:
  *     responses:
  *       200:
- *         description: The created book.
+ *         description: The created data.
  *       500:
  *         description: Some server error
  *
@@ -43,7 +43,7 @@ router.route('/compass').post(getMetricActivity);
  *                 type: string
  *     responses:
  *       200:
- *         description: The created book.
+ *         description: The created data.
  *
  */
 router.route('/opendigger').post(syncOpendigger);
