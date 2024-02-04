@@ -2,7 +2,7 @@ import express from 'express';
 
 const router = express.Router();
 import {syncOpendiggerHandler} from '../controllers/opendigger.js';
-import {getMetricActivity} from '../controllers/compass.js';
+import {getMetricActivity, syncMetricActivity} from '../controllers/compass.js';
 import {syncProjectHandler} from '../controllers/sync.js';
 import {syncDownloadCount} from '../controllers/downloadCount.js';
 import {syncScorecardHandler} from '../controllers/scorecard.js';
