@@ -1,20 +1,52 @@
 import express from 'express';
-const router = express.Router();
-import { syncOpendiggerHandler } from '../controllers/opendigger.js';
-import { getMetricActivity } from '../controllers/compass.js';
-import { syncProjectHandler } from '../controllers/sync.js';
-import { syncDownloadCount} from '../controllers/downloadCount.js';
-import { syncScorecardHandler } from '../controllers/scorecard.js';
 
+const router = express.Router();
+import {syncOpendiggerHandler} from '../controllers/opendigger.js';
+import {getMetricActivity} from '../controllers/compass.js';
+import {syncProjectHandler} from '../controllers/sync.js';
+import {syncDownloadCount} from '../controllers/downloadCount.js';
+import {syncScorecardHandler} from '../controllers/scorecard.js';
 
 /**
  * @swagger
  * tags:
  *   name: Compass
- *   description: 获取Compass数据
  * /sync/compass:
  *   post:
  *     summary: 获取Compass数据
+ *     tags: [Compass]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               label:
+ *                 type: string
+ *                 example: "https://github.com/vuejs/vue"
+ *               level:
+ *                 type: string
+ *                 example: "repo"
+ *               beginDate:
+ *                 type: string
+ *                 example: null
+ *               endDate:
+ *                 type: string
+ *                 example: null
+ *     responses:
+ *       200:
+ *         description: The created data.
+ */
+router.route("/sync/compass").post(getMetricActivity);
+
+/**
+ * @swagger
+ * tags:
+ *   name: Compass
+ * /sync/compassSync:
+ *   post:
+ *     summary: 集成Compass数据
  *     tags: [Compass]
  *     requestBody:
  *       required: false
@@ -23,11 +55,9 @@ import { syncScorecardHandler } from '../controllers/scorecard.js';
  *     responses:
  *       200:
  *         description: The created data.
- *       500:
- *         description: Some server error
- *
  */
-router.route('/sync/compass').post(getMetricActivity);
+router.route("/sync/compassSync").post(syncMetricActivity);
+
 
 /**
  * @swagger
@@ -113,7 +143,7 @@ router.route('/syncDownloadCount').post(syncDownloadCount);
  *         description: Success
  *       400:
  *         description: Bad Request
- *       
+ *
  */
 router.route('/scorecard').post(syncScorecardHandler);
 
