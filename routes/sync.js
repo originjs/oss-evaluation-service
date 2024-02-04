@@ -3,6 +3,7 @@ const router = express.Router();
 import { syncOpendiggerHandler } from '../controllers/opendigger.js';
 import { getMetricActivity } from '../controllers/compass.js';
 import { syncProjectHandler } from '../controllers/sync.js';
+import { syncDownloadCount} from '../controllers/downloadCount.js';
 
 /**
  * @swagger
@@ -63,5 +64,30 @@ router.route('/sync/opendigger').post(syncOpendiggerHandler);
  *         description: success.
  */
 router.route('/sync/:projecId').post(syncProjectHandler);
+
+/**
+ * @swagger
+ * /syncDownloadCount:
+ *   post:
+ *     summary: 获取downloadCount数据
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               start:
+ *                 type: string
+ *               end:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: The created book.
+ *
+ */
+router.route('/syncDownloadCount').post(syncDownloadCount);
 
 export default router;
