@@ -24,6 +24,8 @@ export const OpenDigger = sequelize.define(
   },
   {
     tableName: 'opendigger_info',
-    timestamps: false
+    timestamps: true,
+    createdAt: false,
+    updatedAt: true
   }
 );

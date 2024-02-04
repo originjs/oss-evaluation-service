@@ -1,3 +1,4 @@
+import async from 'async';
 import { OpenDigger } from '../models/OpenDigger.js';
 import { ProjectTechStack } from '../models/ProjectTechStack.js';
 import { ServerError } from '../util/error.js';
@@ -17,19 +18,26 @@ export async function syncOpendiggerHandler(req, res, next) {
             res.status(200).json(result);
         } // sync a category
         else if (req.body.category) {
-            const projects = await ProjectTechStack.findAll({ where: { category: req.body.category } });
-            for (let project of projects) {
+            let options = req.body.category == 'all' ? {} : { where: { category: req.body.category } };
+            const projects = await ProjectTechStack.findAll(options);
+            // 控制并发请求5个
+            async.mapLimit(projects, 5, async function (project) {
                 try {
                     const projectPath = project.html_url.substring('https://github.com/'.length);
-                    syncOpendigger(project.project_id, projectPath);
+                    await syncOpendigger(project.project_id, projectPath);
                 } catch (e) {
                     if (!(e instanceof ServerError)) {
                         throw e;
                     }
                 }
-            }
-            res.status(200).json({ status: 'success',
-             projects: projects.map(item => item.name) });
+            },
+                function (err, resutlst) {
+                    if (err) throw err;
+                });
+            res.status(200).json({
+                status: 'success',
+                projects: projects.map(item => item.name)
+            });
         }
     } catch (e) {
         res.status(500).json({ erorr: e.message });

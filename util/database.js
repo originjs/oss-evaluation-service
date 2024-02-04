@@ -6,6 +6,11 @@ const sequelize = new Sequelize(process.env.DATABASE_URL,
       ssl: {
         rejectUnauthorized: true
       }
+    },
+    pool:{
+      max: 10,
+      min:0,
+      idle: 20000
     }
   });
 

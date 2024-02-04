@@ -8,6 +8,7 @@
     "start": "node ./bin/www.js"
   },
   "dependencies": {
+    "async": "^3.2.5",
     "debug": "^4.3.4",
     "dotenv": "^16.4.1",
     "express": "^4.18.2",
