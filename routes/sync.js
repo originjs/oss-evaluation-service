@@ -1,14 +1,15 @@
 import express from 'express';
 const router = express.Router();
-import { syncOpendigger } from '../controllers/opendigger.js';
+import { syncOpendiggerHandler } from '../controllers/opendigger.js';
 import { getMetricActivity } from '../controllers/compass.js';
+import { syncProjectHandler } from '../controllers/sync.js';
 
 /**
  * @swagger
  * tags:
  *   name: Compass
  *   description: 获取Compass数据
- * /compass:
+ * /sync/compass:
  *   post:
  *     summary: 获取Compass数据
  *     tags: [Compass]
@@ -23,11 +24,11 @@ import { getMetricActivity } from '../controllers/compass.js';
  *         description: Some server error
  *
  */
-router.route('/compass').post(getMetricActivity);
+router.route('/sync/compass').post(getMetricActivity);
 
 /**
  * @swagger
- * /opendigger:
+ * /sync/opendigger:
  *   post:
  *     summary: 获取Opendigger数据
  *     requestBody:
@@ -39,13 +40,28 @@ router.route('/compass').post(getMetricActivity);
  *             properties:
  *               id:
  *                 type: string
- *               path:
+ *               category:
  *                 type: string
  *     responses:
  *       200:
  *         description: The created data.
- *
  */
-router.route('/opendigger').post(syncOpendigger);
+router.route('/sync/opendigger').post(syncOpendiggerHandler);
+
+/**
+ * @swagger
+ * /sync/{projecId}:
+ *   post:
+ *     summary: 同步单个项目数据
+ *     parameters:
+ *       - in: path
+ *         name: projecId
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/sync/:projecId').post(syncProjectHandler);
 
 export default router;
