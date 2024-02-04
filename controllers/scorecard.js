@@ -2,7 +2,6 @@ import async from 'async';
 import { Scorecard } from '../models/Scorecard.js';
 import { ProjectTechStack } from '../models/ProjectTechStack.js';
 import { ServerError, BadRequestError, DbError } from '../util/error.js';
-import { chunk } from '../util/database.js';
 
 export async function syncScorecardHandler(req, res, next) {
   try {
