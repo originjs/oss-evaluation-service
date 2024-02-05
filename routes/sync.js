@@ -6,6 +6,7 @@ import {getMetricActivity, syncMetricActivity} from '../controllers/compass.js';
 import {syncProjectHandler} from '../controllers/sync.js';
 import {syncDownloadCount, syncWeekOfMonth} from '../controllers/downloadCount.js';
 import {syncScorecardHandler} from '../controllers/scorecard.js';
+import { syncPackageSize } from '../controllers/packageSize.js';
 
 /**
  * @swagger
@@ -170,5 +171,27 @@ router.route('/syncDownloadCount').post(syncDownloadCount);
  *
  */
 router.route('/scorecard').post(syncScorecardHandler);
+
+/**
+ * @swagger
+ * /syncPackagesize:
+ *   post:
+ *     summary: 获取单个项目包大小数据
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               version:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: The created data.
+ */
+router.route('/syncPackagesize').post(syncPackageSize);
 
 export default router;
