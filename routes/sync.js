@@ -4,6 +4,7 @@ import { syncOpendiggerHandler } from '../controllers/opendigger.js';
 import { getMetricActivity } from '../controllers/compass.js';
 import { syncProjectHandler } from '../controllers/sync.js';
 import { syncDownloadCount} from '../controllers/downloadCount.js';
+import { syncPackageSize } from '../controllers/packageSize.js';
 
 /**
  * @swagger
@@ -89,5 +90,27 @@ router.route('/sync/:projecId').post(syncProjectHandler);
  *
  */
 router.route('/syncDownloadCount').post(syncDownloadCount);
+
+/**
+ * @swagger
+ * /syncPackagesize:
+ *   post:
+ *     summary: 获取单个项目包大小数据
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               version:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: The created data.
+ */
+router.route('/syncPackagesize').post(syncPackageSize);
 
 export default router;
