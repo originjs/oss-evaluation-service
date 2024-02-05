@@ -70,10 +70,10 @@ export async function sendRequestGetDownloadCountByPoint(start, end, name) {
  * 包下载量实体
  */
 class DownloadCountDO {
-    constructor(date, package_name, download_count) {
+    constructor(date, packageName, downloadCount) {
         this.date = date;
-        this.packageName = package_name;
-        this.downloadCount = download_count;
+        this.packageName = packageName;
+        this.downloadCount = downloadCount;
     }
 }
 
