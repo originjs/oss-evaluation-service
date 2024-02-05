@@ -4,7 +4,7 @@ const router = express.Router();
 import {syncOpendiggerHandler} from '../controllers/opendigger.js';
 import {getMetricActivity, syncMetricActivity} from '../controllers/compass.js';
 import {syncProjectHandler} from '../controllers/sync.js';
-import {syncDownloadCount} from '../controllers/downloadCount.js';
+import {syncDownloadCount, syncWeekOfMonth} from '../controllers/downloadCount.js';
 import {syncScorecardHandler} from '../controllers/scorecard.js';
 
 /**
@@ -96,6 +96,30 @@ router.route('/sync/opendigger').post(syncOpendiggerHandler);
  *         description: success.
  */
 router.route('/sync/:projecId').post(syncProjectHandler);
+
+/**
+ * @swagger
+ * /syncWeekOfMonth:
+ *   post:
+ *     summary: 获取week of month数据
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               start:
+ *                 type: string
+ *                 example: "2017-01-01"
+ *               end:
+ *                 example: "2037-12-31"
+ *     responses:
+ *       200:
+ *         description: The created book.
+ *
+ */
+router.route('/syncWeekOfMonth').post(syncWeekOfMonth);
 
 /**
  * @swagger
