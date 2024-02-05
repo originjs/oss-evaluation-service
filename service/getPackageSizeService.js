@@ -1,4 +1,4 @@
-import {PackageSizeInfo} from '../models/PackageSizeInfo.js';
+import {PackageSizeDetail} from '../models/PackageSizeDetail.js';
 import axios from 'axios'
 import { ServerError } from '../util/error.js';
 
@@ -10,13 +10,14 @@ export async function syncSinglePackageSize(req, res, next) {
         throw new ServerError(packageInfo.erorr);
     }
     const row = {
-        name: name,
-        version: version,
-        size_of_gzip: packageInfo.gzip,
+        package_name: name,
+        version: packageInfo.version,
+        gzip_sie: packageInfo.gzip,
         size: packageInfo.size,
-        repository: packageInfo.repository
+        clone_url: packageInfo.repository,
+        dependency_count: packageInfo.dependencyCount
     };
-    await PackageSizeInfo.upsert(row).then(info => {
+    await PackageSizeDetail.upsert(row).then(info => {
         console.log('Upsert package size:', info);
     }).catch(err => {
         console.error("package size save to database failed:", err);
@@ -26,17 +27,24 @@ export async function syncSinglePackageSize(req, res, next) {
 }
 
 export async function getPackageSize(name, version) {
-    const url = `https://bundlephobia.com/api/size?package=${name}@${version}&record=true`;
+    let url = `https://bundlephobia.com/api/size?package=${name}`;
+    if (version != null) {
+       url =  url + `@${version}&record=true`;
+    }
     const response = await axios.get(url);
 
     if (response.status == 200) {
         const assets = response.data.assets;
         const repository = response.data.repository;
+        const dependencyCount = response.data.dependencyCount;
+        const version = response.data.version;
         if (assets.length > 0 && response.data.repository.length > 0) {
             return {
                 gzip: assets[0].gzip,
                 size: assets[0].size,
-                repository: repository
+                repository: repository,
+                dependencyCount: dependencyCount,
+                version: version
             };
         }
     }

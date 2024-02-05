@@ -1,8 +1,8 @@
 import {DataTypes, Model} from "sequelize";
 import sequelize from '../util/database.js';
 
-export const PackageSizeInfo = sequelize.define(
-    "PackageSizeInfo",
+export const PackageSizeDetail = sequelize.define(
+    "PackageSizeDetail",
     {
         id: {
             autoIncrement: true,
@@ -10,15 +10,15 @@ export const PackageSizeInfo = sequelize.define(
             allowNull: false,
             primaryKey: true
         },
-        name: {
-            type: DataTypes.STRING(200),
+        package_name: {
+            type: DataTypes.STRING(50),
             allowNull: true
         },
         version: {
-            type: DataTypes.STRING(200),
+            type: DataTypes.STRING(50),
             allowNull: true
         },
-        repository: {
+        clone_url: {
             type: DataTypes.STRING(512),
             allowNull: true
         },
@@ -27,33 +27,29 @@ export const PackageSizeInfo = sequelize.define(
             allowNull: true,
             comment: "包大小"
         },
-        size_of_gzip: {
+        gzip_sie: {
             type: DataTypes.INTEGER,
             allowNull: true,
             comment: "gzip格式包大小"
         },
-        create_time: {
+        dependency_count: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            comment: "依赖数量"
+        },
+        createAt: {
             type: DataTypes.DATE,
             allowNull: true,
             comment: "创建时间"
         },
-        last_updated_time: {
+        updatedAt: {
             type: DataTypes.DATE,
             allowNull: true,
             comment: "最近更新时间"
-        },
-        is_valid: {
-            type: DataTypes.BOOLEAN,
-            allowNull: false,
-            defaultValue: 1
-        },
-        description: {
-            type: DataTypes.STRING(512),
-            allowNull: true
         }
     },
     {
-        tableName: 'package_size_info',
+        tableName: 'package_size_detail',
         timestamps: false,
         indexes: [
             {
@@ -65,22 +61,20 @@ export const PackageSizeInfo = sequelize.define(
                 ]
             },
             {
-                name: "package_size_info_pk",
+                name: "pk_package_size_detail",
                 unique: true,
                 using: "BTREE",
                 fields: [
-                    {name: "name"},
+                    {name: "package_name"},
                     {name: "version"},
-                    {name: "repository"},
                 ]
             },
             {
-                name: "psi",
+                name: "index_package_size_detail",
                 using: "BTREE",
                 fields: [
-                    {name: "name"},
+                    {name: "package_name"},
                     {name: "version"},
-                    {name: "repository"},
                 ]
             },
         ]
