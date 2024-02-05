@@ -10,7 +10,7 @@ export async function syncOpendiggerHandler(req, res, next) {
             const projectId = req.body.id;
             const project = await ProjectTechStack.findByPk(projectId);
             if (!project) {
-                res.status(500).json({ erorr: 'can not find project!' });
+                res.status(500).json({ error: 'can not find project!' });
                 return;
             }
             const projectPath = project.html_url.substring('https://github.com/'.length);
@@ -40,18 +40,18 @@ export async function syncOpendiggerHandler(req, res, next) {
             });
         }
     } catch (e) {
-        res.status(500).json({ erorr: e.message });
+        res.status(500).json({ error: e.message });
     }
 }
 
 export async function syncOpendigger(projecId, projectPath) {
     const rank = await getOpenRank(projectPath);
-    if (rank.erorr) {
-        throw new ServerError(rank.erorr);
+    if (rank.error) {
+        throw new ServerError(rank.error);
     }
     const bus = await getBusFactor(projectPath);
-    if (bus.erorr) {
-        throw new ServerError(bus.erorr);
+    if (bus.error) {
+        throw new ServerError(bus.error);
     }
     const row = {
         openrank: rank.openrank,
@@ -83,9 +83,9 @@ export async function getOpenRank(projectPath) {
                 };
             }
         }
-        return { erorr: `fetch openrank.json failed: no data ${year}` };
+        return { error: `fetch openrank.json failed: no data ${year}` };
     } else {
-        return { erorr: `fetch openrank.json failed: ${response.statusText}` };
+        return { error: `fetch openrank.json failed: ${response.statusText}` };
     }
 }
 
@@ -102,8 +102,8 @@ export async function getBusFactor(projectPath) {
                 };
             }
         }
-        return { erorr: `fetch openrank.json failed: no data ${year}` };
+        return { error: `fetch openrank.json failed: no data ${year}` };
     } else {
-        return { erorr: `fetch openrank.json failed: ${response.statusText}` };
+        return { error: `fetch openrank.json failed: ${response.statusText}` };
     }
 }
