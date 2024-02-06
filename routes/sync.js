@@ -134,12 +134,9 @@ router.route('/syncWeekOfMonth').post(syncWeekOfMonth);
  *           schema:
  *             type: object
  *             properties:
- *               start:
+ *               startDate:
  *                 type: string
- *               end:
- *                 type: string
- *               name:
- *                 type: string
+ *                 example: "2017-01-01"
  *     responses:
  *       200:
  *         description: The created book.

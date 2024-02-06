@@ -16,24 +16,36 @@ export const PackageDownloadCountMapper = sequelize.define(
             allowNull: true,
             comment: "包名",
         },
-        date: {
-            field: 'date',
+        startDate: {
+            field: 'start_date',
             type: DataTypes.DATEONLY,
             allowNull: true,
-            comment: "时间"
+            comment: "起始时间"
         },
-        downloadCount: {
-            field: 'download_count',
+        endDate: {
+            field: 'end_date',
+            type: DataTypes.DATEONLY,
+            allowNull: true,
+            comment: "结束时间"
+        },
+        week: {
+            field: 'week',
+            type: DataTypes.STRING(50),
+            allowNull: true,
+            comment: "week of month",
+        },
+        downloads: {
+            field: 'downloads',
             type: DataTypes.INTEGER,
             allowNull: true,
             comment: "下载量",
         },
-        lastUpdatedTime: {
-            field: 'last_updated_time',
+        createdAt: {
+            field: 'created_at',
             type: DataTypes.DATE,
             allowNull: true,
             defaultValue: sequelize.Sequelize.literal('CURRENT_TIMESTAMP'),
-            comment: "最近更新时间",
+            comment: "创建时间",
         }
     },
     {
@@ -50,12 +62,12 @@ export const PackageDownloadCountMapper = sequelize.define(
                 ]
             },
             {
-                name: "package_download_count_package_name_date_uindex",
+                name: "package_download_count_package_name_week_uindex",
                 unique: true,
                 using: "BTREE",
                 fields: [
                     {name: "package_name"},
-                    {name: "date"},
+                    {name: "week"},
                 ]
             },
         ]
