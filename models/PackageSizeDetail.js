@@ -27,7 +27,7 @@ export const PackageSizeDetail = sequelize.define(
             allowNull: true,
             comment: "包大小"
         },
-        gzip_sie: {
+        gzip_size: {
             type: DataTypes.INTEGER,
             allowNull: true,
             comment: "gzip格式包大小"
