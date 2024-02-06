@@ -137,6 +137,9 @@ router.route('/syncWeekOfMonth').post(syncWeekOfMonth);
  *               startDate:
  *                 type: string
  *                 example: "2017-01-01"
+ *               projectId:
+ *                 type: int
+ *                 example: 1
  *     responses:
  *       200:
  *         description: The created book.
