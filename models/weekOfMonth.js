@@ -11,35 +11,28 @@ export const WeekOfMonthMapper = sequelize.define(
             primaryKey: true
         },
         start: {
-            field: 'start',
             type: DataTypes.DATEONLY,
             allowNull: true,
-            comment: "起始时间"
         },
         end: {
-            field: 'end',
             type: DataTypes.DATEONLY,
             allowNull: true,
-            comment: "结束时间"
         },
         weekOfMonth: {
-            field: 'week_of_month',
             type: DataTypes.STRING(10),
             allowNull: true,
-            comment: "月第几周",
         },
         createdAt: {
-            field: 'created_at',
             type: DataTypes.DATE,
             allowNull: true,
             defaultValue: sequelize.Sequelize.literal('CURRENT_TIMESTAMP'),
-            comment: "创建时间",
         }
     },
     {
         sequelize,
         tableName: 'week_of_month',
         timestamps: false,
+        underscored: true,
         indexes: [
             {
                 name: "PRIMARY",

@@ -9,30 +9,21 @@ export async function geneWeekOfMonth(firstDate, secondDate) {
         let week = getWeekOfMonth(startDate);
         if (set.has(week)) {
             end = new Date(startDate);
-            let weekOfMonth = new WeekOfMonthDO(start, end, week);
-            await WeekOfMonthMapper.upsert(weekOfMonth).then(weekOfMonth => {
+            await WeekOfMonthMapper.upsert({
+                start: start,
+                end: end,
+                week: week,
+            }).then(weekOfMonth => {
                 console.log('Created weekOfMonth:', weekOfMonth);
             })
                 .catch(err => {
                     console.error('Error creating weekOfMonth:', err);
                 });
-            console.log(weekOfMonth);
         } else {
             start = new Date(startDate);
         }
         set.add(week)
         startDate.setDate(startDate.getDate() + 1);
-    }
-}
-
-/**
- * WeekOfMonthDO
- */
-class WeekOfMonthDO {
-    constructor(start, end, weekOfMonth) {
-        this.start = start;
-        this.end = end;
-        this.weekOfMonth = weekOfMonth;
     }
 }
 
@@ -42,24 +33,23 @@ export function getWeekOfMonth(str) {
     let month = date.getMonth() + 1;
     let year = date.getFullYear();
     let dateN = new Date(str);
-    //月份第一天
+    //the first day of the month
     dateN = new Date(dateN.setDate(1));
     let w1 = dateN.getDay();
-    // 将字符串转为标准时间格式
-    let w = date.getDay();//周几
-    //当月第一天不是周天，当前日期是周天
+    // Convert strings to standard time format
+    let w = date.getDay();
+    // The first day of the month is not a Sunday, the current date is a Sunday
     if (w === 0 && w1 != 0) {
         w = 7;
     }
     let week = Math.ceil((date.getDate() + 6 - w) / 7);
-    //当月第一天不是周一
+    // The first day of the month is not Monday
     if (w1 != 1) {
         week = Math.ceil((date.getDate() + 6 - w) / 7) - 1;
     }
-    //第0周归于上月的最后一周
+    // Week 0 belongs to the last week of the previous month
     if (week === 0) {
         month = date.getMonth();
-        //跨年
         if (month === 0) {
             month = 12;
             year = year - 1;

@@ -5,17 +5,14 @@ export const ProjectPackageMapper = sequelize.define(
     "ProjectPackage",
     {
         projectId: {
-            field: 'project_id',
             type: DataTypes.BIGINT,
             allowNull: false,
         },
         projectName: {
-            field: 'project_name',
             type: DataTypes.STRING(255),
             allowNull: true,
         },
         package: {
-            field: 'package',
             type: DataTypes.STRING(255),
             allowNull: true,
         }
@@ -23,6 +20,7 @@ export const ProjectPackageMapper = sequelize.define(
     {
         sequelize,
         tableName: 'project_packages',
+        underscored: true,
         timestamps: false,
         indexes: [
             {
