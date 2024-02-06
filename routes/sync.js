@@ -6,7 +6,7 @@ import {getMetricActivity, syncMetricActivity} from '../controllers/compass.js';
 import {syncProjectHandler} from '../controllers/sync.js';
 import {syncDownloadCount} from '../controllers/downloadCount.js';
 import {syncScorecardHandler} from '../controllers/scorecard.js';
-import { syncPackageSize } from '../controllers/packageSize.js';
+import { syncPackageSize, syncGitHubProjectPackageSize } from '../controllers/packageSize.js';
 
 /**
  * @swagger
@@ -169,5 +169,22 @@ router.route('/scorecard').post(syncScorecardHandler);
  *         description: The created data.
  */
 router.route('/syncPackagesize').post(syncPackageSize);
+
+/**
+ * @swagger
+ * /syncGitHubProjectPackageSize:
+ *   post:
+ *     summary: 获取所有Github项目包大小数据
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: The created data.
+ */
+router.route('/syncGitHubProjectPackageSize').post(syncGitHubProjectPackageSize);
 
 export default router;
