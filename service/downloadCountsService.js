@@ -1,43 +1,172 @@
 import {PackageDownloadCountMapper} from '../models/PackageDownloadCount.js';
+import {WeekOfMonthMapper} from "../models/weekOfMonth.js";
+import {ProjectPackageMapper} from "../models/ProjectPackage.js";
+import {Op} from "sequelize";
 
-/**
- * 发送请求获取包下载量
- *
- * @param req 请求参数
- * @returns response 包下载量列表
- */
 export async function getDownloadCount(req) {
-    const start = req.body.start
-    let end = req.body.end;
-    const name = req.body.name;
-    // 获取下载量
-    let downloadCount
-    try {
-        downloadCount = await sendRequestGetDownloadCountByRange(start, end, name);
-    } catch (e) {
-        console.log(e);
-        return;
-    }
-    let downloadCountList = [];
-    for (let i = 0; i < downloadCount.downloads.length; i++) {
-        let item = downloadCount.downloads[i];
-        let d = new DownloadCountDO(item.day, downloadCount.package, item.downloads);
-        downloadCountList.push(d);
-    }
+    const startDate = req.body.startDate;
+    const projectId = req.body.projectId;
+    await getDownloadCountByMultiPackage(startDate, projectId);
+    await getDownloadCountBySinglePackage(startDate, projectId);
+}
 
-    if (downloadCountList.length > 0) {
-        await insertOrUpdateBatchDownloadCount(downloadCountList);
+async function getDownloadCountByMultiPackage(startDate, projectId) {
+    let currentDate = new Date();
+    let weekOfMonthList = await WeekOfMonthMapper.findAll({
+        where: {
+            start: {
+                [Op.gte]: startDate
+            },
+            end: {
+                [Op.lte]: currentDate
+            }
+        }
+    });
+    let projectCount = await ProjectPackageMapper.count({
+        where: {
+            package: {
+                [Op.notLike]: '%/%'
+            }
+        }
+    });
+    const Page = 128;
+    let begin = 0;
+    for (begin; begin < projectCount; begin += Page) {
+        let downloadCountList = [];
+        let projectsList = await ProjectPackageMapper.findAll({
+            attributes: ['project_id', 'package'],
+            offset: begin,
+            limit: Page,
+            where: {
+                package: {
+                    [Op.notLike]: '%/%'
+                },
+                project_id: {
+                    [Op.gte]: projectId
+                }
+            },
+            order: [['project_id', 'ASC']]
+        });
+        // Splicing batch query paths
+        let packageName = "" + projectsList[0].dataValues.package;
+        for (let j = 1; j < projectsList.length; j++) {
+            packageName += "," + projectsList[j].dataValues.package;
+        }
+        for (let i = 0; i < weekOfMonthList.length; i++) {
+            let hasError = await dealDownloadCountByMultiPackage(weekOfMonthList[i].dataValues, packageName, downloadCountList);
+            if (hasError) {
+                return
+            }
+        }
+        console.log('getDownloadCountByMultiPackage:project_id:%s,packageName:%s', projectsList[0].dataValues.project_id, projectsList[0].dataValues.package)
+        if (downloadCountList.length > 0) {
+            await insertBatchDownloadCount(downloadCountList);
+        }
     }
 }
 
-/**
- * 发送请求获取包下载量
- *
- * @param start 开始时间
- * @param end 结束时间
- * @param name 包明
- * @returns response 包下载量列表
- */
+
+async function getDownloadCountBySinglePackage(startDate, projectId) {
+    let currentDate = new Date();
+    let weekOfMonthList = await WeekOfMonthMapper.findAll({
+        where: {
+            start: {
+                [Op.gte]: startDate
+            },
+            end: {
+                [Op.lte]: currentDate
+            }
+        }
+    });
+    let projectCount = await ProjectPackageMapper.count({
+        where: {
+            package: {
+                [Op.like]: '%/%'
+            }
+        }
+    });
+    const Page = 128;
+    let begin = 0;
+    for (begin; begin < projectCount; begin += Page) {
+        let projectsList = await ProjectPackageMapper.findAll({
+            attributes: ['project_id', 'package'],
+            offset: begin,
+            limit: Page,
+            where: {
+                package: {
+                    [Op.like]: '%/%'
+                },
+                project_id: {
+                    [Op.gte]: projectId
+                }
+            },
+            order: [['project_id', 'ASC']]
+        });
+        for (let i = 0; i < projectsList.length; i++) {
+            let packageName = projectsList[i].dataValues.package;
+            for (let j = 0; j < weekOfMonthList.length; j++) {
+                let hasError = await dealDownloadCountBySinglePackage(weekOfMonthList[j].dataValues, packageName);
+                if (hasError) {
+                    return;
+                }
+            }
+            console.log('getDownloadCountBySinglePackage:project_id:%s,packageName:%s', projectsList[i].dataValues.project_id, packageName);
+        }
+    }
+}
+
+async function dealDownloadCountByMultiPackage(weekOfMonth, packageName, downloadCountList) {
+    let downloadCountJson;
+    let flag = false;
+    try {
+        downloadCountJson = await sendRequestGetDownloadCountByPoint(weekOfMonth.start, weekOfMonth.end, packageName);
+    } catch (e) {
+        console.log(packageName + " sendRequest error!!")
+        console.log(e);
+        flag = true
+    }
+    if (flag) {
+        return flag
+    }
+    for (let key in downloadCountJson) {
+        if (downloadCountJson.hasOwnProperty(key)) {
+            let downloadCount = downloadCountJson[key]
+            if (downloadCount == null) {
+                continue;
+            }
+            downloadCountList.push({
+                package: downloadCount.package,
+                start: downloadCount.start,
+                end: downloadCount.end,
+                weekOfMonth: weekOfMonth.weekOfMonth,
+                downloads: downloadCount.downloads
+            });
+        }
+    }
+}
+
+async function dealDownloadCountBySinglePackage(weekOfMonth, packageName) {
+    let downloadCountJson;
+    let flag = false;
+    try {
+        downloadCountJson = await sendRequestGetDownloadCountByPoint(weekOfMonth.start, weekOfMonth.end, packageName);
+    } catch (e) {
+        console.log(packageName + " sendRequest error!!")
+        console.log(e);
+        flag = true
+    }
+    if (flag) {
+        return flag
+    }
+    await insertOrUpdateDownloadCount({
+        package: downloadCountJson.package,
+        start: downloadCountJson.start,
+        end: downloadCountJson.end,
+        weekOfMonth: weekOfMonth.weekOfMonth,
+        downloads: downloadCountJson.downloads
+    });
+}
+
 export async function sendRequestGetDownloadCountByRange(start, end, name) {
     const response = await fetch(`https://api.npmjs.org/downloads/range/${start}:${end}/${name}`);
     if (response.ok) {
@@ -48,14 +177,6 @@ export async function sendRequestGetDownloadCountByRange(start, end, name) {
     }
 }
 
-/**
- * 发送请求获取包下载量
- *
- * @param start 开始时间
- * @param end 结束时间
- * @param name 包明
- * @returns response 包下载量列表
- */
 export async function sendRequestGetDownloadCountByPoint(start, end, name) {
     const response = await fetch(`https://api.npmjs.org/downloads/point/${start}:${end}/${name}`);
     if (response.ok) {
@@ -66,23 +187,6 @@ export async function sendRequestGetDownloadCountByPoint(start, end, name) {
     }
 }
 
-/**
- * 包下载量实体
- */
-class DownloadCountDO {
-    constructor(date, package_name, download_count) {
-        this.date = date;
-        this.packageName = package_name;
-        this.downloadCount = download_count;
-    }
-}
-
-/**
- * 批量插入包下载量
- *
- * @param downloadCountList 包下载量列表
- * @returns void
- */
 export async function insertBatchDownloadCount(downloadCountList) {
     PackageDownloadCountMapper.bulkCreate(downloadCountList).then(downloadCount => {
         console.log('Created DownloadCount:', downloadCount);
@@ -92,12 +196,6 @@ export async function insertBatchDownloadCount(downloadCountList) {
         });
 }
 
-/**
- * 批量插入或更新包下载量
- *
- * @param downloadCountList 包下载量列表
- * @returns void
- */
 export async function insertOrUpdateBatchDownloadCount(downloadCountList) {
     for (let i = 0; i < downloadCountList.length; i++) {
         PackageDownloadCountMapper.upsert(downloadCountList[i]).then(downloadCount => {
@@ -107,5 +205,14 @@ export async function insertOrUpdateBatchDownloadCount(downloadCountList) {
                 console.error('Error creating DownloadCount:', err);
             });
     }
+}
+
+export async function insertOrUpdateDownloadCount(downloadCount) {
+    PackageDownloadCountMapper.upsert(downloadCount).then(downloadCount => {
+        console.log('Created DownloadCount:', downloadCount);
+    })
+        .catch(err => {
+            console.error('Error creating DownloadCount:', err);
+        });
 }
 
