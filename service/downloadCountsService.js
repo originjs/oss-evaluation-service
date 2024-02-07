@@ -135,10 +135,10 @@ async function dealDownloadCountByMultiPackage(weekOfMonth, packageName, downloa
                 continue;
             }
             downloadCountList.push({
-                package: downloadCount.package,
-                start: downloadCount.start,
-                end: downloadCount.end,
-                weekOfMonth: weekOfMonth.weekOfMonth,
+                packageName: downloadCountJson.package,
+                startDate: downloadCountJson.start,
+                endDate: downloadCountJson.end,
+                week: weekOfMonth.weekOfMonth,
                 downloads: downloadCount.downloads
             });
         }
@@ -159,10 +159,10 @@ async function dealDownloadCountBySinglePackage(weekOfMonth, packageName) {
         return flag
     }
     await insertOrUpdateDownloadCount({
-        package: downloadCountJson.package,
-        start: downloadCountJson.start,
-        end: downloadCountJson.end,
-        weekOfMonth: weekOfMonth.weekOfMonth,
+        packageName: downloadCountJson.package,
+        startDate: downloadCountJson.start,
+        endDate: downloadCountJson.end,
+        week: weekOfMonth.weekOfMonth,
         downloads: downloadCountJson.downloads
     });
 }
