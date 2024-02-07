@@ -1,9 +1,9 @@
-import {PackageSizeDetail} from '../models/PackageSizeDetail.js';
-import {ServerError} from '../util/error.js';
-import {GithubProjects} from "../models/GithubProjects.js";
-import debug from "debug";
-import {ProjectPackages} from "../models/ProjectPackages.js";
-import {Op} from 'sequelize'
+import debug from 'debug';
+import { Op } from 'sequelize';
+import PackageSizeDetail from '../models/PackageSizeDetail.js';
+import { ServerError } from '../util/error.js';
+import GithubProjects from '../models/GithubProjects.js';
+import ProjectPackages from '../models/ProjectPackages.js';
 
 export async function syncSinglePackageSize(req, res, next) {
     const name = req.body.name
@@ -57,13 +57,9 @@ export async function getPackageSize(name, version) {
     } catch (err) {
         debug.log('fetch fail:', name)
     }
-
-    return {
-        erorr: 'fetch package size failed'
-    }
 }
 
-export async function getGitHubProjectPackageSize(req, res, next) {
+export async function   getGitHubProjectPackageSize(req, res, next) {
     debug.log('packageSize integration startup');
     // Get the package of GitHub project in the database
     GithubProjects.hasOne(ProjectPackages, {foreignKey: 'project_id'})
@@ -100,10 +96,10 @@ export async function getGitHubProjectPackageSize(req, res, next) {
         let packageSizeList = [];
 
         for (const item of packageList) {
-            if (item.project_package.dataValues.length == 0) {
+            if (item.ProjectPackage.dataValues.length == 0) {
                 continue;
             }
-            let packages = item.project_package.dataValues;
+            let packages = item.ProjectPackage.dataValues;
             const packageInfo = await getPackageSize(packages.package, null);
             if (packageInfo.erorr) {
                 debug.log('package name: ', packages.package, ' there is no data with package size present');

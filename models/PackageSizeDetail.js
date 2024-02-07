@@ -1,26 +1,26 @@
-import {DataTypes, Model} from "sequelize";
+import { DataTypes } from 'sequelize';
 import sequelize from '../util/database.js';
 
-export const PackageSizeDetail = sequelize.define(
-    "PackageSizeDetail",
+export default sequelize.define(
+    'PackageSizeDetail',
     {
         id: {
             autoIncrement: true,
             type: DataTypes.INTEGER,
             allowNull: false,
-            primaryKey: true
+            primaryKey: true,
         },
         package_name: {
             type: DataTypes.STRING(50),
-            allowNull: true
+            allowNull: true,
         },
         version: {
             type: DataTypes.STRING(50),
-            allowNull: true
+            allowNull: true,
         },
         clone_url: {
             type: DataTypes.STRING(512),
-            allowNull: true
+            allowNull: true,
         },
         size: {
             type: DataTypes.INTEGER,
@@ -28,7 +28,7 @@ export const PackageSizeDetail = sequelize.define(
         },
         gzip_size: {
             type: DataTypes.INTEGER,
-            allowNull: true
+            allowNull: true,
         },
         dependency_count: {
             type: DataTypes.INTEGER,
@@ -36,42 +36,42 @@ export const PackageSizeDetail = sequelize.define(
         },
         createAt: {
             type: DataTypes.DATE,
-            allowNull: true
+            allowNull: true,
         },
         updatedAt: {
             type: DataTypes.DATE,
             allowNull: true
-        }
+        },
     },
     {
         tableName: 'package_size_detail',
         timestamps: false,
         indexes: [
             {
-                name: "PRIMARY",
+                name: 'PRIMARY',
                 unique: true,
-                using: "BTREE",
+                using: 'BTREE',
                 fields: [
-                    {name: "id"},
-                ]
+                    { name: 'id' },
+                ],
             },
             {
-                name: "pk_package_size_detail",
+                name: 'pk_package_size_detail',
                 unique: true,
-                using: "BTREE",
+                using: 'BTREE',
                 fields: [
-                    {name: "package_name"},
-                    {name: "version"},
-                ]
+                    { name: 'package_name' },
+                    { name: 'version' },
+                ],
             },
             {
-                name: "index_package_size_detail",
-                using: "BTREE",
+                name: 'index_package_size_detail',
+                using: 'BTREE',
                 fields: [
-                    {name: "package_name"},
-                    {name: "version"},
-                ]
+                    { name: 'package_name' },
+                    { name: 'version' },
+                ],
             },
-        ]
-    }
+        ],
+    },
 );

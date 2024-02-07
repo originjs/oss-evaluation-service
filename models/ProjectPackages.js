@@ -1,8 +1,8 @@
 import {DataTypes, Model} from "sequelize";
 import sequelize from '../util/database.js';
 
-export const ProjectPackages = sequelize.define(
-    "project_packages",
+export default sequelize.define(
+    "ProjectPackages",
     {
         project_id: {
             type: DataTypes.BIGINT,
