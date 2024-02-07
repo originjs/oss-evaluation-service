@@ -57,6 +57,10 @@ export async function getPackageSize(name, version) {
     } catch (err) {
         debug.log('fetch fail:', name)
     }
+
+    return {
+        erorr: 'fetch package size failed',
+    };
 }
 
 export async function   getGitHubProjectPackageSize(req, res, next) {
