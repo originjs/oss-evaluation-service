@@ -18,30 +18,32 @@ app.use(express.static('public'));
 // swagger
 const options = {
   definition: {
-    openapi: "3.1.0",
+    openapi: '3.1.0',
     info: {
-      title: "oss-integration-service API",
-      version: "0.1.0"
-    }
+      title: 'oss-integration-service API',
+      version: '0.1.0',
+    },
   },
-  apis: ["./routes/*.js"],
+  apis: ['./routes/*.js'],
 };
 
 const specs = swaggerJsdoc(options);
-app.use("/api-docs",
+app.use(
+  '/api-docs',
   swaggerUi.serve,
-  swaggerUi.setup(specs, { explorer: true }));
+  swaggerUi.setup(specs, { explorer: true }),
+);
 // mount routers
 app.use('/', indexRouter);
 app.use(router);
 
 // catch 404 and forward to error handler
-app.use(function (req, res, next) {
+app.use((req, res, next) => {
   next(createError(404));
 });
 
 // error handler
-app.use(function (err, req, res, next) {
+app.use((err, req, res) => {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};

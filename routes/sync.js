@@ -1,12 +1,12 @@
 import express from 'express';
+import { syncOpendiggerHandler } from '../controllers/opendigger.js';
+import { getMetricActivity, syncMetricActivity } from '../controllers/compass.js';
+import { syncProjectHandler } from '../controllers/sync.js';
+import { syncDownloadCount, syncWeekOfMonth } from '../controllers/downloadCount.js';
+import { syncScorecardHandler } from '../controllers/scorecard.js';
+import { syncPackageSize, syncGitHubProjectPackageSize } from '../controllers/packageSize.js';
 
 const router = express.Router();
-import {syncOpendiggerHandler} from '../controllers/opendigger.js';
-import {getMetricActivity, syncMetricActivity} from '../controllers/compass.js';
-import {syncProjectHandler} from '../controllers/sync.js';
-import {syncDownloadCount, syncWeekOfMonth} from '../controllers/downloadCount.js';
-import {syncScorecardHandler} from '../controllers/scorecard.js';
-import { syncPackageSize, syncGitHubProjectPackageSize } from '../controllers/packageSize.js';
 
 /**
  * @swagger
@@ -39,7 +39,7 @@ import { syncPackageSize, syncGitHubProjectPackageSize } from '../controllers/pa
  *       200:
  *         description: The created data.
  */
-router.route("/sync/compass").post(getMetricActivity);
+router.route('/sync/compass').post(getMetricActivity);
 
 /**
  * @swagger
@@ -57,8 +57,7 @@ router.route("/sync/compass").post(getMetricActivity);
  *       200:
  *         description: The created data.
  */
-router.route("/sync/compassSync").post(syncMetricActivity);
-
+router.route('/sync/compassSync').post(syncMetricActivity);
 
 /**
  * @swagger

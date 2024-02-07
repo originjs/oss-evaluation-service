@@ -1,29 +1,29 @@
-import { DataTypes, Model } from "sequelize";
+import { DataTypes } from 'sequelize';
 import sequelize from '../util/database.js';
 
-export const Scorecard = sequelize.define(
-  "Scorecard",
+export default sequelize.define(
+  'Scorecard',
   {
     project_id: {
       type: DataTypes.BIGINT,
       primaryKey: true,
-      allowNull: false
+      allowNull: false,
     },
     repo_name: {
-      type: DataTypes.STRING
+      type: DataTypes.STRING,
     },
     date: {
-      type: DataTypes.STRING
+      type: DataTypes.STRING,
     },
     score: {
-      type: DataTypes.INTEGER
+      type: DataTypes.INTEGER,
     },
     commit: {
-      type: DataTypes.STRING
-    }
+      type: DataTypes.STRING,
+    },
   },
   {
     tableName: 'scorecard_info',
-    timestamps: false
-  }
+    timestamps: false,
+  },
 );

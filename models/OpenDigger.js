@@ -1,8 +1,8 @@
-import { DataTypes, Model } from "sequelize";
+import { DataTypes } from 'sequelize';
 import sequelize from '../util/database.js';
 
-export const OpenDigger = sequelize.define(
-  "OpenDigger",
+export default sequelize.define(
+  'OpenDigger',
   {
     project_id: {
       type: DataTypes.BIGINT,
@@ -10,22 +10,22 @@ export const OpenDigger = sequelize.define(
       primaryKey: true,
     },
     openrank: {
-      type: DataTypes.DOUBLE
+      type: DataTypes.DOUBLE,
     },
     openrank_date: {
-      type: DataTypes.STRING
+      type: DataTypes.STRING,
     },
     bus_factor: {
-      type: DataTypes.DOUBLE
+      type: DataTypes.DOUBLE,
     },
     bus_factor_date: {
-      type: DataTypes.STRING
-    }
+      type: DataTypes.STRING,
+    },
   },
   {
     tableName: 'opendigger_info',
     timestamps: true,
     createdAt: false,
-    updatedAt: true
-  }
+    updatedAt: true,
+  },
 );
