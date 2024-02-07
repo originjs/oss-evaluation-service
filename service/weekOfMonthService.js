@@ -1,4 +1,4 @@
-import { WeekOfMonthMapper } from '../models/weekOfMonth.js';
+import WeekOfMonthMapper from '../models/weekOfMonth.js';
 
 export function getWeekOfMonth(str) {
   const date = new Date(Date.parse(str));

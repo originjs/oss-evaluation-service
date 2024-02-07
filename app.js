@@ -1,6 +1,7 @@
 import createError from 'http-errors';
 import express from 'express';
 import logger from 'morgan';
+import debug from 'debug';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 import 'dotenv/config';
@@ -10,7 +11,8 @@ import router from './routes/sync.js';
 
 const app = express();
 
-app.use(logger('dev'));
+const info = debug('info');
+app.use(logger('combined', { stream: { write: (msg) => info(msg) } }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static('public'));

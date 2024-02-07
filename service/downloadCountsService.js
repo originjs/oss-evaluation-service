@@ -1,6 +1,6 @@
 import { Op } from 'sequelize';
 import PackageDownloadCountMapper from '../models/PackageDownloadCount.js';
-import { WeekOfMonthMapper } from '../models/weekOfMonth.js';
+import WeekOfMonthMapper from '../models/weekOfMonth.js';
 import ProjectPackageMapper from '../models/ProjectPackage.js';
 
 export async function getDownloadCount(req) {
