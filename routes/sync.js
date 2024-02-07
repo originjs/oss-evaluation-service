@@ -1,11 +1,11 @@
 import express from 'express';
 
-import {getMetricActivity, syncMetricActivity, syncSingleMetricActivity} from '../controllers/compass.js';
-import {syncProjectHandler} from '../controllers/sync.js';
-import {syncScorecardHandler} from '../controllers/scorecard.js';
-import {syncOpendiggerHandler} from '../controllers/opendigger.js';
-import {syncDownloadCount, syncWeekOfMonth} from '../controllers/downloadCount.js';
-import {syncPackageSize, syncGitHubProjectPackageSize} from '../controllers/packageSize.js';
+import { getMetricActivity, syncMetricActivity, syncSingleMetricActivity } from '../controllers/compass.js';
+import { syncProjectHandler } from '../controllers/sync.js';
+import { syncScorecardHandler } from '../controllers/scorecard.js';
+import { syncOpendiggerHandler } from '../controllers/opendigger.js';
+import { syncDownloadCount, syncWeekOfMonth } from '../controllers/downloadCount.js';
+import { syncPackageSize, syncGitHubProjectPackageSize } from '../controllers/packageSize.js';
 
 const router = express.Router();
 
@@ -40,7 +40,7 @@ const router = express.Router();
  *       200:
  *         description: The created data.
  */
-router.route("/sync/compass").post(getMetricActivity);
+router.route('/sync/compass').post(getMetricActivity);
 /**
  * @swagger
  * tags:
@@ -63,7 +63,7 @@ router.route("/sync/compass").post(getMetricActivity);
  *       200:
  *         description: The created data.
  */
-router.route("/sync/compassSync").post(syncMetricActivity);
+router.route('/sync/compassSync').post(syncMetricActivity);
 
 /**
  * @swagger
@@ -90,7 +90,7 @@ router.route("/sync/compassSync").post(syncMetricActivity);
  *       200:
  *         description: The created data.
  */
-router.route("/sync/singleCompassSync").post(syncSingleMetricActivity);
+router.route('/sync/singleCompassSync').post(syncSingleMetricActivity);
 
 /**
  * @swagger
