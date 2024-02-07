@@ -1,10 +1,11 @@
 import express from 'express';
-import { syncOpendiggerHandler } from '../controllers/opendigger.js';
-import { getMetricActivity, syncMetricActivity } from '../controllers/compass.js';
-import { syncProjectHandler } from '../controllers/sync.js';
-import { syncDownloadCount, syncWeekOfMonth } from '../controllers/downloadCount.js';
-import { syncScorecardHandler } from '../controllers/scorecard.js';
-import { syncPackageSize, syncGitHubProjectPackageSize } from '../controllers/packageSize.js';
+
+import {getMetricActivity, syncMetricActivity, syncSingleMetricActivity} from '../controllers/compass.js';
+import {syncProjectHandler} from '../controllers/sync.js';
+import {syncScorecardHandler} from '../controllers/scorecard.js';
+import {syncOpendiggerHandler} from '../controllers/opendigger.js';
+import {syncDownloadCount, syncWeekOfMonth} from '../controllers/downloadCount.js';
+import {syncPackageSize, syncGitHubProjectPackageSize} from '../controllers/packageSize.js';
 
 const router = express.Router();
 
@@ -14,7 +15,7 @@ const router = express.Router();
  *   name: Compass
  * /sync/compass:
  *   post:
- *     summary: 获取Compass数据
+ *     summary: get Compass metric
  *     tags: [Compass]
  *     requestBody:
  *       required: true
@@ -39,25 +40,57 @@ const router = express.Router();
  *       200:
  *         description: The created data.
  */
-router.route('/sync/compass').post(getMetricActivity);
-
+router.route("/sync/compass").post(getMetricActivity);
 /**
  * @swagger
  * tags:
  *   name: Compass
  * /sync/compassSync:
  *   post:
- *     summary: 集成Compass数据
+ *     summary: sync Compass metric
  *     tags: [Compass]
  *     requestBody:
- *       required: false
+ *       required: true
  *       content:
  *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               beginDate:
+ *                 type: string
+ *                 example: "2023-12-18"
  *     responses:
  *       200:
  *         description: The created data.
  */
-router.route('/sync/compassSync').post(syncMetricActivity);
+router.route("/sync/compassSync").post(syncMetricActivity);
+
+/**
+ * @swagger
+ * tags:
+ *   name: Compass
+ * /sync/singleCompassSync:
+ *   post:
+ *     summary: sync single Compass metric
+ *     tags: [Compass]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               label:
+ *                 type: string
+ *                 example: "https://github.com/vuejs/router"
+ *               beginDate:
+ *                 type: string
+ *                 example: "2023-12-28"
+ *     responses:
+ *       200:
+ *         description: The created data.
+ */
+router.route("/sync/singleCompassSync").post(syncSingleMetricActivity);
 
 /**
  * @swagger
