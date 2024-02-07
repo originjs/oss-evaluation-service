@@ -1,5 +1,4 @@
 import {PackageSizeDetail} from '../models/PackageSizeDetail.js';
-import axios from 'axios'
 import {ServerError} from '../util/error.js';
 import {GithubProjects} from "../models/GithubProjects.js";
 import debug from "debug";
@@ -36,15 +35,16 @@ export async function getPackageSize(name, version) {
         url = url + `@${version}&record=true`;
     }
     try {
-        const response = await axios.get(url);
+         const response = await fetch(url);
 
-        if (response.status == 200) {
-            const gzip = response.data.gzip;
-            const size = response.data.size;
-            const repository = response.data.repository;
-            const dependencyCount = response.data.dependencyCount;
-            const version = response.data.version;
-            const name = response.data.name;
+        if (response.ok) {
+            const body = await response.json();
+            const gzip = body.gzip;
+            const size = body.size;
+            const repository = body.repository;
+            const dependencyCount = body.dependencyCount;
+            const version = body.version;
+            const name = body.name;
                 return {
                     gzip: gzip,
                     size: size,
@@ -64,8 +64,8 @@ export async function getPackageSize(name, version) {
 }
 
 export async function getGitHubProjectPackageSize(req, res, next) {
-    debug.log('packageSize数据集成启动');
-    // 1. 获取数据库中的 github项目的包
+    debug.log('packageSize integration startup');
+    // Get the package of GitHub project in the database
     GithubProjects.hasOne(ProjectPackages, {foreignKey: 'project_id'})
     let packageNumber =0 ;
     try {
@@ -84,7 +84,7 @@ export async function getGitHubProjectPackageSize(req, res, next) {
     const Page = 100;
     let begin = 0;
     for (begin; begin < packageNumber; begin += Page) {
-        // 获取 github project 包信息
+        // Get paginated data
         let packageList = await GithubProjects.findAll({
             subQuery: false,
             include: [{
@@ -106,7 +106,7 @@ export async function getGitHubProjectPackageSize(req, res, next) {
             let packages = item.project_package.dataValues;
             const packageInfo = await getPackageSize(packages.package, null);
             if (packageInfo.erorr) {
-                debug.log('包名: ', packages.package, ' 不存在 包大小的数据');
+                debug.log('package name: ', packages.package, ' there is no data with package size present');
                 continue;
             }
             packageSizeList.push(new PackageSizeDetailDto(
@@ -118,19 +118,19 @@ export async function getGitHubProjectPackageSize(req, res, next) {
                 packageInfo.dependencyCount
                 ));
         }
-        // 批量集成
+        // Batch integration
         await insertOrUpdateBatchPackageSize(packageSizeList);
-        debug.log('package size插入了: ', packageList.length, ' 个project的数据')
+        debug.log('package size insert: data for ', packageList.length, ' projects.')
     }
 
-    res.status(200).data('数据集成完毕');
+    res.status(200).data('Data integration completed.');
 }
 
 
 /**
- * 批量插入或更新包大小数据
+ * Batch insert or update package size data
  *
- * @param packageSizeList 包大小列表
+ * @param packageSizeList Package Size List
  * @returns void
  */
 export async function insertOrUpdateBatchPackageSize(packageSizeList) {
@@ -145,7 +145,7 @@ export async function insertOrUpdateBatchPackageSize(packageSizeList) {
 }
 
 /**
- * packageSize 实体类数据
+ * packageSize Entity class data
  */
 class PackageSizeDetailDto {
     constructor(

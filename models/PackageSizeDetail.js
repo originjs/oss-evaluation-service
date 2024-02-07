@@ -24,28 +24,23 @@ export const PackageSizeDetail = sequelize.define(
         },
         size: {
             type: DataTypes.INTEGER,
-            allowNull: true,
-            comment: "包大小"
+            allowNull: true
         },
         gzip_size: {
             type: DataTypes.INTEGER,
-            allowNull: true,
-            comment: "gzip格式包大小"
+            allowNull: true
         },
         dependency_count: {
             type: DataTypes.INTEGER,
-            allowNull: true,
-            comment: "依赖数量"
+            allowNull: true
         },
         createAt: {
             type: DataTypes.DATE,
-            allowNull: true,
-            comment: "创建时间"
+            allowNull: true
         },
         updatedAt: {
             type: DataTypes.DATE,
-            allowNull: true,
-            comment: "最近更新时间"
+            allowNull: true
         }
     },
     {
