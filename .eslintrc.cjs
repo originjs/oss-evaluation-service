@@ -28,5 +28,7 @@ module.exports = {
     'import/extensions': 'off',
     'no-use-before-define': ['error', { functions: false }],
     'no-await-in-loop': 'warn',
+    'no-restricted-syntax': 'off',
+    'no-continue': 'off',
   },
 };

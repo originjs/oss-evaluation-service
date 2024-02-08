@@ -4,7 +4,7 @@ import { syncCompassHandler } from '../controllers/compass.js';
 import { syncProjectHandler } from '../controllers/sync.js';
 import { syncDownloadCount, syncWeekOfMonth } from '../controllers/downloadCount.js';
 import { syncScorecardHandler } from '../controllers/scorecard.js';
-import { syncPackageSize, syncGitHubProjectPackageSize } from '../controllers/packageSize.js';
+import { syncPackageSizeHandler } from '../controllers/packageSize.js';
 
 const router = express.Router();
 
@@ -135,9 +135,9 @@ router.route('/scorecard').post(syncScorecardHandler);
 
 /**
  * @swagger
- * /syncPackagesize:
+ * /sync/packagesize:
  *   post:
- *     summary: 获取单个项目包大小数据
+ *     summary: Synchronize npm package size
  *     requestBody:
  *       required: true
  *       content:
@@ -151,25 +151,8 @@ router.route('/scorecard').post(syncScorecardHandler);
  *                 type: string
  *     responses:
  *       200:
- *         description: The created data.
+ *         description: success.
  */
-router.route('/syncPackagesize').post(syncPackageSize);
-
-/**
- * @swagger
- * /syncGitHubProjectPackageSize:
- *   post:
- *     summary: 获取所有Github项目包大小数据
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *     responses:
- *       200:
- *         description: The created data.
- */
-router.route('/syncGitHubProjectPackageSize').post(syncGitHubProjectPackageSize);
+router.route('/packagesize').post(syncPackageSizeHandler);
 
 export default router;
