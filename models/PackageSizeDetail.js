@@ -34,6 +34,9 @@ export default sequelize.define(
     updatedAt: {
       type: DataTypes.DATE,
     },
+    reason: {
+      type: DataTypes.STRING,
+    },
   },
   {
     tableName: 'package_size_detail',
