@@ -24,49 +24,98 @@ const query = gql`
 const compassUrl = 'https://oss-compass.org/api/graphql';
 
 /**
- * get single project compass data
- */
-export async function getMetricActivity(req, res) {
-  const data = await request(
-    'https://oss-compass.org/api/graphql',
-    query,
-    req.body,
-  );
-  res.status(200).json(data);
-}
-
-/**
  * Synchronize single project compass activity metric to Database
  */
-export async function syncSingleMetricActivity(req, res) {
+export async function syncMetricActivity(req, res) {
   const variables = req.body;
+  let fullIntegration = 'repoUrl' in variables ? variables.repoUrl === '' || variables.repoUrl === null : true;
 
+  if (fullIntegration) {
+    await syncFullProjectCompassMetric(variables,res);
+    res.status(200).send('Full-scale compass activity metrics integration success');
+  } else {
+    await syncSingleProjectCompassMetric(variables, res);
+    res.status(200).send('Project: '+variables.repoUrl +' - compass activity metrics integration success');
+  }
+}
+
+async function syncFullProjectCompassMetric(variables, res) {
+  const projectList = await GithubProjects.findAll({
+    attributes: ['id', 'htmlUrl'],
+  });
+
+  for (const projectListItem of projectList) {
+    const project = projectListItem.dataValues;
+    const data = await request(
+      compassUrl,
+      query,
+      {
+        label: project.htmlUrl,
+        beginDate: variables.beginDate,
+      },
+    ).catch((error) => {
+      debug.log('Post to compass error : ', error.message);
+    });
+
+    const metrics = data.metricActivity;
+    if (metrics.length === 0) {
+      debug.log('compass metric is empty, project: ', project.htmlUrl);
+      continue;
+    }
+
+    const compassActivityList = getIncrementalIntegrationArray({
+      repoUrl: project.htmlUrl,
+      beginDate: variables.beginDate,
+    }, project.id,metrics);
+
+    await CompassActivity.bulkCreate(compassActivityList).then((compass) => {
+      debug.log('insert into database: ', compass.length);
+    }).catch((error) => {
+      debug.log('Batch insert error: ', error.message);
+    });
+  }
+}
+
+async function syncSingleProjectCompassMetric(variables) {
   const project = await GithubProjects.findOne({
     where: {
-      html_url: variables.label,
+      html_url: variables.repoUrl,
     },
   });
 
   if (project === null) {
-    res.status(200).send('The project has no project id');
+    debug.log('The project has no project id');
     return;
   }
 
   const data = await request(
     compassUrl,
     query,
-    variables,
+    {
+      label: variables.repoUrl,
+      beginDate: variables.beginDate,
+    },
   );
   const metrics = data.metricActivity;
   if (metrics.length === 0) {
-    res.status(200).send('The project: ', variables.htmlUrl, ' has no compass metric');
+    debug.log('The project: ', variables.htmlUrl, ' has no compass metric');
     return;
   }
 
+  const compassActivityList = getIncrementalIntegrationArray(variables,project.id, metrics);
+  await CompassActivity.bulkCreate(compassActivityList).then((compass) => {
+    debug.log('insert into database: ', compass.length);
+  }).catch((error) => {
+    debug.log('Batch insert error: ', error.message);
+  });
+
+}
+
+async function getIncrementalIntegrationArray(variables, projectId,metrics) {
   const existCompassDateList = await CompassActivity.findAll({
     attributes: ['grimoireCreationDate'],
     where: {
-      repo_url: variables.label,
+      repo_url: variables.repoUrl,
     },
   }).then((dateList) => dateList.map((compassDate) => compassDate.dataValues.grimoireCreationDate.getTime()));
 
@@ -76,75 +125,10 @@ export async function syncSingleMetricActivity(req, res) {
     const activityDate = new Date(activity.grimoireCreationDate).getTime();
     if (!existCompassDateList.includes(activityDate)) {
       activity.id = 0;
-      activity.projectId = project.id;
+      activity.projectId = projectId;
       activity.repoUrl = activity.label;
       compassActivityList.push(activity);
     }
   }
-
-  await CompassActivity.bulkCreate(compassActivityList).then((compass) => {
-    debug.log('insert into database: ', compass.length);
-  }).catch((error) => {
-    debug.log('Batch insert error: ', error.message);
-  });
-
-  res.status(200).send('sync:compass: ', variables.htmlUrl, ' - compass metric insert into database success!');
-}
-
-/**
- *  Synchronize all compass metric to database
- */
-export async function syncMetricActivity(req, res) {
-  const projectList = await GithubProjects.findAll({
-    attributes: ['id', 'htmlUrl'],
-  });
-
-  for (const projectListItem of projectList) {
-    const project = projectListItem.dataValues;
-
-    const data = await request(
-      compassUrl,
-      query,
-      {
-        label: project.htmlUrl,
-        beginDate: req.body.beginDate,
-      },
-    ).catch((error) => {
-      debug.log('Post to compass error : ', error.message);
-    });
-
-    const metricList = data.metricActivity;
-    if (metricList.length === 0) {
-      debug.log('compass metric is empty, project: ', project.htmlUrl);
-      continue;
-    }
-
-    const existCompassDateList = await CompassActivity.findAll({
-      attributes: ['grimoireCreationDate'],
-      where: {
-        repo_url: project.htmlUrl,
-      },
-    }).then((dateList) => dateList.map((compassDate) => compassDate.dataValues.grimoireCreationDate.getTime()));
-
-    const compassActivityList = [];
-
-    for (const activity of metricList) {
-      // incremental integration
-      const activityDate = new Date(activity.grimoireCreationDate).getTime();
-      if (!existCompassDateList.includes(activityDate)) {
-        activity.id = 0;
-        activity.projectId = project.id;
-        activity.repoUrl = activity.label;
-        compassActivityList.push(activity);
-      }
-    }
-
-    await CompassActivity.bulkCreate(compassActivityList).then((compass) => {
-      debug.log('insert into database: ', compass.length);
-    }).catch((error) => {
-      debug.log('Batch insert error: ', error.message);
-    });
-  }
-
-  res.status(200).send('compass data sync success!');
+  return compassActivityList;
 }

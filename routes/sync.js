@@ -1,22 +1,19 @@
 import express from 'express';
 
-import { getMetricActivity, syncMetricActivity, syncSingleMetricActivity } from '../controllers/compass.js';
+import { syncMetricActivity } from '../controllers/compass.js';
 import { syncProjectHandler } from '../controllers/sync.js';
 import { syncScorecardHandler } from '../controllers/scorecard.js';
 import { syncOpendiggerHandler } from '../controllers/opendigger.js';
 import { syncDownloadCount, syncWeekOfMonth } from '../controllers/downloadCount.js';
-import {syncPackageSizeHandler} from "../controllers/packageSize.js";
+import { syncPackageSizeHandler } from '../controllers/packageSize.js';
 
 const router = express.Router();
 
 /**
  * @swagger
- * tags:
- *   name: Compass
  * /sync/compass:
  *   post:
- *     summary: get Compass metric
- *     tags: [Compass]
+ *     summary: Synchronize Compass activity metric
  *     requestBody:
  *       required: true
  *       content:
@@ -24,73 +21,19 @@ const router = express.Router();
  *           schema:
  *             type: object
  *             properties:
- *               label:
+ *               repoUrl:
  *                 type: string
- *                 example: "https://github.com/vuejs/vue"
- *               level:
- *                 type: string
- *                 example: "repo"
+ *                 description: Passing a project URL like 'https://github.com/vuejs/router' indicates integration of a single project compass metric; otherwise, it represents full-scale compass activity metric integration.
+ *                 example: ""
  *               beginDate:
  *                 type: string
- *                 example: null
- *               endDate:
- *                 type: string
- *                 example: null
- *     responses:
- *       200:
- *         description: The created data.
- */
-router.route('/sync/compass').post(getMetricActivity);
-/**
- * @swagger
- * tags:
- *   name: Compass
- * /sync/compassSync:
- *   post:
- *     summary: sync Compass metric
- *     tags: [Compass]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               beginDate:
- *                 type: string
+ *                 description: begin date
  *                 example: "2023-12-25"
  *     responses:
  *       200:
  *         description: The created data.
  */
-router.route('/sync/compassSync').post(syncMetricActivity);
-
-/**
- * @swagger
- * tags:
- *   name: Compass
- * /sync/singleCompassSync:
- *   post:
- *     summary: sync single Compass metric
- *     tags: [Compass]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               label:
- *                 type: string
- *                 example: "https://github.com/vuejs/router"
- *               beginDate:
- *                 type: string
- *                 example: "2023-12-28"
- *     responses:
- *       200:
- *         description: The created data.
- */
-router.route('/sync/singleCompassSync').post(syncSingleMetricActivity);
+router.route('/compass').post(syncMetricActivity);
 
 /**
  * @swagger
