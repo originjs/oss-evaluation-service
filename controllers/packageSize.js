@@ -1,6 +1,7 @@
+import { log } from 'debug';
 import sequelize from '../util/database.js';
 import PackageSizeDetail from '../models/PackageSizeDetail.js';
-import { sleep } from './util.js';
+import { sleep } from '../util/util.js';
 
 export async function getPackageSize(name, version) {
   const myHeaders = new Headers();
@@ -15,7 +16,7 @@ export async function getPackageSize(name, version) {
   };
 
   console.time('fetchTime');
-  const response = await fetch(`https://bundlephobia.com/api/size?package=${name}&record=true`, requestOptions);
+  const response = await fetch(`https://bundlephobia.com/api/size?record=true&package=${name}${version ? (`@${version}`) : ''}`, requestOptions);
   console.timeEnd('fetchTime');
   if (response.ok) {
     const body = await response.json();
@@ -70,7 +71,7 @@ export async function syncAllPackageSize() {
   const packageList = await sequelize.query(query, { type: sequelize.QueryTypes.SELECT });
 
   for (const { package: packageName } of packageList) {
-    console.debug(`get packageName:${packageName} size data`);
+    log(`get packageName:${packageName} size data`);
     await syncSinglePackageSize(packageName);
     const randomMs = Math.floor(Math.random() * 1000) + 1000;
     await sleep(randomMs);
@@ -81,9 +82,10 @@ export async function syncPackageSizeHandler(req, res) {
   try {
     if (req.body.name) {
       await syncSinglePackageSize(req.body.name, req.body.version);
+    } else {
+      await syncAllPackageSize();
     }
-    const result = await syncAllPackageSize();
-    res.status(200).json(result);
+    res.status(200);
   } catch (e) {
     res.status(500).json({ erorr: e.message });
   }
