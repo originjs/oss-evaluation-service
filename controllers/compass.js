@@ -28,18 +28,18 @@ const compassUrl = 'https://oss-compass.org/api/graphql';
  */
 export async function syncMetricActivity(req, res) {
   const variables = req.body;
-  let fullIntegration = 'repoUrl' in variables ? variables.repoUrl === '' || variables.repoUrl === null : true;
+  const fullIntegration = 'repoUrl' in variables ? variables.repoUrl === '' || variables.repoUrl === null : true;
 
   if (fullIntegration) {
-    await syncFullProjectCompassMetric(variables,res);
+    await syncFullProjectCompassMetric(variables, res);
     res.status(200).send('Full-scale compass activity metrics integration success');
   } else {
     await syncSingleProjectCompassMetric(variables, res);
-    res.status(200).send('Project: '+variables.repoUrl +' - compass activity metrics integration success');
+    res.status(200).send(`Project: ${variables.repoUrl} - compass activity metrics integration success`);
   }
 }
 
-async function syncFullProjectCompassMetric(variables, res) {
+async function syncFullProjectCompassMetric(variables) {
   const projectList = await GithubProjects.findAll({
     attributes: ['id', 'htmlUrl'],
   });
@@ -66,7 +66,7 @@ async function syncFullProjectCompassMetric(variables, res) {
     const compassActivityList = getIncrementalIntegrationArray({
       repoUrl: project.htmlUrl,
       beginDate: variables.beginDate,
-    }, project.id,metrics);
+    }, project.id, metrics);
 
     await CompassActivity.bulkCreate(compassActivityList).then((compass) => {
       debug.log('insert into database: ', compass.length);
@@ -102,16 +102,15 @@ async function syncSingleProjectCompassMetric(variables) {
     return;
   }
 
-  const compassActivityList = getIncrementalIntegrationArray(variables,project.id, metrics);
+  const compassActivityList = getIncrementalIntegrationArray(variables, project.id, metrics);
   await CompassActivity.bulkCreate(compassActivityList).then((compass) => {
     debug.log('insert into database: ', compass.length);
   }).catch((error) => {
     debug.log('Batch insert error: ', error.message);
   });
-
 }
 
-async function getIncrementalIntegrationArray(variables, projectId,metrics) {
+async function getIncrementalIntegrationArray(variables, projectId, metrics) {
   const existCompassDateList = await CompassActivity.findAll({
     attributes: ['grimoireCreationDate'],
     where: {
