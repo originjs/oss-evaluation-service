@@ -1,9 +1,10 @@
 import express from 'express';
-import { syncOpendiggerHandler } from '../controllers/opendigger.js';
-import { syncCompassHandler } from '../controllers/compass.js';
+
+import { syncMetricActivity } from '../controllers/compass.js';
 import { syncProjectHandler } from '../controllers/sync.js';
-import { syncDownloadCount, syncWeekOfMonth } from '../controllers/downloadCount.js';
 import { syncScorecardHandler } from '../controllers/scorecard.js';
+import { syncOpendiggerHandler } from '../controllers/opendigger.js';
+import { syncDownloadCount, syncWeekOfMonth } from '../controllers/downloadCount.js';
 import { syncPackageSizeHandler } from '../controllers/packageSize.js';
 
 const router = express.Router();
@@ -12,16 +13,27 @@ const router = express.Router();
  * @swagger
  * /sync/compass:
  *   post:
- *     summary: Synchronize Compass
+ *     summary: Synchronize Compass activity metric
  *     requestBody:
- *       required: false
+ *       required: true
  *       content:
  *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               repoUrl:
+ *                 type: string
+ *                 description: Passing a project URL like 'https://github.com/vuejs/router' indicates integration of a single project compass metric; otherwise, it represents full-scale compass activity metric integration.
+ *                 example: ""
+ *               beginDate:
+ *                 type: string
+ *                 description: begin date
+ *                 example: "2023-12-25"
  *     responses:
  *       200:
  *         description: The created data.
  */
-router.route('/compass').post(syncCompassHandler);
+router.route('/compass').post(syncMetricActivity);
 
 /**
  * @swagger
