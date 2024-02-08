@@ -47,22 +47,6 @@ router.route('/opendigger').post(syncOpendiggerHandler);
 
 /**
  * @swagger
- * /sync/{projecId}:
- *   post:
- *     summary: Synchronize a single project
- *     parameters:
- *       - in: path
- *         name: projecId
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: success.
- */
-router.route('/:projecId').post(syncProjectHandler);
-
-/**
- * @swagger
  * /syncWeekOfMonth:
  *   post:
  *     summary: 获取week of month数据
@@ -129,7 +113,6 @@ router.route('/npmdownloads').post(syncDownloadCount);
  *     responses:
  *       200:
  *         description: Success
- *       
  */
 router.route('/scorecard').post(syncScorecardHandler);
 
@@ -139,7 +122,6 @@ router.route('/scorecard').post(syncScorecardHandler);
  *   post:
  *     summary: Synchronize npm package size
  *     requestBody:
- *       required: true
  *       content:
  *         application/json:
  *           schema:
@@ -154,5 +136,21 @@ router.route('/scorecard').post(syncScorecardHandler);
  *         description: success.
  */
 router.route('/packagesize').post(syncPackageSizeHandler);
+
+/**
+ * @swagger
+ * /sync/project/{projecId}:
+ *   post:
+ *     summary: Synchronize a single project
+ *     parameters:
+ *       - in: path
+ *         name: projecId
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/project/:projecId').post(syncProjectHandler);
 
 export default router;
