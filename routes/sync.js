@@ -1,6 +1,6 @@
 import express from 'express';
 import { syncOpendiggerHandler } from '../controllers/opendigger.js';
-import { getMetricActivity, syncMetricActivity } from '../controllers/compass.js';
+import { syncCompassHandler } from '../controllers/compass.js';
 import { syncProjectHandler } from '../controllers/sync.js';
 import { syncDownloadCount, syncWeekOfMonth } from '../controllers/downloadCount.js';
 import { syncScorecardHandler } from '../controllers/scorecard.js';
@@ -10,45 +10,9 @@ const router = express.Router();
 
 /**
  * @swagger
- * tags:
- *   name: Compass
  * /sync/compass:
  *   post:
- *     summary: 获取Compass数据
- *     tags: [Compass]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               label:
- *                 type: string
- *                 example: "https://github.com/vuejs/vue"
- *               level:
- *                 type: string
- *                 example: "repo"
- *               beginDate:
- *                 type: string
- *                 example: null
- *               endDate:
- *                 type: string
- *                 example: null
- *     responses:
- *       200:
- *         description: The created data.
- */
-router.route('/sync/compass').post(getMetricActivity);
-
-/**
- * @swagger
- * tags:
- *   name: Compass
- * /sync/compassSync:
- *   post:
- *     summary: 集成Compass数据
- *     tags: [Compass]
+ *     summary: Synchronize Compass
  *     requestBody:
  *       required: false
  *       content:
@@ -57,13 +21,13 @@ router.route('/sync/compass').post(getMetricActivity);
  *       200:
  *         description: The created data.
  */
-router.route('/sync/compassSync').post(syncMetricActivity);
+router.route('/compass').post(syncCompassHandler);
 
 /**
  * @swagger
  * /sync/opendigger:
  *   post:
- *     summary: 获取Opendigger数据
+ *     summary: Synchronize Opendigger
  *     requestBody:
  *       required: true
  *       content:
@@ -77,15 +41,15 @@ router.route('/sync/compassSync').post(syncMetricActivity);
  *                 type: string
  *     responses:
  *       200:
- *         description: The created data.
+ *         description: success.
  */
-router.route('/sync/opendigger').post(syncOpendiggerHandler);
+router.route('/opendigger').post(syncOpendiggerHandler);
 
 /**
  * @swagger
  * /sync/{projecId}:
  *   post:
- *     summary: 同步单个项目数据
+ *     summary: Synchronize a single project
  *     parameters:
  *       - in: path
  *         name: projecId
@@ -95,7 +59,7 @@ router.route('/sync/opendigger').post(syncOpendiggerHandler);
  *       200:
  *         description: success.
  */
-router.route('/sync/:projecId').post(syncProjectHandler);
+router.route('/:projecId').post(syncProjectHandler);
 
 /**
  * @swagger
@@ -144,11 +108,11 @@ router.route('/syncWeekOfMonth').post(syncWeekOfMonth);
  *         description: The created book.
  *
  */
-router.route('/syncDownloadCount').post(syncDownloadCount);
+router.route('/npmdownloads').post(syncDownloadCount);
 
 /**
  * @swagger
- * /scorecard:
+ * /sync/scorecard:
  *   post:
  *     summary: 获取Scorecard数据
  *     requestBody:

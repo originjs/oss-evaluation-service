@@ -4,7 +4,7 @@ import sequelize from '../util/database.js';
 export default sequelize.define(
   'OpenDigger',
   {
-    project_id: {
+    projectId: {
       type: DataTypes.BIGINT,
       allowNull: false,
       primaryKey: true,
@@ -12,20 +12,21 @@ export default sequelize.define(
     openrank: {
       type: DataTypes.DOUBLE,
     },
-    openrank_date: {
+    openrankDate: {
       type: DataTypes.STRING,
     },
-    bus_factor: {
+    busFactor: {
       type: DataTypes.DOUBLE,
     },
-    bus_factor_date: {
+    busFactorDate: {
       type: DataTypes.STRING,
     },
   },
   {
     tableName: 'opendigger_info',
+    underscored: true,
     timestamps: true,
-    createdAt: false,
+    createdAt: 'updated_at',
     updatedAt: true,
   },
 );

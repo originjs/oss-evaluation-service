@@ -32,29 +32,13 @@ const query = gql`
   `;
 
 /**
- *
- * @param req 请求体
- * @param res 响应
- * @param next
- * @returns {Promise<void>} compass 活跃度数据数组(从近及远)
- */
-export async function getMetricActivity(req, res) {
-  const data = await request(
-    'https://oss-compass.org/api/graphql',
-    query,
-    req.body,
-  );
-  res.status(200).json(data);
-}
-
-/**
  *  同步compass数据
  * @param req
  * @param res
  * @param next
  * @returns {Promise<void>}
  */
-export async function syncMetricActivity(req, res) {
+export async function syncCompassHandler(req, res) {
   debug.log('compass数据集成启动');
   // 1. 获取数据库中的 github 项目
   const projectNumber = await GithubProjects.count();

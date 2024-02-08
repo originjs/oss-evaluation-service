@@ -7,7 +7,7 @@ import swaggerJsdoc from 'swagger-jsdoc';
 import 'dotenv/config';
 
 import indexRouter from './routes/index.js';
-import router from './routes/sync.js';
+import syncData from './routes/sync.js';
 
 const app = express();
 
@@ -37,7 +37,7 @@ app.use(
 );
 // mount routers
 app.use('/', indexRouter);
-app.use(router);
+app.use('/sync', syncData);
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
