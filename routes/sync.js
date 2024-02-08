@@ -58,7 +58,7 @@ router.route('/sync/compass').post(getMetricActivity);
  *             properties:
  *               beginDate:
  *                 type: string
- *                 example: "2023-12-18"
+ *                 example: "2023-12-25"
  *     responses:
  *       200:
  *         description: The created data.
