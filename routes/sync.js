@@ -165,9 +165,7 @@ router.route('/syncDownloadCount').post(syncDownloadCount);
  *     responses:
  *       200:
  *         description: Success
- *       400:
- *         description: Bad Request
- *
+ *       
  */
 router.route('/scorecard').post(syncScorecardHandler);
 
