@@ -23,10 +23,12 @@ const query = gql`
 
 const compassUrl = 'https://oss-compass.org/api/graphql';
 
+export default syncMetricActivity;
+
 /**
  * Synchronize single project compass activity metric to Database
  */
-export async function syncMetricActivity(req, res) {
+async function syncMetricActivity(req, res) {
   const variables = req.body;
   const fullIntegration = 'repoUrl' in variables ? variables.repoUrl === '' || variables.repoUrl === null : true;
 
@@ -116,7 +118,7 @@ async function getIncrementalIntegrationArray(variables, projectId, metrics) {
     where: {
       repo_url: variables.repoUrl,
     },
-  }).then((dateList) => dateList.map((compassDate) => compassDate.dataValues.grimoireCreationDate.getTime()));
+  }).then((compass) => compass.map((date) => date.dataValues.grimoireCreationDate.getTime()));
 
   const compassActivityList = [];
   for (const activity of metrics) {
