@@ -96,7 +96,7 @@ router.route('/sync/singleCompassSync').post(syncSingleMetricActivity);
  * @swagger
  * /sync/opendigger:
  *   post:
- *     summary: 获取Opendigger数据
+ *     summary: Synchronize Opendigger
  *     requestBody:
  *       required: true
  *       content:
@@ -110,25 +110,9 @@ router.route('/sync/singleCompassSync').post(syncSingleMetricActivity);
  *                 type: string
  *     responses:
  *       200:
- *         description: The created data.
- */
-router.route('/sync/opendigger').post(syncOpendiggerHandler);
-
-/**
- * @swagger
- * /sync/{projecId}:
- *   post:
- *     summary: 同步单个项目数据
- *     parameters:
- *       - in: path
- *         name: projecId
- *         schema:
- *           type: integer
- *     responses:
- *       200:
  *         description: success.
  */
-router.route('/sync/:projecId').post(syncProjectHandler);
+router.route('/opendigger').post(syncOpendiggerHandler);
 
 /**
  * @swagger
@@ -177,11 +161,11 @@ router.route('/syncWeekOfMonth').post(syncWeekOfMonth);
  *         description: The created book.
  *
  */
-router.route('/syncDownloadCount').post(syncDownloadCount);
+router.route('/npmdownloads').post(syncDownloadCount);
 
 /**
  * @swagger
- * /scorecard:
+ * /sync/scorecard:
  *   post:
  *     summary: 获取Scorecard数据
  *     requestBody:
@@ -198,19 +182,15 @@ router.route('/syncDownloadCount').post(syncDownloadCount);
  *     responses:
  *       200:
  *         description: Success
- *       400:
- *         description: Bad Request
- *
  */
 router.route('/scorecard').post(syncScorecardHandler);
 
 /**
  * @swagger
- * /syncPackagesize:
+ * /sync/packagesize:
  *   post:
- *     summary: 获取单个项目包大小数据
+ *     summary: Synchronize npm package size
  *     requestBody:
- *       required: true
  *       content:
  *         application/json:
  *           schema:
@@ -222,25 +202,24 @@ router.route('/scorecard').post(syncScorecardHandler);
  *                 type: string
  *     responses:
  *       200:
- *         description: The created data.
+ *         description: success.
  */
-router.route('/syncPackagesize').post(syncPackageSize);
+router.route('/packagesize').post(syncPackageSizeHandler);
 
 /**
  * @swagger
- * /syncGitHubProjectPackageSize:
+ * /sync/project/{projecId}:
  *   post:
- *     summary: 获取所有Github项目包大小数据
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
+ *     summary: Synchronize a single project
+ *     parameters:
+ *       - in: path
+ *         name: projecId
+ *         schema:
+ *           type: integer
  *     responses:
  *       200:
- *         description: The created data.
+ *         description: success.
  */
-router.route('/syncGitHubProjectPackageSize').post(syncGitHubProjectPackageSize);
+router.route('/project/:projecId').post(syncProjectHandler);
 
 export default router;
