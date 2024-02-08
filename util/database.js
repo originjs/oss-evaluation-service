@@ -6,8 +6,8 @@ const sequelize = new Sequelize(
   {
     dialectOptions: {
       ssl: {
-        rejectUnauthorized: true,
-      },
+        rejectUnauthorized: true
+      }
     },
     pool: {
       max: 10,
