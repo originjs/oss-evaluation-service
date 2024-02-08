@@ -12,8 +12,8 @@ export default sequelize.define(
     repo_name: {
       type: DataTypes.STRING,
     },
-    date: {
-      type: DataTypes.STRING,
+    collection_date: {
+      type: DataTypes.STRING
     },
     score: {
       type: DataTypes.INTEGER,
@@ -24,6 +24,8 @@ export default sequelize.define(
   },
   {
     tableName: 'scorecard_info',
-    timestamps: false,
-  },
+    timestamps: true,
+    createdAt: false,
+    updatedAt: true
+  }
 );
