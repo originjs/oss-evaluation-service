@@ -27,7 +27,7 @@ export default sequelize.define(
     codeReviewCount: {
       type: DataTypes.INTEGER,
     },
-    issueCommentFrequency: {
+    commentFrequency: {
       type: DataTypes.DOUBLE,
     },
     commitFrequency: {
@@ -46,7 +46,7 @@ export default sequelize.define(
       type: DataTypes.INTEGER,
     },
     grimoireCreationDate: {
-      type: DataTypes.TIME,
+      type: DataTypes.DATE,
     },
   },
   {
