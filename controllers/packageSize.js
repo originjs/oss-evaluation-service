@@ -1,73 +1,91 @@
-import debug from 'debug';
-import { Op } from 'sequelize';
+import { log } from 'debug';
+import sequelize from '../util/database.js';
 import PackageSizeDetail from '../models/PackageSizeDetail.js';
-import { ServerError } from '../util/error.js';
-import GithubProjects from '../models/GithubProjects.js';
-import ProjectPackages from '../models/ProjectPackages.js';
+import { sleep } from '../util/util.js';
 
 export async function getPackageSize(name, version) {
-  let url = `https://bundlephobia.com/api/size?package=${name}`;
-  if (version) {
-    url = `${url}@${version}`;
+  const myHeaders = new Headers();
+  myHeaders.append('User-Agent', 'Apifox/1.0.0 (https://apifox.com)');
+  myHeaders.append('Accept', '*/*');
+  myHeaders.append('Host', 'bundlephobia.com');
+  myHeaders.append('Connection', 'keep-alive');
+  const requestOptions = {
+    method: 'GET',
+    headers: myHeaders,
+    redirect: 'follow',
+  };
+
+  console.time('fetchTime');
+  const response = await fetch(`https://bundlephobia.com/api/size?record=true&package=${name}${version ? (`@${version}`) : ''}`, requestOptions);
+  console.timeEnd('fetchTime');
+  if (response.ok) {
+    const body = await response.json();
+    return {
+      gzipSize: body.gzip,
+      size: body.size,
+      cloneUrl: body.repository,
+      dependencyCount: body.dependencyCount,
+      version: body.version,
+      packageName: body.name,
+    };
   }
-  try {
-    const response = await fetch(url);
-    if (response.ok) {
-      const body = await response.json();
-      return {
-        gzipSize: body.gzip,
-        size: body.size,
-        cloneUrl: body.repository,
-        dependencyCount: body.dependencyCount,
-        version: body.version,
-        packageName: body.name,
-      };
-    }
-  } catch (err) {
-    debug.log('fetch package size fail:', err);
-  }
-  return { erorr: 'fetch package size failed' };
+
+  const error = await response.text();
+  // eslint-disable-next-line prefer-promise-reject-errors
+  return Promise.reject({
+    packageName: name,
+    status: response.status,
+    msg: error,
+  });
 }
 
 export async function syncSinglePackageSize(name, version) {
-  const row = await getPackageSize(name, version);
-  if (row.erorr) {
-    throw new ServerError(row.erorr);
-  }
-  await PackageSizeDetail.upsert(row);
-  return row;
+  return getPackageSize(name, version)
+    .then((row) => {
+      PackageSizeDetail.upsert(row);
+    })
+    .catch((e) => {
+      if (e.status === 500) {
+        PackageSizeDetail.upsert({
+          version: '',
+          packageName: e.packageName,
+          reason: `${e.status}:${e.msg}`,
+        });
+      } else {
+        sleep(60 * 1000);
+      }
+    });
 }
 
 export async function syncAllPackageSize() {
-  const packageList = await GithubProjects.findAll({
-    subQuery: false,
-    include: [{
-      model: ProjectPackages,
-      attributes: ['package'],
-      where: { package: { [Op.ne]: null } },
-    }],
-  });
+  const query = `
+    select package, detail.reason
+    from project_packages packages
+         left join package_size_detail detail
+                   on packages.package = detail.package_name
+        where detail.id is null
+        and detail.reason is null
+        and package is not null
+`;
 
-  for (const item of packageList) {
-    if (item.ProjectPackage.dataValues.length === 0) {
-      continue;
-    }
-    const packages = item.ProjectPackage.dataValues;
-    const packageInfo = await syncSinglePackageSize(packages.package);
-    if (packageInfo.erorr) {
-      debug.log('package name: ', packages.package, ' there is no data with package size present');
-      continue;
-    }
+  const packageList = await sequelize.query(query, { type: sequelize.QueryTypes.SELECT });
+
+  for (const { package: packageName } of packageList) {
+    log(`get packageName:${packageName} size data`);
+    await syncSinglePackageSize(packageName);
+    const randomMs = Math.floor(Math.random() * 1000) + 1000;
+    await sleep(randomMs);
   }
 }
 
 export async function syncPackageSizeHandler(req, res) {
   try {
     if (req.body.name) {
-      syncSinglePackageSize(req.body.name, req.body.version);
+      await syncSinglePackageSize(req.body.name, req.body.version);
+    } else {
+      await syncAllPackageSize();
     }
-    const result = await syncAllPackageSize();
-    res.status(200).json(result);
+    res.status(200);
   } catch (e) {
     res.status(500).json({ erorr: e.message });
   }
