@@ -2,7 +2,7 @@ import { DataTypes } from 'sequelize';
 import sequelize from '../util/database.js';
 
 export default sequelize.define(
-  'PackageDownloadCount',
+  'weekOfMonth',
   {
     id: {
       autoIncrement: true,
@@ -10,36 +10,27 @@ export default sequelize.define(
       allowNull: false,
       primaryKey: true,
     },
-    packageName: {
-      type: DataTypes.STRING(200),
-      allowNull: true,
-    },
-    startDate: {
+    start: {
       type: DataTypes.DATEONLY,
       allowNull: true,
     },
-    endDate: {
+    end: {
       type: DataTypes.DATEONLY,
       allowNull: true,
     },
-    week: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-    },
-    downloads: {
-      type: DataTypes.INTEGER,
+    weekOfMonth: {
+      type: DataTypes.STRING(10),
       allowNull: true,
     },
     createdAt: {
       type: DataTypes.DATE,
       allowNull: true,
       defaultValue: sequelize.Sequelize.literal('CURRENT_TIMESTAMP'),
-
     },
   },
   {
     sequelize,
-    tableName: 'package_download_count',
+    tableName: 'week_of_month',
     timestamps: false,
     underscored: true,
     indexes: [
@@ -52,12 +43,12 @@ export default sequelize.define(
         ],
       },
       {
-        name: 'package_download_count_package_name_week_uindex',
+        name: 'week_of_month_week_of_month_uindex',
         unique: true,
         using: 'BTREE',
         fields: [
-          { name: 'package_name' },
-          { name: 'week' },
+          { name: 'week_of_month' },
+          { name: 'date' },
         ],
       },
     ],

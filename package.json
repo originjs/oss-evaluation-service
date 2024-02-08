@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "lint": "eslint . --ext .js",
+    "lint-fix": "eslint --fix . --ext .js",
+    "test": "vitest",
     "dev": "set DEBUG=* & node ./bin/www.js",
     "start": "node ./bin/www.js"
   },
@@ -21,6 +24,11 @@
     "swagger-ui-express": "^5.0.0"
   },
   "devDependencies": {
+    "eslint": "^8.56.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-n": "^15.0.0 || ^16.0.0 ",
+    "eslint-plugin-promise": "^6.0.0",
     "vitest": "^1.2.2"
   }
 }

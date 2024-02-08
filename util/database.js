@@ -1,25 +1,28 @@
-import { Sequelize } from "sequelize";
+import { Sequelize } from 'sequelize';
+import debug from 'debug';
 
-const sequelize = new Sequelize(process.env.DATABASE_URL,
+const sequelize = new Sequelize(
+  process.env.DATABASE_URL,
   {
     dialectOptions: {
       ssl: {
         rejectUnauthorized: true
       }
     },
-    pool:{
+    pool: {
       max: 10,
-      min:0,
-      idle: 20000
-    }
-  });
+      min: 0,
+      idle: 20000,
+    },
+  },
+);
 
 export async function checkConnection() {
   try {
     await sequelize.authenticate();
-    console.log(`Database Connected`);
+    debug.log('Database Connected');
   } catch (error) {
-    console.error("Unable to connect to the database:", error);
+    debug.error('Unable to connect to the database:', error);
   }
 }
 

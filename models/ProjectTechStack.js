@@ -1,8 +1,8 @@
-import { DataTypes, Model } from "sequelize";
+import { DataTypes } from 'sequelize';
 import sequelize from '../util/database.js';
 
-export const ProjectTechStack = sequelize.define(
-  "ProjectTechStack",
+export default sequelize.define(
+  'ProjectTechStack',
   {
     project_id: {
       type: DataTypes.BIGINT,
@@ -10,23 +10,23 @@ export const ProjectTechStack = sequelize.define(
       primaryKey: true,
     },
     name: {
-      type: DataTypes.STRING
+      type: DataTypes.STRING,
     },
     html_url: {
-      type: DataTypes.STRING
+      type: DataTypes.STRING,
     },
     category: {
-      type: DataTypes.STRING
+      type: DataTypes.STRING,
     },
     platform: {
-      type: DataTypes.STRING
+      type: DataTypes.STRING,
     },
     archived: {
-      type: DataTypes.STRING
-    }
+      type: DataTypes.STRING,
+    },
   },
   {
     tableName: 'project_tech_stack',
-    timestamps: false
-  }
+    timestamps: false,
+  },
 );

@@ -1,20 +1,53 @@
 import express from 'express';
-const router = express.Router();
 import { syncOpendiggerHandler } from '../controllers/opendigger.js';
-import { getMetricActivity } from '../controllers/compass.js';
+import { getMetricActivity, syncMetricActivity } from '../controllers/compass.js';
 import { syncProjectHandler } from '../controllers/sync.js';
-import { syncDownloadCount} from '../controllers/downloadCount.js';
+import { syncDownloadCount, syncWeekOfMonth } from '../controllers/downloadCount.js';
 import { syncScorecardHandler } from '../controllers/scorecard.js';
+import { syncPackageSize, syncGitHubProjectPackageSize } from '../controllers/packageSize.js';
 
+const router = express.Router();
 
 /**
  * @swagger
  * tags:
  *   name: Compass
- *   description: 获取Compass数据
  * /sync/compass:
  *   post:
  *     summary: 获取Compass数据
+ *     tags: [Compass]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               label:
+ *                 type: string
+ *                 example: "https://github.com/vuejs/vue"
+ *               level:
+ *                 type: string
+ *                 example: "repo"
+ *               beginDate:
+ *                 type: string
+ *                 example: null
+ *               endDate:
+ *                 type: string
+ *                 example: null
+ *     responses:
+ *       200:
+ *         description: The created data.
+ */
+router.route('/sync/compass').post(getMetricActivity);
+
+/**
+ * @swagger
+ * tags:
+ *   name: Compass
+ * /sync/compassSync:
+ *   post:
+ *     summary: 集成Compass数据
  *     tags: [Compass]
  *     requestBody:
  *       required: false
@@ -23,11 +56,8 @@ import { syncScorecardHandler } from '../controllers/scorecard.js';
  *     responses:
  *       200:
  *         description: The created data.
- *       500:
- *         description: Some server error
- *
  */
-router.route('/sync/compass').post(getMetricActivity);
+router.route('/sync/compassSync').post(syncMetricActivity);
 
 /**
  * @swagger
@@ -69,6 +99,30 @@ router.route('/sync/:projecId').post(syncProjectHandler);
 
 /**
  * @swagger
+ * /syncWeekOfMonth:
+ *   post:
+ *     summary: 获取week of month数据
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               start:
+ *                 type: string
+ *                 example: "2017-01-01"
+ *               end:
+ *                 example: "2037-12-31"
+ *     responses:
+ *       200:
+ *         description: The created book.
+ *
+ */
+router.route('/syncWeekOfMonth').post(syncWeekOfMonth);
+
+/**
+ * @swagger
  * /syncDownloadCount:
  *   post:
  *     summary: 获取downloadCount数据
@@ -79,12 +133,12 @@ router.route('/sync/:projecId').post(syncProjectHandler);
  *           schema:
  *             type: object
  *             properties:
- *               start:
+ *               startDate:
  *                 type: string
- *               end:
- *                 type: string
- *               name:
- *                 type: string
+ *                 example: "2017-01-01"
+ *               projectId:
+ *                 type: int
+ *                 example: 1
  *     responses:
  *       200:
  *         description: The created book.
@@ -113,8 +167,47 @@ router.route('/syncDownloadCount').post(syncDownloadCount);
  *         description: Success
  *       400:
  *         description: Bad Request
- *       
+ *
  */
 router.route('/scorecard').post(syncScorecardHandler);
+
+/**
+ * @swagger
+ * /syncPackagesize:
+ *   post:
+ *     summary: 获取单个项目包大小数据
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               version:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: The created data.
+ */
+router.route('/syncPackagesize').post(syncPackageSize);
+
+/**
+ * @swagger
+ * /syncGitHubProjectPackageSize:
+ *   post:
+ *     summary: 获取所有Github项目包大小数据
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: The created data.
+ */
+router.route('/syncGitHubProjectPackageSize').post(syncGitHubProjectPackageSize);
 
 export default router;
