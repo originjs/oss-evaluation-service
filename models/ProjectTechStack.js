@@ -4,7 +4,7 @@ import sequelize from '../util/database.js';
 export default sequelize.define(
   'ProjectTechStack',
   {
-    project_id: {
+    projectId: {
       type: DataTypes.BIGINT,
       allowNull: false,
       primaryKey: true,
@@ -12,7 +12,7 @@ export default sequelize.define(
     name: {
       type: DataTypes.STRING,
     },
-    html_url: {
+    htmlUrl: {
       type: DataTypes.STRING,
     },
     category: {
@@ -28,5 +28,6 @@ export default sequelize.define(
   {
     tableName: 'project_tech_stack',
     timestamps: false,
+    underscored: true,
   },
 );

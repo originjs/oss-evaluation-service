@@ -74,8 +74,7 @@ export async function syncOpendiggerHandler(req, res) {
         res.status(500).json({ error: 'can not find project!' });
         return;
       }
-      const projectPath = project.html_url.substring('https://github.com/'.length);
-      const result = await syncOpendigger(projectId, projectPath);
+      const result = await syncOpendigger(projectId, project.fullName);
       res.status(200).json(result);
     } else if (req.body.category) { // sync a category
       const options = { attributes: ['id', 'htmlUrl'] };
@@ -96,8 +95,7 @@ export async function syncOpendiggerHandler(req, res) {
         5,
         async (project) => {
           try {
-            const projectPath = project.htmlUrl.substring('https://github.com/'.length);
-            await syncOpendigger(project.id, projectPath);
+            await syncOpendigger(project.id, project.fullName);
           } catch (e) {
             if (!(e instanceof ServerError)) {
               throw e;

@@ -12,7 +12,7 @@ export async function syncScorecardHandler(req, res) {
         res.status(500).json({ error: 'can not find project!' });
         return;
       }
-      const projectPath = project.html_url.substring('https://'.length);
+      const projectPath = project.htmlUrl.substring('https://'.length);
       const result = await syncScorecard(projectId, projectPath);
       res.status(200).json(result);
     } else if (req.body.category) { // sync a category
@@ -23,8 +23,8 @@ export async function syncScorecardHandler(req, res) {
       setInterval(async () => {
         const chunk = projects.slice(index, index + interval);
         for (const project of chunk) {
-          const projectPath = project.html_url.substring('https://'.length);
-          await syncScorecard(project.project_id, projectPath);
+          const projectPath = project.htmlUrl.substring('https://'.length);
+          await syncScorecard(project.projectId, projectPath);
         }
         index += interval;
       }, 5000);
