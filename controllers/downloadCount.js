@@ -12,9 +12,7 @@ export async function syncDownloadCount(req, res) {
 }
 
 export async function getDownloadCount(req) {
-  const { startDate } = req.body;
-  const { endDate } = req.body;
-  const { projectId } = req.body;
+  const { startDate, endDate, projectId } = req.body;
   await getDownloadCountByMultiPackage(startDate, endDate, projectId);
   await getDownloadCountBySinglePackage(startDate, endDate, projectId);
 }
@@ -55,10 +53,7 @@ async function getDownloadCountByMultiPackage(startDate, endDate, projectId) {
       packageName += `,${projectsList[j].dataValues.package}`;
     }
     for (const weekOfYear of weekOfYearList) {
-      const hasError = await dealMultiPackage(weekOfYear, packageName, downloadCountList);
-      if (hasError) {
-        return;
-      }
+      await dealMultiPackage(weekOfYear, packageName, downloadCountList);
     }
     debug.log('getDownloadCountByMultiPackage:project_id:%s,packageName:%s', projectsList[0].dataValues.project_id, projectsList[0].dataValues.package);
     if (downloadCountList.length > 0) {
@@ -99,10 +94,7 @@ async function getDownloadCountBySinglePackage(startDate, endDate, projectId) {
     for (const project of projectsList) {
       const packageName = project.dataValues.package;
       for (const weekOfYear of weekOfYearList) {
-        const hasError = await dealSinglePackage(weekOfYear, packageName);
-        if (hasError) {
-          return;
-        }
+        await dealSinglePackage(weekOfYear, packageName);
       }
       debug.log('getDownloadCountBySinglePackage:project_id:%s,packageName:%s', project.dataValues.project_id, packageName);
     }
@@ -111,16 +103,11 @@ async function getDownloadCountBySinglePackage(startDate, endDate, projectId) {
 
 async function dealMultiPackage(week, packageName, downloadCountList) {
   let downloadCountJson;
-  let flag = false;
   try {
     downloadCountJson = await sendRequestByPoint(week.start, week.end, packageName);
   } catch (e) {
     debug.log(`${packageName} sendRequest error!!`);
     debug.log(e);
-    flag = true;
-  }
-  if (flag) {
-    return flag;
   }
   for (const key in downloadCountJson) {
     if (downloadCountJson.hasOwnProperty.call(key)) {
@@ -137,21 +124,15 @@ async function dealMultiPackage(week, packageName, downloadCountList) {
       });
     }
   }
-  return flag;
 }
 
 async function dealSinglePackage(weekOfYear, packageName) {
   let downloadCountJson;
-  let flag = false;
   try {
     downloadCountJson = await sendRequestByPoint(weekOfYear.start, weekOfYear.end, packageName);
   } catch (e) {
     debug.log(`${packageName} sendRequest error!!`);
     debug.log(e);
-    flag = true;
-  }
-  if (flag) {
-    return flag;
   }
   await insertOrUpdateDownloadCount({
     packageName: downloadCountJson.package,
@@ -160,7 +141,6 @@ async function dealSinglePackage(weekOfYear, packageName) {
     week: weekOfYear.weekOfYear,
     downloads: downloadCountJson.downloads,
   });
-  return flag;
 }
 
 export async function sendRequestByRange(start, end, name) {

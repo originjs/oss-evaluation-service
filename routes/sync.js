@@ -59,9 +59,9 @@ router.route('/opendigger').post(syncOpendiggerHandler);
 
 /**
  * @swagger
- * /sync/syncDownloadCount:
+ * /sync/downloadCount:
  *   post:
- *     summary: 获取downloadCount数据
+ *     summary: syncDownloadCount
  *     requestBody:
  *       required: true
  *       content:
@@ -83,7 +83,7 @@ router.route('/opendigger').post(syncOpendiggerHandler);
  *         description: The created book.
  *
  */
-router.route('/syncDownloadCount').post(syncDownloadCount);
+router.route('/downloadCount').post(syncDownloadCount);
 
 /**
  * @swagger
