@@ -23,12 +23,12 @@ const query = gql`
 
 const compassUrl = 'https://oss-compass.org/api/graphql';
 
-export default syncMetricActivity;
+export default syncCompassActivityMetric;
 
 /**
  * Synchronize single project compass activity metric to Database
  */
-export async function syncMetricActivity(req, res) {
+export async function syncCompassActivityMetric(req, res) {
   const variables = req.body;
   const fullIntegration = 'repoUrl' in variables ? variables.repoUrl === '' || variables.repoUrl === null : true;
 
