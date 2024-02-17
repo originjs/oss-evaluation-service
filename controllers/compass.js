@@ -42,6 +42,16 @@ export async function syncCompassActivityMetric(req, res) {
 }
 
 async function isProjectIntegrated(project) {
+  const databaseItem = await GithubProjects.findOne({
+    where: {
+      html_url: project.htmlUrl,
+    },
+  });
+
+  return databaseItem != null;
+}
+
+async function isProjectIntegrated(project) {
   const databaseItem = await CompassActivity.findOne({
     where: {
       repoUrl: project.htmlUrl,
