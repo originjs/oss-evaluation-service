@@ -65,7 +65,7 @@ async function syncFullProjectCompassMetric(variables) {
       continue;
     }
 
-    const compassActivityList = getIncrementalIntegrationArray({
+    const compassActivityList = await getIncrementalIntegrationArray({
       repoUrl: project.htmlUrl,
       beginDate: variables.beginDate,
     }, project.id, metrics);
@@ -104,7 +104,7 @@ async function syncSingleProjectCompassMetric(variables) {
     return;
   }
 
-  const compassActivityList = getIncrementalIntegrationArray(variables, project.id, metrics);
+  const compassActivityList = await getIncrementalIntegrationArray(variables, project.id, metrics);
   await CompassActivity.bulkCreate(compassActivityList).then((compass) => {
     debug.log('insert into database: ', compass.length);
   }).catch((error) => {
