@@ -6,137 +6,130 @@ import GithubProjects from '../models/GithubProjects.js';
 const query = gql`
     query MetricActivity($label: String!, $level: String, $beginDate: ISO8601DateTime, $endDate: ISO8601DateTime) {
       metricActivity(label: $label, level: $level, beginDate: $beginDate, endDate: $endDate) {
-        activeC1IssueCommentsContributorCount
-        activeC1IssueCreateContributorCount
-        activeC1PrCommentsContributorCount
-        activeC1PrCreateContributorCount
-        activeC2ContributorCount
+        label
         activityScore
         closedIssuesCount
         codeReviewCount
         commentFrequency
         commitFrequency
         contributorCount
-        createdSince
-        grimoireCreationDate
-        label
-        level
         orgCount
         recentReleasesCount
-        shortCode
-        type
         updatedIssuesCount
-        updatedSince
+        grimoireCreationDate
       }
     }
   `;
 
+const compassUrl = 'https://oss-compass.org/api/graphql';
+
+export default syncMetricActivity;
+
 /**
- *  同步compass数据
- * @param req
- * @param res
- * @param next
- * @returns {Promise<void>}
+ * Synchronize single project compass activity metric to Database
  */
-export async function syncCompassHandler(req, res) {
-  debug.log('compass数据集成启动');
-  // 1. 获取数据库中的 github 项目
-  const projectNumber = await GithubProjects.count();
-  const Page = 100;
-  let begin = 0;
-  for (begin; begin < projectNumber; begin += Page) {
-    // 获取 github project 信息
-    const projectsList = await GithubProjects.findAll({
-      attributes: ['id', 'htmlUrl'],
-      offset: begin,
-      limit: Page,
+export async function syncMetricActivity(req, res) {
+  const variables = req.body;
+  const fullIntegration = 'repoUrl' in variables ? variables.repoUrl === '' || variables.repoUrl === null : true;
+
+  if (fullIntegration) {
+    await syncFullProjectCompassMetric(variables, res);
+    res.status(200).send('Full-scale compass activity metrics integration success');
+  } else {
+    await syncSingleProjectCompassMetric(variables, res);
+    res.status(200).send(`Project: ${variables.repoUrl} - compass activity metrics integration success`);
+  }
+}
+
+async function syncFullProjectCompassMetric(variables) {
+  const projectList = await GithubProjects.findAll({
+    attributes: ['id', 'htmlUrl'],
+  });
+
+  for (const projectListItem of projectList) {
+    const project = projectListItem.dataValues;
+    const data = await request(
+      compassUrl,
+      query,
+      {
+        label: project.htmlUrl,
+        beginDate: variables.beginDate,
+      },
+    ).catch((error) => {
+      debug.log('Post to compass error : ', error.message);
     });
 
-    const compassActivityMetricList = [];
-
-    for (const item of projectsList) {
-      const project = item.dataValues;
-      const data = await request(
-        'https://oss-compass.org/api/graphql',
-        query,
-        {
-          label: project.htmlUrl,
-        },
-      );
-      const metric = data.metricActivity.reverse();
-      if (metric.length === 0) {
-        debug.log('项目: ', project.htmlUrl, ' 不存在 compass 活跃度数据');
-        continue;
-      }
-      for (const item in metric) {
-        const activity = metric[item];
-        compassActivityMetricList.push(new CompassActivityMetricDto(
-          project.id,
-          activity.label,
-          activity.closedIssuesCount,
-          activity.commentFrequency,
-          activity.commitFrequency,
-          activity.codeReviewCount,
-          activity.updatedIssuesCount,
-          activity.recentReleasesCount,
-          activity.contributorCount,
-          activity.orgCount,
-          activity.grimoireCreationDate,
-        ));
-        if (compassActivityMetricList.length === 5) {
-          break;
-        }
-      }
+    const metrics = data.metricActivity;
+    if (metrics.length === 0) {
+      debug.log('compass metric is empty, project: ', project.htmlUrl);
+      continue;
     }
-    // 批量集成
-    await bulkInsertCompassData(compassActivityMetricList);
-    debug.log('compass插入了: ', projectsList.length, ' 个project的数据');
-  }
 
-  res.status(200).data('数据集成完毕');
-}
+    const compassActivityList = getIncrementalIntegrationArray({
+      repoUrl: project.htmlUrl,
+      beginDate: variables.beginDate,
+    }, project.id, metrics);
 
-/**
- * Compass 实体类数据
- */
-class CompassActivityMetricDto {
-  constructor(
-    projectId,
-    label,
-    closedIssuesCount,
-    commentFrequency,
-    commitFrequency,
-    codeReviewCount,
-    updatedIssuesCount,
-    recentReleasesCount,
-    contributorCount,
-    orgCount,
-    grimoireCreationDate,
-  ) {
-    this.id = 0;
-    this.projectId = projectId;
-    this.label = label;
-    this.closedIssuesCount = closedIssuesCount;
-    this.commentFrequency = commentFrequency;
-    this.commitFrequency = commitFrequency;
-    this.codeReviewCount = codeReviewCount;
-    this.updatedIssuesCount = updatedIssuesCount;
-    this.recentReleasesCount = recentReleasesCount;
-    this.contributorCount = contributorCount;
-    this.orgCount = orgCount;
-    this.grimoireCreationDate = grimoireCreationDate;
+    await CompassActivity.bulkCreate(compassActivityList).then((compass) => {
+      debug.log('insert into database: ', compass.length);
+    }).catch((error) => {
+      debug.log('Batch insert error: ', error.message);
+    });
   }
 }
 
-/**
- * 批量插入数据
- * @param compassMetricList
- * @returns {Promise<void>}
- */
-async function bulkInsertCompassData(compassMetricList) {
-  CompassActivity.bulkCreate(compassMetricList).then((compass) => {
-    console.log('批量插入了数据: ', compass);
-  }).catch((err) => {
-    console.log('批量插入失败: ', err);
+async function syncSingleProjectCompassMetric(variables) {
+  const project = await GithubProjects.findOne({
+    where: {
+      html_url: variables.repoUrl,
+    },
   });
+
+  if (project === null) {
+    debug.log('The project has no project id');
+    return;
+  }
+
+  const data = await request(
+    compassUrl,
+    query,
+    {
+      label: variables.repoUrl,
+      beginDate: variables.beginDate,
+    },
+  );
+  const metrics = data.metricActivity;
+  if (metrics.length === 0) {
+    debug.log('The project: ', variables.htmlUrl, ' has no compass metric');
+    return;
+  }
+
+  const compassActivityList = getIncrementalIntegrationArray(variables, project.id, metrics);
+  await CompassActivity.bulkCreate(compassActivityList).then((compass) => {
+    debug.log('insert into database: ', compass.length);
+  }).catch((error) => {
+    debug.log('Batch insert error: ', error.message);
+  });
+}
+
+async function getIncrementalIntegrationArray(variables, projectId, metrics) {
+  const existCompassDateList = await CompassActivity.findAll({
+    attributes: ['grimoireCreationDate'],
+    where: {
+      repo_url: variables.repoUrl,
+    },
+  }).then((compass) => compass.map((date) => date.dataValues.grimoireCreationDate.getTime()));
+
+  const compassActivityList = [];
+  for (const activity of metrics) {
+    // incremental integration
+    const activityDate = new Date(activity.grimoireCreationDate).getTime();
+    if (!existCompassDateList.includes(activityDate)) {
+      activity.id = 0;
+      activity.projectId = projectId;
+      activity.repoUrl = activity.label;
+      compassActivityList.push(activity);
+    }
+  }
+  return compassActivityList;
 }
