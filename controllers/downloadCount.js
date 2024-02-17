@@ -1,5 +1,4 @@
 import { getDownloadCount } from '../service/downloadCountsService.js';
-import { geneWeekOfMonth } from '../service/weekOfMonthService.js';
 
 export async function syncDownloadCount(req, res) {
   await getDownloadCount(req);

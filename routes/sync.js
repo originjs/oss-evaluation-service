@@ -59,30 +59,6 @@ router.route('/opendigger').post(syncOpendiggerHandler);
 
 /**
  * @swagger
- * /syncWeekOfMonth:
- *   post:
- *     summary: 获取week of month数据
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               start:
- *                 type: string
- *                 example: "2017-01-01"
- *               end:
- *                 example: "2037-12-31"
- *     responses:
- *       200:
- *         description: The created book.
- *
- */
-router.route('/syncWeekOfMonth').post(syncWeekOfMonth);
-
-/**
- * @swagger
  * /syncDownloadCount:
  *   post:
  *     summary: 获取downloadCount数据
