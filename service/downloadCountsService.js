@@ -1,32 +1,29 @@
 import { Op } from 'sequelize';
 import debug from 'debug';
 import PackageDownloadCountMapper from '../models/PackageDownloadCount.js';
-import WeekOfMonthMapper from '../models/weekOfMonth.js';
 import ProjectPackageMapper from '../models/ProjectPackage.js';
+import {getWeekOfYearList} from "../util/weekOfYearUtil.js";
 
 export async function getDownloadCount(req) {
   const { startDate } = req.body;
+  const { endDate } = req.body;
   const { projectId } = req.body;
-  await getDownloadCountByMultiPackage(startDate, projectId);
-  await getDownloadCountBySinglePackage(startDate, projectId);
+  await getDownloadCountByMultiPackage(startDate, endDate,projectId);
+  await getDownloadCountBySinglePackage(startDate, endDate,projectId);
 }
 
-async function getDownloadCountByMultiPackage(startDate, projectId) {
-  const currentDate = new Date();
-  const weekOfMonthList = await WeekOfMonthMapper.findAll({
-    where: {
-      start: {
-        [Op.gte]: startDate,
-      },
-      end: {
-        [Op.lte]: currentDate,
-      },
-    },
-  });
+async function getDownloadCountByMultiPackage(startDate, endDate,projectId) {
+  if(endDate == null) {
+    endDate = new Date()
+  }
+  const weekOfYearList = getWeekOfYearList(startDate, endDate);
   const projectCount = await ProjectPackageMapper.count({
     where: {
       package: {
         [Op.notLike]: '%/%',
+      },
+      project_id: {
+        [Op.gte]: projectId,
       },
     },
   });
@@ -53,8 +50,8 @@ async function getDownloadCountByMultiPackage(startDate, projectId) {
     for (let j = 1; j < projectsList.length; j += 1) {
       packageName += `,${projectsList[j].dataValues.package}`;
     }
-    for (const weekOfMonth of weekOfMonthList) {
-      const hasError = await dealDownloadCountByMultiPackage(weekOfMonth.dataValues, packageName, downloadCountList);
+    for (const weekOfYear of weekOfYearList) {
+      const hasError = await dealDownloadCountByMultiPackage(weekOfYear, packageName, downloadCountList);
       if (hasError) {
         return;
       }
@@ -66,22 +63,18 @@ async function getDownloadCountByMultiPackage(startDate, projectId) {
   }
 }
 
-async function getDownloadCountBySinglePackage(startDate, projectId) {
-  const currentDate = new Date();
-  const weekOfMonthList = await WeekOfMonthMapper.findAll({
-    where: {
-      start: {
-        [Op.gte]: startDate,
-      },
-      end: {
-        [Op.lte]: currentDate,
-      },
-    },
-  });
+async function getDownloadCountBySinglePackage(startDate, endDate,projectId) {
+  if(endDate == null) {
+    endDate = new Date()
+  }
+  const weekOfYearList = getWeekOfYearList(startDate, endDate);
   const projectCount = await ProjectPackageMapper.count({
     where: {
       package: {
         [Op.like]: '%/%',
+      },
+      project_id: {
+        [Op.gte]: projectId,
       },
     },
   });
@@ -104,8 +97,8 @@ async function getDownloadCountBySinglePackage(startDate, projectId) {
     });
     for (const project of projectsList) {
       const packageName = project.dataValues.package;
-      for (const weekOfMonth of weekOfMonthList) {
-        const hasError = await dealDownloadCountBySinglePackage(weekOfMonth.dataValues, packageName);
+      for (const weekOfYear of weekOfYearList) {
+        const hasError = await dealDownloadCountBySinglePackage(weekOfYear, packageName);
         if (hasError) {
           return;
         }
@@ -115,11 +108,11 @@ async function getDownloadCountBySinglePackage(startDate, projectId) {
   }
 }
 
-async function dealDownloadCountByMultiPackage(weekOfMonth, packageName, downloadCountList) {
+async function dealDownloadCountByMultiPackage(weekOfYear, packageName, downloadCountList) {
   let downloadCountJson;
   let flag = false;
   try {
-    downloadCountJson = await sendRequestGetDownloadCountByPoint(weekOfMonth.start, weekOfMonth.end, packageName);
+    downloadCountJson = await sendRequestGetDownloadCountByPoint(weekOfYear.weekOfYearStart, weekOfYear.weekOfYearEnd, packageName);
   } catch (e) {
     debug.log(`${packageName} sendRequest error!!`);
     debug.log(e);
@@ -135,10 +128,10 @@ async function dealDownloadCountByMultiPackage(weekOfMonth, packageName, downloa
         continue;
       }
       downloadCountList.push({
-        packageName: downloadCountJson.package,
-        startDate: downloadCountJson.start,
-        endDate: downloadCountJson.end,
-        week: weekOfMonth.weekOfMonth,
+        packageName: downloadCount.package,
+        startDate: downloadCount.start,
+        endDate: downloadCount.end,
+        week: weekOfYear.weekOfYear,
         downloads: downloadCount.downloads,
       });
     }
@@ -146,11 +139,11 @@ async function dealDownloadCountByMultiPackage(weekOfMonth, packageName, downloa
   return flag;
 }
 
-async function dealDownloadCountBySinglePackage(weekOfMonth, packageName) {
+async function dealDownloadCountBySinglePackage(weekOfYear, packageName) {
   let downloadCountJson;
   let flag = false;
   try {
-    downloadCountJson = await sendRequestGetDownloadCountByPoint(weekOfMonth.start, weekOfMonth.end, packageName);
+    downloadCountJson = await sendRequestGetDownloadCountByPoint(weekOfYear.weekOfYearStart, weekOfYear.weekOfYearEnd, packageName);
   } catch (e) {
     debug.log(`${packageName} sendRequest error!!`);
     debug.log(e);
@@ -163,7 +156,7 @@ async function dealDownloadCountBySinglePackage(weekOfMonth, packageName) {
     packageName: downloadCountJson.package,
     startDate: downloadCountJson.start,
     endDate: downloadCountJson.end,
-    week: weekOfMonth.weekOfMonth,
+    week: weekOfYear.weekOfYear,
     downloads: downloadCountJson.downloads,
   });
   return flag;
@@ -194,7 +187,7 @@ export async function insertBatchDownloadCount(downloadCountList) {
     debug.log('Created DownloadCount:', downloadCount);
   })
     .catch((err) => {
-      debug.error('Error creating DownloadCount:', err);
+      debug.log('Error creating DownloadCount:', err);
     });
 }
 
@@ -204,7 +197,7 @@ export async function insertOrUpdateBatchDownloadCount(downloadCountList) {
       debug.log('Created DownloadCount:', item);
     })
       .catch((err) => {
-        debug.error('Error creating DownloadCount:', err);
+        debug.log('Error creating DownloadCount:', err);
       });
   }
 }
@@ -214,6 +207,6 @@ export async function insertOrUpdateDownloadCount(downloadCount) {
     debug.log('Created DownloadCount:', item);
   })
     .catch((err) => {
-      debug.error('Error creating DownloadCount:', err);
+      debug.log('Error creating DownloadCount:', err);
     });
 }

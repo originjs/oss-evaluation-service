@@ -59,7 +59,7 @@ router.route('/opendigger').post(syncOpendiggerHandler);
 
 /**
  * @swagger
- * /syncDownloadCount:
+ * /sync/syncDownloadCount:
  *   post:
  *     summary: 获取downloadCount数据
  *     requestBody:
@@ -71,7 +71,10 @@ router.route('/opendigger').post(syncOpendiggerHandler);
  *             properties:
  *               startDate:
  *                 type: string
- *                 example: "2017-01-01"
+ *                 example: "2024-01-01"
+ *               endDate:
+ *                 type: string
+ *                 example: "2024-02-17"
  *               projectId:
  *                 type: int
  *                 example: 1
@@ -80,7 +83,7 @@ router.route('/opendigger').post(syncOpendiggerHandler);
  *         description: The created book.
  *
  */
-router.route('/npmdownloads').post(syncDownloadCount);
+router.route('/syncDownloadCount').post(syncDownloadCount);
 
 /**
  * @swagger
