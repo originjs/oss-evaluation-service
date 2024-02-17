@@ -3,7 +3,7 @@ import express from 'express';
 import { syncProjectHandler } from '../controllers/sync.js';
 import { syncScorecardHandler } from '../controllers/scorecard.js';
 import { syncOpendiggerHandler } from '../controllers/opendigger.js';
-import { syncDownloadCount, syncWeekOfMonth } from '../controllers/downloadCount.js';
+import { syncDownloadCount } from '../controllers/downloadCount.js';
 import { syncPackageSizeHandler } from '../controllers/packageSize.js';
 import syncMetricActivity from '../controllers/compass.js';
 
