@@ -5,7 +5,7 @@ import { syncScorecardHandler } from '../controllers/scorecard.js';
 import { syncOpendiggerHandler } from '../controllers/opendigger.js';
 import { syncDownloadCount } from '../controllers/downloadCount.js';
 import { syncPackageSizeHandler } from '../controllers/packageSize.js';
-import syncMetricActivity from '../controllers/compass.js';
+import { syncMetricActivity } from '../controllers/compass.js';
 
 const router = express.Router();
 
