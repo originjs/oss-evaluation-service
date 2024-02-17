@@ -41,26 +41,6 @@ export async function syncCompassActivityMetric(req, res) {
   }
 }
 
-async function isProjectIntegrated(project) {
-  const databaseItem = await GithubProjects.findOne({
-    where: {
-      html_url: project.htmlUrl,
-    },
-  });
-
-  return databaseItem != null;
-}
-
-async function isProjectIntegrated(project) {
-  const databaseItem = await CompassActivity.findOne({
-    where: {
-      repoUrl: project.htmlUrl,
-    },
-  });
-
-  return databaseItem != null;
-}
-
 async function syncFullProjectCompassMetric(variables) {
   const projectList = await GithubProjects.findAll({
     attributes: ['id', 'htmlUrl'],
@@ -73,11 +53,6 @@ async function syncFullProjectCompassMetric(variables) {
     count += 1;
 
     const project = projectListItem.dataValues;
-    // incremental integration: if database exists one item, then skip to next project
-    if (await isProjectIntegrated(project)) {
-      debug.log('Current project already integrated');
-      continue;
-    }
 
     // request compass metric
     const data = await request(
