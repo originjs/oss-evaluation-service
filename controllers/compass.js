@@ -80,6 +80,8 @@ async function syncFullProjectCompassMetric(variables) {
     });
 
     const metrics = data.metricActivity;
+
+    // Compass metric does not exist
     if (metrics.length === 0) {
       await CompassActivity.create({
         id: 0,
