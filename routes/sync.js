@@ -5,7 +5,7 @@ import { syncScorecardHandler } from '../controllers/scorecard.js';
 import { syncOpendiggerHandler } from '../controllers/opendigger.js';
 import { syncDownloadCount } from '../controllers/downloadCount.js';
 import { syncPackageSizeHandler } from '../controllers/packageSize.js';
-import { syncMetricActivity } from '../controllers/compass.js';
+import { syncCompassActivityMetric } from '../controllers/compass.js';
 
 const router = express.Router();
 
@@ -31,9 +31,9 @@ const router = express.Router();
  *                 example: "2023-12-25"
  *     responses:
  *       200:
- *         description: The created data.
+ *         description: Compass activity metric synchronized
  */
-router.route('/compass').post(syncMetricActivity);
+router.route('/compass').post(syncCompassActivityMetric);
 
 /**
  * @swagger

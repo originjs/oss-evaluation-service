@@ -48,6 +48,10 @@ export default sequelize.define(
     grimoireCreationDate: {
       type: DataTypes.DATE,
     },
+    hasCompassMetric: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
   },
   {
     tableName: 'compass_activity_detail',
