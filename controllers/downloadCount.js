@@ -85,7 +85,10 @@ async function getScopedPackageDownloadCount(startDate, endDate, startId, endId)
     for (const packageInfo of packageList) {
       debug.log('getScopedPackageDownloadCount ', packageInfo.package, packageInfo.projectId);
       for (const weekOfYear of weekOfYearList) {
-        await dealSinglePackage(weekOfYear, packageInfo.package);
+        const hasError = await dealSinglePackage(weekOfYear, packageInfo.package);
+        if (hasError) {
+          return;
+        }
       }
     }
   }
@@ -105,7 +108,9 @@ async function dealSinglePackage(week, packageName) {
   } catch (e) {
     debug.log(`${packageName} sendRequest error!!`);
     debug.log(e);
+    return true;
   }
+  return false;
 }
 
 async function dealMultiPackage(week, packageName) {
