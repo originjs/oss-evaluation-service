@@ -1,12 +1,12 @@
-import weekOfYear from 'dayjs/plugin/weekOfYear.js';
 import dayjs from 'dayjs';
 import weekYear from 'dayjs/plugin/weekYear.js';
+import weekOfYear from 'dayjs/plugin/weekOfYear.js';
 
 export function getWeekOfYearList(startDate, endDate) {
   dayjs.extend(weekOfYear);
   dayjs.extend(weekYear);
   let firstDate = dayjs(startDate);
-  const secondDate = dayjs(endDate);
+  const secondDate = dayjs(endDate == null ? new Date() : endDate);
 
   const weekOfYearStart = getWeekOfYearStr(firstDate);
   let firstDateLeft = dayjs(startDate);

@@ -7,14 +7,13 @@ export default sequelize.define(
     projectId: {
       type: DataTypes.BIGINT,
       allowNull: false,
+      primaryKey: true,
     },
     projectName: {
       type: DataTypes.STRING(255),
-      allowNull: true,
     },
     package: {
       type: DataTypes.STRING(255),
-      allowNull: true,
     },
   },
   {

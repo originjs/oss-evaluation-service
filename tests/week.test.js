@@ -19,8 +19,8 @@ describe('week of month', () => {
     expect(weekEnd).toEqual('2024-02-03');
   });
   it('week of year ', async () => {
-    const weekOfYearList = getWeekOfYearList('2024-01-01', '2024-01-07');
-    expect(weekOfYearList).toEqual([{
+    let result = getWeekOfYearList('2024-01-01', '2024-01-07');
+    expect(result).toEqual([{
       end: '2024-01-06',
       start: '2023-12-31',
       weekOfYear: '2024-01',
@@ -28,6 +28,45 @@ describe('week of month', () => {
       end: '2024-01-13',
       start: '2024-01-07',
       weekOfYear: '2024-02',
+    }]);
+
+    result = getWeekOfYearList('2023-12-31', '2024-01-06');
+    expect(result).toEqual([{
+      end: '2024-01-06',
+      start: '2023-12-31',
+      weekOfYear: '2024-01',
+    }]);
+
+    result = getWeekOfYearList('2023-12-31', '2023-12-31');
+    expect(result).toEqual([{
+      end: '2024-01-06',
+      start: '2023-12-31',
+      weekOfYear: '2024-01',
+    }]);
+
+    result = getWeekOfYearList('2024-01-06', '2024-01-06');
+    expect(result).toEqual([{
+      end: '2024-01-06',
+      start: '2023-12-31',
+      weekOfYear: '2024-01',
+    }]);
+
+    result = getWeekOfYearList('2024-01-06', '2024-01-07');
+    expect(result).toEqual([{
+      end: '2024-01-06',
+      start: '2023-12-31',
+      weekOfYear: '2024-01',
+    }, {
+      end: '2024-01-13',
+      start: '2024-01-07',
+      weekOfYear: '2024-02',
+    }]);
+
+    result = getWeekOfYearList('2024-02-29', '2024-02-29');
+    expect(result).toEqual([{
+      end: '2024-03-02',
+      start: '2024-02-25',
+      weekOfYear: '2024-09',
     }]);
   });
 });

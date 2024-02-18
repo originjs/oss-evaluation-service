@@ -1,131 +1,82 @@
 import { Op } from 'sequelize';
 import debug from 'debug';
-import PackageDownloadCountMapper from '../models/PackageDownloadCount.js';
-import ProjectPackageMapper from '../models/ProjectPackage.js';
+import PackageDownloadCount from '../models/PackageDownloadCount.js';
+import ProjectPackage from '../models/ProjectPackage.js';
 import { getWeekOfYearList } from '../util/weekOfYearUtil.js';
 
-export default syncDownloadCount;
+const PAGE_SIEZ = 128;
 
 export async function syncDownloadCount(req, res) {
-  await getDownloadCount(req);
+  const {
+    startDate,
+    endDate,
+    startId,
+    endId,
+  } = req.body;
+  await getNoneScopedPackageDownloadCount(startDate, endDate, startId, endId);
+  await getScopedPackageDownloadCount(startDate, endDate, startId, endId);
   res.status(200).json('ok');
 }
 
-export async function getDownloadCount(req) {
-  const { startDate, endDate, projectId } = req.body;
-  await getDownloadCountByMultiPackage(startDate, endDate, projectId);
-  await getDownloadCountBySinglePackage(startDate, endDate, projectId);
-}
-
-async function getDownloadCountByMultiPackage(startDate, endDate, projectId) {
-  const weekOfYearList = getWeekOfYearList(startDate, endDate == null ? new Date() : endDate);
-  const projectCount = await ProjectPackageMapper.count({
-    where: {
-      package: {
-        [Op.notLike]: '%/%',
-      },
-      project_id: {
-        [Op.gte]: projectId,
-      },
+async function getNoneScopedPackageDownloadCount(startDate, endDate, startId, endId) {
+  const weekOfYearList = getWeekOfYearList(startDate, endDate);
+  const where = {
+    package: {
+      [Op.notLike]: '%/%',
     },
-  });
-  const Page = 128;
-  let begin = 0;
-  for (begin; begin < projectCount; begin += Page) {
-    const downloadCountList = [];
-    const projectsList = await ProjectPackageMapper.findAll({
-      attributes: ['project_id', 'package'],
+    project_id: {
+      [Op.gte]: startId,
+      [Op.lte]: endId,
+    },
+  };
+  const packageCount = await ProjectPackage.count({ where });
+  for (let begin = 0; begin < packageCount; begin += PAGE_SIEZ) {
+    const packageList = await ProjectPackage.findAll({
       offset: begin,
-      limit: Page,
-      where: {
-        package: {
-          [Op.notLike]: '%/%',
-        },
-        project_id: {
-          [Op.gte]: projectId,
-        },
-      },
+      limit: PAGE_SIEZ,
+      where,
       order: [['project_id', 'ASC']],
     });
     // Splicing batch query paths
-    let packageName = `${projectsList[0].dataValues.package}`;
-    for (let j = 1; j < projectsList.length; j += 1) {
-      packageName += `,${projectsList[j].dataValues.package}`;
-    }
+    const allPackageName = packageList.map((e) => e.package).join(',');
     for (const weekOfYear of weekOfYearList) {
-      await dealMultiPackage(weekOfYear, packageName, downloadCountList);
-    }
-    debug.log('getDownloadCountByMultiPackage:project_id:%s,packageName:%s', projectsList[0].dataValues.project_id, projectsList[0].dataValues.package);
-    if (downloadCountList.length > 0) {
-      await insertBatchDownloadCount(downloadCountList);
+      const downloadCountList = await dealMultiPackage(weekOfYear, allPackageName);
+      if (downloadCountList.length > 0) {
+        PackageDownloadCount.bulkCreate(downloadCountList).catch((err) => {
+          debug.log('Error creating DownloadCount:', err);
+        });
+      }
     }
   }
 }
 
-async function getDownloadCountBySinglePackage(startDate, endDate, projectId) {
-  const weekOfYearList = getWeekOfYearList(startDate, endDate == null ? new Date() : endDate);
-  const projectCount = await ProjectPackageMapper.count({
-    where: {
-      package: {
-        [Op.like]: '%/%',
-      },
-      project_id: {
-        [Op.gte]: projectId,
-      },
+async function getScopedPackageDownloadCount(startDate, endDate, startId, endId) {
+  const weekOfYearList = getWeekOfYearList(startDate, endDate);
+  const where = {
+    package: {
+      [Op.like]: '%/%',
     },
-  });
-  const Page = 128;
-  let begin = 0;
-  for (begin; begin < projectCount; begin += Page) {
-    const projectsList = await ProjectPackageMapper.findAll({
-      attributes: ['project_id', 'package'],
+    project_id: {
+      [Op.gte]: startId,
+      [Op.lte]: endId,
+    },
+  };
+  const packageCount = await ProjectPackage.count({ where });
+  for (let begin = 0; begin < packageCount; begin += PAGE_SIEZ) {
+    const packageList = await ProjectPackage.findAll({
       offset: begin,
-      limit: Page,
-      where: {
-        package: {
-          [Op.like]: '%/%',
-        },
-        project_id: {
-          [Op.gte]: projectId,
-        },
-      },
+      limit: PAGE_SIEZ,
+      where,
       order: [['project_id', 'ASC']],
     });
-    for (const project of projectsList) {
-      const packageName = project.dataValues.package;
+    for (const packageInfo of packageList) {
+      debug.log('getScopedPackageDownloadCount ', packageInfo.package);
       for (const weekOfYear of weekOfYearList) {
-        await dealSinglePackage(weekOfYear, packageName);
+        await dealSinglePackage(weekOfYear, packageInfo.package);
       }
-      debug.log('getDownloadCountBySinglePackage:project_id:%s,packageName:%s', project.dataValues.project_id, packageName);
     }
   }
 }
-
-async function dealMultiPackage(week, packageName, downloadCountList) {
-  let downloadCountJson;
-  try {
-    downloadCountJson = await sendRequestByPoint(week.start, week.end, packageName);
-  } catch (e) {
-    debug.log(`${packageName} sendRequest error!!`);
-    debug.log(e);
-  }
-  for (const key in downloadCountJson) {
-    if (downloadCountJson.hasOwnProperty.call(key)) {
-      const downloadCount = downloadCountJson[key];
-      if (downloadCount == null) {
-        continue;
-      }
-      downloadCountList.push({
-        packageName: downloadCount.package,
-        startDate: downloadCount.start,
-        endDate: downloadCount.end,
-        week: week.weekOfYear,
-        downloads: downloadCount.downloads,
-      });
-    }
-  }
-}
-
 async function dealSinglePackage(weekOfYear, packageName) {
   let downloadCountJson;
   try {
@@ -134,23 +85,45 @@ async function dealSinglePackage(weekOfYear, packageName) {
     debug.log(`${packageName} sendRequest error!!`);
     debug.log(e);
   }
-  await insertOrUpdateDownloadCount({
+  PackageDownloadCount.upsert({
     packageName: downloadCountJson.package,
     startDate: downloadCountJson.start,
     endDate: downloadCountJson.end,
     week: weekOfYear.weekOfYear,
     downloads: downloadCountJson.downloads,
+  }).catch((err) => {
+    debug.log('Error insert DownloadCount:', err);
   });
 }
 
-export async function sendRequestByRange(start, end, name) {
-  const response = await fetch(`https://api.npmjs.org/downloads/range/${start}:${end}/${name}`);
-  if (response.ok) {
-    return response.json();
+async function dealMultiPackage(week, packageName) {
+  const downloadCountList = [];
+  try {
+    const downloadCountJson = await sendRequestByPoint(week.start, week.end, packageName);
+    if (downloadCountJson.downloads !== undefined) {
+      downloadCountList.push({
+        packageName: downloadCountJson.package,
+        startDate: downloadCountJson.start,
+        endDate: downloadCountJson.end,
+        week: week.weekOfYear,
+        downloads: downloadCountJson.downloads,
+      });
+    } else {
+      Object.values(downloadCountJson).forEach((element) => {
+        downloadCountList.push({
+          packageName: element.package,
+          startDate: element.start,
+          endDate: element.end,
+          week: week.weekOfYear,
+          downloads: element.downloads,
+        });
+      });
+    }
+  } catch (e) {
+    debug.log(`${packageName} sendRequest error!!`);
+    debug.log(e);
   }
-  return {
-    erorr: 'fetch package download count failed',
-  };
+  return downloadCountList;
 }
 
 export async function sendRequestByPoint(start, end, name) {
@@ -159,35 +132,6 @@ export async function sendRequestByPoint(start, end, name) {
     return response.json();
   }
   return {
-    erorr: 'fetch package download count failed',
+    erorr: `fetch package download count failed:: ${response.statusText}`,
   };
-}
-
-export async function insertBatchDownloadCount(downloadCountList) {
-  PackageDownloadCountMapper.bulkCreate(downloadCountList).then((downloadCount) => {
-    debug.log('Created DownloadCount:', downloadCount);
-  })
-    .catch((err) => {
-      debug.log('Error creating DownloadCount:', err);
-    });
-}
-
-export async function insertOrUpdateBatchDownloadCount(downloadCountList) {
-  for (const downloadCount of downloadCountList) {
-    PackageDownloadCountMapper.upsert(downloadCount).then((item) => {
-      debug.log('Created DownloadCount:', item);
-    })
-      .catch((err) => {
-        debug.log('Error creating DownloadCount:', err);
-      });
-  }
-}
-
-export async function insertOrUpdateDownloadCount(downloadCount) {
-  PackageDownloadCountMapper.upsert(downloadCount).then((item) => {
-    debug.log('Created DownloadCount:', item);
-  })
-    .catch((err) => {
-      debug.log('Error creating DownloadCount:', err);
-    });
 }

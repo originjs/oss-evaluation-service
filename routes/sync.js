@@ -75,9 +75,12 @@ router.route('/opendigger').post(syncOpendiggerHandler);
  *               endDate:
  *                 type: string
  *                 example: "2024-02-17"
- *               projectId:
+ *               startId:
  *                 type: int
  *                 example: 1
+ *               endId:
+ *                 type: int
+ *                 example: 100
  *     responses:
  *       200:
  *         description: The created book.
