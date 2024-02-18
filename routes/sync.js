@@ -29,6 +29,15 @@ const router = express.Router();
  *                 type: string
  *                 description: begin date
  *                 example: "2023-12-25"
+ *               incremental:
+ *                 type: bool
+ *                 example: false
+ *               startIndex:
+ *                 type: int
+ *                 example: 0
+ *               sliceNumber:
+ *                 type: int
+ *                 example: 500
  *     responses:
  *       200:
  *         description: Compass activity metric synchronized
