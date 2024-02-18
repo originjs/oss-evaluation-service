@@ -29,14 +29,16 @@ export default syncCompassActivityMetric;
  * Synchronize single project compass activity metric to Database
  */
 export async function syncCompassActivityMetric(req, res) {
-  const { repoUrl, beginDate } = req.body;
+  const {
+    repoUrl, beginDate, incremental, startIndex, sliceNumber,
+  } = req.body;
   if (beginDate === undefined || beginDate === null || beginDate === '') {
     res.status(200).send('Synchronize date must be provided');
   }
   const fullIntegration = repoUrl === undefined || repoUrl === null || repoUrl === '';
 
   if (fullIntegration) {
-    await syncFullProjectCompassMetric(beginDate);
+    await syncFullProjectCompassMetric(beginDate, incremental, startIndex, sliceNumber);
     res.status(200).send('Full-scale compass activity metrics integration success');
   } else {
     await syncSingleProjectCompassMetric({ repoUrl, beginDate });
@@ -44,15 +46,19 @@ export async function syncCompassActivityMetric(req, res) {
   }
 }
 
-async function syncFullProjectCompassMetric(beginDate) {
-  const projectList = await GithubProjects.findAll({
+async function syncFullProjectCompassMetric(beginDate, incremental, startIndex, sliceNumber) {
+  let projectList = await GithubProjects.findAll({
     attributes: ['id', 'htmlUrl'],
   });
-  debug.log(`The Number of Project : ${projectList.length}`);
-  let count = 1;
+  const sumOfProject = projectList.length;
+  debug.log(`The Number of Project : ${sumOfProject}`);
+
+  projectList = projectList.slice(startIndex, startIndex + sliceNumber);
+  debug.log(`The round of Project : ${projectList.length}`);
+  let count = startIndex + 1;
 
   for (const projectListItem of projectList) {
-    debug.log('**Current Progress**: ', `${count}/${projectList.length}`);
+    debug.log('**Current Progress**: ', `${count}/${sumOfProject}`);
     count += 1;
 
     const project = projectListItem.dataValues;
@@ -63,6 +69,11 @@ async function syncFullProjectCompassMetric(beginDate) {
         repoUrl: project.htmlUrl,
       },
     });
+    if (databaseItem != null) {
+      debug.log('Project have been saved in database');
+      if (!incremental) continue;
+      if (incremental && databaseItem.dataValues.hasCompassMetric === 0) continue;
+    }
 
     debug.log('Request compass metric');
     // request compass metric
@@ -114,6 +125,17 @@ async function syncSingleProjectCompassMetric(repoUrl, beginDate) {
 
   if (project === null) {
     debug.log('The project has no project id');
+    return;
+  }
+
+  // check if the project has saved in database
+  const databaseItem = await CompassActivity.findOne({
+    where: {
+      repoUrl: project.htmlUrl,
+    },
+  });
+  if (databaseItem != null) {
+    debug.log('Project have been saved in database');
     return;
   }
 
