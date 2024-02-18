@@ -54,6 +54,19 @@ async function syncFullProjectCompassMetric(variables) {
 
     const project = projectListItem.dataValues;
 
+    // check if the project has compass metric
+    const databaseItem = await CompassActivity.findOne({
+      where: {
+        repoUrl: project.htmlUrl,
+        hasCompassMetric: 0,
+      },
+    });
+    if (databaseItem != null) {
+      debug.log('The project has been queried, but there is no compass metric');
+      continue;
+    }
+
+    debug.log('Request compass metric');
     // request compass metric
     const data = await request(
       compassUrl,
@@ -68,6 +81,12 @@ async function syncFullProjectCompassMetric(variables) {
 
     const metrics = data.metricActivity;
     if (metrics.length === 0) {
+      await CompassActivity.create({
+        id: 0,
+        projectId: project.id,
+        repoUrl: project.htmlUrl,
+        hasCompassMetric: 0,
+      });
       debug.log('compass metric is empty, project: ', project.htmlUrl);
       continue;
     }
@@ -133,6 +152,7 @@ async function getIncrementalIntegrationArray(variables, projectId, metrics) {
     const activityDate = new Date(activity.grimoireCreationDate).getTime();
     if (!existCompassDateList.includes(activityDate)) {
       activity.id = 0;
+      activity.hasCompassMetric = 1;
       activity.projectId = projectId;
       activity.repoUrl = activity.label;
       compassActivityList.push(activity);
