@@ -29,19 +29,22 @@ export default syncCompassActivityMetric;
  * Synchronize single project compass activity metric to Database
  */
 export async function syncCompassActivityMetric(req, res) {
-  const variables = req.body;
-  const fullIntegration = 'repoUrl' in variables ? variables.repoUrl === '' || variables.repoUrl === null : true;
+  const { repoUrl, beginDate } = req.body;
+  if (beginDate === undefined || beginDate === null || beginDate === '') {
+    res.status(200).send('Synchronize date must be provided');
+  }
+  const fullIntegration = repoUrl === undefined || repoUrl === null || repoUrl === '';
 
   if (fullIntegration) {
-    await syncFullProjectCompassMetric(variables, res);
+    await syncFullProjectCompassMetric(beginDate);
     res.status(200).send('Full-scale compass activity metrics integration success');
   } else {
-    await syncSingleProjectCompassMetric(variables, res);
-    res.status(200).send(`Project: ${variables.repoUrl} - compass activity metrics integration success`);
+    await syncSingleProjectCompassMetric({ repoUrl, beginDate });
+    res.status(200).send(`Project: ${repoUrl} - compass activity metrics integration success`);
   }
 }
 
-async function syncFullProjectCompassMetric(variables) {
+async function syncFullProjectCompassMetric(beginDate) {
   const projectList = await GithubProjects.findAll({
     attributes: ['id', 'htmlUrl'],
   });
@@ -54,17 +57,12 @@ async function syncFullProjectCompassMetric(variables) {
 
     const project = projectListItem.dataValues;
 
-    // check if the project has compass metric
+    // check if the project has saved in database
     const databaseItem = await CompassActivity.findOne({
       where: {
         repoUrl: project.htmlUrl,
-        hasCompassMetric: 0,
       },
     });
-    if (databaseItem != null) {
-      debug.log('The project has been queried, but there is no compass metric');
-      continue;
-    }
 
     debug.log('Request compass metric');
     // request compass metric
@@ -73,7 +71,7 @@ async function syncFullProjectCompassMetric(variables) {
       query,
       {
         label: project.htmlUrl,
-        beginDate: variables.beginDate,
+        beginDate,
       },
     ).catch((error) => {
       debug.log('Post to compass error : ', error.message);
@@ -95,7 +93,7 @@ async function syncFullProjectCompassMetric(variables) {
 
     const compassActivityList = await getIncrementalIntegrationArray({
       repoUrl: project.htmlUrl,
-      beginDate: variables.beginDate,
+      beginDate,
     }, project.id, metrics);
 
     await CompassActivity.bulkCreate(compassActivityList).then((compass) => {
@@ -106,10 +104,10 @@ async function syncFullProjectCompassMetric(variables) {
   }
 }
 
-async function syncSingleProjectCompassMetric(variables) {
+async function syncSingleProjectCompassMetric(repoUrl, beginDate) {
   const project = await GithubProjects.findOne({
     where: {
-      html_url: variables.repoUrl,
+      html_url: repoUrl,
     },
   });
 
@@ -122,17 +120,17 @@ async function syncSingleProjectCompassMetric(variables) {
     compassUrl,
     query,
     {
-      label: variables.repoUrl,
-      beginDate: variables.beginDate,
+      label: repoUrl,
+      beginDate,
     },
   );
   const metrics = data.metricActivity;
   if (metrics.length === 0) {
-    debug.log('The project: ', variables.htmlUrl, ' has no compass metric');
+    debug.log('The project: ', repoUrl, ' has no compass metric');
     return;
   }
 
-  const compassActivityList = await getIncrementalIntegrationArray(variables, project.id, metrics);
+  const compassActivityList = await getIncrementalIntegrationArray(repoUrl, project.id, metrics);
   await CompassActivity.bulkCreate(compassActivityList).then((compass) => {
     debug.log('insert into database: ', compass.length);
   }).catch((error) => {
@@ -140,11 +138,11 @@ async function syncSingleProjectCompassMetric(variables) {
   });
 }
 
-async function getIncrementalIntegrationArray(variables, projectId, metrics) {
+async function getIncrementalIntegrationArray(repoUrl, projectId, metrics) {
   const existCompassDateList = await CompassActivity.findAll({
     attributes: ['grimoireCreationDate'],
     where: {
-      repo_url: variables.repoUrl,
+      repoUrl,
     },
   }).then((compass) => compass.map((date) => date.dataValues.grimoireCreationDate.getTime()));
 
