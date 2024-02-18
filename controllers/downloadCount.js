@@ -13,7 +13,7 @@ export async function syncDownloadCount(req, res) {
     startId,
     endId,
   } = req.body;
-  await getNoneScopedPackageDownloadCount(startDate, endDate, startId, endId);
+  // await getNoneScopedPackageDownloadCount(startDate, endDate, startId, endId);
   await getScopedPackageDownloadCount(startDate, endDate, startId, endId);
   res.status(200).json('ok');
 }
@@ -83,30 +83,29 @@ async function getScopedPackageDownloadCount(startDate, endDate, startId, endId)
       order: [['project_id', 'ASC']],
     });
     for (const packageInfo of packageList) {
-      debug.log('getScopedPackageDownloadCount ', packageInfo.package);
+      debug.log('getScopedPackageDownloadCount ', packageInfo.package, packageInfo.projectId);
       for (const weekOfYear of weekOfYearList) {
         await dealSinglePackage(weekOfYear, packageInfo.package);
       }
     }
   }
 }
-async function dealSinglePackage(weekOfYear, packageName) {
-  let downloadCountJson;
+async function dealSinglePackage(week, packageName) {
   try {
-    downloadCountJson = await sendRequestByPoint(weekOfYear.start, weekOfYear.end, packageName);
+    const downloadCountJson = await sendRequestByPoint(week.start, week.end, packageName);
+    PackageDownloadCount.upsert({
+      packageName: downloadCountJson.package,
+      startDate: downloadCountJson.start,
+      endDate: downloadCountJson.end,
+      week: week.weekOfYear,
+      downloads: downloadCountJson.downloads,
+    }).catch((err) => {
+      debug.log('Error insert DownloadCount:', err);
+    });
   } catch (e) {
     debug.log(`${packageName} sendRequest error!!`);
     debug.log(e);
   }
-  PackageDownloadCount.upsert({
-    packageName: downloadCountJson.package,
-    startDate: downloadCountJson.start,
-    endDate: downloadCountJson.end,
-    week: weekOfYear.weekOfYear,
-    downloads: downloadCountJson.downloads,
-  }).catch((err) => {
-    debug.log('Error insert DownloadCount:', err);
-  });
 }
 
 async function dealMultiPackage(week, packageName) {
@@ -140,7 +139,18 @@ async function dealMultiPackage(week, packageName) {
 }
 
 export async function sendRequestByPoint(start, end, name) {
-  const response = await fetch(`https://api.npmjs.org/downloads/point/${start}:${end}/${name}`);
+  const response = await fetch(
+    `https://api.npmjs.org/downloads/point/${start}:${end}/${name}`,
+    {
+      headers: {
+        'User-Agent': 'Apifox/1.0.0 (https://apifox.com)',
+        Accept: '*/*',
+        Host: 'api.npmjs.org',
+        Connection: 'keep-alive',
+        'Cache-Control': 'no-cache',
+      },
+    },
+  );
   if (response.ok) {
     return response.json();
   }
