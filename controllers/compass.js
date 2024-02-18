@@ -91,10 +91,11 @@ async function syncFullProjectCompassMetric(beginDate) {
       continue;
     }
 
-    const compassActivityList = await getIncrementalIntegrationArray({
-      repoUrl: project.htmlUrl,
-      beginDate,
-    }, project.id, metrics);
+    const compassActivityList = await getIncrementalIntegrationArray(
+      project.htmlUrl,
+      project.id,
+      metrics,
+    );
 
     await CompassActivity.bulkCreate(compassActivityList).then((compass) => {
       debug.log('insert into database: ', compass.length);
