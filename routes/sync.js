@@ -3,7 +3,7 @@ import express from 'express';
 import { syncProjectHandler } from '../controllers/sync.js';
 import { syncScorecardHandler } from '../controllers/scorecard.js';
 import { syncOpendiggerHandler } from '../controllers/opendigger.js';
-import { syncDownloadCount, syncWeekOfMonth } from '../controllers/downloadCount.js';
+import { syncDownloadCount } from '../controllers/downloadCount.js';
 import { syncPackageSizeHandler } from '../controllers/packageSize.js';
 import { syncCompassActivityMetric } from '../controllers/compass.js';
 
@@ -59,33 +59,9 @@ router.route('/opendigger').post(syncOpendiggerHandler);
 
 /**
  * @swagger
- * /syncWeekOfMonth:
+ * /sync/downloadCount:
  *   post:
- *     summary: 获取week of month数据
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               start:
- *                 type: string
- *                 example: "2017-01-01"
- *               end:
- *                 example: "2037-12-31"
- *     responses:
- *       200:
- *         description: The created book.
- *
- */
-router.route('/syncWeekOfMonth').post(syncWeekOfMonth);
-
-/**
- * @swagger
- * /syncDownloadCount:
- *   post:
- *     summary: 获取downloadCount数据
+ *     summary: syncDownloadCount
  *     requestBody:
  *       required: true
  *       content:
@@ -95,7 +71,10 @@ router.route('/syncWeekOfMonth').post(syncWeekOfMonth);
  *             properties:
  *               startDate:
  *                 type: string
- *                 example: "2017-01-01"
+ *                 example: "2024-01-01"
+ *               endDate:
+ *                 type: string
+ *                 example: "2024-02-17"
  *               projectId:
  *                 type: int
  *                 example: 1
@@ -104,7 +83,7 @@ router.route('/syncWeekOfMonth').post(syncWeekOfMonth);
  *         description: The created book.
  *
  */
-router.route('/npmdownloads').post(syncDownloadCount);
+router.route('/downloadCount').post(syncDownloadCount);
 
 /**
  * @swagger
