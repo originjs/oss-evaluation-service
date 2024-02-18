@@ -45,15 +45,13 @@ export async function syncSinglePackageSize(name, version) {
       PackageSizeDetail.upsert(row);
     })
     .catch((e) => {
-      if (e.status === 500) {
-        PackageSizeDetail.upsert({
-          version: '',
-          packageName: e.packageName,
-          reason: `${e.status}:${e.msg}`,
-        });
-      } else {
-        sleep(60 * 1000);
-      }
+      PackageSizeDetail.upsert({
+        version: '',
+        packageName: e.packageName,
+        reason: `${e.status}:${e.msg}`,
+      });
+      // if it fails, randomly sleep 1-5s
+      sleep(Math.floor(Math.random() * 5) + 1);
     });
 }
 
