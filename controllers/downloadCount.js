@@ -96,7 +96,7 @@ async function getScopedPackageDownloadCount(startDate, endDate, startId, endId,
       order: [['project_id', 'ASC'], ['package', 'ASC']],
     });
     for (const packageInfo of packageList) {
-      debug.log('getScopedPackageDownloadCount ', packageInfo.package, packageInfo.projectId);
+      debug.log('getScopedPackageDownloadCount ', packageInfo.package, packageInfo.projectId, packageCount);
       for (const weekOfYear of weekOfYearList) {
         const isExist = await PackageDownloadCount.count({
           where: {
