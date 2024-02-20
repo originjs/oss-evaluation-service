@@ -4,9 +4,20 @@ import PackageDownloadCount from '../models/PackageDownloadCount.js';
 import ProjectPackage from '../models/ProjectPackage.js';
 import { getWeekOfYearList } from '../util/weekOfYearUtil.js';
 
-const PAGE_SIEZ = 128;
+const PAGE_SIZE = 128;
 
-export async function syncDownloadCount(req, res) {
+export async function syncNoneScopedPackageDownloadCount(req, res) {
+  const {
+    startDate,
+    endDate,
+    startId,
+    endId,
+  } = req.body;
+  await getNoneScopedPackageDownloadCount(startDate, endDate, startId, endId);
+  res.status(200).json('ok');
+}
+
+export async function syncScopedPackageDownloadCount(req, res) {
   const {
     startDate,
     endDate,
@@ -14,7 +25,6 @@ export async function syncDownloadCount(req, res) {
     endId,
     isUpdate,
   } = req.body;
-  // await getNoneScopedPackageDownloadCount(startDate, endDate, startId, endId);
   await getScopedPackageDownloadCount(startDate, endDate, startId, endId, isUpdate);
   res.status(200).json('ok');
 }
@@ -38,10 +48,10 @@ async function getNoneScopedPackageDownloadCount(startDate, endDate, startId, en
   };
 
   const packageCount = await ProjectPackage.count({ where });
-  for (let begin = 0; begin < packageCount; begin += PAGE_SIEZ) {
+  for (let begin = 0; begin < packageCount; begin += PAGE_SIZE) {
     const packageList = await ProjectPackage.findAll({
       offset: begin,
-      limit: PAGE_SIEZ,
+      limit: PAGE_SIZE,
       where,
       order: [['project_id', 'ASC'], ['package', 'ASC']],
     });
@@ -76,17 +86,17 @@ async function getScopedPackageDownloadCount(startDate, endDate, startId, endId,
     project_id: projectIdRange,
   };
   const packageCount = await ProjectPackage.count({ where });
-  for (let begin = 0; begin < packageCount; begin += PAGE_SIEZ) {
+  for (let begin = 0; begin < packageCount; begin += PAGE_SIZE) {
     const packageList = await ProjectPackage.findAll({
       offset: begin,
-      limit: PAGE_SIEZ,
+      limit: PAGE_SIZE,
       where,
       order: [['project_id', 'ASC'], ['package', 'ASC']],
     });
     for (const packageInfo of packageList) {
       debug.log('getScopedPackageDownloadCount ', packageInfo.package, packageInfo.projectId);
       for (const weekOfYear of weekOfYearList) {
-        const exist = await PackageDownloadCount.count({
+        const isExist = await PackageDownloadCount.count({
           where: {
             packageName: {
               [Op.eq]: packageInfo.package,
@@ -96,7 +106,7 @@ async function getScopedPackageDownloadCount(startDate, endDate, startId, endId,
             },
           },
         });
-        if (exist > 0 && !isUpdate) {
+        if (isExist > 0 && !isUpdate) {
           continue;
         }
         const hasError = await dealSinglePackage(weekOfYear, packageInfo.package);
@@ -174,6 +184,6 @@ export async function sendRequestByPoint(start, end, name) {
     return response.json();
   }
   return {
-    erorr: `fetch package download count failed:: ${response.statusText}`,
+    error: `fetch package download count failed:: ${response.statusText}`,
   };
 }

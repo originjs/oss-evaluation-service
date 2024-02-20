@@ -3,7 +3,7 @@ import express from 'express';
 import { syncProjectHandler } from '../controllers/sync.js';
 import { syncScorecardHandler } from '../controllers/scorecard.js';
 import { syncOpendiggerHandler } from '../controllers/opendigger.js';
-import { syncDownloadCount } from '../controllers/downloadCount.js';
+import { syncNoneScopedPackageDownloadCount, syncScopedPackageDownloadCount } from '../controllers/downloadCount.js';
 import { syncPackageSizeHandler } from '../controllers/packageSize.js';
 import { syncCompassActivityMetric } from '../controllers/compass.js';
 
@@ -68,9 +68,40 @@ router.route('/opendigger').post(syncOpendiggerHandler);
 
 /**
  * @swagger
- * /sync/downloadCount:
+ * /sync/noneScopedPackageDownloadCount:
  *   post:
- *     summary: syncDownloadCount
+ *     summary: syncNoneScopedPackageDownloadCount
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               startDate:
+ *                 type: string
+ *                 example: "2024-01-01"
+ *               endDate:
+ *                 type: string
+ *                 example: "2024-02-17"
+ *               startId:
+ *                 type: int
+ *                 example: 1
+ *               endId:
+ *                 type: int
+ *                 example: 100
+ *     responses:
+ *       200:
+ *         description: The created book.
+ *
+ */
+router.route('/noneScopedPackageDownloadCount').post(syncNoneScopedPackageDownloadCount);
+
+/**
+ * @swagger
+ * /sync/scopedPackageDownloadCount:
+ *   post:
+ *     summary: syncScopedPackageDownloadCount
  *     requestBody:
  *       required: true
  *       content:
@@ -98,7 +129,7 @@ router.route('/opendigger').post(syncOpendiggerHandler);
  *         description: The created book.
  *
  */
-router.route('/downloadCount').post(syncDownloadCount);
+router.route('/scopedPackageDownloadCount').post(syncScopedPackageDownloadCount);
 
 /**
  * @swagger
