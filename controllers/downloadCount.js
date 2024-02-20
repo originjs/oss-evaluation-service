@@ -12,14 +12,14 @@ export async function syncDownloadCount(req, res) {
     endDate,
     startId,
     endId,
-    packageName,
+    isUpdate,
   } = req.body;
-  // await getNoneScopedPackageDownloadCount(startDate, endDate, startId, endId, packageName);
-  await getScopedPackageDownloadCount(startDate, endDate, startId, endId, packageName);
+  // await getNoneScopedPackageDownloadCount(startDate, endDate, startId, endId);
+  await getScopedPackageDownloadCount(startDate, endDate, startId, endId, isUpdate);
   res.status(200).json('ok');
 }
 
-async function getNoneScopedPackageDownloadCount(startDate, endDate, startId, endId, packageName) {
+async function getNoneScopedPackageDownloadCount(startDate, endDate, startId, endId) {
   const weekOfYearList = getWeekOfYearList(startDate, endDate);
   let projectIdRange;
   if (endId) {
@@ -30,23 +30,12 @@ async function getNoneScopedPackageDownloadCount(startDate, endDate, startId, en
   } else {
     projectIdRange = { [Op.gte]: startId };
   }
-  let where;
-  if (packageName) {
-    where = {
-      package: {
-        [Op.notLike]: '%/%',
-        [Op.gte]: packageName,
-      },
-      project_id: projectIdRange,
-    };
-  } else {
-    where = {
-      package: {
-        [Op.notLike]: '%/%',
-      },
-      project_id: projectIdRange,
-    };
-  }
+  const where = {
+    package: {
+      [Op.notLike]: '%/%',
+    },
+    project_id: projectIdRange,
+  };
 
   const packageCount = await ProjectPackage.count({ where });
   for (let begin = 0; begin < packageCount; begin += PAGE_SIEZ) {
@@ -69,7 +58,7 @@ async function getNoneScopedPackageDownloadCount(startDate, endDate, startId, en
   }
 }
 
-async function getScopedPackageDownloadCount(startDate, endDate, startId, endId, packageName) {
+async function getScopedPackageDownloadCount(startDate, endDate, startId, endId, isUpdate) {
   const weekOfYearList = getWeekOfYearList(startDate, endDate);
   let projectIdRange;
   if (endId) {
@@ -80,23 +69,12 @@ async function getScopedPackageDownloadCount(startDate, endDate, startId, endId,
   } else {
     projectIdRange = { [Op.gte]: startId };
   }
-  let where;
-  if (packageName) {
-    where = {
-      package: {
-        [Op.like]: '%/%',
-        [Op.gte]: packageName,
-      },
-      project_id: projectIdRange,
-    };
-  } else {
-    where = {
-      package: {
-        [Op.like]: '%/%',
-      },
-      project_id: projectIdRange,
-    };
-  }
+  const where = {
+    package: {
+      [Op.like]: '%/%',
+    },
+    project_id: projectIdRange,
+  };
   const packageCount = await ProjectPackage.count({ where });
   for (let begin = 0; begin < packageCount; begin += PAGE_SIEZ) {
     const packageList = await ProjectPackage.findAll({
@@ -108,6 +86,19 @@ async function getScopedPackageDownloadCount(startDate, endDate, startId, endId,
     for (const packageInfo of packageList) {
       debug.log('getScopedPackageDownloadCount ', packageInfo.package, packageInfo.projectId);
       for (const weekOfYear of weekOfYearList) {
+        const exist = await PackageDownloadCount.count({
+          where: {
+            packageName: {
+              [Op.eq]: packageInfo.package,
+            },
+            week: {
+              [Op.eq]: weekOfYear.weekOfYear,
+            },
+          },
+        });
+        if (exist > 0 && !isUpdate) {
+          continue;
+        }
         const hasError = await dealSinglePackage(weekOfYear, packageInfo.package);
         if (hasError) {
           return;

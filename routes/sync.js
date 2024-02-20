@@ -90,9 +90,9 @@ router.route('/opendigger').post(syncOpendiggerHandler);
  *               endId:
  *                 type: int
  *                 example: 100
- *               packageName:
- *                 type: string
- *                 example: ""
+ *               isUpdate:
+ *                 type: boolean
+ *                 example: false
  *     responses:
  *       200:
  *         description: The created book.
