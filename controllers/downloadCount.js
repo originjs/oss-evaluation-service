@@ -60,9 +60,11 @@ async function getNoneScopedPackageDownloadCount(startDate, endDate, startId, en
     for (const weekOfYear of weekOfYearList) {
       const downloadCountList = await dealMultiPackage(weekOfYear, allPackageName);
       if (downloadCountList.length > 0) {
-        PackageDownloadCount.bulkCreate(downloadCountList).catch((err) => {
-          debug.log('Error creating DownloadCount:', err);
-        });
+        for (const downloadCount of downloadCountList) {
+          PackageDownloadCount.upsert(downloadCount).catch((err) => {
+            debug.log('Error creating DownloadCount:', err);
+          });
+        }
       }
     }
   }
