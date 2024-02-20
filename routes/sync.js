@@ -6,6 +6,7 @@ import { syncOpendiggerHandler } from '../controllers/opendigger.js';
 import { syncNoneScopedPackageDownloadCount, syncScopedPackageDownloadCount } from '../controllers/downloadCount.js';
 import { syncPackageSizeHandler } from '../controllers/packageSize.js';
 import { syncCompassActivityMetric } from '../controllers/compass.js';
+import { observeProjectsByStar, syncProjectByStar, syncProjectByRepo } from '../controllers/github.js';
 
 const router = express.Router();
 
@@ -189,5 +190,74 @@ router.route('/packagesize').post(syncPackageSizeHandler);
  *         description: success.
  */
 router.route('/project/:projecId').post(syncProjectHandler);
+
+/**
+ * @swagger
+ * tags:
+ *   name: Github
+ * /sync/github/stars/observeprojects:
+ *   post:
+ *     summary: Watching front-end Github projects for a specified range of STARS
+ *     tags: [Github]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: Array<number>
+ *             example: [1000,1123]
+ *     responses:
+ *       200:
+ *         description: Success
+ *       400:
+ *         description: Bad Request
+ */
+router.route("/github/stars/observeprojects").post(observeProjectsByStar);
+
+/**
+ * @swagger
+ * tags:
+ *   name: Github
+ * /sync/github/stars/projects:
+ *   post:
+ *     summary: Batch fetch front-end Github projects for a specified range of stats
+ *     tags: [Github]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: Array<number>
+ *             example: [1000,1123]
+ *     responses:
+ *       200:
+ *         description: Success
+ *       400:
+ *         description: Bad Request
+ */
+router.route("/github/stars/projects").post(syncProjectByStar);
+
+/**
+ * @swagger
+ * tags:
+ *   name: Github
+ * /sync/github/repo/projects:
+ *   post:
+ *     summary: Batch fetch Github projects from specific repositories
+ *     tags: [Github]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: Array<string>
+ *             example: ["https://github.com/vuejs/core","https://github.com/vuejs/pinia"]
+ *     responses:
+ *       200:
+ *         description: Success
+ *       400:
+ *         description: Bad Request
+ */
+router.route("/sync/github/repo/projects").post(syncProjectByRepo);
 
 export default router;
