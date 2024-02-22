@@ -6,6 +6,7 @@ import { syncOpendiggerHandler } from '../controllers/opendigger.js';
 import { syncDownloadCount } from '../controllers/downloadCount.js';
 import { syncPackageSizeHandler } from '../controllers/packageSize.js';
 import { syncCompassActivityMetric } from '../controllers/compass.js';
+import { syncStateOfJsData } from '../controllers/stateofjs.js'
 
 const router = express.Router();
 
@@ -158,5 +159,20 @@ router.route('/packagesize').post(syncPackageSizeHandler);
  *         description: success.
  */
 router.route('/project/:projecId').post(syncProjectHandler);
+
+/**
+ * @swagger
+ * /sync/stateofjs:
+ *   post:
+ *     summary: Synchronize state_of_js data
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+ router.route('/stateofjs').post(syncStateOfJsData);
 
 export default router;
