@@ -3,10 +3,11 @@ import express from 'express';
 import { syncProjectHandler } from '../controllers/sync.js';
 import { syncScorecardHandler } from '../controllers/scorecard.js';
 import { syncOpendiggerHandler } from '../controllers/opendigger.js';
-import { syncDownloadCount } from '../controllers/downloadCount.js';
+import { syncNoneScopedPackageDownloadCount, syncScopedPackageDownloadCount } from '../controllers/downloadCount.js';
 import { syncPackageSizeHandler } from '../controllers/packageSize.js';
 import { syncCompassActivityMetric } from '../controllers/compass.js';
 import { syncStateOfJsData } from '../controllers/stateofjs.js'
+import { observeProjectsByStar, syncProjectByStar, syncProjectByRepo, syncProjectByUserStar } from '../controllers/github.js';
 
 const router = express.Router();
 
@@ -69,9 +70,9 @@ router.route('/opendigger').post(syncOpendiggerHandler);
 
 /**
  * @swagger
- * /sync/downloadCount:
+ * /sync/noneScopedPackageDownloadCount:
  *   post:
- *     summary: syncDownloadCount
+ *     summary: syncNoneScopedPackageDownloadCount
  *     requestBody:
  *       required: true
  *       content:
@@ -91,15 +92,46 @@ router.route('/opendigger').post(syncOpendiggerHandler);
  *               endId:
  *                 type: int
  *                 example: 100
- *               packageName:
- *                 type: string
- *                 example: ""
  *     responses:
  *       200:
  *         description: The created book.
  *
  */
-router.route('/downloadCount').post(syncDownloadCount);
+router.route('/noneScopedPackageDownloadCount').post(syncNoneScopedPackageDownloadCount);
+
+/**
+ * @swagger
+ * /sync/scopedPackageDownloadCount:
+ *   post:
+ *     summary: syncScopedPackageDownloadCount
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               startDate:
+ *                 type: string
+ *                 example: "2024-01-01"
+ *               endDate:
+ *                 type: string
+ *                 example: "2024-02-17"
+ *               startId:
+ *                 type: int
+ *                 example: 1
+ *               endId:
+ *                 type: int
+ *                 example: 100
+ *               isUpdate:
+ *                 type: boolean
+ *                 example: false
+ *     responses:
+ *       200:
+ *         description: The created book.
+ *
+ */
+router.route('/scopedPackageDownloadCount').post(syncScopedPackageDownloadCount);
 
 /**
  * @swagger
@@ -174,5 +206,99 @@ router.route('/project/:projecId').post(syncProjectHandler);
  *         description: success.
  */
  router.route('/stateofjs').post(syncStateOfJsData);
+
+ /**
+ * @swagger
+ * tags:
+ *   name: Github
+ * /sync/github/stars/observeprojects:
+ *   post:
+ *     summary: Watching front-end Github projects for a specified range of STARS
+ *     tags: [Github]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: Array<number>
+ *             example: [1000,1123]
+ *     responses:
+ *       200:
+ *         description: Success
+ *       400:
+ *         description: Bad Request
+ */
+router.route("/github/stars/observeprojects").post(observeProjectsByStar);
+
+/**
+ * @swagger
+ * tags:
+ *   name: Github
+ * /sync/github/stars/projects:
+ *   post:
+ *     summary: Batch fetch front-end Github projects for a specified range of stats
+ *     tags: [Github]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: Array<number>
+ *             example: [1000,1123]
+ *     responses:
+ *       200:
+ *         description: Success
+ *       400:
+ *         description: Bad Request
+ */
+router.route("/github/stars/projects").post(syncProjectByStar);
+
+/**
+ * @swagger
+ * tags:
+ *   name: Github
+ * /sync/github/repo/projects:
+ *   post:
+ *     summary: Batch fetch Github projects from specific repositories
+ *     tags: [Github]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: Array<string>
+ *             example: ["https://github.com/vuejs/core","https://github.com/vuejs/pinia"]
+ *     responses:
+ *       200:
+ *         description: Success
+ *       400:
+ *         description: Bad Request
+ */
+router.route("/github/repo/projects").post(syncProjectByRepo);
+
+
+
+/**
+ * @swagger
+ * tags:
+ *   name: Github
+ * /sync/github/{userToken}/stars/projects:
+ *   post:
+ *     summary: Synchronize star items for specific users
+ *     tags: [Github]
+ *     parameters:
+ *       - in: path
+ *         name: userToken
+ *         schema:
+ *           type: string
+ *           example: "ghp_xxxxxxxxxxxxxxxxxxxxxxxxx"             
+ *     responses:
+ *       200:
+ *         description: Success
+ *       400:
+ *         description: Bad Request
+ */
+router.route("/github/:userToken/stars/projects").post(syncProjectByUserStar);
+
 
 export default router;
