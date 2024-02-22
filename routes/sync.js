@@ -6,7 +6,7 @@ import { syncOpendiggerHandler } from '../controllers/opendigger.js';
 import { syncNoneScopedPackageDownloadCount, syncScopedPackageDownloadCount } from '../controllers/downloadCount.js';
 import { syncPackageSizeHandler } from '../controllers/packageSize.js';
 import { syncCompassActivityMetric } from '../controllers/compass.js';
-import { observeProjectsByStar, syncProjectByStar, syncProjectByRepo } from '../controllers/github.js';
+import { observeProjectsByStar, syncProjectByStar, syncProjectByRepo, syncProjectByUserStar } from '../controllers/github.js';
 
 const router = express.Router();
 
@@ -258,6 +258,31 @@ router.route("/github/stars/projects").post(syncProjectByStar);
  *       400:
  *         description: Bad Request
  */
-router.route("/sync/github/repo/projects").post(syncProjectByRepo);
+router.route("/github/repo/projects").post(syncProjectByRepo);
+
+
+
+/**
+ * @swagger
+ * tags:
+ *   name: Github
+ * /sync/github/{userToken}/stars/projects:
+ *   post:
+ *     summary: Synchronize star items for specific users
+ *     tags: [Github]
+ *     parameters:
+ *       - in: path
+ *         name: userToken
+ *         schema:
+ *           type: string
+ *           example: "ghp_xxxxxxxxxxxxxxxxxxxxxxxxx"             
+ *     responses:
+ *       200:
+ *         description: Success
+ *       400:
+ *         description: Bad Request
+ */
+router.route("/github/:userToken/stars/projects").post(syncProjectByUserStar);
+
 
 export default router;

@@ -1,6 +1,7 @@
 import debug from 'debug';
 import https from 'node:https';
 import * as fs from 'node:fs';
+import { Octokit } from '@octokit/core';
 import GithubProjects from '../models/GithubProjects.js';
 
 /**
@@ -52,6 +53,39 @@ export async function syncProjectByStar(req, res) {
     );
 }
 
+export async function syncProjectByUserStar(req, res) {
+  if (!req.params?.userToken) {
+    res.status(500).json({ error: 'User token is required.' });
+    return;
+  }
+
+  const octokit = new Octokit({
+    auth: req.params.userToken,
+  });
+
+  let i = 0;
+  while (true) {
+    const response = await octokit.request('GET /user/starred', {
+      headers: {
+        'X-GitHub-Api-Version': '2022-11-28',
+      },
+      per_page: 100,
+      page: ++i,
+    });
+    if (response.data.length == 0) {
+      break;
+    }
+    const projects = parseProjects(response.data);
+    projects.forEach((project) => {
+      project['integratedState'] = 1;
+    });
+    saveCSVFile(projects, 'github_projects_user_star_page' + i);
+    savaData(projects);
+  }
+
+  res.status(200).json('success');
+}
+
 function getGithubApiUrl(req) {
   const param = getStarsScope(req);
   return `https://api.github.com/search/repositories?q=language:javascript+language:typescript+${param}&sort=stars&order=asc&per_page=100`;
@@ -99,7 +133,7 @@ async function pagingQuery(url) {
 
   return new Promise((resolve) => {
     https
-      .get(url, { headers }, (res) => {
+      .get(url, { headers, timeout: 60000 }, (res) => {
         let result = Buffer.from('');
         res.on('data', (d) => {
           result = Buffer.concat([result, d], result.length + d.length);
@@ -116,7 +150,7 @@ async function pagingQuery(url) {
             `Integrate the total rows of records: ${resultBody['total_count']},Rows of this integration:${resultBody['items'].length}`
           );
 
-          const projects = parseProjects(resultBody);
+          const projects = parseProjects(resultBody.items);
           resolve({
             hasNext: !!links['next'],
             nextPageUrl: links['next'],
@@ -132,8 +166,8 @@ async function pagingQuery(url) {
   });
 }
 
-function parseProjects(resultBody) {
-  return resultBody.items.map((project) => {
+function parseProjects(items) {
+  return items.map((project) => {
     return {
       id: project.id,
       name: project.name,
@@ -185,8 +219,73 @@ function parseProjects(resultBody) {
   });
 }
 export async function syncProjectByRepo(req, res, next) {
-  debug.log(req.body);
+  const items = [];
+  for (let projectUrl of req.body) {
+    const item = await queryProjectByRepUrl(projectUrl);
+    item && items.push(item);
+  }
+
+  if (items.length == 0) {
+    res.status(200).json('success');
+    return;
+  }
+
+  const projects = parseProjects(items);
+  saveCSVFile(projects, 'github_projects');
+  await savaData(projects);
+
   res.status(200).json('success');
+}
+
+async function queryProjectByRepUrl(url) {
+  if (!process.env.GITHUB_TOKEN) {
+    res.status(500).json({ error: 'User token is required.' });
+    return;
+  }
+
+  const ownerRepo = getOwnerRepo(url);
+  if (!ownerRepo) {
+    res
+      .status(500)
+      .json({
+        error:
+          'Url must be the github address,eg:https://github.com/vuejs/core',
+      });
+    return;
+  }
+
+  const tokens = JSON.parse(process.env.GITHUB_TOKEN);
+  // const agent = new HttpsProxyAgent('http://127.0.0.1:8080');
+  const response = await fetch(
+    'https://api.github.com/repos/' + ownerRepo[0] + '/' + ownerRepo[1],
+    {
+      // agent,
+      headers: {
+        'User-Agent': 'nodejs/18.19.0',
+        Authorization: tokens[0],
+        'X-GitHub-Api-Version': '2022-11-28',
+        Accept: 'application/vnd.github+json',
+      },
+    }
+  );
+
+  if (response.ok) {
+    return await response.json();
+  } else {
+    console.log(await response.text());
+    return null;
+  }
+}
+
+function getOwnerRepo(url) {
+  const keyWords = 'github.com';
+  const startIndex = url.indexOf(keyWords);
+  const fullName = url.substr(startIndex + keyWords.length);
+  const paths = fullName.split('/');
+  if (paths.length < 2) {
+    return null;
+  }
+  return paths.slice(paths.length - 2);
 }
 
 function parseLinks(linksStr) {
