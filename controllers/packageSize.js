@@ -48,7 +48,7 @@ export async function syncSinglePackageSize(name, version) {
       PackageSizeDetail.upsert({
         version: '',
         packageName: e.packageName,
-        reason: `${e.status}:${e.msg}`,
+        reason: `${e.status}:${e.msg?.substring(0, 1000)}`,
       });
       // if it fails, randomly sleep 1-5s
       sleep(Math.floor(Math.random() * 5) + 1);
