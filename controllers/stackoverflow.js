@@ -22,14 +22,14 @@ export async function syncStackOverFlowResultData(req, res) {
         resultYear = year;
       }
     }
-    const msg = await syncFullDetailData(resultYear);
+    const msg = await syncFullDetailData();
     res.status(200).send(msg);
   } catch (e) {
     res.status(500).json({ erorr: e.message });
   }
 }
 
-async function syncFullDetailData(resultYear) {
+async function syncFullDetailData() {
   const resultData = RESULT_DATA_MAP[resultYear];
 
   // data is empty
