@@ -24,7 +24,7 @@ export async function observeProjectsByStar(req, res) {
   res
     .status(200)
     .send(
-      `There are ${result.totalCount} github projects by ${getStarsScope(req)}.`
+      `There are ${result.totalCount} github projects by ${getStarsScope(req)}.`,
     );
 }
 
@@ -40,7 +40,7 @@ export async function syncProjectByStar(req, res) {
 
   saveCSVFile(
     projects,
-    `projects_stars_${req.body[0]}_${req.body[1] || 'above'}`
+    `projects_stars_${req.body[0]}_${req.body[1] || 'above'}`,
   );
   savaData(projects);
 
@@ -48,8 +48,8 @@ export async function syncProjectByStar(req, res) {
     .status(200)
     .send(
       `Synchronize star ${getStarsScope(
-        req
-      )} github projects for success,total ${projects.length} rows`
+        req,
+      )} github projects for success,total ${projects.length} rows`,
     );
 }
 
@@ -77,9 +77,9 @@ export async function syncProjectByUserStar(req, res) {
     }
     const projects = parseProjects(response.data);
     projects.forEach((project) => {
-      project['integratedState'] = 1;
+      project.integratedState = 1;
     });
-    saveCSVFile(projects, 'github_projects_user_star_page' + i);
+    saveCSVFile(projects, `github_projects_user_star_page${i}`);
     savaData(projects);
   }
 
@@ -94,9 +94,8 @@ function getGithubApiUrl(req) {
 function getStarsScope(req) {
   if (!req.body[1]) {
     return `stars:>=${req.body[0]}`;
-  } else {
-    return `stars:${req.body[0]}..${req.body[1]}`;
   }
+  return `stars:${req.body[0]}..${req.body[1]}`;
 }
 
 async function savaData(projects) {
@@ -118,7 +117,7 @@ function saveCSVFile(projects, fileName) {
   fs.writeFileSync(
     `github_projects/${fileName}_${Date.now()}.csv`,
     csv,
-    'utf8'
+    'utf8',
   );
 }
 
@@ -126,9 +125,9 @@ async function pagingQuery(url) {
   const headers = { 'User-Agent': 'nodejs/18.19.0' };
   if (process.env.GITHUB_TOKEN) {
     const tokens = JSON.parse(process.env.GITHUB_TOKEN);
-    headers['Authorization'] = tokens[0];
+    headers.Authorization = tokens[0];
     headers['X-GitHub-Api-Version'] = '2022-11-28';
-    headers['Accept'] = 'application/vnd.github+json';
+    headers.Accept = 'application/vnd.github+json';
   }
 
   return new Promise((resolve) => {
@@ -147,80 +146,80 @@ async function pagingQuery(url) {
           const links = parseLinks(res.headers.link);
           const resultBody = JSON.parse(result.toString());
           console.log(
-            `Integrate the total rows of records: ${resultBody['total_count']},Rows of this integration:${resultBody['items'].length}`
+            `Integrate the total rows of records: ${resultBody.total_count},Rows of this integration:${resultBody.items.length}`,
           );
 
           const projects = parseProjects(resultBody.items);
           resolve({
-            hasNext: !!links['next'],
-            nextPageUrl: links['next'],
+            hasNext: !!links.next,
+            nextPageUrl: links.next,
             data: projects,
-            totalCount: resultBody['total_count'],
+            totalCount: resultBody.total_count,
           });
         });
       })
       .on('error', (e) => {
         debug.log(e);
-        resolve({ hasNext: false, nextPageUrl: '', data: [], totalCount: 0 });
+        resolve({
+          hasNext: false, nextPageUrl: '', data: [], totalCount: 0,
+        });
       });
   });
 }
 
 function parseProjects(items) {
-  return items.map((project) => {
-    return {
-      id: project.id,
-      name: project.name,
-      fullName: project.full_name,
-      htmlUrl: project.html_url,
-      description: project.description,
-      privateFlag: project.private,
-      ownerName: project.owner.login,
-      forkFlag: project.fork,
-      createdAt: project.created_at,
-      updatedAt: project.updated_at,
-      pushedAt: project.pushed_at,
-      gitUrl: project.git_url,
-      cloneUrl: project.clone_url,
-      size: project.size,
-      stargazersCount: project.stargazers_count,
-      watchersCount: project.watchers_count,
-      language: project.language,
-      hasIssues: project.has_issues,
-      forksCount: project.forks_count,
-      archived: project.archived,
-      disabled: project.disabled,
-      openIssuesCount: project.open_Issues_count,
-      license: project.license?.key,
-      allowForking: project.allow_forking,
-      topics: project.topics?.join('|'),
-      visibility: project.visibility,
-      forks: project.forks,
-      openIssues: project.open_issues,
-      watchers: project.watchers,
-      defaultBranch: project.default_branch,
-      ownerAvatarUrl: project.owner?.avatar_url,
-      ownerType: project.owner?.type,
-      ownerId: project.owner?.id,
-      ownerHtmlUrl: project.owner?.html_url,
-      sshUrl: project.ssh_url,
-      svnUrl: project.svn_url,
-      homePage: project.homepage,
-      hasProjects: project.has_projects,
-      hasDownloads: project.has_downloads,
-      hasWiki: project.has_wiki,
-      hasPages: project.has_pages,
-      hasDiscussions: project.has_discussions,
-      mirrorUrl: project.mirror_url,
-      licenseName: project.license?.name,
-      isTemplate: project.is_template,
-      webCommitSignoffRequired: project.web_commit_signoff_required,
-    };
-  });
+  return items.map((project) => ({
+    id: project.id,
+    name: project.name,
+    fullName: project.full_name,
+    htmlUrl: project.html_url,
+    description: project.description,
+    privateFlag: project.private,
+    ownerName: project.owner.login,
+    forkFlag: project.fork,
+    createdAt: project.created_at,
+    updatedAt: project.updated_at,
+    pushedAt: project.pushed_at,
+    gitUrl: project.git_url,
+    cloneUrl: project.clone_url,
+    size: project.size,
+    stargazersCount: project.stargazers_count,
+    watchersCount: project.watchers_count,
+    language: project.language,
+    hasIssues: project.has_issues,
+    forksCount: project.forks_count,
+    archived: project.archived,
+    disabled: project.disabled,
+    openIssuesCount: project.open_Issues_count,
+    license: project.license?.key,
+    allowForking: project.allow_forking,
+    topics: project.topics?.join('|'),
+    visibility: project.visibility,
+    forks: project.forks,
+    openIssues: project.open_issues,
+    watchers: project.watchers,
+    defaultBranch: project.default_branch,
+    ownerAvatarUrl: project.owner?.avatar_url,
+    ownerType: project.owner?.type,
+    ownerId: project.owner?.id,
+    ownerHtmlUrl: project.owner?.html_url,
+    sshUrl: project.ssh_url,
+    svnUrl: project.svn_url,
+    homePage: project.homepage,
+    hasProjects: project.has_projects,
+    hasDownloads: project.has_downloads,
+    hasWiki: project.has_wiki,
+    hasPages: project.has_pages,
+    hasDiscussions: project.has_discussions,
+    mirrorUrl: project.mirror_url,
+    licenseName: project.license?.name,
+    isTemplate: project.is_template,
+    webCommitSignoffRequired: project.web_commit_signoff_required,
+  }));
 }
 export async function syncProjectByRepo(req, res, next) {
   const items = [];
-  for (let projectUrl of req.body) {
+  for (const projectUrl of req.body) {
     const item = await queryProjectByRepUrl(projectUrl);
     item && items.push(item);
   }
@@ -257,7 +256,7 @@ async function queryProjectByRepUrl(url) {
   const tokens = JSON.parse(process.env.GITHUB_TOKEN);
   // const agent = new HttpsProxyAgent('http://127.0.0.1:8080');
   const response = await fetch(
-    'https://api.github.com/repos/' + ownerRepo[0] + '/' + ownerRepo[1],
+    `https://api.github.com/repos/${ownerRepo[0]}/${ownerRepo[1]}`,
     {
       // agent,
       headers: {
@@ -266,15 +265,14 @@ async function queryProjectByRepUrl(url) {
         'X-GitHub-Api-Version': '2022-11-28',
         Accept: 'application/vnd.github+json',
       },
-    }
+    },
   );
 
   if (response.ok) {
     return await response.json();
-  } else {
-    console.log(await response.text());
-    return null;
   }
+  console.log(await response.text());
+  return null;
 }
 
 function getOwnerRepo(url) {
@@ -291,7 +289,8 @@ function getOwnerRepo(url) {
 function parseLinks(linksStr) {
   const linksArray = linksStr.split(',');
   const links = {};
-  let key, value;
+  let key; let
+    value;
   linksArray.forEach((link) => {
     key = link.match(/rel="(.*)"/)?.[1];
     value = link.match(/<(.*?)>/)?.[1];

@@ -6,7 +6,10 @@ import { syncOpendiggerHandler } from '../controllers/opendigger.js';
 import { syncNoneScopedPackageDownloadCount, syncScopedPackageDownloadCount } from '../controllers/downloadCount.js';
 import { syncPackageSizeHandler } from '../controllers/packageSize.js';
 import { syncCompassActivityMetric } from '../controllers/compass.js';
-import { observeProjectsByStar, syncProjectByStar, syncProjectByRepo, syncProjectByUserStar } from '../controllers/github.js';
+import { syncStateOfJsData } from '../controllers/stateofjs.js';
+import {
+  observeProjectsByStar, syncProjectByStar, syncProjectByRepo, syncProjectByUserStar,
+} from '../controllers/github.js';
 
 const router = express.Router();
 
@@ -193,6 +196,26 @@ router.route('/project/:projecId').post(syncProjectHandler);
 
 /**
  * @swagger
+ * /sync/stateofjs:
+ *   post:
+ *     summary: Synchronize state_of_js data
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               year:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/stateofjs').post(syncStateOfJsData);
+
+/**
+ * @swagger
  * tags:
  *   name: Github
  * /sync/github/stars/observeprojects:
@@ -212,7 +235,7 @@ router.route('/project/:projecId').post(syncProjectHandler);
  *       400:
  *         description: Bad Request
  */
-router.route("/github/stars/observeprojects").post(observeProjectsByStar);
+router.route('/github/stars/observeprojects').post(observeProjectsByStar);
 
 /**
  * @swagger
@@ -235,7 +258,7 @@ router.route("/github/stars/observeprojects").post(observeProjectsByStar);
  *       400:
  *         description: Bad Request
  */
-router.route("/github/stars/projects").post(syncProjectByStar);
+router.route('/github/stars/projects').post(syncProjectByStar);
 
 /**
  * @swagger
@@ -258,9 +281,7 @@ router.route("/github/stars/projects").post(syncProjectByStar);
  *       400:
  *         description: Bad Request
  */
-router.route("/github/repo/projects").post(syncProjectByRepo);
-
-
+router.route('/github/repo/projects').post(syncProjectByRepo);
 
 /**
  * @swagger
@@ -275,14 +296,13 @@ router.route("/github/repo/projects").post(syncProjectByRepo);
  *         name: userToken
  *         schema:
  *           type: string
- *           example: "ghp_xxxxxxxxxxxxxxxxxxxxxxxxx"             
+ *           example: "ghp_xxxxxxxxxxxxxxxxxxxxxxxxx"
  *     responses:
  *       200:
  *         description: Success
  *       400:
  *         description: Bad Request
  */
-router.route("/github/:userToken/stars/projects").post(syncProjectByUserStar);
-
+router.route('/github/:userToken/stars/projects').post(syncProjectByUserStar);
 
 export default router;
