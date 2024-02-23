@@ -126,9 +126,6 @@ router.route('/noneScopedPackageDownloadCount').post(syncNoneScopedPackageDownlo
  *               endId:
  *                 type: int
  *                 example: 100
- *               isUpdate:
- *                 type: boolean
- *                 example: false
  *     responses:
  *       200:
  *         description: The created book.
