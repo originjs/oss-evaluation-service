@@ -2,6 +2,7 @@ import { Op } from 'sequelize';
 import debug from 'debug';
 import PackageDownloadCount from '../models/PackageDownloadCount.js';
 import ProjectPackage from '../models/ProjectPackage.js';
+import fetch from '@adobe/node-fetch-retry';
 import { getWeekOfYearList } from '../util/weekOfYearUtil.js';
 
 const PAGE_SIZE = 128;
@@ -173,6 +174,10 @@ export async function sendRequestByPoint(start, end, name) {
   const response = await fetch(
     `https://api.npmjs.org/downloads/point/${start}:${end}/${name}`,
     {
+      retryOptions: {
+        retryMaxDuration: 3600000, // 60 min retry duration
+        retryInitialDelay: 100,
+      },
       headers: {
         'User-Agent': 'Apifox/1.0.0 (https://apifox.com)',
         Accept: '*/*',
