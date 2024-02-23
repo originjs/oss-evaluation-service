@@ -76,18 +76,16 @@ export async function syncOpendiggerHandler(req, res) {
       }
       const result = await syncOpendigger(projectId, project.fullName);
       res.status(200).json(result);
-    } else if (req.body.category) { // sync a category
-      const options = { attributes: ['id', 'htmlUrl'] };
-      if (req.body.category === 'all') {
-        options.where = {
+    } else { // sync all
+      const options = {
+        attributes: ['id', 'htmlUrl'],
+        where: {
           id: {
             [Op.notIn]:
               sequelize.literal('(SELECT project_id from opendigger_info where updated_at >= DATE(NOW()) - INTERVAL 30 DAY)'),
           },
-        };
-      } else {
-        options.where = { category: req.body.category };
-      }
+        },
+      };
       const projects = await GithubProjects.findAll(options);
       // 5 concurrent requests at the same time
       async.mapLimit(
