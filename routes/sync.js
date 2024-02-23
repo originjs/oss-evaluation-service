@@ -7,6 +7,7 @@ import { syncNoneScopedPackageDownloadCount, syncScopedPackageDownloadCount } fr
 import { syncPackageSizeHandler } from '../controllers/packageSize.js';
 import { syncCompassActivityMetric } from '../controllers/compass.js';
 import { syncStateOfJsData } from '../controllers/stateofjs.js';
+import { syncStackOverFlowResultData } from '../controllers/stackoverflow.js';
 import {
   observeProjectsByStar, syncProjectByStar, syncProjectByRepo, syncProjectByUserStar,
 } from '../controllers/github.js';
@@ -213,6 +214,26 @@ router.route('/project/:projecId').post(syncProjectHandler);
  *         description: success.
  */
 router.route('/stateofjs').post(syncStateOfJsData);
+
+/**
+ * @swagger
+ * /sync/stackoverflow:
+ *   post:
+ *     summary: Synchronize stackoverflow result data
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               year:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/stackoverflow').post(syncStackOverFlowResultData);
 
 /**
  * @swagger
