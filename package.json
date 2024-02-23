@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@octokit/core": "^5.1.0",
+    "@adobe/node-fetch-retry": "^2.2.0",
     "async": "^3.2.5",
     "debug": "^4.3.4",
     "dotenv": "^16.4.1",
