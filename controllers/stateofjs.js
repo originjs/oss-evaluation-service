@@ -1,7 +1,7 @@
 import { request, gql } from 'graphql-request';
 import debug from 'debug';
 import StateOfJs from '../models/StateOfJs.js';
-import { underscoreToCamelCase } from '../util/string.js';
+import { underscoreToSmallCamelCase } from '../util/string.js';
 
 let version = 'js2022';
 
@@ -20,8 +20,8 @@ export async function syncStateOfJsData(req, res) {
         version = `js${year}`;
       }
     }
-    await syncFullDetailData();
-    res.status(200).send('state_of_js data integration success');
+    const msg = await syncFullDetailData();
+    res.status(200).send(msg);
   } catch (e) {
     res.status(500).json({ erorr: e.message });
   }
@@ -310,45 +310,19 @@ async function syncFullDetailData() {
 
   // data is empty
   if (!res || !Object.keys(res).length) {
-    debug.log('response data is empty.');
-    return;
+    const errMsg = 'response data is empty.';
+    debug.log(errMsg);
+    return errMsg;
   }
 
-  // front_end_frameworks
-  const frontendFrameworksData = res.surveys?.state_of_js?.js2022?.front_end_frameworks;
-  if (frontendFrameworksData) {
-    await updateDetailData(frontendFrameworksData.front_end_frameworks_experience.items, frontendFrameworksData.front_end_frameworks_section.items, 'frontendFrameworks');
+  const surveyResultData = res.surveys?.state_of_js?.[version];
+  if (surveyResultData) {
+    Object.keys(surveyResultData).forEach(async (technologyStack) => {
+      await updateDetailData(surveyResultData[technologyStack][`${technologyStack}_experience`].items, surveyResultData[technologyStack][`${technologyStack}_section`].items, underscoreToSmallCamelCase(technologyStack));
+    });
   }
 
-  // rendering_frameworks
-  const renderingFrameworksData = res.surveys?.state_of_js?.js2022?.rendering_frameworks;
-  if (renderingFrameworksData) {
-    await updateDetailData(renderingFrameworksData.rendering_frameworks_experience.items, renderingFrameworksData.rendering_frameworks_section.items, 'renderingFrameworks');
-  }
-
-  // testing
-  const testingData = res.surveys?.state_of_js?.js2022?.testing;
-  if (testingData) {
-    await updateDetailData(testingData.testing_experience.items, testingData.testing_section.items, 'testing');
-  }
-
-  // mobile_desktop
-  const mobileDesktopData = res.surveys?.state_of_js?.js2022?.mobile_desktop;
-  if (mobileDesktopData) {
-    await updateDetailData(mobileDesktopData.mobile_desktop_experience.items, mobileDesktopData.mobile_desktop_section.items, 'mobileDesktop');
-  }
-
-  // build_tools
-  const buildToolsData = res.surveys?.state_of_js?.js2022?.build_tools;
-  if (buildToolsData) {
-    await updateDetailData(buildToolsData.build_tools_experience.items, buildToolsData.build_tools_section.items, 'buildTools');
-  }
-
-  // monorepo_tools
-  const monorepoToolsData = res.surveys?.state_of_js?.js2022?.monorepo_tools;
-  if (monorepoToolsData) {
-    await updateDetailData(monorepoToolsData.monorepo_tools_experience.items, monorepoToolsData.monorepo_tools_section.items, 'monorepoTools');
-  }
+  return 'state_of_js data integration success';
 }
 
 async function updateDetailData(experiences, sections, technologyStack) {
@@ -393,9 +367,9 @@ async function updateDetailData(experiences, sections, technologyStack) {
       const keyName = getSoftwareMapKey(section.id, edition.year);
       edition.buckets.forEach((bucket) => {
         softwareMap[keyName] = softwareMap[keyName] ? softwareMap[keyName] : {};
-        softwareMap[keyName][`${underscoreToCamelCase(bucket.id)}QuestionPercentage`] = bucket.percentageQuestion;
-        softwareMap[keyName][`${underscoreToCamelCase(bucket.id)}SurveyPercentage`] = bucket.percentageSurvey;
-        softwareMap[keyName][`${underscoreToCamelCase(bucket.id)}Count`] = bucket.count;
+        softwareMap[keyName][`${underscoreToSmallCamelCase(bucket.id)}QuestionPercentage`] = bucket.percentageQuestion;
+        softwareMap[keyName][`${underscoreToSmallCamelCase(bucket.id)}SurveyPercentage`] = bucket.percentageSurvey;
+        softwareMap[keyName][`${underscoreToSmallCamelCase(bucket.id)}Count`] = bucket.count;
       });
     });
   });
@@ -404,9 +378,12 @@ async function updateDetailData(experiences, sections, technologyStack) {
     softwareMap[key].projectName = projectName;
     softwareMap[key].year = Number(year);
     softwareMap[key].technologyStack = technologyStack;
-    await StateOfJs.upsert(softwareMap[key]).catch((error) => {
-      debug.log('Batch insert error: ', error.message);
-    });
+    // exclude item whose percent data is null
+    if (softwareMap[key].usageRank && softwareMap[key].usagePercentage) {
+      await StateOfJs.upsert(softwareMap[key]).catch((error) => {
+        debug.log('upsert error: ', error.message);
+      });
+    }
   });
 }
 
