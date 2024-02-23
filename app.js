@@ -1,13 +1,14 @@
-import createError from 'http-errors';
 import express from 'express';
 import logger from 'morgan';
 import debug from 'debug';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 import 'dotenv/config';
+import 'express-async-errors';
 
 import indexRouter from './routes/index.js';
-import syncData from './routes/sync.js';
+import syncRouter from './routes/sync.js';
+import evaluateRouter from './routes/evaluate.js';
 
 const app = express();
 
@@ -37,22 +38,23 @@ app.use(
 );
 // mount routers
 app.use('/', indexRouter);
-app.use('/sync', syncData);
+app.use('/sync', syncRouter);
+app.use('/eval', evaluateRouter);
 
 // catch 404 and forward to error handler
-app.use((req, res, next) => {
-  next(createError(404));
+app.use((req, res) => {
+  res.status(404).json({
+    error: 404,
+    message: 'Not found.',
+  });
 });
 
-// error handler
-app.use((err, req, res) => {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  res.status(res.statusCode || 500).json({
+    error: err.status,
+    message: err.message,
+  });
 });
 
 export default app;
