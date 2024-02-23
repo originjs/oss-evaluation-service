@@ -1,11 +1,54 @@
-import { Op } from 'sequelize';
 import debug from 'debug';
-import PackageDownloadCount from '../models/PackageDownloadCount.js';
-import ProjectPackage from '../models/ProjectPackage.js';
 import fetch from '@adobe/node-fetch-retry';
+import sequelize from '../util/database.js';
+import PackageDownloadCount from '../models/PackageDownloadCount.js';
 import { getWeekOfYearList } from '../util/weekOfYearUtil.js';
 
 const PAGE_SIZE = 128;
+
+const queryPackageCountStart = `
+    select count(*) as count
+    from project_packages
+         left join (SELECT package_name
+                    FROM package_download_count
+                    where !isnull(package_name)
+                      and week = :maxWeek) as base on package = package_name
+    where
+        project_id >= :startId
+        and project_id <= :endId
+        and isnull(package_name)
+        and !isnull(package)`;
+
+const queryPackageCountEnd = `
+        order by project_id, package
+    `;
+
+const queryScopedPackage = `
+        and package like '%/%'
+    `;
+
+const queryNoneScopedPackage = `
+        and package not like '%/%'
+    `;
+
+const queryPackageStart = `
+    select project_id as projectId, package, package_name as packageName
+    from project_packages
+         left join (SELECT package_name
+                    FROM package_download_count
+                    where !isnull(package_name)
+                      and week = :maxWeek) as base on package = package_name
+    where
+        project_id >= :startId
+        and project_id <= :endId
+        and isnull(package_name)
+        and !isnull(package)
+    `;
+
+const queryPackageEnd = `
+        order by project_id, package
+        limit :begin, :PAGE_SIZE
+    `;
 
 export async function syncNoneScopedPackageDownloadCount(req, res) {
   const {
@@ -24,38 +67,33 @@ export async function syncScopedPackageDownloadCount(req, res) {
     endDate,
     startId,
     endId,
-    isUpdate,
   } = req.body;
-  await getScopedPackageDownloadCount(startDate, endDate, startId, endId, isUpdate);
+  await getScopedPackageDownloadCount(startDate, endDate, startId, endId);
   res.status(200).json('ok');
 }
 
 async function getNoneScopedPackageDownloadCount(startDate, endDate, startId, endId) {
   const weekOfYearList = getWeekOfYearList(startDate, endDate);
-  let projectIdRange;
-  if (endId) {
-    projectIdRange = {
-      [Op.gte]: startId,
-      [Op.lte]: endId,
-    };
-  } else {
-    projectIdRange = { [Op.gte]: startId };
-  }
-  const where = {
-    package: {
-      [Op.notLike]: '%/%',
+  const maxWeek = weekOfYearList[weekOfYearList.length - 1].weekOfYear;
+  const needSyncPackageNum = await sequelize.query(
+    queryPackageCountStart + queryNoneScopedPackage + queryPackageCountEnd,
+    {
+      replacements: { startId, endId, maxWeek },
+      type: sequelize.QueryTypes.SELECT,
     },
-    project_id: projectIdRange,
-  };
+  );
 
-  const packageCount = await ProjectPackage.count({ where });
+  const packageCount = needSyncPackageNum[0].count;
   for (let begin = 0; begin < packageCount; begin += PAGE_SIZE) {
-    const packageList = await ProjectPackage.findAll({
-      offset: begin,
-      limit: PAGE_SIZE,
-      where,
-      order: [['project_id', 'ASC'], ['package', 'ASC']],
-    });
+    const packageList = await sequelize.query(
+      queryPackageStart + queryNoneScopedPackage + queryPackageEnd,
+      {
+        replacements: {
+          startId, endId, maxWeek, begin, PAGE_SIZE,
+        },
+        type: sequelize.QueryTypes.SELECT,
+      },
+    );
     // Splicing batch query paths
     const allPackageName = packageList.map((e) => e.package).join(',');
     for (const weekOfYear of weekOfYearList) {
@@ -71,47 +109,28 @@ async function getNoneScopedPackageDownloadCount(startDate, endDate, startId, en
   }
 }
 
-async function getScopedPackageDownloadCount(startDate, endDate, startId, endId, isUpdate) {
+async function getScopedPackageDownloadCount(startDate, endDate, startId, endId) {
   const weekOfYearList = getWeekOfYearList(startDate, endDate);
-  let projectIdRange;
-  if (endId) {
-    projectIdRange = {
-      [Op.gte]: startId,
-      [Op.lte]: endId,
-    };
-  } else {
-    projectIdRange = { [Op.gte]: startId };
-  }
-  const where = {
-    package: {
-      [Op.like]: '%/%',
-    },
-    project_id: projectIdRange,
-  };
-  const packageCount = await ProjectPackage.count({ where });
+  const maxWeek = weekOfYearList[weekOfYearList.length - 1].weekOfYear;
+  const needSyncPackageNum = await sequelize.query(
+    queryPackageCountStart + queryScopedPackage + queryPackageCountEnd,
+    { replacements: { startId, endId, maxWeek }, type: sequelize.QueryTypes.SELECT },
+  );
+
+  const packageCount = needSyncPackageNum[0].count;
   for (let begin = 0; begin < packageCount; begin += PAGE_SIZE) {
-    const packageList = await ProjectPackage.findAll({
-      offset: begin,
-      limit: PAGE_SIZE,
-      where,
-      order: [['project_id', 'ASC'], ['package', 'ASC']],
-    });
+    const packageList = await sequelize.query(
+      queryPackageStart + queryScopedPackage + queryPackageEnd,
+      {
+        replacements: {
+          startId, endId, maxWeek, begin, PAGE_SIZE,
+        },
+        type: sequelize.QueryTypes.SELECT,
+      },
+    );
     for (const packageInfo of packageList) {
-      debug.log('getScopedPackageDownloadCount ', packageInfo.package, packageInfo.projectId, packageCount);
+      debug.log('---------------getScopedPackageDownloadCount---------------package:%s, projectId:%s, total:%s', packageInfo.package, packageInfo.projectId, packageCount);
       for (const weekOfYear of weekOfYearList) {
-        const isExist = await PackageDownloadCount.count({
-          where: {
-            packageName: {
-              [Op.eq]: packageInfo.package,
-            },
-            week: {
-              [Op.eq]: weekOfYear.weekOfYear,
-            },
-          },
-        });
-        if (isExist > 0 && !isUpdate) {
-          continue;
-        }
         const hasError = await dealSinglePackage(weekOfYear, packageInfo.package);
         if (hasError) {
           return;
