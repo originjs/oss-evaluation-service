@@ -163,5 +163,5 @@ export default sequelize.define(
     tableName: 'github_projects',
     timestamps: false,
     underscored: true,
-  }
+  },
 );

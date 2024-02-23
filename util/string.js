@@ -4,7 +4,5 @@
  * @returns camel case string
  */
 export function underscoreToCamelCase(str) {
-    return str.replace(/_([a-z])/g, function (match, p) {
-        return p.toUpperCase();
-    });
+  return str.replace(/_([a-z])/g, (match, p) => p.toUpperCase());
 }
