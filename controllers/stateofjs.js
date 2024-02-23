@@ -3,275 +3,9 @@ import debug from 'debug';
 import StateOfJs from '../models/StateOfJs.js';
 import { underscoreToCamelCase } from '../util/string.js';
 
-const query = gql`
-query js2022Query {
-    surveys {
-      state_of_js {
-        js2022 {
-          front_end_frameworks {
-            front_end_frameworks_experience: front_end_frameworks_ratios {
-              items {
-                id
-                usage {
-                  year
-                  rank
-                  percentageQuestion
-                }
-                awareness {
-                  year
-                  rank
-                  percentageQuestion
-                }
-                interest {
-                  year
-                  rank
-                  percentageQuestion
-                }
-                satisfaction {
-                  year
-                  rank
-                  percentageQuestion
-                }
-              }
-            }
-            front_end_frameworks_section: front_end_frameworks_tools {
-              items {
-                id
-                responses {
-                  allEditions {
-                    year
-                    buckets {
-                      id
-                      percentageQuestion
-                      percentageSurvey
-                      count
-                    }
-                  }
-                }
-              }
-            }
-          }
-          rendering_frameworks {
-            rendering_frameworks_experience: rendering_frameworks_ratios {
-              items {
-                id
-                usage {
-                  year
-                  rank
-                  percentageQuestion
-                }
-                awareness {
-                  year
-                  rank
-                  percentageQuestion
-                }
-                interest {
-                  year
-                  rank
-                  percentageQuestion
-                }
-                satisfaction {
-                  year
-                  rank
-                  percentageQuestion
-                }
-              }
-            }
-            rendering_frameworks_section: rendering_frameworks_tools {
-              items {
-                id
-                responses {
-                  allEditions {
-                    year
-                    buckets {
-                      id
-                      percentageQuestion
-                      percentageSurvey
-                      count
-                    }
-                  }
-                }
-              }
-            }
-          }
-          testing {
-            testing_experience: testing_ratios {
-              items {
-                id
-                usage {
-                  year
-                  rank
-                  percentageQuestion
-                }
-                awareness {
-                  year
-                  rank
-                  percentageQuestion
-                }
-                interest {
-                  year
-                  rank
-                  percentageQuestion
-                }
-                satisfaction {
-                  year
-                  rank
-                  percentageQuestion
-                }
-              }
-            }
-            testing_section: testing_tools {
-              items {
-                id
-                responses {
-                  allEditions {
-                    year
-                    buckets {
-                      id
-                      percentageQuestion
-                      percentageSurvey
-                      count
-                    }
-                  }
-                }
-              }
-            }
-          }
-          mobile_desktop {
-            mobile_desktop_experience: mobile_desktop_ratios {
-              items {
-                id
-                usage {
-                  year
-                  rank
-                  percentageQuestion
-                }
-                awareness {
-                  year
-                  rank
-                  percentageQuestion
-                }
-                interest {
-                  year
-                  rank
-                  percentageQuestion
-                }
-                satisfaction {
-                  year
-                  rank
-                  percentageQuestion
-                }
-              }
-            }
-            mobile_desktop_section: mobile_desktop_tools {
-              items {
-                id
-                responses {
-                  allEditions {
-                    year
-                    buckets {
-                      id
-                      percentageQuestion
-                      percentageSurvey
-                      count
-                    }
-                  }
-                }
-              }
-            }
-          }
-          build_tools {
-            build_tools_experience: build_tools_ratios {
-              items {
-                id
-                usage {
-                  year
-                  rank
-                  percentageQuestion
-                }
-                awareness {
-                  year
-                  rank
-                  percentageQuestion
-                }
-                interest {
-                  year
-                  rank
-                  percentageQuestion
-                }
-                satisfaction {
-                  year
-                  rank
-                  percentageQuestion
-                }
-              }
-            }
-            build_tools_section: build_tools_tools {
-              items {
-                id
-                responses {
-                  allEditions {
-                    year
-                    buckets {
-                      id
-                      percentageQuestion
-                      percentageSurvey
-                      count
-                    }
-                  }
-                }
-              }
-            }
-          }
-          monorepo_tools {
-            monorepo_tools_experience: monorepo_tools_ratios {
-              items {
-                id
-                usage {
-                  year
-                  rank
-                  percentageQuestion
-                }
-                awareness {
-                  year
-                  rank
-                  percentageQuestion
-                }
-                interest {
-                  year
-                  rank
-                  percentageQuestion
-                }
-                satisfaction {
-                  year
-                  rank
-                  percentageQuestion
-                }
-              }
-            }
-            monorepo_tools_section: monorepo_tools_tools {
-              items {
-                id
-                responses {
-                  allEditions {
-                    year
-                    buckets {
-                      id
-                      percentageQuestion
-                      percentageSurvey
-                      count
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }`;
+let version = 'js2022';
 
-const graphqlApiUrl = 'https://api-cached.devographics.com/';
+const GRAPHIQL_API_URL = 'https://api-cached.devographics.com/';
 
 export default syncStateOfJsData;
 
@@ -280,6 +14,12 @@ export default syncStateOfJsData;
  */
 export async function syncStateOfJsData(req, res) {
   try {
+    if (req.body) {
+      const { year } = req.body;
+      if (year) {
+        version = `js${year}`;
+      }
+    }
     await syncFullDetailData();
     res.status(200).send('state_of_js data integration success');
   } catch (e) {
@@ -287,10 +27,281 @@ export async function syncStateOfJsData(req, res) {
   }
 }
 
+function getQuery() {
+  return gql`
+    query stateOfJsQuery {
+        surveys {
+          state_of_js {
+            ${version} {
+              front_end_frameworks {
+                front_end_frameworks_experience: front_end_frameworks_ratios {
+                  items {
+                    id
+                    usage {
+                      year
+                      rank
+                      percentageQuestion
+                    }
+                    awareness {
+                      year
+                      rank
+                      percentageQuestion
+                    }
+                    interest {
+                      year
+                      rank
+                      percentageQuestion
+                    }
+                    satisfaction {
+                      year
+                      rank
+                      percentageQuestion
+                    }
+                  }
+                }
+                front_end_frameworks_section: front_end_frameworks_tools {
+                  items {
+                    id
+                    responses {
+                      allEditions {
+                        year
+                        buckets {
+                          id
+                          percentageQuestion
+                          percentageSurvey
+                          count
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              rendering_frameworks {
+                rendering_frameworks_experience: rendering_frameworks_ratios {
+                  items {
+                    id
+                    usage {
+                      year
+                      rank
+                      percentageQuestion
+                    }
+                    awareness {
+                      year
+                      rank
+                      percentageQuestion
+                    }
+                    interest {
+                      year
+                      rank
+                      percentageQuestion
+                    }
+                    satisfaction {
+                      year
+                      rank
+                      percentageQuestion
+                    }
+                  }
+                }
+                rendering_frameworks_section: rendering_frameworks_tools {
+                  items {
+                    id
+                    responses {
+                      allEditions {
+                        year
+                        buckets {
+                          id
+                          percentageQuestion
+                          percentageSurvey
+                          count
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              testing {
+                testing_experience: testing_ratios {
+                  items {
+                    id
+                    usage {
+                      year
+                      rank
+                      percentageQuestion
+                    }
+                    awareness {
+                      year
+                      rank
+                      percentageQuestion
+                    }
+                    interest {
+                      year
+                      rank
+                      percentageQuestion
+                    }
+                    satisfaction {
+                      year
+                      rank
+                      percentageQuestion
+                    }
+                  }
+                }
+                testing_section: testing_tools {
+                  items {
+                    id
+                    responses {
+                      allEditions {
+                        year
+                        buckets {
+                          id
+                          percentageQuestion
+                          percentageSurvey
+                          count
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              mobile_desktop {
+                mobile_desktop_experience: mobile_desktop_ratios {
+                  items {
+                    id
+                    usage {
+                      year
+                      rank
+                      percentageQuestion
+                    }
+                    awareness {
+                      year
+                      rank
+                      percentageQuestion
+                    }
+                    interest {
+                      year
+                      rank
+                      percentageQuestion
+                    }
+                    satisfaction {
+                      year
+                      rank
+                      percentageQuestion
+                    }
+                  }
+                }
+                mobile_desktop_section: mobile_desktop_tools {
+                  items {
+                    id
+                    responses {
+                      allEditions {
+                        year
+                        buckets {
+                          id
+                          percentageQuestion
+                          percentageSurvey
+                          count
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              build_tools {
+                build_tools_experience: build_tools_ratios {
+                  items {
+                    id
+                    usage {
+                      year
+                      rank
+                      percentageQuestion
+                    }
+                    awareness {
+                      year
+                      rank
+                      percentageQuestion
+                    }
+                    interest {
+                      year
+                      rank
+                      percentageQuestion
+                    }
+                    satisfaction {
+                      year
+                      rank
+                      percentageQuestion
+                    }
+                  }
+                }
+                build_tools_section: build_tools_tools {
+                  items {
+                    id
+                    responses {
+                      allEditions {
+                        year
+                        buckets {
+                          id
+                          percentageQuestion
+                          percentageSurvey
+                          count
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              monorepo_tools {
+                monorepo_tools_experience: monorepo_tools_ratios {
+                  items {
+                    id
+                    usage {
+                      year
+                      rank
+                      percentageQuestion
+                    }
+                    awareness {
+                      year
+                      rank
+                      percentageQuestion
+                    }
+                    interest {
+                      year
+                      rank
+                      percentageQuestion
+                    }
+                    satisfaction {
+                      year
+                      rank
+                      percentageQuestion
+                    }
+                  }
+                }
+                monorepo_tools_section: monorepo_tools_tools {
+                  items {
+                    id
+                    responses {
+                      allEditions {
+                        year
+                        buckets {
+                          id
+                          percentageQuestion
+                          percentageSurvey
+                          count
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }`;
+}
+
 async function syncFullDetailData() {
   // request
+  const query = getQuery();
   const res = await request(
-    graphqlApiUrl,
+    GRAPHIQL_API_URL,
     query,
     {},
   ).catch((error) => {
@@ -389,8 +400,9 @@ async function updateDetailData(experiences, sections, technologyStack) {
     });
   });
   Object.keys(softwareMap).forEach(async (key) => {
-    softwareMap[key].projectName = key.split(',')[0];
-    softwareMap[key].year = Number(key.split(',')[1]);
+    const [projectName, year] = key.split(',');
+    softwareMap[key].projectName = projectName;
+    softwareMap[key].year = Number(year);
     softwareMap[key].technologyStack = technologyStack;
     await StateOfJs.upsert(softwareMap[key]).catch((error) => {
       debug.log('Batch insert error: ', error.message);

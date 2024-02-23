@@ -202,7 +202,12 @@ router.route('/project/:projecId').post(syncProjectHandler);
  *     requestBody:
  *       required: false
  *       content:
- *         application/json
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               year:
+ *                 type: string
  *     responses:
  *       200:
  *         description: success.

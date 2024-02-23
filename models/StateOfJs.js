@@ -14,6 +14,9 @@ export default sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    projectId: {
+      type: DataTypes.INTEGER,
+    },
     technologyStack: {
       type: DataTypes.STRING,
     },
