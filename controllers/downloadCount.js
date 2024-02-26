@@ -142,15 +142,17 @@ async function getScopedPackageDownloadCount(startDate, endDate, startId, endId)
 async function dealSinglePackage(week, packageName) {
   try {
     const downloadCountJson = await sendRequestByPoint(week.start, week.end, packageName);
-    PackageDownloadCount.upsert({
-      packageName: downloadCountJson.package,
-      startDate: downloadCountJson.start,
-      endDate: downloadCountJson.end,
-      week: week.weekOfYear,
-      downloads: downloadCountJson.downloads,
-    }).catch((err) => {
-      debug.log('Error insert DownloadCount:', err);
-    });
+    if (downloadCountJson.error === undefined) {
+      PackageDownloadCount.upsert({
+        packageName: downloadCountJson.package,
+        startDate: downloadCountJson.start,
+        endDate: downloadCountJson.end,
+        week: week.weekOfYear,
+        downloads: downloadCountJson.downloads,
+      }).catch((err) => {
+        debug.log('Error insert DownloadCount:', err);
+      });
+    }
   } catch (e) {
     debug.log(`${packageName} sendRequest error!!`);
     debug.log(e);
@@ -163,7 +165,7 @@ async function dealMultiPackage(week, packageName) {
   const downloadCountList = [];
   try {
     const downloadCountJson = await sendRequestByPoint(week.start, week.end, packageName);
-    if (downloadCountJson.downloads !== undefined) {
+    if (downloadCountJson.error === undefined) {
       downloadCountList.push({
         packageName: downloadCountJson.package,
         startDate: downloadCountJson.start,
