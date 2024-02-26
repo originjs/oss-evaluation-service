@@ -11,6 +11,7 @@ import { syncStackOverFlowResultData } from '../controllers/stackoverflow.js';
 import {
   observeProjectsByStar, syncProjectByStar, syncProjectByRepo, syncProjectByUserStar,
 } from '../controllers/github.js';
+import { bulkAddBenchmarkHandler, getPatchId, syncBenchmarkHandler } from '../controllers/benchmark.js';
 
 const router = express.Router();
 
@@ -323,4 +324,76 @@ router.route('/github/repo/projects').post(syncProjectByRepo);
  */
 router.route('/github/:userToken/stars/projects').post(syncProjectByUserStar);
 
+/**
+ * @swagger
+ * /sync/benchmark:
+ *   post:
+ *     summary: Synchronize benchmark data
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               projectName:
+ *                 type: string
+ *               benchmark:
+ *                 type: string
+ *               techStack:
+ *                 type: string
+ *               score:
+ *                 type: integer
+ *               content:
+ *                 type: JSON
+ *               patchId:
+ *                 type: string
+ *               platform:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/benchmark').post(syncBenchmarkHandler);
+
+/**
+ * @swagger
+ * /sync/benchmark/getPatchId:
+ *   post:
+ *     summary: Get data patch ID
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/benchmark/getPatchId').post(getPatchId);
+
+/**
+ * @swagger
+ * /sync/benchmark/bulkCreate:
+ *   post:
+ *     summary: Synchronize benchmark data
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               projectName:
+ *                 type: string
+ *               techStack:
+ *                 type: string
+ *               list:
+ *                 type: array
+ *               platform:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/benchmark/bulkCreate').post(bulkAddBenchmarkHandler);
 export default router;
