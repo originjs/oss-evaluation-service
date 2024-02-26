@@ -173,13 +173,15 @@ async function dealMultiPackage(week, packageName) {
       });
     } else {
       Object.values(downloadCountJson).forEach((element) => {
-        downloadCountList.push({
-          packageName: element.package,
-          startDate: element.start,
-          endDate: element.end,
-          week: week.weekOfYear,
-          downloads: element.downloads,
-        });
+        if (element != null) {
+          downloadCountList.push({
+            packageName: element.package,
+            startDate: element.start,
+            endDate: element.end,
+            week: week.weekOfYear,
+            downloads: element.downloads,
+          });
+        }
       });
     }
   } catch (e) {
