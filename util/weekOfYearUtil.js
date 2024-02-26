@@ -16,9 +16,12 @@ export function getWeekOfYearList(startDate, endDate) {
     firstDateLeft = firstDateLeft.subtract(1, 'day');
     weekOfYearStrLeft = getWeekOfYearStr(firstDateLeft);
   }
-
+  const currentDate = dayjs(new Date());
   const weekOfYearList = [];
   while (firstDate.isBefore(secondDate) || firstDate.isSame(secondDate)) {
+    if (firstDate.add(6, 'day').isAfter(currentDate)) {
+      break;
+    }
     const start = firstDate.format('YYYY-MM-DD');
     const end = firstDate.add(6, 'day').format('YYYY-MM-DD');
     const week = getWeekOfYearStr(firstDate);
