@@ -65,51 +65,47 @@ export async function syncOpendigger(projectId, projectPath) {
 }
 
 export async function syncOpendiggerHandler(req, res) {
-  try {
-    // sync single project
-    if (req.body.id) {
-      const projectId = req.body.id;
-      const project = await GithubProjects.findByPk(projectId);
-      if (!project) {
-        res.status(500).json({ error: 'can not find project!' });
-        return;
-      }
-      const result = await syncOpendigger(projectId, project.fullName);
-      res.status(200).json(result);
-    } else { // sync all
-      const options = {
-        attributes: ['id', 'htmlUrl'],
-        where: {
-          id: {
-            [Op.notIn]:
-              sequelize.literal('(SELECT project_id from opendigger_info where updated_at >= DATE(NOW()) - INTERVAL 30 DAY)'),
-          },
-        },
-      };
-      const projects = await GithubProjects.findAll(options);
-      // 5 concurrent requests at the same time
-      async.mapLimit(
-        projects,
-        5,
-        async (project) => {
-          try {
-            await syncOpendigger(project.id, project.fullName);
-          } catch (e) {
-            if (!(e instanceof ServerError)) {
-              throw e;
-            }
-          }
-        },
-        (err) => {
-          if (err) throw err;
-        },
-      );
-      res.status(200).json({
-        status: 'success',
-        projects: projects.length,
-      });
+  // sync single project
+  if (req.body.id) {
+    const projectId = req.body.id;
+    const project = await GithubProjects.findByPk(projectId);
+    if (!project) {
+      res.status(500).json({ error: 'can not find project!' });
+      return;
     }
-  } catch (e) {
-    res.status(500).json({ error: e.message });
+    const result = await syncOpendigger(projectId, project.fullName);
+    res.status(200).json(result);
+  } else { // sync all
+    const options = {
+      attributes: ['id', 'htmlUrl'],
+      where: {
+        id: {
+          [Op.notIn]:
+            sequelize.literal('(SELECT project_id from opendigger_info where updated_at >= DATE(NOW()) - INTERVAL 30 DAY)'),
+        },
+      },
+    };
+    const projects = await GithubProjects.findAll(options);
+    // 5 concurrent requests at the same time
+    async.mapLimit(
+      projects,
+      5,
+      async (project) => {
+        try {
+          await syncOpendigger(project.id, project.fullName);
+        } catch (e) {
+          if (!(e instanceof ServerError)) {
+            throw e;
+          }
+        }
+      },
+      (err) => {
+        if (err) throw err;
+      },
+    );
+    res.status(200).json({
+      status: 'success',
+      projects: projects.length,
+    });
   }
 }

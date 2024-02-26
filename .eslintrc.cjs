@@ -28,7 +28,7 @@ module.exports = {
     'linebreak-style': 'off',
     'import/extensions': 'off',
     'no-use-before-define': ['error', { functions: false }],
-    'no-await-in-loop': 'warn',
+    'no-await-in-loop': 'off',
     'no-restricted-syntax': 'off',
     'no-continue': 'off',
   },
