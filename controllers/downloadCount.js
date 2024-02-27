@@ -1,38 +1,14 @@
 import debug from 'debug';
 import fetch from '@adobe/node-fetch-retry';
+import { chunk } from 'underscore';
 import sequelize from '../util/database.js';
 import PackageDownloadCount from '../models/PackageDownloadCount.js';
 import { getWeekOfYearList } from '../util/weekOfYearUtil.js';
 
 const PAGE_SIZE = 128;
 
-const queryPackageCountStart = `
-    select count(*) as count
-    from project_packages
-         left join (SELECT package_name
-                    FROM package_download_count
-                    where !isnull(package_name)
-                      and week = :maxWeek) as base on package = package_name
-    where
-        project_id >= :startId
-        and project_id <= :endId
-        and isnull(package_name)
-        and !isnull(package)`;
-
-const queryPackageCountEnd = `
-        order by project_id, package
-    `;
-
-const queryScopedPackage = `
-        and package like '%/%'
-    `;
-
-const queryNoneScopedPackage = `
-        and package not like '%/%'
-    `;
-
-const queryPackageStart = `
-    select project_id as projectId, package, package_name as packageName
+const QUERY_PACKAGE_START = `
+    select project_id as projectId, package
     from project_packages
          left join (SELECT package_name
                     FROM package_download_count
@@ -45,9 +21,16 @@ const queryPackageStart = `
         and !isnull(package)
     `;
 
-const queryPackageEnd = `
+const QUERY_SCOPED_PACKAGE = `
+        and package like '%/%'
+    `;
+
+const QUERY_NONE_SCOPED_PACKAGE = `
+        and package not like '%/%'
+    `;
+
+const QUERY_PACKAGE_END = `
         order by project_id, package
-        limit :begin, :PAGE_SIZE
     `;
 
 export async function syncNoneScopedPackageDownloadCount(req, res) {
@@ -75,29 +58,19 @@ export async function syncScopedPackageDownloadCount(req, res) {
 async function getNoneScopedPackageDownloadCount(startDate, endDate, startId, endId) {
   const weekOfYearList = getWeekOfYearList(startDate, endDate);
   const maxWeek = weekOfYearList[weekOfYearList.length - 1].weekOfYear;
-  const needSyncPackageNum = await sequelize.query(
-    queryPackageCountStart + queryNoneScopedPackage + queryPackageCountEnd,
+  const needSyncPackage = await sequelize.query(
+    QUERY_PACKAGE_START + QUERY_NONE_SCOPED_PACKAGE + QUERY_PACKAGE_END,
     {
       replacements: { startId, endId, maxWeek },
       type: sequelize.QueryTypes.SELECT,
     },
   );
-
-  const packageCount = needSyncPackageNum[0].count;
-  for (let begin = 0; begin < packageCount; begin += PAGE_SIZE) {
-    const packageList = await sequelize.query(
-      queryPackageStart + queryNoneScopedPackage + queryPackageEnd,
-      {
-        replacements: {
-          startId, endId, maxWeek, begin, PAGE_SIZE,
-        },
-        type: sequelize.QueryTypes.SELECT,
-      },
-    );
+  const needSyncPackageNumList = chunk(needSyncPackage, PAGE_SIZE);
+  for (const packageNameSlice of needSyncPackageNumList) {
     // Splicing batch query paths
-    const allPackageName = packageList.map((e) => e.package).join(',');
+    const packageNameStr = packageNameSlice.map((e) => e.package).join(',');
     for (const weekOfYear of weekOfYearList) {
-      const downloadCountList = await dealMultiPackage(weekOfYear, allPackageName);
+      const downloadCountList = await dealMultiPackage(weekOfYear, packageNameStr);
       if (downloadCountList.length > 0) {
         for (const downloadCount of downloadCountList) {
           PackageDownloadCount.upsert(downloadCount).catch((err) => {
@@ -112,29 +85,17 @@ async function getNoneScopedPackageDownloadCount(startDate, endDate, startId, en
 async function getScopedPackageDownloadCount(startDate, endDate, startId, endId) {
   const weekOfYearList = getWeekOfYearList(startDate, endDate);
   const maxWeek = weekOfYearList[weekOfYearList.length - 1].weekOfYear;
-  const needSyncPackageNum = await sequelize.query(
-    queryPackageCountStart + queryScopedPackage + queryPackageCountEnd,
+  const needSyncPackage = await sequelize.query(
+    QUERY_PACKAGE_START + QUERY_SCOPED_PACKAGE + QUERY_PACKAGE_END,
     { replacements: { startId, endId, maxWeek }, type: sequelize.QueryTypes.SELECT },
   );
-
-  const packageCount = needSyncPackageNum[0].count;
-  for (let begin = 0; begin < packageCount; begin += PAGE_SIZE) {
-    const packageList = await sequelize.query(
-      queryPackageStart + queryScopedPackage + queryPackageEnd,
-      {
-        replacements: {
-          startId, endId, maxWeek, begin, PAGE_SIZE,
-        },
-        type: sequelize.QueryTypes.SELECT,
-      },
-    );
-    for (const packageInfo of packageList) {
-      debug.log('---------------getScopedPackageDownloadCount---------------package:%s, projectId:%s, total:%s', packageInfo.package, packageInfo.projectId, packageCount);
-      for (const weekOfYear of weekOfYearList) {
-        const hasError = await dealSinglePackage(weekOfYear, packageInfo.package);
-        if (hasError) {
-          return;
-        }
+  let current = 0;
+  for (const packageInfo of needSyncPackage) {
+    debug.log('---------------getScopedPackageDownloadCount---------------package:%s, projectId:%s, total:%s, current:%s', packageInfo.package, packageInfo.projectId, needSyncPackage.length, current += 1);
+    for (const weekOfYear of weekOfYearList) {
+      const hasError = await dealSinglePackage(weekOfYear, packageInfo.package);
+      if (hasError) {
+        return;
       }
     }
   }
@@ -166,14 +127,6 @@ async function dealMultiPackage(week, packageName) {
   try {
     const downloadCountJson = await sendRequestByPoint(week.start, week.end, packageName);
     if (downloadCountJson.error === undefined) {
-      downloadCountList.push({
-        packageName: downloadCountJson.package,
-        startDate: downloadCountJson.start,
-        endDate: downloadCountJson.end,
-        week: week.weekOfYear,
-        downloads: downloadCountJson.downloads,
-      });
-    } else {
       Object.values(downloadCountJson).forEach((element) => {
         if (element != null) {
           downloadCountList.push({
