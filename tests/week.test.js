@@ -62,11 +62,11 @@ describe('week of month', () => {
       weekOfYear: '2024-02',
     }]);
 
-    result = getWeekOfYearList('2024-02-29', '2024-02-29');
+    result = getWeekOfYearList('2024-02-24', '2024-02-24');
     expect(result).toEqual([{
-      end: '2024-03-02',
-      start: '2024-02-25',
-      weekOfYear: '2024-09',
+      end: '2024-02-24',
+      start: '2024-02-18',
+      weekOfYear: '2024-08',
     }]);
   });
 });

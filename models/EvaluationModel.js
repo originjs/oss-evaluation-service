@@ -2,35 +2,34 @@ import { DataTypes } from 'sequelize';
 import sequelize from '../util/database.js';
 
 export default sequelize.define(
-  'ProjectTechStack',
+  'EvaluationModel',
   {
-    projectId: {
+    id: {
       type: DataTypes.BIGINT,
-      allowNull: false,
       primaryKey: true,
     },
-    name: {
+    dimension: {
       type: DataTypes.STRING,
     },
-    htmlUrl: {
+    table: {
       type: DataTypes.STRING,
     },
-    category: {
+    field: {
       type: DataTypes.STRING,
     },
-    subcategory: {
-      type: DataTypes.STRING,
+    weight: {
+      type: DataTypes.DOUBLE,
     },
-    platform: {
-      type: DataTypes.STRING,
+    threshold: {
+      type: DataTypes.DOUBLE,
     },
-    archived: {
-      type: DataTypes.STRING,
+    type: {
+      type: DataTypes.INTEGER,
     },
   },
   {
-    tableName: 'project_tech_stack',
-    timestamps: false,
+    tableName: 'evaluation_model_config',
     underscored: true,
+    timestamps: false,
   },
 );

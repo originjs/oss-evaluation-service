@@ -64,8 +64,6 @@ router.route('/compass').post(syncCompassActivityMetric);
  *             properties:
  *               id:
  *                 type: string
- *               category:
- *                 type: string
  *     responses:
  *       200:
  *         description: success.

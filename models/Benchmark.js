@@ -4,10 +4,12 @@ import sequelize from '../util/database.js';
 export default sequelize.define(
   'Benchmark',
   {
+    projectId: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+    },
     projectName: {
       type: DataTypes.STRING,
-      primaryKey: true,
-      allowNull: false,
     },
     benchmark: {
       type: DataTypes.STRING,

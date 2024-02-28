@@ -21,11 +21,8 @@ export async function observeProjectsByStar(req, res) {
   const githubApiUrl = getGithubApiUrl(req);
   const result = await pagingQuery(githubApiUrl);
 
-  res
-    .status(200)
-    .send(
-      `There are ${result.totalCount} github projects by ${getStarsScope(req)}.`,
-    );
+  const message = `There are ${result.totalCount} github projects by ${getStarsScope(req)}.`;
+  res.status(200).send(message);
 }
 
 export async function syncProjectByStar(req, res) {
@@ -38,19 +35,12 @@ export async function syncProjectByStar(req, res) {
     projects = projects.concat(result.data);
   } while (result.hasNext);
 
-  saveCSVFile(
-    projects,
-    `projects_stars_${req.body[0]}_${req.body[1] || 'above'}`,
-  );
+  const csvFileName = `projects_stars_${req.body[0]}_${req.body[1] || 'above'}`;
+  saveCSVFile(projects, csvFileName);
   savaData(projects);
 
-  res
-    .status(200)
-    .send(
-      `Synchronize star ${getStarsScope(
-        req,
-      )} github projects for success,total ${projects.length} rows`,
-    );
+  const message = `Synchronize star ${getStarsScope(req)} github projects for success,total ${projects.length} rows`;
+  res.status(200).send(message);
 }
 
 export async function syncProjectByUserStar(req, res) {
@@ -65,20 +55,22 @@ export async function syncProjectByUserStar(req, res) {
 
   let i = 0;
   while (true) {
+    i += 1;
     const response = await octokit.request('GET /user/starred', {
       headers: {
         'X-GitHub-Api-Version': '2022-11-28',
       },
       per_page: 100,
-      page: ++i,
+      page: i,
     });
-    if (response.data.length == 0) {
+    if (!response.data.length) {
       break;
     }
     const projects = parseProjects(response.data);
-    projects.forEach((project) => {
-      project.integratedState = 1;
-    });
+    for (let j = 0; j < projects.length; j += 1) {
+      projects[j].integratedState = 1;
+    }
+
     saveCSVFile(projects, `github_projects_user_star_page${i}`);
     savaData(projects);
   }
@@ -114,18 +106,16 @@ function saveCSVFile(projects, fileName) {
   if (!fs.existsSync('github_projects')) {
     fs.mkdirSync('github_projects');
   }
-  fs.writeFileSync(
-    `github_projects/${fileName}_${Date.now()}.csv`,
-    csv,
-    'utf8',
-  );
+
+  const filePath = `github_projects/${fileName}_${Date.now()}.csv`;
+  fs.writeFileSync(filePath, csv, 'utf8');
 }
 
 async function pagingQuery(url) {
   const headers = { 'User-Agent': 'nodejs/18.19.0' };
   if (process.env.GITHUB_TOKEN) {
     const tokens = JSON.parse(process.env.GITHUB_TOKEN);
-    headers.Authorization = tokens[0];
+    [headers.Authorization] = tokens;
     headers['X-GitHub-Api-Version'] = '2022-11-28';
     headers.Accept = 'application/vnd.github+json';
   }
@@ -139,15 +129,13 @@ async function pagingQuery(url) {
         });
 
         res.on('end', () => {
-          if (res.statusCode != 200) {
+          if (res.statusCode !== 200) {
             res.status(500).json(result.toString());
             resolve({ hasNext: false, nextPageUrl: '', data: [] });
           }
           const links = parseLinks(res.headers.link);
           const resultBody = JSON.parse(result.toString());
-          console.log(
-            `Integrate the total rows of records: ${resultBody.total_count},Rows of this integration:${resultBody.items.length}`,
-          );
+          console.log(`Integrate the total rows of records: ${resultBody.total_count},Rows of this integration:${resultBody.items.length}`);
 
           const projects = parseProjects(resultBody.items);
           resolve({
@@ -161,7 +149,10 @@ async function pagingQuery(url) {
       .on('error', (e) => {
         debug.log(e);
         resolve({
-          hasNext: false, nextPageUrl: '', data: [], totalCount: 0,
+          hasNext: false,
+          nextPageUrl: '',
+          data: [],
+          totalCount: 0,
         });
       });
   });
@@ -217,14 +208,19 @@ function parseProjects(items) {
     webCommitSignoffRequired: project.web_commit_signoff_required,
   }));
 }
-export async function syncProjectByRepo(req, res, next) {
+export async function syncProjectByRepo(req, res) {
+  if (!process.env.GITHUB_TOKEN) {
+    res.status(500).json({ error: 'User token is required.' });
+    return;
+  }
+
   const items = [];
   for (const projectUrl of req.body) {
     const item = await queryProjectByRepUrl(projectUrl);
-    item && items.push(item);
+    if (item) items.push(item);
   }
 
-  if (items.length == 0) {
+  if (!items.length) {
     res.status(200).json('success');
     return;
   }
@@ -237,20 +233,10 @@ export async function syncProjectByRepo(req, res, next) {
 }
 
 async function queryProjectByRepUrl(url) {
-  if (!process.env.GITHUB_TOKEN) {
-    res.status(500).json({ error: 'User token is required.' });
-    return;
-  }
-
   const ownerRepo = getOwnerRepo(url);
   if (!ownerRepo) {
-    res
-      .status(500)
-      .json({
-        error:
-          'Url must be the github address,eg:https://github.com/vuejs/core',
-      });
-    return;
+    debug.log('Url must be the github address,eg:https://github.com/vuejs/core');
+    return null;
   }
 
   const tokens = JSON.parse(process.env.GITHUB_TOKEN);
@@ -268,11 +254,13 @@ async function queryProjectByRepUrl(url) {
     },
   );
 
+  let project = null;
   if (response.ok) {
-    return await response.json();
+    project = await response.json();
+  } else {
+    debug.log(await response.text());
   }
-  console.log(await response.text());
-  return null;
+  return project;
 }
 
 function getOwnerRepo(url) {
@@ -289,8 +277,8 @@ function getOwnerRepo(url) {
 function parseLinks(linksStr) {
   const linksArray = linksStr.split(',');
   const links = {};
-  let key; let
-    value;
+  let key;
+  let value;
   linksArray.forEach((link) => {
     key = link.match(/rel="(.*)"/)?.[1];
     value = link.match(/<(.*?)>/)?.[1];
