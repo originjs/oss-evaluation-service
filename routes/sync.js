@@ -12,7 +12,7 @@ import {
   observeProjectsByStar, syncProjectByStar, syncProjectByRepo, syncProjectByUserStar,
 } from '../controllers/github.js';
 import { bulkAddBenchmarkHandler, getPatchId, syncBenchmarkHandler } from '../controllers/benchmark.js';
-import { getDelayedMessage } from '../controllers/common.js';
+import getDelayedMessage from '../controllers/common.js';
 
 const router = express.Router();
 
@@ -140,6 +140,7 @@ router.route('/scopedPackageDownloadCount').post(syncScopedPackageDownloadCount)
  * /sync/scorecard:
  *   post:
  *     summary: 获取Scorecard数据
+ *     tags: [Scorecard]
  *     requestBody:
  *       required: true
  *       content:
@@ -166,6 +167,7 @@ router.route('/scorecard').post(syncScorecardHandler);
  * /sync/scorecard/getScorecardTest:
  *   post:
  *     summary: 获取Scorecard单个数据
+ *     tags: [Scorecard]
  *     requestBody:
  *       required: true
  *       content:
@@ -351,9 +353,12 @@ router.route('/github/:userToken/stars/projects').post(syncProjectByUserStar);
 
 /**
  * @swagger
+ * tags:
+ *   name: Benchmark
  * /sync/benchmark:
  *   post:
  *     summary: Synchronize benchmark data
+ *     tags: [Benchmark]
  *     requestBody:
  *       content:
  *         application/json:
@@ -382,9 +387,12 @@ router.route('/benchmark').post(syncBenchmarkHandler);
 
 /**
  * @swagger
+ * tags:
+ *   name: Benchmark
  * /sync/benchmark/getPatchId:
  *   post:
  *     summary: Get data patch ID
+ *     tags: [Benchmark]
  *     requestBody:
  *       content:
  *         application/json:
@@ -399,9 +407,12 @@ router.route('/benchmark/getPatchId').post(getPatchId);
 
 /**
  * @swagger
+ * tags:
+ *   name: Benchmark
  * /sync/benchmark/bulkCreate:
  *   post:
  *     summary: Synchronize benchmark data
+ *     tags: [Benchmark]
  *     requestBody:
  *       content:
  *         application/json:
@@ -424,9 +435,12 @@ router.route('/benchmark/bulkCreate').post(bulkAddBenchmarkHandler);
 
 /**
  * @swagger
+ * tags:
+ *   name: Benchmark
  * /sync/benchmark/getDelayedMessage:
  *   post:
  *     summary: get data for an indicated delay
+ *     tags: [Benchmark]
  *     requestBody:
  *       content:
  *         application/json:
