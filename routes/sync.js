@@ -1,7 +1,7 @@
 import express from 'express';
 
 import { syncProjectHandler } from '../controllers/sync.js';
-import { syncScorecardHandler } from '../controllers/scorecard.js';
+import { getScorecardHandler, syncScorecardHandler } from '../controllers/scorecard.js';
 import { syncOpendiggerHandler } from '../controllers/opendigger.js';
 import { syncNoneScopedPackageDownloadCount, syncScopedPackageDownloadCount } from '../controllers/downloadCount.js';
 import { syncPackageSizeHandler } from '../controllers/packageSize.js';
@@ -12,6 +12,7 @@ import {
   observeProjectsByStar, syncProjectByStar, syncProjectByRepo, syncProjectByUserStar,
 } from '../controllers/github.js';
 import { bulkAddBenchmarkHandler, getPatchId, syncBenchmarkHandler } from '../controllers/benchmark.js';
+import { getDelayedMessage } from '../controllers/common.js';
 
 const router = express.Router();
 
@@ -134,6 +135,8 @@ router.route('/scopedPackageDownloadCount').post(syncScopedPackageDownloadCount)
 
 /**
  * @swagger
+ * tags:
+ *   name: Scorecard
  * /sync/scorecard:
  *   post:
  *     summary: 获取Scorecard数据
@@ -148,11 +151,35 @@ router.route('/scopedPackageDownloadCount').post(syncScopedPackageDownloadCount)
  *                 type: string
  *               category:
  *                 type: string
+ *               complementary:
+ *                 type: boolean
  *     responses:
  *       200:
  *         description: Success
  */
 router.route('/scorecard').post(syncScorecardHandler);
+
+/**
+ * @swagger
+ * tags:
+ *   name: Scorecard
+ * /sync/scorecard/getScorecardTest:
+ *   post:
+ *     summary: 获取Scorecard单个数据
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               url:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Success
+ */
+router.route('/scorecard/getScorecardTest').post(getScorecardHandler);
 
 /**
  * @swagger
@@ -394,4 +421,23 @@ router.route('/benchmark/getPatchId').post(getPatchId);
  *         description: success.
  */
 router.route('/benchmark/bulkCreate').post(bulkAddBenchmarkHandler);
+
+/**
+ * @swagger
+ * /sync/benchmark/getDelayedMessage:
+ *   post:
+ *     summary: get data for an indicated delay
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               delay:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/benchmark/getDelayedMessage').post(getDelayedMessage);
 export default router;
