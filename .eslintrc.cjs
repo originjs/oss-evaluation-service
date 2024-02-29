@@ -22,7 +22,6 @@ module.exports = {
     ecmaVersion: 'latest',
     sourceType: 'module',
   },
-  ignorePatterns: ['util/string.js'],
   rules: {
     'max-classes-per-file': ['error', 5],
     'linebreak-style': 'off',
