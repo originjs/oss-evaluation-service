@@ -1,6 +1,8 @@
+import fs from 'fs';
 import Scorecard from '../models/Scorecard.js';
 import ProjectTechStack from '../models/ProjectTechStack.js';
 import { ServerError, BadRequestError } from '../util/error.js';
+import ScorecardComplem from '../models/ScorecardComplem.js';
 
 export async function syncScorecardHandler(req, res) {
   try {
@@ -17,17 +19,20 @@ export async function syncScorecardHandler(req, res) {
       res.status(200).json(result);
     } else if (req.body.category) { // sync a category
       const options = req.body.category === 'all' ? {} : { where: { category: req.body.category } };
-      const projects = await ProjectTechStack.findAll(options);
-      let index = 0;
-      const interval = 5;
-      setInterval(async () => {
-        const chunk = projects.slice(index, index + interval);
-        for (const project of chunk) {
-          const projectPath = project.htmlUrl.substring('https://'.length);
-          await syncScorecard(project.projectId, projectPath);
-        }
-        index += interval;
-      }, 5000);
+      let projects;
+      if (req.body.complementary) {
+        projects = await ScorecardComplem.findAll(options);
+      } else {
+        projects = await ProjectTechStack.findAll(options);
+      }
+      let retryList = fetchData(projects);
+      let retryChance = 0;
+      // Retry for less than 3 times
+      while (retryChance < 3) {
+        retryChance += 1;
+        retryList = fetchData(retryList);
+      }
+      fs.writeFileSync('errorList.txt', JSON.stringify(retryList));
       res.status(200).json({
         status: 'success',
         projects: projects.map((item) => item.name),
@@ -36,6 +41,23 @@ export async function syncScorecardHandler(req, res) {
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
+}
+
+function fetchData(projects) {
+  let index = 0;
+  const interval = 5;
+  const retryList = [];
+  setInterval(async () => {
+    const chunk = projects.slice(index, index + interval);
+    for (const project of chunk) {
+      const projectPath = project.htmlUrl.substring('https://'.length);
+      await syncScorecard(project.projectId, projectPath).catch((e) => {
+        retryList.push(e.message);
+      });
+    }
+    index += interval;
+  }, 5000);
+  return retryList;
 }
 
 export async function syncScorecard(projectId, address, platform, org, repo) {
@@ -47,7 +69,14 @@ export async function syncScorecard(projectId, address, platform, org, repo) {
   } else {
     throw new BadRequestError();
   }
-  const score = await getScorecard(url);
+  let score;
+  try {
+    score = await getScorecard(url);
+  } catch (e) {
+    throw ServerError({
+      projectId, address, platform, org, repo,
+    });
+  }
   const row = { ...score, project_id: projectId };
   const [data, created] = await Scorecard.findOrCreate(
     {
@@ -66,15 +95,32 @@ export async function getScorecard(url) {
     const response = await fetch(url);
     if (response.ok) {
       const body = await response.json();
+      const { checks } = body;
+      const scoreMap = {};
+      for (const item of checks) {
+        const name = item.name.toLowerCase().replace('-', '_');
+        scoreMap[name] = item.score;
+      }
       return {
         repo_name: body.repo.name,
-        date: body.date,
+        collection_date: body.date,
         score: body.score,
         commit: body.repo.commit,
+        ...scoreMap,
       };
     }
     return {};
   } catch (e) {
     throw new ServerError(e);
+  }
+}
+
+export async function getScorecardHandler(req, res) {
+  const { url } = req.body;
+  try {
+    const result = await getScorecard(`https://api.securityscorecards.dev/projects/${url}`);
+    res.status(200).send(result);
+  } catch (e) {
+    res.status(500).send(e.toString());
   }
 }
