@@ -11,7 +11,9 @@ import { syncStackOverFlowResultData } from '../controllers/stackoverflow.js';
 import {
   observeProjectsByStar, syncProjectByStar, syncProjectByRepo, syncProjectByUserStar,
 } from '../controllers/github.js';
-import { bulkAddBenchmarkHandler, getPatchId, syncBenchmarkHandler } from '../controllers/benchmark.js';
+import {
+  bulkAddBenchmarkHandler, getPatchId, syncBenchmarkHandler, updateScore,
+} from '../controllers/benchmark.js';
 import getDelayedMessage from '../controllers/common.js';
 
 const router = express.Router();
@@ -454,4 +456,30 @@ router.route('/benchmark/bulkCreate').post(bulkAddBenchmarkHandler);
  *         description: success.
  */
 router.route('/benchmark/getDelayedMessage').post(getDelayedMessage);
+
+/**
+ * @swagger
+ * tags:
+ *   name: Benchmark
+ * /sync/benchmark/updateScore:
+ *   post:
+ *     summary: get data for an indicated delay
+ *     tags: [Benchmark]
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               benchmark:
+ *                 type: string
+ *               patchId:
+ *                 type: string
+ *               isDesc:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/benchmark/updateScore').post(updateScore);
 export default router;
