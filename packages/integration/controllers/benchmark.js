@@ -2,25 +2,13 @@ import dayjs from 'dayjs';
 import debug from 'debug';
 import Benchmark from '../models/Benchmark.js';
 import ProjectTechStack from '../models/ProjectTechStack.js';
+import sequelize from '../util/database.js';
 
 export async function syncBenchmarkHandler(req, res) {
   const {
-    projectName, benchmark, techStack, content, patchId, platform,
+    projectName, benchmark, techStack, score, content, patchId, platform,
   } = req.body;
   const projectId = await getIdByName(projectName);
-  const weightMap = [
-    {
-      name: 'select_row',
-      weight: 0.1,
-      threshold: 0.3,
-    },
-    {
-      name: 'swap_rows',
-      weight: 0.9,
-      threshold: 0.4,
-    },
-  ];
-  const score = await calScore(weightMap, JSON.parse(content));
   if (projectId) {
     Benchmark.upsert({
       projectId,
@@ -38,6 +26,69 @@ export async function syncBenchmarkHandler(req, res) {
   }
 }
 
+export async function updateScore(req, res) {
+  try {
+    const { benchmark, patchId, isDesc } = req.body;
+    const dataList = await Benchmark.findAll({ where: { benchmark, patch_id: patchId } });
+    if (dataList.length === 0) {
+      res.status(500).send('Non matched data found!');
+      return;
+    }
+    const weightMap = getWeightMap();
+    const newWeightMap = updateThreshold(dataList, weightMap, isDesc);
+    for (const benchmarkItem of dataList) {
+      const { projectId, content } = benchmarkItem;
+      const score = await calScore(newWeightMap, content);
+      await sequelize.query(`UPDATE benchmark SET score=${score} WHERE project_id = ${projectId} AND benchmark = '${benchmark}' AND patch_id = '${patchId}'`);
+    }
+    res.status(200).send('Update Success!');
+  } catch (e) {
+    res.status(500).send(e.stack);
+  }
+}
+
+function getWeightMap() {
+  return [
+    {
+      name: 'select_row',
+      weight: 0.1,
+      threshold: 0.3,
+    },
+    {
+      name: 'swap_rows',
+      weight: 0.9,
+      threshold: 0.4,
+    },
+  ];
+}
+
+function updateThreshold(dataList, weightMap, isDesc) {
+  const result = [];
+  for (const weightItem of weightMap) {
+    const { name } = weightItem;
+    let threshold = null;
+    for (const dataItem of dataList) {
+      const { content } = dataItem;
+      if (Object.prototype.hasOwnProperty.call(content, name)) {
+        if (threshold === null) {
+          threshold = content[name];
+        } else if (isDesc) {
+          threshold = Math.max(content[name], threshold);
+        } else {
+          threshold = Math.min(content[name], threshold);
+        }
+      }
+    }
+    if (threshold === null) {
+      console.warn(`No data content match the benchmark of ${name}`);
+      continue;
+    } else {
+      result.push({ ...weightItem, threshold });
+    }
+  }
+  return result;
+}
+
 async function getIdByName(projectName) {
   const project = await ProjectTechStack.findOne({ where: { name: projectName } });
   const { projectId } = project;
@@ -48,7 +99,11 @@ async function calScore(weightMap, param) {
   let score = 0;
   for (const weightItem of weightMap) {
     const { name, weight, threshold } = weightItem;
-    score += calScoreSection(param[name], weight, threshold);
+    if (Object.prototype.hasOwnProperty.call(param, name)) {
+      score += calScoreSection(param[name], weight, threshold);
+    } else {
+      console.warn(`Weight name ${name} not found in input data!`);
+    }
   }
   return score;
 }
