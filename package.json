@@ -9,7 +9,8 @@
     "preinstall": "npx only-allow pnpm",
     "lint": "eslint . --ext .js",
     "lint-fix": "eslint --fix . --ext .js",
-    "test": "vitest"
+    "test": "vitest",
+    "dev": "pnpm -F website dev"
   },
   "keywords": [],
   "devDependencies": {
