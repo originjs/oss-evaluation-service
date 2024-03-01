@@ -16,7 +16,6 @@
     "vue-router": "^4.2.5"
   },
   "dependencies": {
-    "data-orm": "workspace:^",
-    "mysql2": "^3.9.1"
+    "data-orm": "workspace:^"
   }
 }
