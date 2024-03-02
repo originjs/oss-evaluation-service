@@ -6,9 +6,13 @@ import sequelize from '../util/database.js';
 
 export async function syncBenchmarkHandler(req, res) {
   const {
-    projectName, benchmark, techStack, score, content, patchId, platform,
+    projectName, benchmark, techStack, score, content, platform,
   } = req.body;
   const projectId = await getIdByName(projectName);
+  let { patchId } = req.body;
+  if (!patchId) {
+    patchId = generatePatchId();
+  }
   if (projectId) {
     Benchmark.upsert({
       projectId,
@@ -37,9 +41,11 @@ export async function updateScore(req, res) {
     const weightMap = getWeightMap();
     const newWeightMap = updateThreshold(dataList, weightMap, isDesc);
     for (const benchmarkItem of dataList) {
-      const { projectId, content } = benchmarkItem;
+      const {
+        projectId, content, patchId: itemPatchId, benchmark: itemBenchmark,
+      } = benchmarkItem;
       const score = await calScore(newWeightMap, content);
-      await sequelize.query(`UPDATE benchmark SET score=${score} WHERE project_id = ${projectId} AND benchmark = '${benchmark}' AND patch_id = '${patchId}'`);
+      await sequelize.query(`UPDATE benchmark SET score=${score} WHERE project_id = ${projectId} AND benchmark = '${itemBenchmark}' AND patch_id = '${itemPatchId}'`);
     }
     res.status(200).send('Update Success!');
   } catch (e) {
