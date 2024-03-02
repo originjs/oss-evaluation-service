@@ -369,18 +369,25 @@ router.route('/github/:userToken/stars/projects').post(syncProjectByUserStar);
  *             properties:
  *               projectName:
  *                 type: string
+ *                 example: "vue"
  *               benchmark:
  *                 type: string
+ *                 example: "speed"
  *               techStack:
  *                 type: string
+ *                 example: "frontend"
  *               score:
- *                 type: integer
+ *                 type: float
+ *                 example: 1.9
  *               content:
- *                 type: JSON
+ *                 type: json
+ *                 example: {"speed": 0.6, "swap rows": 0.7}
  *               patchId:
  *                 type: string
+ *                 example: "20240302142057596203"
  *               platform:
  *                 type: string
+ *                 example: "windows"
  *     responses:
  *       200:
  *         description: success.
@@ -411,6 +418,17 @@ router.route('/benchmark/getPatchId').post(getPatchId);
  * @swagger
  * tags:
  *   name: Benchmark
+ * components:
+ *  schemas:
+ *    BenchmarkContent:
+ *      type: object
+ *      properties:
+ *        benchmark:
+ *          type: string
+ *          example: "speed"
+ *        content:
+ *          type: json
+ *          example: {"speed": 0.6, "swap column": 0.7}
  * /sync/benchmark/bulkCreate:
  *   post:
  *     summary: Synchronize benchmark data
@@ -423,12 +441,20 @@ router.route('/benchmark/getPatchId').post(getPatchId);
  *             properties:
  *               projectName:
  *                 type: string
+ *                 example: "vue"
  *               techStack:
  *                 type: string
+ *                 example: "frontend"
+ *               patchId:
+ *                 type: string
+ *                 example: "20240302142057596203"
  *               list:
  *                 type: array
+ *                 items:
+ *                   $ref: '#/components/schemas/BenchmarkContent'
  *               platform:
  *                 type: string
+ *                 example: "windows"
  *     responses:
  *       200:
  *         description: success.
@@ -451,6 +477,7 @@ router.route('/benchmark/bulkCreate').post(bulkAddBenchmarkHandler);
  *             properties:
  *               delay:
  *                 type: integer
+ *                 example: 3000
  *     responses:
  *       200:
  *         description: success.
@@ -473,10 +500,14 @@ router.route('/benchmark/getDelayedMessage').post(getDelayedMessage);
  *             properties:
  *               benchmark:
  *                 type: string
+ *                 example: "speed"
  *               patchId:
- *                 type: string
+ *                 type: array
+ *                 items: string
+ *                 example: ["20240302142057596203"]
  *               isDesc:
  *                 type: boolean
+ *                 example: false
  *     responses:
  *       200:
  *         description: success.
