@@ -1,4 +1,5 @@
 import { Sequelize } from 'sequelize';
+import * as mysql from 'mysql2';
 
 const sequelize = new Sequelize(
   process.env.DATABASE_URL,
@@ -11,6 +12,7 @@ const sequelize = new Sequelize(
       min: 0,
       idle: 20000,
     },
+    dialectModule: mysql,
   },
 );
 
