@@ -20,8 +20,5 @@
     "eslint-plugin-n": "^15.0.0 || ^16.0.0 ",
     "eslint-plugin-promise": "^6.0.0",
     "vitest": "^1.2.2"
-  },
-  "dependencies": {
-    "mysql2": "^3.9.1"
   }
 }
