@@ -5,28 +5,32 @@ import ProjectTechStack from '../models/ProjectTechStack.js';
 import sequelize from '../util/database.js';
 
 export async function syncBenchmarkHandler(req, res) {
-  const {
-    projectName, benchmark, techStack, score, content, platform,
-  } = req.body;
-  const projectId = await getIdByName(projectName);
-  let { patchId } = req.body;
-  if (!patchId) {
-    patchId = generatePatchId();
-  }
-  if (projectId) {
-    Benchmark.upsert({
-      projectId,
-      projectName,
-      benchmark,
-      techStack,
-      score,
-      content,
-      patchId,
-      platform,
-    });
-    res.status(200).send('Done!');
-  } else {
-    res.status(500).send(`Project ${projectName} not found in list!`);
+  try {
+    const {
+      projectName, benchmark, techStack, score, content, platform,
+    } = req.body;
+    const projectId = await getIdByName(projectName);
+    let { patchId } = req.body;
+    if (!patchId) {
+      patchId = generatePatchId();
+    }
+    if (projectId) {
+      Benchmark.upsert({
+        projectId,
+        projectName,
+        benchmark,
+        techStack,
+        score,
+        content,
+        patchId,
+        platform,
+      });
+      res.status(200).send('Done!');
+    } else {
+      res.status(500).send(`Project ${projectName} not found in list!`);
+    }
+  } catch (e) {
+    res.status(500).send(e.stack);
   }
 }
 
@@ -146,24 +150,28 @@ function generatePatchId() {
  * @param {*} res result
  */
 export async function bulkAddBenchmarkHandler(req, res) {
-  const {
-    projectName, techStack, platform, list,
-  } = req.body;
-  let { patchId } = req.body;
-  if (!patchId) {
-    patchId = generatePatchId();
+  try {
+    const {
+      projectName, techStack, platform, list,
+    } = req.body;
+    let { patchId } = req.body;
+    if (!patchId) {
+      patchId = generatePatchId();
+    }
+    // generate stardard list for data insert
+    const benchmarkList = await genBenchmarkList(projectName, techStack, platform, patchId, list);
+    await Benchmark.bulkCreate(benchmarkList).then((compass) => {
+      debug.log('insert into database: ', compass.length);
+    }).catch((error) => {
+      debug.log('Batch insert error: ', error.message);
+    });
+    res.status(200).send('Bulk create benchmark success!');
+  } catch (e) {
+    res.status(500).send(e.stack);
   }
-  // generate stardard list for data insert
-  const benchmarkList = await createBenchmarkList(projectName, techStack, platform, patchId, list);
-  await Benchmark.bulkCreate(benchmarkList).then((compass) => {
-    debug.log('insert into database: ', compass.length);
-  }).catch((error) => {
-    debug.log('Batch insert error: ', error.message);
-  });
-  res.status(200).send('Bulk create benchmark success!');
 }
 
-async function createBenchmarkList(projectName, techStack, platform, patchId, list) {
+async function genBenchmarkList(projectName, techStack, platform, patchId, list) {
   const benchmarkList = [];
   for (const data of list) {
     const { benchmark, content } = data;
