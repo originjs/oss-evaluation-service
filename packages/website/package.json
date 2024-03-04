@@ -10,12 +10,15 @@
     "postinstall": "nuxt prepare"
   },
   "devDependencies": {
+    "@element-plus/nuxt": "^1.0.7",
     "@nuxt/devtools": "^1.0.3",
+    "element-plus": "^2.6.0",
     "nuxt": "^3.8.2",
     "vue": "^3.3.8",
     "vue-router": "^4.2.5"
   },
   "dependencies": {
-    "data-orm": "workspace:^"
+    "data-orm": "workspace:^",
+    "sass": "^1.71.1"
   }
 }
