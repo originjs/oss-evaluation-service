@@ -5,4 +5,8 @@ export default defineNuxtConfig({
     // prerender index route by default
     '/': { prerender: true },
   },
+  modules: [
+    '@element-plus/nuxt'
+  ],
+  elementPlus: { /** see:https://nuxt.com/modules/element-plus#options */ }
 });
