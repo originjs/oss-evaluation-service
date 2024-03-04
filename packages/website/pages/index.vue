@@ -4,7 +4,7 @@
     <h1>This is home page</h1>
     <CommonButton></CommonButton>
 
-    <div style="margin-top: 10px;">
+    <div class="mt10">
       <span>
         <el-icon><ElIconBell/></el-icon>
         使用图标需要在原来名称前加上ElIcon
@@ -39,3 +39,9 @@ const projects = [
 ];
 
 </script>
+
+<style lang="less">
+  .mr10{
+    margin-top: 10px;
+  }
+</style>
