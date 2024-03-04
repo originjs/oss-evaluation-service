@@ -5,6 +5,11 @@
     <CommonButton></CommonButton>
 
     <div style="margin-top: 10px;">
+      <span>
+        <el-icon><ElIconBell/></el-icon>
+        使用图标需要在原来名称前加上ElIcon
+      </span>
+
       <el-table :data="projects" style="width:100%">
         <el-table-column prop="name" label="Name" width="180" />
         <el-table-column prop="fullName" label="Full Name" width="180" />
