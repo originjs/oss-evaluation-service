@@ -51,9 +51,15 @@ app.use((req, res) => {
 
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
-  res.status(res.statusCode || 500).json({
+  let { statusCode } = res;
+  // Even in error cases, status code is 200 by default
+  if (!statusCode || statusCode === 200) {
+    statusCode = 500;
+  }
+  res.status(statusCode).json({
     error: err.status,
     message: err.message,
+    stack: err.stack,
   });
 });
 
