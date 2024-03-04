@@ -14,7 +14,7 @@ export async function syncBenchmarkHandler(req, res) {
     patchId = generatePatchId();
   }
   if (projectId) {
-    Benchmark.upsert({
+    await Benchmark.upsert({
       projectId,
       projectName,
       benchmark,
@@ -31,26 +31,22 @@ export async function syncBenchmarkHandler(req, res) {
 }
 
 export async function updateScore(req, res) {
-  try {
-    const { benchmark, patchId, isDesc } = req.body;
-    const dataList = await Benchmark.findAll({ where: { benchmark, patch_id: patchId } });
-    if (dataList.length === 0) {
-      res.status(500).send('Non matched data found!');
-      return;
-    }
-    const weightMap = getWeightMap();
-    const newWeightMap = updateThreshold(dataList, weightMap, isDesc);
-    for (const benchmarkItem of dataList) {
-      const {
-        projectId, content, patchId: itemPatchId, benchmark: itemBenchmark,
-      } = benchmarkItem;
-      const score = await calScore(newWeightMap, content);
-      await sequelize.query(`UPDATE benchmark SET score=${score} WHERE project_id = ${projectId} AND benchmark = '${itemBenchmark}' AND patch_id = '${itemPatchId}'`);
-    }
-    res.status(200).send('Update Success!');
-  } catch (e) {
-    res.status(500).send(e.stack);
+  const { benchmark, patchId, isDesc } = req.body;
+  const dataList = await Benchmark.findAll({ where: { benchmark, patch_id: patchId } });
+  if (dataList.length === 0) {
+    res.status(500).send('Non matched data found!');
+    return;
   }
+  const weightMap = getWeightMap();
+  const newWeightMap = updateThreshold(dataList, weightMap, isDesc);
+  for (const benchmarkItem of dataList) {
+    const {
+      projectId, content, patchId: itemPatchId, benchmark: itemBenchmark,
+    } = benchmarkItem;
+    const score = await calScore(newWeightMap, content);
+    await sequelize.query(`UPDATE benchmark SET score=${score} WHERE project_id = ${projectId} AND benchmark = '${itemBenchmark}' AND patch_id = '${itemPatchId}'`);
+  }
+  res.status(200).send('Update Success!');
 }
 
 function getWeightMap() {
@@ -154,7 +150,7 @@ export async function bulkAddBenchmarkHandler(req, res) {
     patchId = generatePatchId();
   }
   // generate stardard list for data insert
-  const benchmarkList = await createBenchmarkList(projectName, techStack, platform, patchId, list);
+  const benchmarkList = await genBenchmarkList(projectName, techStack, platform, patchId, list);
   await Benchmark.bulkCreate(benchmarkList).then((compass) => {
     debug.log('insert into database: ', compass.length);
   }).catch((error) => {
@@ -163,7 +159,7 @@ export async function bulkAddBenchmarkHandler(req, res) {
   res.status(200).send('Bulk create benchmark success!');
 }
 
-async function createBenchmarkList(projectName, techStack, platform, patchId, list) {
+async function genBenchmarkList(projectName, techStack, platform, patchId, list) {
   const benchmarkList = [];
   for (const data of list) {
     const { benchmark, content } = data;
