@@ -60,7 +60,7 @@ const features = ref([
   </div>
 </template>
 
-<style scoped lang="scss">
+<style scoped lang="less">
 .home {
   margin-bottom: 108px;
 }

@@ -1,6 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  css: ['~/assets/scss/index.scss'],
+  css: ['~/assets/less/index.less'],
   modules: [
     '@element-plus/nuxt',
   ],
@@ -8,8 +8,5 @@ export default defineNuxtConfig({
   routeRules: {
     // prerender index route by default
     '/': { prerender: true },
-  },
-  elementPlus: {
-    importStyle: 'scss',
   },
 });

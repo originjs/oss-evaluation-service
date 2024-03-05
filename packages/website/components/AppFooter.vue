@@ -10,7 +10,7 @@
   </div>
 </template>
 
-<style scoped lang="scss">
+<style scoped lang="less">
 .footer {
   padding: 32px;
 }

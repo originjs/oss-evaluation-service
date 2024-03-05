@@ -19,7 +19,6 @@
     "vue-router": "^4.2.5"
   },
   "dependencies": {
-    "data-orm": "workspace:^",
-    "sass": "^1.71.1"
+    "data-orm": "workspace:^"
   }
 }
