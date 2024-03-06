@@ -1,5 +1,5 @@
 {
-    "name": "web-lib",
+    "name": "@orginjs/oss-evaluation-components",
     "private": false,
     "files": [
         "dist"

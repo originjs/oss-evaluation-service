@@ -1,5 +1,5 @@
 {
-  "name": "website",
+  "name": "@orginjs/oss-evaluation-website",
   "private": true,
   "type": "module",
   "scripts": {

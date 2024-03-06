@@ -1,5 +1,5 @@
 {
-  "name": "oss-integration-service",
+  "name": "@orginjs/oss-evaluation-integration",
   "version": "1.0.0",
   "private": true,
   "type": "module",
