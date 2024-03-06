@@ -19,6 +19,6 @@
     "vue-router": "^4.2.5"
   },
   "dependencies": {
-    "data-orm": "workspace:^"
+    "@orginjs/oss-evaluation-data-model": "workspace:^"
   }
 }
