@@ -162,11 +162,12 @@ export async function bulkAddBenchmarkHandler(req, res) {
 async function genBenchmarkList(projectName, techStack, platform, patchId, list) {
   const benchmarkList = [];
   for (const data of list) {
+    const dataProjectName = projectName || data.projectName;
     const { benchmark, content } = data;
-    const projectId = await getIdByName(projectName);
+    const projectId = await getIdByName(dataProjectName);
     const item = {
       projectId,
-      projectName,
+      projectName: dataProjectName,
       techStack,
       platform,
       patchId,
