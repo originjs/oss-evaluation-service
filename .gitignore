@@ -131,4 +131,4 @@ dist
 
 # profile
 *.idea
-github_projects
+packages/**/node_modules
