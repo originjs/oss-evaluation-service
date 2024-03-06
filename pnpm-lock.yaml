@@ -29,6 +29,9 @@ importers:
 
   packages/api-server:
     dependencies:
+      '@orginjs/oss-evaluation-data-model':
+        specifier: workspace:^
+        version: link:../data-model
       cookie-parser:
         specifier: ^1.4.4
         version: 1.4.6

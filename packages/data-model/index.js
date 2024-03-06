@@ -1,4 +1,4 @@
 import GithubProjects from './models/GithubProjects.js';
+import ProjectPackage from './models/ProjectPackage.js';
 
-// eslint-disable-next-line import/prefer-default-export
-export { GithubProjects };
+export { GithubProjects, ProjectPackage };
