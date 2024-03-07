@@ -42,6 +42,9 @@ async function updateData() {
   const data = { landscape: [] };
   let count = 0;
   const configGroup = yaml.load(fs.readFileSync('./group.yml'));
+  if (!fs.existsSync('logos')) {
+    fs.mkdirSync('logos');
+  }
   for (const group of configGroup.groups) {
     const category = {
       category: null,
