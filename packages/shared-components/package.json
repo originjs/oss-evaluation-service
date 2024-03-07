@@ -13,7 +13,10 @@
             "import": "./dist/index.js",
             "require": "./dist/index.umd.cjs"
         },
-        "./*": "./dist/index.js"
+        "./dist/*.css": {
+            "import": "./dist/*.css",
+            "require": "./dist/*.css"
+        }
     },
     "scripts": {
         "dev": "vite",

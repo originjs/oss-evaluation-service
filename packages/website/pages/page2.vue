@@ -7,10 +7,15 @@
       <ElButton :icon="ElIconEditPen" type="success">button</ElButton>
       <LazyElButton type="warning">lazy button</LazyElButton>
     </div>
+
+    <br>
+    <SharedButton text="shared button"></SharedButton>
   </div>
 </template>
 
 <script setup lang="ts">
+import { Button as SharedButton } from "@orginjs/oss-evaluation-components"
+
 async function test() {
   const { data } = await useFetch('/api/test');
   ElMessageBox.alert(data.value.message);
