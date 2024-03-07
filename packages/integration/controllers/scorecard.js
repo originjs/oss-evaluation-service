@@ -77,10 +77,10 @@ export async function syncScorecard(projectId, address, platform, org, repo) {
       projectId, address, platform, org, repo,
     });
   }
-  const row = { ...score, project_id: projectId };
+  const row = { ...score, projectId };
   const [data, created] = await Scorecard.findOrCreate(
     {
-      where: { project_id: row.project_id },
+      where: { projectId: row.projectId },
       defaults: row,
     },
   );
