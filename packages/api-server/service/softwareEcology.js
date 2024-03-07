@@ -32,10 +32,9 @@ export async function getSoftwareMaturity(packageName) {
     forks_count: softwareMaturity[0].forks_count,
     bus_factor: softwareMaturity[0].bus_factor,
     openrank: softwareMaturity[0].openrank,
-    criticality_score: softwareMaturity[0].criticality_score
+    criticality_score: softwareMaturity[0].criticality_score,
   };
 }
-
 
 export async function getSoftwareCompassActivity(packageName) {
   const sql = `
@@ -55,65 +54,65 @@ export async function getSoftwareCompassActivity(packageName) {
         order by grimoire_creation_date;
   `;
   const softwareCompassActivity = await sequelize.query(
-      sql,
-      {
-        replacements: { packageName },
-        type: sequelize.QueryTypes.SELECT,
-      },
+    sql,
+    {
+      replacements: { packageName },
+      type: sequelize.QueryTypes.SELECT,
+    },
   );
   if (softwareCompassActivity.length === 0) {
     return {};
   }
-  let commitFrequency=[];
-  let commentFrequency=[];
-  let updatedIssuesCount=[];
-  let closedIssuesCount=[];
-  let orgCount=[];
-  let contributorCount=[];
-    for (let activity of softwareCompassActivity) {
-        commitFrequency.push({
-            projectId:activity.project_id,
-            fullName:activity.full_name,
-            number:activity.commit_frequency,
-            date:activity.grimoire_creation_date,
-        });
-      commentFrequency.push({
-        projectId:activity.project_id,
-        fullName:activity.full_name,
-        number:activity.comment_frequency,
-        date:activity.grimoire_creation_date,
-      });
-      updatedIssuesCount.push({
-        projectId:activity.project_id,
-        fullName:activity.full_name,
-        number:activity.updated_issues_count,
-        date:activity.grimoire_creation_date,
-      });
-      closedIssuesCount.push({
-        projectId:activity.project_id,
-        fullName:activity.full_name,
-        number:activity.closed_issues_count,
-        date:activity.grimoire_creation_date,
-      });
-      orgCount.push({
-        projectId:activity.project_id,
-        fullName:activity.full_name,
-        number:activity.org_count,
-        date:activity.grimoire_creation_date,
-      });
-      contributorCount.push({
-        projectId:activity.project_id,
-        fullName:activity.full_name,
-        number:activity.contributor_count,
-        date:activity.grimoire_creation_date,
-      });
-    }
+  const commitFrequency = [];
+  const commentFrequency = [];
+  const updatedIssuesCount = [];
+  const closedIssuesCount = [];
+  const orgCount = [];
+  const contributorCount = [];
+  for (const activity of softwareCompassActivity) {
+    commitFrequency.push({
+      projectId: activity.project_id,
+      fullName: activity.full_name,
+      number: activity.commit_frequency,
+      date: activity.grimoire_creation_date,
+    });
+    commentFrequency.push({
+      projectId: activity.project_id,
+      fullName: activity.full_name,
+      number: activity.comment_frequency,
+      date: activity.grimoire_creation_date,
+    });
+    updatedIssuesCount.push({
+      projectId: activity.project_id,
+      fullName: activity.full_name,
+      number: activity.updated_issues_count,
+      date: activity.grimoire_creation_date,
+    });
+    closedIssuesCount.push({
+      projectId: activity.project_id,
+      fullName: activity.full_name,
+      number: activity.closed_issues_count,
+      date: activity.grimoire_creation_date,
+    });
+    orgCount.push({
+      projectId: activity.project_id,
+      fullName: activity.full_name,
+      number: activity.org_count,
+      date: activity.grimoire_creation_date,
+    });
+    contributorCount.push({
+      projectId: activity.project_id,
+      fullName: activity.full_name,
+      number: activity.contributor_count,
+      date: activity.grimoire_creation_date,
+    });
+  }
   return {
-    commitFrequency: commitFrequency,
-    commentFrequency: commentFrequency,
-    updatedIssuesCount: updatedIssuesCount,
-    closedIssuesCount: closedIssuesCount,
-    orgCount: orgCount,
-    contributorCount: contributorCount,
+    commitFrequency,
+    commentFrequency,
+    updatedIssuesCount,
+    closedIssuesCount,
+    orgCount,
+    contributorCount,
   };
 }
