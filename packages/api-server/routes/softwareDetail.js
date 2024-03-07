@@ -6,33 +6,32 @@ import Result from '../model/result.js';
 
 const router = express.Router();
 
-router.get('/overview/:packageName', async (req, res) => {
+router.get('/overview/:packageName', (req, res) => {
   const { packageName } = req.params;
-  const softwareGuide = await getSoftwareOverview(packageName);
-  res.json(Result.ok(softwareGuide));
+  errHandler(getSoftwareOverview(packageName), res);
 });
 
-router.get('/function/:packageName', async (req, res) => {
+router.get('/function/:packageName', (req, res) => {
   const { packageName } = req.params;
-  const softwareFunction = await getSoftwareFunction(packageName);
-  res.json(Result.ok(softwareFunction));
+  errHandler(getSoftwareFunction(packageName), res);
 });
 
-router.get('/performance/:packageName', async (req, res) => {
+router.get('/performance/:packageName', (req, res) => {
   const { packageName } = req.params;
-  const performance = await getPerformance(packageName);
-  res.json(Result.ok(performance));
+  errHandler(getPerformance(packageName), res);
 });
 
-router.get('/quality/:packageName', async (req, res) => {
+router.get('/quality/:packageName', (req, res) => {
   const { packageName } = req.params;
-  getQuality(packageName).then((data) => {
+  errHandler(getQuality(packageName), res);
+});
+
+function errHandler(promise, res) {
+  promise.then((data) => {
     res.json(Result.ok(data));
-  }).catch((err) => {
-    res.json(Result.fail(500, err.message));
+  }).catch(() => {
+    res.json(Result.fail(500, 'server error'));
   });
-  const quality = await getQuality(packageName);
-  res.json(Result.ok(quality));
-});
+}
 
 export default router;

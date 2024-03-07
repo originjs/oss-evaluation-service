@@ -90,9 +90,6 @@ export async function getPerformance(packageName) {
 
 export async function getQuality(packageName) {
   const { projectId } = await getProjectInfoByPackageName(packageName);
-  if (!projectId) {
-    throw new Error(`cant find projectId of {${packageName}}`);
-  }
   const res = {};
   const {
     score, maintained, codeReview, ciiBestPractices, license, branchProtection,
@@ -113,9 +110,16 @@ export async function getQuality(packageName) {
 }
 
 async function getProjectInfoByPackageName(packageName) {
-  return (await ProjectPackage.findOne({
+  const data = await ProjectPackage.findOne({
     where: {
       package: packageName,
     },
-  })) || {};
+  });
+
+  if (!data) {
+    const msg = `cant find project named {${packageName}}!`;
+    console.warn(msg);
+    throw new Error(msg);
+  }
+  return data;
 }
