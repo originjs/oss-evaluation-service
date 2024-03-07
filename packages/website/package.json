@@ -1,5 +1,5 @@
 {
-  "name": "website",
+  "name": "@orginjs/oss-evaluation-website",
   "private": true,
   "type": "module",
   "scripts": {
@@ -19,6 +19,7 @@
     "vue-router": "^4.2.5"
   },
   "dependencies": {
-    "data-orm": "workspace:^"
+    "@orginjs/oss-evaluation-data-model": "workspace:^",
+    "@orginjs/oss-evaluation-components": "workspace:^"
   }
 }

@@ -4,15 +4,15 @@ import sequelize from '../util/database.js';
 export default sequelize.define(
   'Scorecard',
   {
-    project_id: {
+    projectId: {
       type: DataTypes.BIGINT,
       primaryKey: true,
       allowNull: false,
     },
-    repo_name: {
+    repoName: {
       type: DataTypes.STRING,
     },
-    collection_date: {
+    collectionDate: {
       type: DataTypes.STRING,
     },
     score: {
@@ -21,43 +21,43 @@ export default sequelize.define(
     commit: {
       type: DataTypes.STRING,
     },
-    code_review: {
+    codeReview: {
       type: DataTypes.INTEGER,
     },
     maintained: {
       type: DataTypes.INTEGER,
     },
-    cii_best_practices: {
+    ciiBestPractices: {
       type: DataTypes.INTEGER,
     },
     license: {
       type: DataTypes.INTEGER,
     },
-    signed_releases: {
+    signedReleases: {
       type: DataTypes.INTEGER,
     },
     packaging: {
       type: DataTypes.INTEGER,
     },
-    token_permissions: {
+    tokenPermissions: {
       type: DataTypes.INTEGER,
     },
-    dangerous_workflow: {
+    dangerousWorkflow: {
       type: DataTypes.INTEGER,
     },
-    pinned_dependencies: {
+    pinnedDependencies: {
       type: DataTypes.INTEGER,
     },
-    branch_protection: {
+    branchProtection: {
       type: DataTypes.INTEGER,
     },
-    binary_artifacts: {
+    binaryArtifacts: {
       type: DataTypes.INTEGER,
     },
     fuzzing: {
       type: DataTypes.INTEGER,
     },
-    security_policy: {
+    securityPolicy: {
       type: DataTypes.INTEGER,
     },
     sast: {
@@ -69,8 +69,8 @@ export default sequelize.define(
   },
   {
     tableName: 'scorecard_info',
-    timestamps: true,
     createdAt: false,
     updatedAt: true,
+    underscored: true,
   },
 );
