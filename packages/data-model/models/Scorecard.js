@@ -63,9 +63,6 @@ export default sequelize.define(
     sast: {
       type: DataTypes.INTEGER,
     },
-    vulnerabilities: {
-      type: DataTypes.INTEGER,
-    },
   },
   {
     tableName: 'scorecard_info',

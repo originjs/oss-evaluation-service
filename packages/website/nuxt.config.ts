@@ -1,6 +1,9 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  css: ['~/assets/less/index.less'],
+  css: [
+    '@orginjs/oss-evaluation-components/dist/style.css',
+    '~/assets/less/index.less',
+  ],
   modules: [
     '@element-plus/nuxt',
   ],

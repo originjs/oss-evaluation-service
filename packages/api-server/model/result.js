@@ -8,4 +8,8 @@ export default class Result {
   static ok(data) {
     return new Result(200, data);
   }
+
+  static fail(code, msg) {
+    return new Result(code, null, msg);
+  }
 }
