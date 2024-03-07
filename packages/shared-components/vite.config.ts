@@ -18,8 +18,8 @@ export default defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, 'src/components/index.ts'),
-      name: 'web-lib',
-      fileName: 'web-lib',
+      name: 'index',
+      fileName: 'index',
     },
     watch: {
       include: [resolve(__dirname, 'src')],
