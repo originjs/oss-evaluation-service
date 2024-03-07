@@ -37,4 +37,11 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['vue'],
   },
+  css: {
+    preprocessorOptions: {
+      less: {
+        additionalData: '@import "src/style/index.less";',
+      },
+    },
+  },
 });
