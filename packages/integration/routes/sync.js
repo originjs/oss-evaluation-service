@@ -15,8 +15,20 @@ import {
   bulkAddBenchmarkHandler, getPatchId, syncBenchmarkHandler, updateScore,
 } from '../controllers/benchmark.js';
 import getDelayedMessage from '../controllers/common.js';
+import syncCNCFDocumentScore from '../controllers/documentScore.js';
 
 const router = express.Router();
+
+/**
+ * @swagger
+ * /sync/CNCFDocumentScore:
+ *   post:
+ *     summary: Synchronize CNCF Document Score(checks Readme, Changelog, Contributing, and Website)
+ *   responses:
+ *       200:
+ *         description: Compass activity metric synchronized
+ */
+router.route('/CNCFDocumentScore').post(syncCNCFDocumentScore);
 
 /**
  * @swagger
