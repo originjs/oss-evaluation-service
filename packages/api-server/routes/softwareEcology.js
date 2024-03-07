@@ -1,6 +1,6 @@
 import express from 'express';
 import Result from '../model/result.js';
-import { getSoftwareCompassActivity, getSoftwareMaturity} from '../service/softwareEcology.js';
+import { getSoftwareCompassActivity, getSoftwareMaturity } from '../service/softwareEcology.js';
 
 const router = express.Router();
 
