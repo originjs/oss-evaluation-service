@@ -113,6 +113,15 @@ importers:
         specifier: ^3.0.3
         version: 3.0.3
 
+  packages/landscape:
+    dependencies:
+      mysql2:
+        specifier: ^3.9.1
+        version: 3.9.1
+      sequelize:
+        specifier: ^6.35.2
+        version: 6.35.2(mysql2@3.9.1)
+
   packages/shared-components:
     dependencies:
       vue:
