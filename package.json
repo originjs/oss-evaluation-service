@@ -10,7 +10,10 @@
     "lint": "eslint --cache --ext .js . --ignore-path .gitignore",
     "lint-fix": "eslint --fix --cache --ext .js . --ignore-path .gitignore",
     "test": "vitest",
-    "dev-website": "pnpm -F @orginjs/oss-evaluation-website dev"
+    "dev-website": "pnpm -C packages/website dev",
+    "dev-shared-components": "pnpm -C packages/shared-components dev",
+    "serve-website": "run-p serve-shared-components dev-website",
+    "serve-shared-components": "pnpm -C packages/shared-components build --watch"
   },
   "keywords": [],
   "devDependencies": {
@@ -19,6 +22,7 @@
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-n": "^15.0.0 || ^16.0.0 ",
     "eslint-plugin-promise": "^6.0.0",
-    "vitest": "^1.2.2"
+    "vitest": "^1.2.2",
+    "npm-run-all2": "^6.1.2"
   }
 }
