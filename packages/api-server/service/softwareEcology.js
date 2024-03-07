@@ -9,10 +9,18 @@ import sequelize from '@orginjs/oss-evaluation-data-model/util/database.js';
 // eslint-disable-next-line import/prefer-default-export
 export async function getSoftwareMaturity(packageName) {
   const sql = `
-        select name, full_name, stargazers_count, forks_count, bus_factor, openrank, score as criticality_score
+        select name,
+               full_name,
+               stargazers_count,
+               forks,
+               bus_factor,
+               openrank,
+               score as criticality_score,
+               contributor_count
         from github_projects project
-         inner join opendigger_info digeer on project.id = digeer.project_id
-         inner join criticality_score criticality on project.id = criticality.project_id
+           inner join opendigger_info digeer on project.id = digeer.project_id
+           inner join criticality_score criticality on project.id = criticality.project_id
+           inner join compass_activity_detail_old compass on project.id = compass.project_id
         where full_name = :packageName
   `;
   const softwareMaturity = await sequelize.query(
@@ -33,6 +41,7 @@ export async function getSoftwareMaturity(packageName) {
     bus_factor: softwareMaturity[0].bus_factor,
     openrank: softwareMaturity[0].openrank,
     criticality_score: softwareMaturity[0].criticality_score,
+    contributor_count: softwareMaturity[0].contributor_count,
   };
 }
 
