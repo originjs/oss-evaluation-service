@@ -9,7 +9,7 @@
 #
 # foundation: <FOUNDATION_NAME>
 #
-foundation: DEMO
+foundation: Frontend Landscape
 
 # Url (required)
 #
@@ -17,7 +17,7 @@ foundation: DEMO
 #
 # url: <LANDSCAPE_URL>
 #
-url: http://127.0.0.1:8000
+url: http://landscape.originjs.org
 
 # Analytics (optional)
 #
@@ -121,18 +121,10 @@ featured_items:
 #
 footer:
   links:
-    facebook: "https://www.facebook.com/CloudNativeComputingFoundation/"
-    flickr: "https://www.flickr.com/photos/143247548@N03/albums"
-    github: "https://github.com/cncf"
-    homepage: "https://cncf.io"
-    instagram: "https://www.instagram.com/humans.of.cloudnative/"
-    linkedin: "https://www.linkedin.com/company/cloud-native-computing-foundation/"
-    slack: "https://slack.cncf.io/"
-    twitch: "https://www.twitch.tv/cloudnativefdn"
-    twitter: "https://twitter.com/cloudnativefdn"
-    wechat: "https://www.cncf.io/wechat/"
-    youtube: "https://www.youtube.com/c/cloudnativefdn"
-  logo: "https://raw.githubusercontent.com/cncf/artwork/master/other/cncf/horizontal/white/cncf-white.svg"
+
+    github: "https://github.com/originjs"
+    homepage: "https://orignjs.org"
+  logo: "https://originjs.org/assets/img/logo.png"
 
 # Grid items size (optional)
 #
@@ -144,7 +136,7 @@ footer:
 #
 # grid_items_size: <small|medium|large>
 #
-grid_items_size: large
+grid_items_size: small
 
 # Groups (optional)
 #
@@ -163,11 +155,26 @@ grid_items_size: large
 groups:
   - name: All categories
     categories:
-      - Category 1
-      - Category 2
-  - name: Only category 2
+      - Application
+      - Frameworks
+      - Library
+      - Develop
+      - Runtime
+  - name: Application
     categories:
-      - Category 2
+      - Application
+  - name: Frameworks
+    categories:
+      - Frameworks
+  - name: Library
+    categories:
+      - Library
+  - name: Develop
+    categories:
+      - Develop
+  - name: Runtime
+    categories:
+      - Runtime
 
 # Header (optional)
 #
@@ -180,8 +187,8 @@ groups:
 #
 header:
   links:
-    github: "https://github.com/cncf/landscape2"
-  logo: "https://raw.githubusercontent.com/cncf/artwork/master/other/cncf-landscape/horizontal/color/cncf-landscape-horizontal-color.svg"
+    github: "https://github.com/originjs"
+  logo: "https://originjs.org/assets/img/logo.png"
 
 # Images (optional)
 #
@@ -209,7 +216,7 @@ header:
 #
 # screenshot_width: <WIDTH_IN_PIXELS>
 #
-screenshot_width: 1500
+screenshot_width: 3000
 
 # TAGs (optional)
 #

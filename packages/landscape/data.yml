@@ -1,89 +1,3842 @@
 landscape:
-  - category:
-    name: Category 1
+  - category: 
+    name: Application
     subcategories:
-      - subcategory:
-        name: Subcategory 1-1
+      - subcategory: 
+        name: UI库
         items:
-          - item:
-            crunchbase: https://www.crunchbase.com/organization/cloud-native-computing-foundation
-            description: This is the description of item 1
-            homepage_url: https://cncf.io
-            logo: cncf.svg
-            name: Item 1
-            project: graduated
-            repo_url: https://github.com/cncf/landscape2
-            twitter: https://twitter.com/CloudNativeFdn
-          - item:
-            crunchbase: https://www.crunchbase.com/organization/cloud-native-computing-foundation
-            description: This is the description of item 2
-            homepage_url: https://cncf.io
-            logo: cncf.svg
-            name: Item 2
-            project: sandbox
-            repo_url: https://github.com/cncf/landscape2
-            twitter: https://twitter.com/CloudNativeFdn
-          - item:
-            description: This is the description of item 3
-            homepage_url: https://cncf.io
-            logo: cncf.svg
-            name: Item 3
-      - subcategory:
-        name: Subcategory 1-2
+          - item: 
+            name: react
+            homepage_url: https://github.com/facebook/react
+            repo_url: https://github.com/facebook/react
+            logo: 10270250_.svg
+            description: The library for web and native user interfaces.
+          - item: 
+            name: material-ui
+            homepage_url: https://github.com/mui/material-ui
+            repo_url: https://github.com/mui/material-ui
+            logo: 23083156_.svg
+            description: >-
+              MUI Core: Ready-to-use foundational React components, free
+              forever. It includes Material UI, which implements Google's
+              Material Design.
+          - item: 
+            name: ant-design
+            homepage_url: https://github.com/ant-design/ant-design
+            repo_url: https://github.com/ant-design/ant-design
+            logo: 34526884_.svg
+            description: An enterprise-class UI design language and React UI library
+          - item: 
+            name: Font-Awesome
+            homepage_url: https://github.com/FortAwesome/Font-Awesome
+            repo_url: https://github.com/FortAwesome/Font-Awesome
+            logo: 3470471_.svg
+            description: The iconic SVG, font, and CSS toolkit
+          - item: 
+            name: reveal.js
+            homepage_url: https://github.com/hakimel/reveal.js
+            repo_url: https://github.com/hakimel/reveal.js
+            logo: 1861458_.svg
+            description: The HTML Presentation Framework
+          - item: 
+            name: element
+            homepage_url: https://github.com/ElemeFE/element
+            repo_url: https://github.com/ElemeFE/element
+            logo: 67274736_.svg
+            description: A Vue.js 2.0 UI Toolkit for Web
+          - item: 
+            name: Semantic-UI
+            homepage_url: https://github.com/Semantic-Org/Semantic-UI
+            repo_url: https://github.com/Semantic-Org/Semantic-UI
+            logo: 9309093_.svg
+            description: >-
+              Semantic is a UI component framework based around useful
+              principles from natural language.
+          - item: 
+            name: ionic-framework
+            homepage_url: https://github.com/ionic-team/ionic-framework
+            repo_url: https://github.com/ionic-team/ionic-framework
+            logo: 12256376_.svg
+            description: >-
+              A powerful cross-platform UI toolkit for building native-quality
+              iOS, Android, and Progressive Web Apps with HTML, CSS, and
+              JavaScript.
+          - item: 
+            name: ui
+            homepage_url: https://github.com/shadcn-ui/ui
+            repo_url: https://github.com/shadcn-ui/ui
+            logo: 585146387_.svg
+            description: >-
+              Beautifully designed components that you can copy and paste into
+              your apps. Accessible. Customizable. Open Source.
+          - item: 
+            name: vuetify
+            homepage_url: https://github.com/vuetifyjs/vuetify
+            repo_url: https://github.com/vuetifyjs/vuetify
+            logo: 67962648_.svg
+            description: 🐉 Vue Component Framework
+          - item: 
+            name: swiper
+            homepage_url: https://github.com/nolimits4web/swiper
+            repo_url: https://github.com/nolimits4web/swiper
+            logo: 3721224_.svg
+            description: >-
+              Most modern mobile touch slider with hardware accelerated
+              transitions
+          - item: 
+            name: impress.js
+            homepage_url: https://github.com/impress/impress.js
+            repo_url: https://github.com/impress/impress.js
+            logo: 3065454_.svg
+            description: >-
+              It's a presentation framework based on the power of CSS3
+              transforms and transitions in modern browsers and inspired by the
+              idea behind prezi.com.
+          - item: 
+            name: preact
+            homepage_url: https://github.com/preactjs/preact
+            repo_url: https://github.com/preactjs/preact
+            logo: 42283287_.svg
+            description: >-
+              ⚛️ Fast 3kB React alternative with the same modern API. Components
+              & Virtual DOM.
+          - item: 
+            name: react-beautiful-dnd
+            homepage_url: https://github.com/atlassian/react-beautiful-dnd
+            repo_url: https://github.com/atlassian/react-beautiful-dnd
+            logo: 99761907_.svg
+            description: Beautiful and accessible drag and drop for lists with React
+          - item: 
+            name: jQuery-File-Upload
+            homepage_url: https://github.com/blueimp/jQuery-File-Upload
+            repo_url: https://github.com/blueimp/jQuery-File-Upload
+            logo: 1129010_.svg
+            description: >-
+              File Upload widget with multiple file selection, drag&drop
+              support, progress bar, validation and preview images, audio and
+              video for jQuery. Supports cross-domain, chunked and resumable
+              file uploads. Works with any server-side platform (Google App
+              Engine, PHP, Python, Ruby on Rails, Java, etc.) that supports
+              standard HTML form file uploads.
+          - item: 
+            name: htmx
+            homepage_url: https://github.com/bigskysoftware/htmx
+            repo_url: https://github.com/bigskysoftware/htmx
+            logo: 255378816_.svg
+            description: </> htmx - high power tools for HTML
+          - item: 
+            name: vue-cli
+            homepage_url: https://github.com/vuejs/vue-cli
+            repo_url: https://github.com/vuejs/vue-cli
+            logo: 48626335_.svg
+            description: 🛠️ webpack-based tooling for Vue.js Development
+          - item: 
+            name: layui
+            homepage_url: https://github.com/layui/layui
+            repo_url: https://github.com/layui/layui
+            logo: 42920477_.svg
+            description: 一套遵循原生态开发模式的 Web UI 组件库，采用自身轻量级模块化规范，易上手，可以更简单快速地构建网页界面。
+          - item: 
+            name: Sortable
+            homepage_url: https://github.com/SortableJS/Sortable
+            repo_url: https://github.com/SortableJS/Sortable
+            logo: 15308499_.svg
+            description: >-
+              Reorderable drag-and-drop lists for modern browsers and touch
+              devices. No jQuery or framework required.
+          - item: 
+            name: slick
+            homepage_url: https://github.com/kenwheeler/slick
+            repo_url: https://github.com/kenwheeler/slick
+            logo: 18049133_.svg
+            description: the last carousel you'll ever need
+          - item: 
+            name: backbone
+            homepage_url: https://github.com/jashkenas/backbone
+            repo_url: https://github.com/jashkenas/backbone
+            logo: 952189_.svg
+            description: >-
+              Give your JS App some Backbone with Models, Views, Collections,
+              and Events
+          - item: 
+            name: floating-ui
+            homepage_url: https://github.com/floating-ui/floating-ui
+            repo_url: https://github.com/floating-ui/floating-ui
+            logo: 54994103_.svg
+            description: >-
+              A JavaScript library to position floating elements and create
+              interactions for them.
+          - item: 
+            name: uppy
+            homepage_url: https://github.com/transloadit/uppy
+            repo_url: https://github.com/transloadit/uppy
+            logo: 46273445_.svg
+            description: 'The next open source file uploader for web browsers :dog: '
+          - item: 
+            name: react-select
+            homepage_url: https://github.com/JedWatson/react-select
+            repo_url: https://github.com/JedWatson/react-select
+            logo: 23338716_.svg
+            description: The Select Component for React.js
+          - item: 
+            name: nprogress
+            homepage_url: https://github.com/rstacruz/nprogress
+            repo_url: https://github.com/rstacruz/nprogress
+            logo: 12244426_.svg
+            description: For slim progress bars like on YouTube, Medium, etc
+          - item: 
+            name: react-virtualized
+            homepage_url: https://github.com/bvaughn/react-virtualized
+            repo_url: https://github.com/bvaughn/react-virtualized
+            logo: 45431898_.svg
+            description: >-
+              React components for efficiently rendering large lists and tabular
+              data
+          - item: 
+            name: chatbot-ui
+            homepage_url: https://github.com/mckaywrigley/chatbot-ui
+            repo_url: https://github.com/mckaywrigley/chatbot-ui
+            logo: 612640604_.svg
+            description: The open-source AI chat app for everyone.
+          - item: 
+            name: components
+            homepage_url: https://github.com/angular/components
+            repo_url: https://github.com/angular/components
+            logo: 49016322_.svg
+            description: >-
+              Component infrastructure and Material Design components for
+              Angular
+          - item: 
+            name: headlessui
+            homepage_url: https://github.com/tailwindlabs/headlessui
+            repo_url: https://github.com/tailwindlabs/headlessui
+            logo: 295992065_.svg
+            description: >-
+              Completely unstyled, fully accessible UI components, designed to
+              integrate beautifully with Tailwind CSS.
+          - item: 
+            name: table
+            homepage_url: https://github.com/TanStack/table
+            repo_url: https://github.com/TanStack/table
+            logo: 71487058_.svg
+            description: >-
+              🤖 Headless UI for building powerful tables & datagrids for TS/JS
+              -  React-Table, Vue-Table, Solid-Table, Svelte-Table
+      - subcategory: 
+        name: UI框架
+        items: []
+      - subcategory: 
+        name: 编辑器
         items:
-          - item:
-            crunchbase: https://www.crunchbase.com/organization/cloud-native-computing-foundation
-            description: This is the description of item 4
-            homepage_url: https://cncf.io
-            logo: cncf.svg
-            name: Item 4
-            repo_url: https://github.com/cncf/landscape2
-            twitter: https://twitter.com/CloudNativeFdn
-          - item:
-            crunchbase: https://www.crunchbase.com/organization/cloud-native-computing-foundation
-            description: This is the description of item 5
-            homepage_url: https://cncf.io
-            logo: cncf.svg
-            name: Item 5
-            repo_url: https://github.com/cncf/landscape2
-  - category:
-    name: Category 2
+          - item: 
+            name: vscode
+            homepage_url: https://github.com/microsoft/vscode
+            repo_url: https://github.com/microsoft/vscode
+            logo: 41881900_.svg
+            description: Visual Studio Code
+          - item: 
+            name: code-server
+            homepage_url: https://github.com/coder/code-server
+            repo_url: https://github.com/coder/code-server
+            logo: 172953845_.svg
+            description: VS Code in the browser
+          - item: 
+            name: drawio-desktop
+            homepage_url: https://github.com/jgraph/drawio-desktop
+            repo_url: https://github.com/jgraph/drawio-desktop
+            logo: 92443980_.svg
+            description: Official electron build of draw.io
+          - item: 
+            name: marktext
+            homepage_url: https://github.com/marktext/marktext
+            repo_url: https://github.com/marktext/marktext
+            logo: 110446844_.svg
+            description: >-
+              📝A simple and elegant markdown editor, available for Linux, macOS
+              and Windows.
+          - item: 
+            name: quill
+            homepage_url: https://github.com/quilljs/quill
+            repo_url: https://github.com/quilljs/quill
+            logo: 5239185_.svg
+            description: >-
+              Quill is a modern WYSIWYG editor built for compatibility and
+              extensibility.
+          - item: 
+            name: drawio
+            homepage_url: https://github.com/jgraph/drawio
+            repo_url: https://github.com/jgraph/drawio
+            logo: 67508428_.svg
+            description: >-
+              draw.io is a JavaScript, client-side editor for general
+              diagramming.
+          - item: 
+            name: monaco-editor
+            homepage_url: https://github.com/microsoft/monaco-editor
+            repo_url: https://github.com/microsoft/monaco-editor
+            logo: 60630844_.svg
+            description: A browser based code editor
+          - item: 
+            name: slate
+            homepage_url: https://github.com/ianstormtaylor/slate
+            repo_url: https://github.com/ianstormtaylor/slate
+            logo: 61412022_.svg
+            description: >-
+              A completely customizable framework for building rich text
+              editors. (Currently in beta.)
+          - item: 
+            name: AFFiNE
+            homepage_url: https://github.com/toeverything/AFFiNE
+            repo_url: https://github.com/toeverything/AFFiNE
+            logo: 519859998_.svg
+            description: >-
+              There can be more than Notion and Miro. AFFiNE(pronounced
+              [ə‘fain]) is a next-gen knowledge base that brings planning,
+              sorting and creating all together. Privacy first, open-source,
+              customizable and ready to use. 
+          - item: 
+            name: codemirror5
+            homepage_url: https://github.com/codemirror/codemirror5
+            repo_url: https://github.com/codemirror/codemirror5
+            logo: 1254497_.svg
+            description: In-browser code editor (version 5, legacy)
+          - item: 
+            name: ace
+            homepage_url: https://github.com/ajaxorg/ace
+            repo_url: https://github.com/ajaxorg/ace
+            logo: 1028340_.svg
+            description: Ace (Ajax.org Cloud9 Editor)
+          - item: 
+            name: editor.js
+            homepage_url: https://github.com/codex-team/editor.js
+            repo_url: https://github.com/codex-team/editor.js
+            logo: 47039255_.svg
+            description: A block-style editor with clean JSON output
+          - item: 
+            name: tiptap
+            homepage_url: https://github.com/ueberdosis/tiptap
+            repo_url: https://github.com/ueberdosis/tiptap
+            logo: 145464445_.svg
+            description: The headless rich text editor framework for web artisans.
+          - item: 
+            name: lossless-cut
+            homepage_url: https://github.com/mifi/lossless-cut
+            repo_url: https://github.com/mifi/lossless-cut
+            logo: 72343657_.svg
+            description: The swiss army knife of lossless video/audio editing
+          - item: 
+            name: stackedit
+            homepage_url: https://github.com/benweet/stackedit
+            repo_url: https://github.com/benweet/stackedit
+            logo: 8986773_.svg
+            description: In-browser Markdown editor
+          - item: 
+            name: handsontable
+            homepage_url: https://github.com/handsontable/handsontable
+            repo_url: https://github.com/handsontable/handsontable
+            logo: 1790564_.svg
+            description: >-
+              JavaScript data grid with a spreadsheet look & feel. Works with
+              React, Angular, and Vue. Supported by the Handsontable team ⚡
+          - item: 
+            name: theia
+            homepage_url: https://github.com/eclipse-theia/theia
+            repo_url: https://github.com/eclipse-theia/theia
+            logo: 83050680_.svg
+            description: >-
+              Eclipse Theia is a cloud & desktop IDE framework implemented in
+              TypeScript.
+          - item: 
+            name: trix
+            homepage_url: https://github.com/basecamp/trix
+            repo_url: https://github.com/basecamp/trix
+            logo: 11829145_.svg
+            description: A rich text editor for everyday writing
+          - item: 
+            name: lexical
+            homepage_url: https://github.com/facebook/lexical
+            repo_url: https://github.com/facebook/lexical
+            logo: 318341089_.svg
+            description: >-
+              Lexical is an extensible text editor framework that provides
+              excellent reliability, accessibility and performance.
+          - item: 
+            name: wangEditor
+            homepage_url: https://github.com/wangeditor-team/wangEditor
+            repo_url: https://github.com/wangeditor-team/wangEditor
+            logo: 26262860_.svg
+            description: wangEditor —— 开源 Web 富文本编辑器
+          - item: 
+            name: tui.editor
+            homepage_url: https://github.com/nhn/tui.editor
+            repo_url: https://github.com/nhn/tui.editor
+            logo: 39759882_.svg
+            description: >-
+              🍞📝 Markdown WYSIWYG Editor. GFM Standard + Chart & UML
+              Extensible.
+          - item: 
+            name: mjml
+            homepage_url: https://github.com/mjmlio/mjml
+            repo_url: https://github.com/mjmlio/mjml
+            logo: 50586840_.svg
+            description: 'MJML: the only framework that makes responsive-email easy'
+          - item: 
+            name: medium-editor
+            homepage_url: https://github.com/yabwe/medium-editor
+            repo_url: https://github.com/yabwe/medium-editor
+            logo: 10365411_.svg
+            description: >-
+              Medium.com WYSIWYG editor clone. Uses contenteditable API to
+              implement a rich text solution.
+          - item: 
+            name: etherpad-lite
+            homepage_url: https://github.com/ether/etherpad-lite
+            repo_url: https://github.com/ether/etherpad-lite
+            logo: 1529160_.svg
+            description: 'Etherpad: A modern really-real-time collaborative document editor.'
+          - item: 
+            name: core
+            homepage_url: https://github.com/adonisjs/core
+            repo_url: https://github.com/adonisjs/core
+            logo: 40772809_.svg
+            description: >-
+              AdonisJS is a TypeScript-first web framework for building web apps
+              and API servers. It comes with support for testing, modern
+              tooling, an ecosystem of official packages, and more.
+          - item: 
+            name: tinymce
+            homepage_url: https://github.com/tinymce/tinymce
+            repo_url: https://github.com/tinymce/tinymce
+            logo: 467471_.svg
+            description: >-
+              The world's #1 JavaScript library for rich text editing. Available
+              for React, Vue and Angular
+          - item: 
+            name: showdown
+            homepage_url: https://github.com/showdownjs/showdown
+            repo_url: https://github.com/showdownjs/showdown
+            logo: 75547_.svg
+            description: >-
+              A bidirectional Markdown to HTML to Markdown converter written in
+              Javascript
+          - item: 
+            name: editor.md
+            homepage_url: https://github.com/pandao/editor.md
+            repo_url: https://github.com/pandao/editor.md
+            logo: 30136107_.svg
+            description: The open source embeddable online markdown editor (component).
+          - item: 
+            name: remark
+            homepage_url: https://github.com/gnab/remark
+            repo_url: https://github.com/gnab/remark
+            logo: 2553927_.svg
+            description: A simple, in-browser, markdown-driven slideshow tool.
+          - item: 
+            name: overleaf
+            homepage_url: https://github.com/overleaf/overleaf
+            repo_url: https://github.com/overleaf/overleaf
+            logo: 16652218_.svg
+            description: A web-based collaborative LaTeX editor
+      - subcategory: 
+        name: 图表库
+        items:
+          - item: 
+            name: d3
+            homepage_url: https://github.com/d3/d3
+            repo_url: https://github.com/d3/d3
+            logo: 943149_.svg
+            description: >-
+              Bring data to life with SVG, Canvas and HTML.
+              :bar_chart::chart_with_upwards_trend::tada:
+          - item: 
+            name: three.js
+            homepage_url: https://github.com/mrdoob/three.js
+            repo_url: https://github.com/mrdoob/three.js
+            logo: 576201_.svg
+            description: JavaScript 3D Library.
+          - item: 
+            name: excalidraw
+            homepage_url: https://github.com/excalidraw/excalidraw
+            repo_url: https://github.com/excalidraw/excalidraw
+            logo: 231283452_.svg
+            description: Virtual whiteboard for sketching hand-drawn like diagrams
+          - item: 
+            name: mermaid
+            homepage_url: https://github.com/mermaid-js/mermaid
+            repo_url: https://github.com/mermaid-js/mermaid
+            logo: 26066727_.svg
+            description: >-
+              Generation of diagrams like flowcharts or sequence diagrams from
+              text in a similar manner as markdown
+          - item: 
+            name: Chart.js
+            homepage_url: https://github.com/chartjs/Chart.js
+            repo_url: https://github.com/chartjs/Chart.js
+            logo: 8843683_.svg
+            description: Simple HTML5 Charts using the <canvas> tag
+          - item: 
+            name: echarts
+            homepage_url: https://github.com/apache/echarts
+            repo_url: https://github.com/apache/echarts
+            logo: 9185792_.svg
+            description: >-
+              Apache ECharts is a powerful, interactive charting and data
+              visualization library for browser
+          - item: 
+            name: anime
+            homepage_url: https://github.com/juliangarnier/anime
+            repo_url: https://github.com/juliangarnier/anime
+            logo: 53809090_.svg
+            description: JavaScript animation engine
+          - item: 
+            name: tldraw
+            homepage_url: https://github.com/tldraw/tldraw
+            repo_url: https://github.com/tldraw/tldraw
+            logo: 365739812_.svg
+            description: Infinite canvas.
+          - item: 
+            name: html2canvas
+            homepage_url: https://github.com/niklasvh/html2canvas
+            repo_url: https://github.com/niklasvh/html2canvas
+            logo: 2056312_.svg
+            description: Screenshots with JavaScript
+          - item: 
+            name: sharp
+            homepage_url: https://github.com/lovell/sharp
+            repo_url: https://github.com/lovell/sharp
+            logo: 12226786_.svg
+            description: >-
+              High performance Node.js image processing, the fastest module to
+              resize JPEG, PNG, WebP, AVIF and TIFF images. Uses the libvips
+              library.
+          - item: 
+            name: fabric.js
+            homepage_url: https://github.com/fabricjs/fabric.js
+            repo_url: https://github.com/fabricjs/fabric.js
+            logo: 712530_.svg
+            description: Javascript Canvas Library, SVG-to-Canvas (& canvas-to-SVG) Parser
+          - item: 
+            name: feather
+            homepage_url: https://github.com/feathericons/feather
+            repo_url: https://github.com/feathericons/feather
+            logo: 20270252_.svg
+            description: Simply beautiful open-source icons
+          - item: 
+            name: shields
+            homepage_url: https://github.com/badges/shields
+            repo_url: https://github.com/badges/shields
+            logo: 7910045_.svg
+            description: Concise, consistent, and legible badges in SVG and raster format
+          - item: 
+            name: recharts
+            homepage_url: https://github.com/recharts/recharts
+            repo_url: https://github.com/recharts/recharts
+            logo: 40345658_.svg
+            description: Redefined chart library built with React and D3
+          - item: 
+            name: svgo
+            homepage_url: https://github.com/svg/svgo
+            repo_url: https://github.com/svg/svgo
+            logo: 5508088_.svg
+            description: ⚙️ Node.js tool for optimizing SVG files
+          - item: 
+            name: popmotion
+            homepage_url: https://github.com/Popmotion/popmotion
+            repo_url: https://github.com/Popmotion/popmotion
+            logo: 23044617_.svg
+            description: Simple animation libraries for delightful user interfaces
+          - item: 
+            name: visx
+            homepage_url: https://github.com/airbnb/visx
+            repo_url: https://github.com/airbnb/visx
+            logo: 85095608_.svg
+            description: 🐯 visx | visualization components
+          - item: 
+            name: live
+            homepage_url: https://github.com/fanmingming/live
+            repo_url: https://github.com/fanmingming/live
+            logo: 566931318_.svg
+            description: >-
+              ✯ 一个可直连访问的电视/广播图标库与相关工具项目 ✯ 🔕 永久免费 直连访问 完整开源 不断完善的台标
+              支持IPv4/IPv6双栈访问 🔕
+          - item: 
+            name: simple-icons
+            homepage_url: https://github.com/simple-icons/simple-icons
+            repo_url: https://github.com/simple-icons/simple-icons
+            logo: 6720403_.svg
+            description: SVG icons for popular brands
+          - item: 
+            name: plotly.js
+            homepage_url: https://github.com/plotly/plotly.js
+            repo_url: https://github.com/plotly/plotly.js
+            logo: 45646037_.svg
+            description: Open-source JavaScript charting library behind Plotly and Dash
+          - item: 
+            name: matter-js
+            homepage_url: https://github.com/liabru/matter-js
+            repo_url: https://github.com/liabru/matter-js
+            logo: 16986405_.svg
+            description: a 2D rigid body physics engine for the web ▲● ■
+          - item: 
+            name: charts
+            homepage_url: https://github.com/frappe/charts
+            repo_url: https://github.com/frappe/charts
+            logo: 108395495_.svg
+            description: Simple, responsive, modern SVG Charts with zero dependencies
+          - item: 
+            name: SuperTinyIcons
+            homepage_url: https://github.com/edent/SuperTinyIcons
+            repo_url: https://github.com/edent/SuperTinyIcons
+            logo: 88214511_.svg
+            description: >-
+              Under 1KB each! Super Tiny Icons are miniscule SVG versions of
+              your favourite website and app logos
+          - item: 
+            name: paper.js
+            homepage_url: https://github.com/paperjs/paper.js
+            repo_url: https://github.com/paperjs/paper.js
+            logo: 1338813_.svg
+            description: >-
+              The Swiss Army Knife of Vector Graphics Scripting – Scriptographer
+              ported to JavaScript and the browser, using HTML5 Canvas. Created
+              by @lehni & @puckey
+          - item: 
+            name: Snap.svg
+            homepage_url: https://github.com/adobe-webplatform/Snap.svg
+            repo_url: https://github.com/adobe-webplatform/Snap.svg
+            logo: 12143585_.svg
+            description: The JavaScript library for modern SVG graphics.
+          - item: 
+            name: apexcharts.js
+            homepage_url: https://github.com/apexcharts/apexcharts.js
+            repo_url: https://github.com/apexcharts/apexcharts.js
+            logo: 142177378_.svg
+            description: 📊 Interactive JavaScript Charts built on SVG
+          - item: 
+            name: chartist
+            homepage_url: https://github.com/chartist-js/chartist
+            repo_url: https://github.com/chartist-js/chartist
+            logo: 17575535_.svg
+            description: Simple responsive charts
+          - item: 
+            name: DOMPurify
+            homepage_url: https://github.com/cure53/DOMPurify
+            repo_url: https://github.com/cure53/DOMPurify
+            logo: 16927692_.svg
+            description: >-
+              DOMPurify - a DOM-only, super-fast, uber-tolerant XSS sanitizer
+              for HTML, MathML and SVG. DOMPurify works with a secure default,
+              but offers a lot of configurability and hooks. Demo:
+          - item: 
+            name: nivo
+            homepage_url: https://github.com/plouc/nivo
+            repo_url: https://github.com/plouc/nivo
+            logo: 56363563_.svg
+            description: >-
+              nivo provides a rich set of dataviz components, built on top of
+              the awesome d3 and React libraries
+          - item: 
+            name: color-thief
+            homepage_url: https://github.com/lokesh/color-thief
+            repo_url: https://github.com/lokesh/color-thief
+            logo: 2688455_.svg
+            description: >-
+              Grab the color palette from an image using just Javascript.  Works
+              in the browser and in Node.
+  - category: 
+    name: Frameworks
     subcategories:
-      - subcategory:
-        name: Subcategory 2-1
+      - subcategory: 
+        name: 前端框架
         items:
-          - item:
-            crunchbase: https://www.crunchbase.com/organization/cloud-native-computing-foundation
-            description: This is the description of item 6
-            homepage_url: https://cncf.io
-            logo: cncf.svg
-            name: Item 6
-            project: graduated
-            repo_url: https://github.com/cncf/landscape2
-            twitter: https://twitter.com/CloudNativeFdn
-          - item:
-            crunchbase: https://www.crunchbase.com/organization/cloud-native-computing-foundation
-            description: This is the description of item 7
-            homepage_url: https://cncf.io
-            logo: cncf.svg
-            name: Item 7
-            project: sandbox
-            repo_url: https://github.com/cncf/landscape2
-            twitter: https://twitter.com/CloudNativeFdn
-          - item:
-            description: This is the description of item 8
-            homepage_url: https://cncf.io
-            logo: cncf.svg
-            name: Item 8
-      - subcategory:
-        name: Subcategory 2-2
+          - item: 
+            name: vue
+            homepage_url: https://github.com/vuejs/vue
+            repo_url: https://github.com/vuejs/vue
+            logo: 11730342_.svg
+            description: >-
+              This is the repo for Vue 2. For Vue 3, go to
+              https://github.com/vuejs/core
+          - item: 
+            name: angular
+            homepage_url: https://github.com/angular/angular
+            repo_url: https://github.com/angular/angular
+            logo: 24195339_.svg
+            description: Deliver web apps with confidence 🚀
+          - item: 
+            name: realworld
+            homepage_url: https://github.com/gothinkster/realworld
+            repo_url: https://github.com/gothinkster/realworld
+            logo: 52631841_.svg
+            description: >-
+              "The mother of all demo apps" — Exemplary fullstack Medium.com
+              clone powered by React, Angular, Node, Django, and many more
+          - item: 
+            name: svelte
+            homepage_url: https://github.com/sveltejs/svelte
+            repo_url: https://github.com/sveltejs/svelte
+            logo: 74293321_.svg
+            description: Cybernetically enhanced web apps
+          - item: 
+            name: jquery
+            homepage_url: https://github.com/jquery/jquery
+            repo_url: https://github.com/jquery/jquery
+            logo: 167174_.svg
+            description: jQuery JavaScript Library
+          - item: 
+            name: core
+            homepage_url: https://github.com/vuejs/core
+            repo_url: https://github.com/vuejs/core
+            logo: 137078487_.svg
+            description: >-
+              🖖 Vue.js is a progressive, incrementally-adoptable JavaScript
+              framework for building UI on the web.
+          - item: 
+            name: nw.js
+            homepage_url: https://github.com/nwjs/nw.js
+            repo_url: https://github.com/nwjs/nw.js
+            logo: 3100121_.svg
+            description: >-
+              Call all Node.js modules directly from DOM/WebWorker and enable a
+              new way of writing applications with all Web technologies.
+          - item: 
+            name: uni-app
+            homepage_url: https://github.com/dcloudio/uni-app
+            repo_url: https://github.com/dcloudio/uni-app
+            logo: 140687430_.svg
+            description: A cross-platform framework using Vue.js
+          - item: 
+            name: fullPage.js
+            homepage_url: https://github.com/alvarotrigo/fullPage.js
+            repo_url: https://github.com/alvarotrigo/fullPage.js
+            logo: 12972263_.svg
+            description: >-
+              fullPage plugin by Alvaro Trigo. Create full screen pages fast and
+              simple
+          - item: 
+            name: taro
+            homepage_url: https://github.com/NervJS/taro
+            repo_url: https://github.com/NervJS/taro
+            logo: 128624453_.svg
+            description: >-
+              开放式跨端跨框架解决方案，支持使用 React/Vue/Nerv 等框架来开发微信/京东/百度/支付宝/字节跳动/ QQ
+              小程序/H5/React Native 等应用。  https://taro.zone/
+          - item: 
+            name: solid
+            homepage_url: https://github.com/solidjs/solid
+            repo_url: https://github.com/solidjs/solid
+            logo: 130884470_.svg
+            description: >-
+              A declarative, efficient, and flexible JavaScript library for
+              building user interfaces.
+          - item: 
+            name: cheerio
+            homepage_url: https://github.com/cheeriojs/cheerio
+            repo_url: https://github.com/cheeriojs/cheerio
+            logo: 2541284_.svg
+            description: >-
+              The fast, flexible, and elegant library for parsing and
+              manipulating HTML and XML.
+          - item: 
+            name: select2
+            homepage_url: https://github.com/select2/select2
+            repo_url: https://github.com/select2/select2
+            logo: 3620194_.svg
+            description: >-
+              Select2 is a jQuery based replacement for select boxes. It
+              supports searching, remote data sets, and infinite scrolling of
+              results.
+          - item: 
+            name: react-admin
+            homepage_url: https://github.com/marmelab/react-admin
+            repo_url: https://github.com/marmelab/react-admin
+            logo: 63226588_.svg
+            description: >-
+              A frontend Framework for building data-driven applications running
+              on top of REST/GraphQL APIs, using TypeScript, React and Material
+              Design
+          - item: 
+            name: ember.js
+            homepage_url: https://github.com/emberjs/ember.js
+            repo_url: https://github.com/emberjs/ember.js
+            logo: 1801829_.svg
+            description: >-
+              Ember.js - A JavaScript framework for creating ambitious web
+              applications
+          - item: 
+            name: mpvue
+            homepage_url: https://github.com/Meituan-Dianping/mpvue
+            repo_url: https://github.com/Meituan-Dianping/mpvue
+            logo: 124171501_.svg
+            description: 基于 Vue.js 的小程序开发框架，从底层支持 Vue.js 语法和构建工具体系。
+          - item: 
+            name: hyperapp
+            homepage_url: https://github.com/jorgebucaran/hyperapp
+            repo_url: https://github.com/jorgebucaran/hyperapp
+            logo: 79527893_.svg
+            description: 1kB-ish JavaScript framework for building hypertext applications
+          - item: 
+            name: MagicMirror
+            homepage_url: https://github.com/MagicMirrorOrg/MagicMirror
+            repo_url: https://github.com/MagicMirrorOrg/MagicMirror
+            logo: 16989371_.svg
+            description: >-
+              MagicMirror² is an open source modular smart mirror platform. With
+              a growing list of installable modules, the MagicMirror² allows you
+              to convert your hallway or bathroom mirror into your personal
+              assistant.
+          - item: 
+            name: lit
+            homepage_url: https://github.com/lit/lit
+            repo_url: https://github.com/lit/lit
+            logo: 95797174_.svg
+            description: >-
+              Lit is a simple library for building fast, lightweight web
+              components.
+          - item: 
+            name: inferno
+            homepage_url: https://github.com/infernojs/inferno
+            repo_url: https://github.com/infernojs/inferno
+            logo: 30161665_.svg
+            description: >-
+              :fire: An extremely fast, React-like JavaScript library for
+              building modern user interfaces
+          - item: 
+            name: riot
+            homepage_url: https://github.com/riot/riot
+            repo_url: https://github.com/riot/riot
+            logo: 13142126_.svg
+            description: Simple and elegant component-based UI library
+          - item: 
+            name: million
+            homepage_url: https://github.com/aidenybai/million
+            repo_url: https://github.com/aidenybai/million
+            logo: 372046384_.svg
+            description: >-
+              Optimize React performance and make your React 70% faster in
+              minutes, not months. 
+          - item: 
+            name: mithril.js
+            homepage_url: https://github.com/MithrilJS/mithril.js
+            repo_url: https://github.com/MithrilJS/mithril.js
+            logo: 17814354_.svg
+            description: A JavaScript Framework for Building Brilliant Applications
+          - item: 
+            name: marko
+            homepage_url: https://github.com/marko-js/marko
+            repo_url: https://github.com/marko-js/marko
+            logo: 15720445_.svg
+            description: >-
+              A declarative, HTML-based language that makes building web apps
+              fun
+          - item: 
+            name: stencil
+            homepage_url: https://github.com/ionic-team/stencil
+            repo_url: https://github.com/ionic-team/stencil
+            logo: 82095231_.svg
+            description: >-
+              A toolchain for building scalable, enterprise-ready component
+              systems on top of TypeScript and Web Component standards. Stencil
+              components can be distributed natively to React, Angular, Vue, and
+              traditional web developers from a single, framework-agnostic
+              codebase.
+          - item: 
+            name: blockly
+            homepage_url: https://github.com/google/blockly
+            repo_url: https://github.com/google/blockly
+            logo: 13872231_.svg
+            description: The web-based visual programming editor.
+          - item: 
+            name: framework
+            homepage_url: https://github.com/aurelia/framework
+            repo_url: https://github.com/aurelia/framework
+            logo: 27835638_.svg
+            description: >-
+              The Aurelia 1 framework entry point, bringing together all the
+              required sub-modules of Aurelia.
+          - item: 
+            name: fresh
+            homepage_url: https://github.com/denoland/fresh
+            repo_url: https://github.com/denoland/fresh
+            logo: 365263843_.svg
+            description: The next-gen web framework.
+          - item: 
+            name: jquery-ui
+            homepage_url: https://github.com/jquery/jquery-ui
+            repo_url: https://github.com/jquery/jquery-ui
+            logo: 478996_.svg
+            description: The official jQuery user interface library.
+          - item: 
+            name: knockout
+            homepage_url: https://github.com/knockout/knockout
+            repo_url: https://github.com/knockout/knockout
+            logo: 757363_.svg
+            description: >-
+              Knockout makes it easier to create rich, responsive UIs with
+              JavaScript
+      - subcategory: 
+        name: 前端框架生态
         items:
-          - item:
-            crunchbase: https://www.crunchbase.com/organization/cloud-native-computing-foundation
-            description: This is the description of item 9
-            homepage_url: https://cncf.io
-            logo: cncf.svg
-            name: Item 9
-            repo_url: https://github.com/cncf/landscape2
-            twitter: https://twitter.com/CloudNativeFdn
-
+          - item: 
+            name: react-router
+            homepage_url: https://github.com/remix-run/react-router
+            repo_url: https://github.com/remix-run/react-router
+            logo: 19872456_.svg
+            description: Declarative routing for React
+          - item: 
+            name: react-use
+            homepage_url: https://github.com/streamich/react-use
+            repo_url: https://github.com/streamich/react-use
+            logo: 154950925_.svg
+            description: React Hooks — 👍
+          - item: 
+            name: query
+            homepage_url: https://github.com/TanStack/query
+            repo_url: https://github.com/TanStack/query
+            logo: 207645083_.svg
+            description: >-
+              🤖 Powerful asynchronous state management, server-state utilities
+              and data fetching for the web. TS/JS, React Query, Solid Query,
+              Svelte Query and Vue Query.
+          - item: 
+            name: angular-cli
+            homepage_url: https://github.com/angular/angular-cli
+            repo_url: https://github.com/angular/angular-cli
+            logo: 36891867_.svg
+            description: CLI tool for Angular
+          - item: 
+            name: ngx-admin
+            homepage_url: https://github.com/akveo/ngx-admin
+            repo_url: https://github.com/akveo/ngx-admin
+            logo: 59652928_.svg
+            description: Customizable admin dashboard template based on Angular 10+
+          - item: 
+            name: devtools
+            homepage_url: https://github.com/vuejs/devtools
+            repo_url: https://github.com/vuejs/devtools
+            logo: 24579238_.svg
+            description: ⚙️ Browser devtools extension for debugging Vue.js applications.
+          - item: 
+            name: react-redux
+            homepage_url: https://github.com/reduxjs/react-redux
+            repo_url: https://github.com/reduxjs/react-redux
+            logo: 38934449_.svg
+            description: Official React bindings for Redux
+          - item: 
+            name: reselect
+            homepage_url: https://github.com/reduxjs/reselect
+            repo_url: https://github.com/reduxjs/reselect
+            logo: 38366638_.svg
+            description: Selector library for Redux
+          - item: 
+            name: react-helmet
+            homepage_url: https://github.com/nfl/react-helmet
+            repo_url: https://github.com/nfl/react-helmet
+            logo: 37627792_.svg
+            description: A document head manager for React
+          - item: 
+            name: formatjs
+            homepage_url: https://github.com/formatjs/formatjs
+            repo_url: https://github.com/formatjs/formatjs
+            logo: 19117456_.svg
+            description: >-
+              The monorepo home to all of the FormatJS related libraries, most
+              notably react-intl.
+          - item: 
+            name: ui-router
+            homepage_url: https://github.com/angular-ui/ui-router
+            repo_url: https://github.com/angular-ui/ui-router
+            logo: 7693799_.svg
+            description: >-
+              The de-facto solution to flexible routing with nested views in
+              AngularJS
+          - item: 
+            name: hooks
+            homepage_url: https://github.com/alibaba/hooks
+            repo_url: https://github.com/alibaba/hooks
+            logo: 194027578_.svg
+            description: A high-quality & reliable React Hooks library.
+          - item: 
+            name: redux-persist
+            homepage_url: https://github.com/rt2zz/redux-persist
+            repo_url: https://github.com/rt2zz/redux-persist
+            logo: 39546089_.svg
+            description: persist and rehydrate a redux store
+          - item: 
+            name: redux-form
+            homepage_url: https://github.com/redux-form/redux-form
+            repo_url: https://github.com/redux-form/redux-form
+            logo: 40013435_.svg
+            description: >-
+              A Higher Order Component using react-redux to keep form state in a
+              Redux store
+          - item: 
+            name: react-hot-loader
+            homepage_url: https://github.com/gaearon/react-hot-loader
+            repo_url: https://github.com/gaearon/react-hot-loader
+            logo: 21779020_.svg
+            description: >-
+              Tweak React components in real time. (Deprecated: use Fast Refresh
+              instead.)
+          - item: 
+            name: react-native-macos
+            homepage_url: https://github.com/ptmt/react-native-macos
+            repo_url: https://github.com/ptmt/react-native-macos
+            logo: 43640830_.svg
+            description: >-
+              [deprecated in favor of
+              https://microsoft.github.io/react-native-windows/] React Native
+              for macOS is an experimental fork for writing desktop apps using
+              Cocoa
+          - item: 
+            name: proton-native
+            homepage_url: https://github.com/kusti8/proton-native
+            repo_url: https://github.com/kusti8/proton-native
+            logo: 111610659_.svg
+            description: A React environment for cross platform desktop apps
+          - item: 
+            name: helmet
+            homepage_url: https://github.com/helmetjs/helmet
+            repo_url: https://github.com/helmetjs/helmet
+            logo: 3329923_.svg
+            description: Help secure Express apps with various HTTP headers
+          - item: 
+            name: ducks-modular-redux
+            homepage_url: https://github.com/erikras/ducks-modular-redux
+            repo_url: https://github.com/erikras/ducks-modular-redux
+            logo: 41676006_.svg
+            description: >-
+              A proposal for bundling reducers, action types and actions when
+              using Redux
+          - item: 
+            name: react-native-router-flux
+            homepage_url: https://github.com/aksonov/react-native-router-flux
+            repo_url: https://github.com/aksonov/react-native-router-flux
+            logo: 41359055_.svg
+            description: The first declarative React Native router
+          - item: 
+            name: history
+            homepage_url: https://github.com/remix-run/history
+            repo_url: https://github.com/remix-run/history
+            logo: 39316027_.svg
+            description: Manage session history with JavaScript
+          - item: 
+            name: react-tetris
+            homepage_url: https://github.com/chvin/react-tetris
+            repo_url: https://github.com/chvin/react-tetris
+            logo: 76954504_.svg
+            description: Use React, Redux, Immutable to code Tetris. 🎮
+          - item: 
+            name: vue-lazyload
+            homepage_url: https://github.com/hilongjw/vue-lazyload
+            repo_url: https://github.com/hilongjw/vue-lazyload
+            logo: 49623638_.svg
+            description: >-
+              A Vue.js plugin for lazyload your Image or Component in your
+              application.
+          - item: 
+            name: beautiful-react-hooks
+            homepage_url: https://github.com/antonioru/beautiful-react-hooks
+            repo_url: https://github.com/antonioru/beautiful-react-hooks
+            logo: 228911039_.svg
+            description: >-
+              🔥 A collection of beautiful and (hopefully) useful React hooks to
+              speed-up your components and hooks development 🔥
+          - item: 
+            name: ng-file-upload
+            homepage_url: https://github.com/danialfarid/ng-file-upload
+            repo_url: https://github.com/danialfarid/ng-file-upload
+            logo: 11621778_.svg
+            description: >-
+              Lightweight Angular directive to upload files with optional
+              FileAPI shim for cross browser support
+          - item: 
+            name: redux-observable
+            homepage_url: https://github.com/redux-observable/redux-observable
+            repo_url: https://github.com/redux-observable/redux-observable
+            logo: 56723754_.svg
+            description: RxJS middleware for action side effects in Redux using "Epics"
+          - item: 
+            name: unstated
+            homepage_url: https://github.com/jamiebuilds/unstated
+            repo_url: https://github.com/jamiebuilds/unstated
+            logo: 119693982_.svg
+            description: State so simple, it goes without saying
+          - item: 
+            name: page.js
+            homepage_url: https://github.com/visionmedia/page.js
+            repo_url: https://github.com/visionmedia/page.js
+            logo: 4010478_.svg
+            description: Micro client-side router inspired by the Express router
+          - item: 
+            name: angularfire
+            homepage_url: https://github.com/angular/angularfire
+            repo_url: https://github.com/angular/angularfire
+            logo: 49453413_.svg
+            description: Angular + Firebase = ❤️
+          - item: 
+            name: i18next
+            homepage_url: https://github.com/i18next/i18next
+            repo_url: https://github.com/i18next/i18next
+            logo: 2994517_.svg
+            description: ' i18next: learn once - translate everywhere'
+      - subcategory: 
+        name: 状态关联
+        items: []
+      - subcategory: 
+        name: 移动端框架
+        items:
+          - item: 
+            name: storybook
+            homepage_url: https://github.com/storybookjs/storybook
+            repo_url: https://github.com/storybookjs/storybook
+            logo: 54173593_.svg
+            description: >-
+              Storybook is a frontend workshop for building UI components and
+              pages in isolation. Made for UI development, testing, and
+              documentation. 
+          - item: 
+            name: joplin
+            homepage_url: https://github.com/laurent22/joplin
+            repo_url: https://github.com/laurent22/joplin
+            logo: 79162682_.svg
+            description: >-
+              Joplin - the secure note taking and to-do app with synchronisation
+              capabilities for Windows, macOS, Linux, Android and iOS.
+          - item: 
+            name: appwrite
+            homepage_url: https://github.com/appwrite/appwrite
+            repo_url: https://github.com/appwrite/appwrite
+            logo: 180190854_.svg
+            description: Build like a team of hundreds_
+          - item: 
+            name: react-hook-form
+            homepage_url: https://github.com/react-hook-form/react-hook-form
+            repo_url: https://github.com/react-hook-form/react-hook-form
+            logo: 174038031_.svg
+            description: >-
+              📋 React Hooks for form state management and validation (Web +
+              React Native)
+          - item: 
+            name: reactjs-interview-questions
+            homepage_url: https://github.com/sudheerj/reactjs-interview-questions
+            repo_url: https://github.com/sudheerj/reactjs-interview-questions
+            logo: 135614069_.svg
+            description: >-
+              List of top 500 ReactJS Interview Questions & Answers....Coding
+              exercise questions are coming soon!!
+          - item: 
+            name: awesome-react-native
+            homepage_url: https://github.com/jondot/awesome-react-native
+            repo_url: https://github.com/jondot/awesome-react-native
+            logo: 32948863_.svg
+            description: >-
+              Awesome React Native components, news, tools, and learning
+              material!
+          - item: 
+            name: formik
+            homepage_url: https://github.com/jaredpalmer/formik
+            repo_url: https://github.com/jaredpalmer/formik
+            logo: 94367677_.svg
+            description: 'Build forms in React, without the tears 😭 '
+          - item: 
+            name: typeorm
+            homepage_url: https://github.com/typeorm/typeorm
+            repo_url: https://github.com/typeorm/typeorm
+            logo: 52773157_.svg
+            description: >-
+              ORM for TypeScript and JavaScript. Supports MySQL, PostgreSQL,
+              MariaDB, SQLite, MS SQL Server, Oracle, SAP Hana, WebSQL
+              databases. Works in NodeJS, Browser, Ionic, Cordova and Electron
+              platforms.
+          - item: 
+            name: swr
+            homepage_url: https://github.com/vercel/swr
+            repo_url: https://github.com/vercel/swr
+            logo: 218115303_.svg
+            description: React Hooks for Data Fetching
+          - item: 
+            name: mattermost
+            homepage_url: https://github.com/mattermost/mattermost
+            repo_url: https://github.com/mattermost/mattermost
+            logo: 37448451_.svg
+            description: >-
+              Mattermost is an open source platform for secure collaboration
+              across the entire software development lifecycle..
+          - item: 
+            name: expo
+            homepage_url: https://github.com/expo/expo
+            repo_url: https://github.com/expo/expo
+            logo: 65750241_.svg
+            description: >-
+              An open-source platform for making universal native apps with
+              React. Expo runs on Android, iOS, and the web.
+          - item: 
+            name: immich
+            homepage_url: https://github.com/immich-app/immich
+            repo_url: https://github.com/immich-app/immich
+            logo: 455229168_.svg
+            description: >-
+              Self-hosted photo and video backup solution directly from your
+              mobile phone.
+          - item: 
+            name: NativeScript
+            homepage_url: https://github.com/NativeScript/NativeScript
+            repo_url: https://github.com/NativeScript/NativeScript
+            logo: 31492490_.svg
+            description: >-
+              ⚡ Empowering JavaScript with native platform APIs. ✨ Best of all
+              worlds (TypeScript, Swift, Objective C, Kotlin, Java). Use what
+              you love ❤️ Angular, Capacitor, Ionic, React, Solid, Svelte, Vue
+              with: SwiftUI, Jetpack Compose, Flutter and you name it
+              compatible.
+          - item: 
+            name: react-navigation
+            homepage_url: https://github.com/react-navigation/react-navigation
+            repo_url: https://github.com/react-navigation/react-navigation
+            logo: 80149262_.svg
+            description: Routing and navigation for your React Native apps
+          - item: 
+            name: rxdb
+            homepage_url: https://github.com/pubkey/rxdb
+            repo_url: https://github.com/pubkey/rxdb
+            logo: 75425073_.svg
+            description: >-
+              A fast, local first, reactive Database for JavaScript Applications
+              https://rxdb.info/
+          - item: 
+            name: framework7
+            homepage_url: https://github.com/framework7io/framework7
+            repo_url: https://github.com/framework7io/framework7
+            logo: 17107479_.svg
+            description: Full featured HTML framework for building iOS & Android apps
+          - item: 
+            name: ionicons
+            homepage_url: https://github.com/ionic-team/ionicons
+            repo_url: https://github.com/ionic-team/ionicons
+            logo: 13473768_.svg
+            description: >-
+              Premium hand-crafted icons built by Ionic, for Ionic apps and web
+              apps everywhere 🌎
+          - item: 
+            name: ignite
+            homepage_url: https://github.com/infinitered/ignite
+            repo_url: https://github.com/infinitered/ignite
+            logo: 51452356_.svg
+            description: >-
+              Infinite Red's battle-tested React Native project boilerplate,
+              along with a CLI, component/model generators, and more!
+          - item: 
+            name: feathers
+            homepage_url: https://github.com/feathersjs/feathers
+            repo_url: https://github.com/feathersjs/feathers
+            logo: 2609642_.svg
+            description: The API and real-time application framework
+          - item: 
+            name: reactotron
+            homepage_url: https://github.com/infinitered/reactotron
+            repo_url: https://github.com/infinitered/reactotron
+            logo: 56352157_.svg
+            description: >-
+              A desktop app for inspecting your React JS and React Native
+              projects. macOS, Linux, and Windows.
+          - item: 
+            name: mui
+            homepage_url: https://github.com/dcloudio/mui
+            repo_url: https://github.com/dcloudio/mui
+            logo: 23062124_.svg
+            description: 最接近原生APP体验的高性能框架
+          - item: 
+            name: react-content-loader
+            homepage_url: https://github.com/danilowoz/react-content-loader
+            repo_url: https://github.com/danilowoz/react-content-loader
+            logo: 79509385_.svg
+            description: ⚪ SVG-Powered component to easily create skeleton loadings.
+          - item: 
+            name: create-react-native-app
+            homepage_url: https://github.com/expo/create-react-native-app
+            repo_url: https://github.com/expo/create-react-native-app
+            logo: 78664391_.svg
+            description: Create React Native apps that run on iOS, Android, and web
+          - item: 
+            name: workbox
+            homepage_url: https://github.com/GoogleChrome/workbox
+            repo_url: https://github.com/GoogleChrome/workbox
+            logo: 55424670_.svg
+            description: '📦 Workbox: JavaScript libraries for Progressive Web Apps'
+          - item: 
+            name: react-native-firebase
+            homepage_url: https://github.com/invertase/react-native-firebase
+            repo_url: https://github.com/invertase/react-native-firebase
+            logo: 80616041_.svg
+            description: >-
+              🔥 A well-tested feature-rich modular Firebase implementation for
+              React Native. Supports both iOS & Android platforms for all
+              Firebase services.
+          - item: 
+            name: capacitor
+            homepage_url: https://github.com/ionic-team/capacitor
+            repo_url: https://github.com/ionic-team/capacitor
+            logo: 111241370_.svg
+            description: >-
+              Build cross-platform Native Progressive Web Apps for iOS, Android,
+              and the Web ⚡️
+          - item: 
+            name: Detox
+            homepage_url: https://github.com/wix/Detox
+            repo_url: https://github.com/wix/Detox
+            logo: 61204547_.svg
+            description: >-
+              Gray box end-to-end testing and automation framework for mobile
+              apps
+          - item: 
+            name: why-did-you-render
+            homepage_url: https://github.com/welldone-software/why-did-you-render
+            repo_url: https://github.com/welldone-software/why-did-you-render
+            logo: 157014461_.svg
+            description: >-
+              why-did-you-render by Welldone Software monkey patches React to
+              notify you about potentially avoidable re-renders. (Works with
+              React Native as well.)
+          - item: 
+            name: formily
+            homepage_url: https://github.com/alibaba/formily
+            repo_url: https://github.com/alibaba/formily
+            logo: 164768889_.svg
+            description: >-
+              📱🚀 🧩 Cross Device & High Performance Normal Form/Dynamic(JSON
+              Schema) Form/Form Builder -- Support React/React Native/Vue 2/Vue
+              3
+          - item: 
+            name: react-native-swiper
+            homepage_url: https://github.com/leecade/react-native-swiper
+            repo_url: https://github.com/leecade/react-native-swiper
+            logo: 34268496_.svg
+            description: The best Swiper component for React Native.
+      - subcategory: 
+        name: 服务端框架
+        items:
+          - item: 
+            name: express
+            homepage_url: https://github.com/expressjs/express
+            repo_url: https://github.com/expressjs/express
+            logo: 237159_.svg
+            description: Fast, unopinionated, minimalist web framework for node.
+          - item: 
+            name: nest
+            homepage_url: https://github.com/nestjs/nest
+            repo_url: https://github.com/nestjs/nest
+            logo: 80945428_.svg
+            description: >-
+              A progressive Node.js framework for building efficient, scalable,
+              and enterprise-grade server-side applications with
+              TypeScript/JavaScript 🚀
+          - item: 
+            name: socket.io
+            homepage_url: https://github.com/socketio/socket.io
+            repo_url: https://github.com/socketio/socket.io
+            logo: 557980_.svg
+            description: Realtime application framework (Node.JS server)
+          - item: 
+            name: strapi
+            homepage_url: https://github.com/strapi/strapi
+            repo_url: https://github.com/strapi/strapi
+            logo: 43441403_.svg
+            description: >-
+              🚀 Strapi is the leading open-source headless CMS. It’s 100%
+              JavaScript/TypeScript, fully customizable and developer-first.
+          - item: 
+            name: meteor
+            homepage_url: https://github.com/meteor/meteor
+            repo_url: https://github.com/meteor/meteor
+            logo: 3214406_.svg
+            description: Meteor, the JavaScript App Platform
+          - item: 
+            name: koa
+            homepage_url: https://github.com/koajs/koa
+            repo_url: https://github.com/koajs/koa
+            logo: 11551538_.svg
+            description: Expressive middleware for node.js using ES2017 async functions
+          - item: 
+            name: trpc
+            homepage_url: https://github.com/trpc/trpc
+            repo_url: https://github.com/trpc/trpc
+            logo: 280557054_.svg
+            description: >-
+              🧙‍♀️  Move Fast and Break Nothing. End-to-end typesafe APIs made
+              easy. 
+          - item: 
+            name: fastify
+            homepage_url: https://github.com/fastify/fastify
+            repo_url: https://github.com/fastify/fastify
+            logo: 69495170_.svg
+            description: Fast and low overhead web framework, for Node.js
+          - item: 
+            name: remix
+            homepage_url: https://github.com/remix-run/remix
+            repo_url: https://github.com/remix-run/remix
+            logo: 307489284_.svg
+            description: >-
+              Build Better Websites. Create modern, resilient user experiences
+              with web fundamentals.
+          - item: 
+            name: directus
+            homepage_url: https://github.com/directus/directus
+            repo_url: https://github.com/directus/directus
+            logo: 7122594_.svg
+            description: >-
+              The Modern Data Stack 🐰 — Directus is an instant REST+GraphQL API
+              and intuitive no-code data collaboration app for any SQL database.
+          - item: 
+            name: sails
+            homepage_url: https://github.com/balderdashy/sails
+            repo_url: https://github.com/balderdashy/sails
+            logo: 3757512_.svg
+            description: Realtime MVC Framework for Node.js
+          - item: 
+            name: egg
+            homepage_url: https://github.com/eggjs/egg
+            repo_url: https://github.com/eggjs/egg
+            logo: 61421257_.svg
+            description: >-
+              🥚 Born to build better enterprise frameworks and apps with
+              Node.js & Koa
+          - item: 
+            name: localtunnel
+            homepage_url: https://github.com/localtunnel/localtunnel
+            repo_url: https://github.com/localtunnel/localtunnel
+            logo: 4696595_.svg
+            description: expose yourself
+          - item: 
+            name: kit
+            homepage_url: https://github.com/sveltejs/kit
+            repo_url: https://github.com/sveltejs/kit
+            logo: 304344049_.svg
+            description: web development, streamlined
+          - item: 
+            name: redwood
+            homepage_url: https://github.com/redwoodjs/redwood
+            repo_url: https://github.com/redwoodjs/redwood
+            logo: 191051391_.svg
+            description: The App Framework for Startups
+          - item: 
+            name: bull
+            homepage_url: https://github.com/OptimalBits/bull
+            repo_url: https://github.com/OptimalBits/bull
+            logo: 10999165_.svg
+            description: >-
+              Premium Queue package for handling distributed jobs and messages
+              in NodeJS.
+          - item: 
+            name: umi
+            homepage_url: https://github.com/umijs/umi
+            repo_url: https://github.com/umijs/umi
+            logo: 111667959_.svg
+            description: A framework in react community ✨
+          - item: 
+            name: hapi
+            homepage_url: https://github.com/hapijs/hapi
+            repo_url: https://github.com/hapijs/hapi
+            logo: 2163263_.svg
+            description: The Simple, Secure Framework Developers Trust
+          - item: 
+            name: blitz
+            homepage_url: https://github.com/blitz-js/blitz
+            repo_url: https://github.com/blitz-js/blitz
+            logo: 241215865_.svg
+            description: ⚡️ The Missing Fullstack Toolkit for Next.js
+          - item: 
+            name: loopback
+            homepage_url: https://github.com/strongloop/loopback
+            repo_url: https://github.com/strongloop/loopback
+            logo: 9325315_.svg
+            description: >-
+              LoopBack makes it easy to build modern applications that require
+              complex integrations.
+          - item: 
+            name: http-server
+            homepage_url: https://github.com/http-party/http-server
+            repo_url: https://github.com/http-party/http-server
+            logo: 1908577_.svg
+            description: a simple zero-configuration command-line http server
+          - item: 
+            name: amplication
+            homepage_url: https://github.com/amplication/amplication
+            repo_url: https://github.com/amplication/amplication
+            logo: 262862475_.svg
+            description: >-
+              🔥🔥🔥 Open-source backend development platform. Build
+              production-ready services without wasting time on repetitive
+              coding.
+          - item: 
+            name: mean
+            homepage_url: https://github.com/linnovate/mean
+            repo_url: https://github.com/linnovate/mean
+            logo: 10219106_.svg
+            description: >-
+              The MEAN stack uses Mongo, Express, Angular(6) and Node for simple
+              and scalable fullstack js applications
+          - item: 
+            name: hono
+            homepage_url: https://github.com/honojs/hono
+            repo_url: https://github.com/honojs/hono
+            logo: 438384984_.svg
+            description: Fast, Lightweight, Web-standards
+          - item: 
+            name: node-restify
+            homepage_url: https://github.com/restify/node-restify
+            repo_url: https://github.com/restify/node-restify
+            logo: 1661758_.svg
+            description: The future of Node.js REST development
+          - item: 
+            name: micro
+            homepage_url: https://github.com/vercel/micro
+            repo_url: https://github.com/vercel/micro
+            logo: 50224698_.svg
+            description: Asynchronous HTTP microservices
+          - item: 
+            name: connect
+            homepage_url: https://github.com/senchalabs/connect
+            repo_url: https://github.com/senchalabs/connect
+            logo: 687836_.svg
+            description: Connect is a middleware layer for Node.js
+          - item: 
+            name: kue
+            homepage_url: https://github.com/Automattic/kue
+            repo_url: https://github.com/Automattic/kue
+            logo: 1963063_.svg
+            description: Kue is a priority job queue backed by redis, built for node.js.
+          - item: 
+            name: node-schedule
+            homepage_url: https://github.com/node-schedule/node-schedule
+            repo_url: https://github.com/node-schedule/node-schedule
+            logo: 1735515_.svg
+            description: A cron-like and not-cron-like job scheduler for Node.
+          - item: 
+            name: keystone
+            homepage_url: https://github.com/keystonejs/keystone
+            repo_url: https://github.com/keystonejs/keystone
+            logo: 128193054_.svg
+            description: >-
+              The most powerful headless CMS for Node.js — built with GraphQL
+              and React
+      - subcategory: 
+        name: CSS框架
+        items:
+          - item: 
+            name: tailwindcss
+            homepage_url: https://github.com/tailwindlabs/tailwindcss
+            repo_url: https://github.com/tailwindlabs/tailwindcss
+            logo: 106017343_.svg
+            description: A utility-first CSS framework for rapid UI development.
+          - item: 
+            name: stylus
+            homepage_url: https://github.com/stylus/stylus
+            repo_url: https://github.com/stylus/stylus
+            logo: 1204214_.svg
+            description: Expressive, robust, feature-rich CSS language built for nodejs
+          - item: 
+            name: linaria
+            homepage_url: https://github.com/callstack/linaria
+            repo_url: https://github.com/callstack/linaria
+            logo: 92112844_.svg
+            description: Zero-runtime CSS in JS library
+          - item: 
+            name: stylex
+            homepage_url: https://github.com/facebook/stylex
+            repo_url: https://github.com/facebook/stylex
+            logo: 575723287_.svg
+            description: StyleX is the styling system for ambitious user interfaces.
+          - item: 
+            name: styled-jsx
+            homepage_url: https://github.com/vercel/styled-jsx
+            repo_url: https://github.com/vercel/styled-jsx
+            logo: 75629834_.svg
+            description: Full CSS support for JSX without compromises
+          - item: 
+            name: ts-reset
+            homepage_url: https://github.com/total-typescript/ts-reset
+            repo_url: https://github.com/total-typescript/ts-reset
+            logo: 603761805_.svg
+            description: >-
+              A 'CSS reset' for TypeScript, improving types for common
+              JavaScript API's
+          - item: 
+            name: react-responsive
+            homepage_url: https://github.com/yocontra/react-responsive
+            repo_url: https://github.com/yocontra/react-responsive
+            logo: 22968365_.svg
+            description: CSS media queries in react - for responsive design, and more.
+          - item: 
+            name: split
+            homepage_url: https://github.com/nathancahill/split
+            repo_url: https://github.com/nathancahill/split
+            logo: 41578337_.svg
+            description: Unopinionated utilities for resizeable split views
+          - item: 
+            name: modern-normalize
+            homepage_url: https://github.com/sindresorhus/modern-normalize
+            repo_url: https://github.com/sindresorhus/modern-normalize
+            logo: 120715537_.svg
+            description: 🐒 Normalize browsers' default style
+          - item: 
+            name: aphrodite
+            homepage_url: https://github.com/Khan/aphrodite
+            repo_url: https://github.com/Khan/aphrodite
+            logo: 43790903_.svg
+            description: >-
+              Framework-agnostic CSS-in-JS with support for server-side
+              rendering, browser prefixing, and minimum CSS generation
+          - item: 
+            name: neumorphism
+            homepage_url: https://github.com/adamgiebl/neumorphism
+            repo_url: https://github.com/adamgiebl/neumorphism
+            logo: 230768910_.svg
+            description: '🎉 Generate CSS for your Neumorphism/Soft UI design '
+          - item: 
+            name: TinyColor
+            homepage_url: https://github.com/bgrins/TinyColor
+            repo_url: https://github.com/bgrins/TinyColor
+            logo: 1973790_.svg
+            description: Fast, small color manipulation and conversion for JavaScript
+          - item: 
+            name: color
+            homepage_url: https://github.com/Qix-/color
+            repo_url: https://github.com/Qix-/color
+            logo: 1939300_.svg
+            description: ':rainbow: Javascript color conversion and manipulation library'
+          - item: 
+            name: css-element-queries
+            homepage_url: https://github.com/marcj/css-element-queries
+            repo_url: https://github.com/marcj/css-element-queries
+            logo: 10425992_.svg
+            description: >-
+              CSS Element-Queries aka Container Queries. High-speed element
+              dimension/media queries in valid css.
+          - item: 
+            name: tailwind-rn
+            homepage_url: https://github.com/vadimdemedes/tailwind-rn
+            repo_url: https://github.com/vadimdemedes/tailwind-rn
+            logo: 245817315_.svg
+            description: 🦎 Use Tailwind CSS in React Native projects
+          - item: 
+            name: current-device
+            homepage_url: https://github.com/matthewhudson/current-device
+            repo_url: https://github.com/matthewhudson/current-device
+            logo: 5876519_.svg
+            description: >-
+              📱 The easiest way to write conditional CSS and/or JavaScript
+              based on device operating system (iOS, Android, Blackberry,
+              Windows, Firefox OS, MeeGo), orientation (Portrait vs. Landscape),
+              and type (Tablet vs. Mobile).
+          - item: 
+            name: prefixfree
+            homepage_url: https://github.com/LeaVerou/prefixfree
+            repo_url: https://github.com/LeaVerou/prefixfree
+            logo: 2556901_.svg
+            description: Break free from CSS prefix hell!
+          - item: 
+            name: twind
+            homepage_url: https://github.com/tw-in-js/twind
+            repo_url: https://github.com/tw-in-js/twind
+            logo: 318854398_.svg
+            description: >-
+              The smallest, fastest, most feature complete Tailwind-in-JS
+              solution in existence.
+          - item: 
+            name: basicScroll
+            homepage_url: https://github.com/electerious/basicScroll
+            repo_url: https://github.com/electerious/basicScroll
+            logo: 72379872_.svg
+            description: >-
+              Standalone parallax scrolling for mobile and desktop with CSS
+              variables.
+          - item: 
+            name: tailwindcss-typography
+            homepage_url: https://github.com/tailwindlabs/tailwindcss-typography
+            repo_url: https://github.com/tailwindlabs/tailwindcss-typography
+            logo: 219020626_.svg
+            description: Beautiful typographic defaults for HTML you don't control.
+          - item: 
+            name: mailwind
+            homepage_url: https://github.com/soheilpro/mailwind
+            repo_url: https://github.com/soheilpro/mailwind
+            logo: 392783326_.svg
+            description: Use Tailwind CSS to design HTML emails.
+          - item: 
+            name: Darkmode.js
+            homepage_url: https://github.com/sandoche/Darkmode.js
+            repo_url: https://github.com/sandoche/Darkmode.js
+            logo: 191753050_.svg
+            description: 🌓 Add a dark-mode / night-mode to your website in a few seconds
+          - item: 
+            name: Han
+            homepage_url: https://github.com/ethantw/Han
+            repo_url: https://github.com/ethantw/Han
+            logo: 1450993_.svg
+            description: >-
+              「漢字標準格式」印刷品般的漢字排版框架 Han.css: the CSS typography framework
+              optimised for Hanzi.
+          - item: 
+            name: Shuffle
+            homepage_url: https://github.com/Vestride/Shuffle
+            repo_url: https://github.com/Vestride/Shuffle
+            logo: 3045648_.svg
+            description: Categorize, sort, and filter a responsive grid of items
+          - item: 
+            name: hexo-theme-next
+            homepage_url: https://github.com/next-theme/hexo-theme-next
+            repo_url: https://github.com/next-theme/hexo-theme-next
+            logo: 253149742_.svg
+            description: 🎉 Elegant and powerful theme for Hexo.
+          - item: 
+            name: tailwindcss-radix
+            homepage_url: https://github.com/ecklf/tailwindcss-radix
+            repo_url: https://github.com/ecklf/tailwindcss-radix
+            logo: 429123713_.svg
+            description: Utilities and variants for styling Radix state
+          - item: 
+            name: Ink
+            homepage_url: https://github.com/sapo/Ink
+            repo_url: https://github.com/sapo/Ink
+            logo: 2788082_.svg
+            description: >-
+              An HTML5/CSS3 framework used at SAPO for fast and efficient
+              website design and prototyping
+          - item: 
+            name: css-modal
+            homepage_url: https://github.com/drublic/css-modal
+            repo_url: https://github.com/drublic/css-modal
+            logo: 6820011_.svg
+            description: A modal built with pure CSS, enhanced with JavaScript
+          - item: 
+            name: tailwind-react-native-classnames
+            homepage_url: https://github.com/jaredh159/tailwind-react-native-classnames
+            repo_url: https://github.com/jaredh159/tailwind-react-native-classnames
+            logo: 322418857_.svg
+            description: simple, expressive API for tailwindcss + react-native
+          - item: 
+            name: Splitting
+            homepage_url: https://github.com/shshaw/Splitting
+            repo_url: https://github.com/shshaw/Splitting
+            logo: 116411425_.svg
+            description: >-
+              JavaScript microlibrary to split an element by words, characters,
+              children and more, populated with CSS variables!
+  - category: 
+    name: Library
+    subcategories:
+      - subcategory: 
+        name: U解析器
+        items: []
+      - subcategory: 
+        name: 网络压缩
+        items: []
+      - subcategory: 
+        name: 加解密
+        items:
+          - item: 
+            name: crypto-js
+            homepage_url: https://github.com/brix/crypto-js
+            repo_url: https://github.com/brix/crypto-js
+            logo: 9305860_.svg
+            description: JavaScript library of crypto standards.
+          - item: 
+            name: text-mask
+            homepage_url: https://github.com/text-mask/text-mask
+            repo_url: https://github.com/text-mask/text-mask
+            logo: 50213667_.svg
+            description: Input mask for React, Angular, Ember, Vue, & plain JavaScript
+          - item: 
+            name: sjcl
+            homepage_url: https://github.com/bitwiseshiftleft/sjcl
+            repo_url: https://github.com/bitwiseshiftleft/sjcl
+            logo: 688208_.svg
+            description: Stanford Javascript Crypto Library
+          - item: 
+            name: jsencrypt
+            homepage_url: https://github.com/travist/jsencrypt
+            repo_url: https://github.com/travist/jsencrypt
+            logo: 8227684_.svg
+            description: >-
+              A zero-dependency Javascript library to perform OpenSSL RSA
+              Encryption, Decryption, and Key Generation.
+          - item: 
+            name: openpgpjs
+            homepage_url: https://github.com/openpgpjs/openpgpjs
+            repo_url: https://github.com/openpgpjs/openpgpjs
+            logo: 2765899_.svg
+            description: OpenPGP implementation for JavaScript
+          - item: 
+            name: documenso
+            homepage_url: https://github.com/documenso/documenso
+            repo_url: https://github.com/documenso/documenso
+            logo: 613010835_.svg
+            description: The Open Source DocuSign Alternative.
+          - item: 
+            name: forge
+            homepage_url: https://github.com/digitalbazaar/forge
+            repo_url: https://github.com/digitalbazaar/forge
+            logo: 779570_.svg
+            description: >-
+              A native implementation of TLS in Javascript and tools to write
+              crypto-based and network-heavy webapps
+          - item: 
+            name: imaskjs
+            homepage_url: https://github.com/uNmAnNeR/imaskjs
+            repo_url: https://github.com/uNmAnNeR/imaskjs
+            logo: 73382751_.svg
+            description: vanilla javascript input mask
+          - item: 
+            name: hashids.js
+            homepage_url: https://github.com/niieani/hashids.js
+            repo_url: https://github.com/niieani/hashids.js
+            logo: 5383496_.svg
+            description: >-
+              A small JavaScript library to generate YouTube-like ids from
+              numbers.
+          - item: 
+            name: end-to-end
+            homepage_url: https://github.com/google/end-to-end
+            repo_url: https://github.com/google/end-to-end
+            logo: 24910542_.svg
+            description: >-
+              End-To-End is a crypto library to encrypt, decrypt, digital sign,
+              and verify signed messages (implementing OpenPGP)
+          - item: 
+            name: bcrypt.js
+            homepage_url: https://github.com/dcodeIO/bcrypt.js
+            repo_url: https://github.com/dcodeIO/bcrypt.js
+            logo: 9784843_.svg
+            description: Optimized bcrypt in plain JavaScript with zero dependencies.
+          - item: 
+            name: jsrsasign
+            homepage_url: https://github.com/kjur/jsrsasign
+            repo_url: https://github.com/kjur/jsrsasign
+            logo: 4180355_.svg
+            description: >-
+              The 'jsrsasign' (RSA-Sign JavaScript Library) is an opensource
+              free cryptography library supporting RSA/RSAPSS/ECDSA/DSA
+              signing/validation, ASN.1, PKCS#1/5/8 private/public key, X.509
+              certificate, CRL, OCSP, CMS SignedData, TimeStamp, CAdES and JSON
+              Web Signature/Token in pure JavaScript.
+          - item: 
+            name: frida-ios-dump
+            homepage_url: https://github.com/AloneMonkey/frida-ios-dump
+            repo_url: https://github.com/AloneMonkey/frida-ios-dump
+            logo: 112638598_.svg
+            description: pull decrypted ipa from jailbreak device
+          - item: 
+            name: stegcloak
+            homepage_url: https://github.com/KuroLabs/stegcloak
+            repo_url: https://github.com/KuroLabs/stegcloak
+            logo: 259692009_.svg
+            description: >-
+              Hide secrets with invisible characters in plain text securely
+              using passwords 🧙🏻‍♂️⭐
+          - item: 
+            name: jsSHA
+            homepage_url: https://github.com/Caligatio/jsSHA
+            repo_url: https://github.com/Caligatio/jsSHA
+            logo: 5134724_.svg
+            description: >-
+              A JavaScript/TypeScript implementation of the complete Secure Hash
+              Standard (SHA) family (SHA-1, SHA-224/256/384/512,
+              SHA3-224/256/384/512, SHAKE128/256, cSHAKE128/256, and
+              KMAC128/256) with HMAC.
+          - item: 
+            name: react-input-mask
+            homepage_url: https://github.com/sanniassin/react-input-mask
+            repo_url: https://github.com/sanniassin/react-input-mask
+            logo: 37367784_.svg
+            description: Input masking component for React. Made with attention to UX.
+          - item: 
+            name: sshwifty
+            homepage_url: https://github.com/nirui/sshwifty
+            repo_url: https://github.com/nirui/sshwifty
+            logo: 200967040_.svg
+            description: Web SSH & Telnet (WebSSH & WebTelnet client) 🔮
+          - item: 
+            name: otplib
+            homepage_url: https://github.com/yeojz/otplib
+            repo_url: https://github.com/yeojz/otplib
+            logo: 18736041_.svg
+            description: >-
+              :key: One Time Password (OTP) / 2FA for Node.js and Browser -
+              Supports HOTP, TOTP and Google Authenticator
+          - item: 
+            name: node-argon2
+            homepage_url: https://github.com/ranisalt/node-argon2
+            repo_url: https://github.com/ranisalt/node-argon2
+            logo: 48276775_.svg
+            description: Node.js bindings for Argon2 hashing algorithm
+          - item: 
+            name: tweetnacl-js
+            homepage_url: https://github.com/dchest/tweetnacl-js
+            repo_url: https://github.com/dchest/tweetnacl-js
+            logo: 15649752_.svg
+            description: Port of TweetNaCl cryptographic library to JavaScript
+          - item: 
+            name: elliptic
+            homepage_url: https://github.com/indutny/elliptic
+            repo_url: https://github.com/indutny/elliptic
+            logo: 19029120_.svg
+            description: Fast Elliptic Curve Cryptography in plain javascript
+          - item: 
+            name: node-rsa
+            homepage_url: https://github.com/rzcoder/node-rsa
+            repo_url: https://github.com/rzcoder/node-rsa
+            logo: 18098330_.svg
+            description: Node.js RSA library
+          - item: 
+            name: cryptii
+            homepage_url: https://github.com/cryptii/cryptii
+            repo_url: https://github.com/cryptii/cryptii
+            logo: 14086422_.svg
+            description: >-
+              Web app and framework offering modular conversion, encoding and
+              encryption
+          - item: 
+            name: watermark-dom
+            homepage_url: https://github.com/saucxs/watermark-dom
+            repo_url: https://github.com/saucxs/watermark-dom
+            logo: 89908697_.svg
+            description: >-
+              watermark.js是基于DOM对象实现的BS系统的水印，确保系统保密性，安全性，降低数据泄密风险，简单轻量，支持多属性配置，动态计算水印，水印防被删（监听水印组件元素删除并重新添加，监听改变水印的属性并重新添加）。1、支持2种方式导入使用，2、水印插件-testTool（测试工具），3、内置3种全局API方法，等等。欢迎访问：
+          - item: 
+            name: msgpack-javascript
+            homepage_url: https://github.com/msgpack/msgpack-javascript
+            repo_url: https://github.com/msgpack/msgpack-javascript
+            logo: 2761854_.svg
+            description: >-
+              @msgpack/msgpack - MessagePack for JavaScript /
+              msgpack.org[JavaScript/TypeScript/ECMA-262]
+          - item: 
+            name: CaptfEncoder
+            homepage_url: https://github.com/guyoung/CaptfEncoder
+            repo_url: https://github.com/guyoung/CaptfEncoder
+            logo: 134218423_.svg
+            description: >-
+              Captfencoder is opensource a rapid cross platform network security
+              tool suite, providing network security related code conversion,
+              classical cryptography, cryptography, asymmetric encryption,
+              miscellaneous tools, and aggregating all kinds of online tools.
+          - item: 
+            name: ngx-mask
+            homepage_url: https://github.com/JsDaddy/ngx-mask
+            repo_url: https://github.com/JsDaddy/ngx-mask
+            logo: 69059417_.svg
+            description: Angular Plugin to make masks on form fields and html elements.
+          - item: 
+            name: maska
+            homepage_url: https://github.com/beholdr/maska
+            repo_url: https://github.com/beholdr/maska
+            logo: 210838381_.svg
+            description: Simple zero-dependency input mask for Vue.js and vanilla JS.
+          - item: 
+            name: node-md5
+            homepage_url: https://github.com/pvorb/node-md5
+            repo_url: https://github.com/pvorb/node-md5
+            logo: 2847299_.svg
+            description: a JavaScript function for hashing messages with MD5
+          - item: 
+            name: js-md5
+            homepage_url: https://github.com/emn178/js-md5
+            repo_url: https://github.com/emn178/js-md5
+            logo: 15623598_.svg
+            description: A simple MD5 hash function for JavaScript supports UTF-8 encoding.
+      - subcategory: 
+        name: 压缩
+        items:
+          - item: 
+            name: squoosh
+            homepage_url: https://github.com/GoogleChromeLabs/squoosh
+            repo_url: https://github.com/GoogleChromeLabs/squoosh
+            logo: 124303364_.svg
+            description: >-
+              Make images smaller using best-in-class codecs, right in the
+              browser.
+          - item: 
+            name: brotli
+            homepage_url: https://github.com/google/brotli
+            repo_url: https://github.com/google/brotli
+            logo: 24993138_.svg
+            description: Brotli compression format
+          - item: 
+            name: jszip
+            homepage_url: https://github.com/Stuk/jszip
+            repo_url: https://github.com/Stuk/jszip
+            logo: 292525_.svg
+            description: Create, read and edit .zip files with Javascript
+          - item: 
+            name: pako
+            homepage_url: https://github.com/nodeca/pako
+            repo_url: https://github.com/nodeca/pako
+            logo: 16231859_.svg
+            description: high speed zlib port to javascript, works in browser & node.js
+          - item: 
+            name: html-minifier
+            homepage_url: https://github.com/kangax/html-minifier
+            repo_url: https://github.com/kangax/html-minifier
+            logo: 504220_.svg
+            description: Javascript-based HTML compressor/minifier (with Node.js support)
+          - item: 
+            name: minify
+            homepage_url: https://github.com/babel/minify
+            repo_url: https://github.com/babel/minify
+            logo: 55723051_.svg
+            description: >-
+              :scissors: An ES6+ aware minifier based on the Babel toolchain
+              (beta)
+          - item: 
+            name: lz-string
+            homepage_url: https://github.com/pieroxy/lz-string
+            repo_url: https://github.com/pieroxy/lz-string
+            logo: 9938102_.svg
+            description: LZ-based compression algorithm for JavaScript
+          - item: 
+            name: zip.js
+            homepage_url: https://github.com/gildas-lormeau/zip.js
+            repo_url: https://github.com/gildas-lormeau/zip.js
+            logo: 2207038_.svg
+            description: >-
+              JavaScript library to zip and unzip files supporting multi-core
+              compression, compression streams, zip64, split files and
+              encryption.
+          - item: 
+            name: node-archiver
+            homepage_url: https://github.com/archiverjs/node-archiver
+            repo_url: https://github.com/archiverjs/node-archiver
+            logo: 6135596_.svg
+            description: a streaming interface for archive generation
+          - item: 
+            name: asar
+            homepage_url: https://github.com/electron/asar
+            repo_url: https://github.com/electron/asar
+            logo: 24328822_.svg
+            description: Simple extensive tar-like archive format with indexing
+          - item: 
+            name: fflate
+            homepage_url: https://github.com/101arrowz/fflate
+            repo_url: https://github.com/101arrowz/fflate
+            logo: 291210874_.svg
+            description: High performance (de)compression in an 8kB package
+          - item: 
+            name: adm-zip
+            homepage_url: https://github.com/cthackers/adm-zip
+            repo_url: https://github.com/cthackers/adm-zip
+            logo: 3515094_.svg
+            description: >-
+              A Javascript implementation of zip for nodejs. Allows user to
+              create or extract zip files both in memory or to/from disk
+          - item: 
+            name: gulp-imagemin
+            homepage_url: https://github.com/sindresorhus/gulp-imagemin
+            repo_url: https://github.com/sindresorhus/gulp-imagemin
+            logo: 15533082_.svg
+            description: Minify PNG, JPEG, GIF and SVG images
+          - item: 
+            name: PMTiles
+            homepage_url: https://github.com/protomaps/PMTiles
+            repo_url: https://github.com/protomaps/PMTiles
+            logo: 339331471_.svg
+            description: >-
+              Cloud-optimized + compressed single-file tile archives for vector
+              and raster maps
+          - item: 
+            name: js2image
+            homepage_url: https://github.com/small-tou/js2image
+            repo_url: https://github.com/small-tou/js2image
+            logo: 48420530_.svg
+            description: >-
+              一个可以把js源代码压缩成一个ascii字符画的源代码的工具，压缩后的代码仍可运行 （A tool can compress
+              JavaScript code to any ascii image and still run normally )
+          - item: 
+            name: JSONCrush
+            homepage_url: https://github.com/KilledByAPixel/JSONCrush
+            repo_url: https://github.com/KilledByAPixel/JSONCrush
+            logo: 223512432_.svg
+            description: Compress JSON into URL friendly strings
+          - item: 
+            name: image-actions
+            homepage_url: https://github.com/calibreapp/image-actions
+            repo_url: https://github.com/calibreapp/image-actions
+            logo: 181617728_.svg
+            description: >-
+              A Github Action that automatically compresses JPEGs, PNGs and
+              WebPs in Pull Requests.
+          - item: 
+            name: grunt-contrib-imagemin
+            homepage_url: https://github.com/gruntjs/grunt-contrib-imagemin
+            repo_url: https://github.com/gruntjs/grunt-contrib-imagemin
+            logo: 6441855_.svg
+            description: Minify PNG, JPG, GIF and SVG images.
+          - item: 
+            name: browser-image-compression
+            homepage_url: https://github.com/Donaldcwl/browser-image-compression
+            repo_url: https://github.com/Donaldcwl/browser-image-compression
+            logo: 98123131_.svg
+            description: Image compression in web browser
+          - item: 
+            name: compressing
+            homepage_url: https://github.com/node-modules/compressing
+            repo_url: https://github.com/node-modules/compressing
+            logo: 76440540_.svg
+            description: Everything you need for compressing and uncompressing
+          - item: 
+            name: decompress
+            homepage_url: https://github.com/kevva/decompress
+            repo_url: https://github.com/kevva/decompress
+            logo: 12325544_.svg
+            description: Extracting archives made easy
+      - subcategory: 
+        name: 日期时间
+        items:
+          - item: 
+            name: moment
+            homepage_url: https://github.com/moment/moment
+            repo_url: https://github.com/moment/moment
+            logo: 1424470_.svg
+            description: Parse, validate, manipulate, and display dates in javascript.
+          - item: 
+            name: dayjs
+            homepage_url: https://github.com/iamkun/dayjs
+            repo_url: https://github.com/iamkun/dayjs
+            logo: 128907699_.svg
+            description: >-
+              ⏰ Day.js 2kB immutable date-time library alternative to Moment.js
+              with the same modern API
+          - item: 
+            name: date-fns
+            homepage_url: https://github.com/date-fns/date-fns
+            repo_url: https://github.com/date-fns/date-fns
+            logo: 24841635_.svg
+            description: ⏳ Modern JavaScript date utility library ⌛️
+          - item: 
+            name: fullcalendar
+            homepage_url: https://github.com/fullcalendar/fullcalendar
+            repo_url: https://github.com/fullcalendar/fullcalendar
+            logo: 381979_.svg
+            description: Full-sized drag & drop event calendar in JavaScript
+          - item: 
+            name: flatpickr
+            homepage_url: https://github.com/flatpickr/flatpickr
+            repo_url: https://github.com/flatpickr/flatpickr
+            logo: 40511756_.svg
+            description: >-
+              lightweight, powerful javascript datetimepicker with no
+              dependencies
+          - item: 
+            name: luxon
+            homepage_url: https://github.com/moment/luxon
+            repo_url: https://github.com/moment/luxon
+            logo: 47118129_.svg
+            description: ⏱ A library for working with dates and times in JS
+          - item: 
+            name: react-dates
+            homepage_url: https://github.com/react-dates/react-dates
+            repo_url: https://github.com/react-dates/react-dates
+            logo: 58011499_.svg
+            description: >-
+              An easily internationalizable, mobile-friendly datepicker library
+              for the web
+          - item: 
+            name: tui.calendar
+            homepage_url: https://github.com/nhn/tui.calendar
+            repo_url: https://github.com/nhn/tui.calendar
+            logo: 103071620_.svg
+            description: 🍞📅A JavaScript calendar that has everything you need.
+          - item: 
+            name: react-datepicker
+            homepage_url: https://github.com/Hacker0x01/react-datepicker
+            repo_url: https://github.com/Hacker0x01/react-datepicker
+            logo: 21088356_.svg
+            description: A simple and reusable datepicker component for React
+          - item: 
+            name: react-big-calendar
+            homepage_url: https://github.com/jquense/react-big-calendar
+            repo_url: https://github.com/jquense/react-big-calendar
+            logo: 41187219_.svg
+            description: gcal/outlook like calendar component
+          - item: 
+            name: react-day-picker
+            homepage_url: https://github.com/gpbl/react-day-picker
+            repo_url: https://github.com/gpbl/react-day-picker
+            logo: 28566982_.svg
+            description: >-
+              DayPicker is a customizable date picker component for React, with
+              native TypeScript support.
+          - item: 
+            name: timeago.js
+            homepage_url: https://github.com/hustcc/timeago.js
+            repo_url: https://github.com/hustcc/timeago.js
+            logo: 61765411_.svg
+            description: >-
+              :clock8: :hourglass: timeago.js is a tiny(2.0 kb) library used to
+              format date with `*** time ago` statement.
+          - item: 
+            name: ms
+            homepage_url: https://github.com/vercel/ms
+            repo_url: https://github.com/vercel/ms
+            logo: 3655872_.svg
+            description: Tiny millisecond conversion utility
+          - item: 
+            name: spacetime
+            homepage_url: https://github.com/spencermountain/spacetime
+            repo_url: https://github.com/spencermountain/spacetime
+            logo: 82820698_.svg
+            description: A lightweight javascript timezone library
+          - item: 
+            name: chrono
+            homepage_url: https://github.com/wanasit/chrono
+            repo_url: https://github.com/wanasit/chrono
+            logo: 5297944_.svg
+            description: A natural language date parser in Javascript
+          - item: 
+            name: moment-timezone
+            homepage_url: https://github.com/moment/moment-timezone
+            repo_url: https://github.com/moment/moment-timezone
+            logo: 4268140_.svg
+            description: Timezone support for moment.js
+          - item: 
+            name: react-calendar
+            homepage_url: https://github.com/wojtekmaj/react-calendar
+            repo_url: https://github.com/wojtekmaj/react-calendar
+            logo: 98578993_.svg
+            description: Ultimate calendar for your React app.
+          - item: 
+            name: relative-time-element
+            homepage_url: https://github.com/github/relative-time-element
+            repo_url: https://github.com/github/relative-time-element
+            logo: 19039693_.svg
+            description: Web component extensions to the standard <time> element.
+          - item: 
+            name: fecha
+            homepage_url: https://github.com/taylorhakes/fecha
+            repo_url: https://github.com/taylorhakes/fecha
+            logo: 28998101_.svg
+            description: Lightweight and simple JS date formatting and parsing
+          - item: 
+            name: js-joda
+            homepage_url: https://github.com/js-joda/js-joda
+            repo_url: https://github.com/js-joda/js-joda
+            logo: 44402648_.svg
+            description: ':clock2: Immutable date and time library for javascript'
+          - item: 
+            name: date
+            homepage_url: https://github.com/matthewmueller/date
+            repo_url: https://github.com/matthewmueller/date
+            logo: 10118353_.svg
+            description: Date() for humans
+          - item: 
+            name: vue-moment
+            homepage_url: https://github.com/brockpetrie/vue-moment
+            repo_url: https://github.com/brockpetrie/vue-moment
+            logo: 28550902_.svg
+            description: Handy Moment.js filters for your Vue.js project.
+          - item: 
+            name: node-dateformat
+            homepage_url: https://github.com/felixge/node-dateformat
+            repo_url: https://github.com/felixge/node-dateformat
+            logo: 1474943_.svg
+            description: >-
+              A node.js package for Steven Levithan's excellent dateFormat()
+              function.
+          - item: 
+            name: mpvue-calendar
+            homepage_url: https://github.com/Hzy0913/mpvue-calendar
+            repo_url: https://github.com/Hzy0913/mpvue-calendar
+            logo: 136304438_.svg
+            description: >-
+              📅 A calendar component for vue3.0. Support gesture sliding, range
+              selection, according to the week switch...
+      - subcategory: 
+        name: 字符串
+        items:
+          - item: 
+            name: validator.js
+            homepage_url: https://github.com/validatorjs/validator.js
+            repo_url: https://github.com/validatorjs/validator.js
+            logo: 965782_.svg
+            description: String validation
+          - item: 
+            name: qs
+            homepage_url: https://github.com/ljharb/qs
+            repo_url: https://github.com/ljharb/qs
+            logo: 22266795_.svg
+            description: A querystring parser with nesting support
+          - item: 
+            name: jsdiff
+            homepage_url: https://github.com/kpdecker/jsdiff
+            repo_url: https://github.com/kpdecker/jsdiff
+            logo: 1542219_.svg
+            description: A javascript text differencing implementation.
+          - item: 
+            name: query-string
+            homepage_url: https://github.com/sindresorhus/query-string
+            repo_url: https://github.com/sindresorhus/query-string
+            logo: 14375002_.svg
+            description: Parse and stringify URL query strings
+          - item: 
+            name: voca
+            homepage_url: https://github.com/panzerdp/voca
+            repo_url: https://github.com/panzerdp/voca
+            logo: 54569744_.svg
+            description: The ultimate JavaScript string library
+          - item: 
+            name: underscore.string
+            homepage_url: https://github.com/esamattis/underscore.string
+            repo_url: https://github.com/esamattis/underscore.string
+            logo: 800115_.svg
+            description: String manipulation helpers for javascript
+          - item: 
+            name: pinyin-pro
+            homepage_url: https://github.com/zh-lx/pinyin-pro
+            repo_url: https://github.com/zh-lx/pinyin-pro
+            logo: 307089010_.svg
+            description: 中文转拼音、拼音音调、拼音声母、拼音韵母、多音字拼音、姓氏拼音、拼音匹配
+          - item: 
+            name: iconv-lite
+            homepage_url: https://github.com/ashtuchkin/iconv-lite
+            repo_url: https://github.com/ashtuchkin/iconv-lite
+            logo: 2743221_.svg
+            description: Convert character encodings in pure javascript.
+          - item: 
+            name: pinyinjs
+            homepage_url: https://github.com/sxei/pinyinjs
+            repo_url: https://github.com/sxei/pinyinjs
+            logo: 69412855_.svg
+            description: 一个实现汉字与拼音互转的小巧web工具库，演示地址：
+          - item: 
+            name: micromatch
+            homepage_url: https://github.com/micromatch/micromatch
+            repo_url: https://github.com/micromatch/micromatch
+            logo: 27359938_.svg
+            description: >-
+              Highly optimized wildcard and glob matching library. Faster,
+              drop-in replacement to minimatch and multimatch. Used by square,
+              webpack, babel core, yarn, jest, ract-native, taro, bulma,
+              browser-sync, stylelint, nyc, ava, and many others! Follow
+              micromatch's author: https://github.com/jonschlinkert
+          - item: 
+            name: slugify
+            homepage_url: https://github.com/sindresorhus/slugify
+            repo_url: https://github.com/sindresorhus/slugify
+            logo: 130084383_.svg
+            description: Slugify a string
+          - item: 
+            name: uFuzzy
+            homepage_url: https://github.com/leeoniya/uFuzzy
+            repo_url: https://github.com/leeoniya/uFuzzy
+            logo: 537303562_.svg
+            description: A tiny, efficient fuzzy search that doesn't suck
+          - item: 
+            name: figlet.js
+            homepage_url: https://github.com/patorjk/figlet.js
+            repo_url: https://github.com/patorjk/figlet.js
+            logo: 4555483_.svg
+            description: >-
+              A FIG Driver written in JavaScript which aims to fully implement
+              the FIGfont spec.
+          - item: 
+            name: cnchar
+            homepage_url: https://github.com/theajack/cnchar
+            repo_url: https://github.com/theajack/cnchar
+            logo: 253296378_.svg
+            description: 🇨🇳 功能全面的汉字工具库 (拼音 笔画 偏旁 成语 语音 可视化等) (Chinese character util)
+          - item: 
+            name: magic-string
+            homepage_url: https://github.com/Rich-Harris/magic-string
+            repo_url: https://github.com/Rich-Harris/magic-string
+            logo: 26143240_.svg
+            description: Manipulate strings like a wizard
+          - item: 
+            name: change-case
+            homepage_url: https://github.com/blakeembrey/change-case
+            repo_url: https://github.com/blakeembrey/change-case
+            logo: 9440238_.svg
+            description: >-
+              Convert strings between camelCase, PascalCase, Capital Case,
+              snake_case and more
+          - item: 
+            name: pluralize
+            homepage_url: https://github.com/plurals/pluralize
+            repo_url: https://github.com/plurals/pluralize
+            logo: 9152708_.svg
+            description: Pluralize or singularize any word based on a count
+          - item: 
+            name: sprintf.js
+            homepage_url: https://github.com/alexei/sprintf.js
+            repo_url: https://github.com/alexei/sprintf.js
+            logo: 9175790_.svg
+            description: >-
+              sprintf.js is a complete open source JavaScript sprintf
+              implementation
+          - item: 
+            name: strman
+            homepage_url: https://github.com/dleitee/strman
+            repo_url: https://github.com/dleitee/strman
+            logo: 56006770_.svg
+            description: 🏗A Javascript string manipulation library.
+          - item: 
+            name: common-tags
+            homepage_url: https://github.com/zspecza/common-tags
+            repo_url: https://github.com/zspecza/common-tags
+            logo: 44826587_.svg
+            description: >-
+              🔖 Useful template literal tags for dealing with strings in
+              ES2015+
+          - item: 
+            name: messageformat
+            homepage_url: https://github.com/messageformat/messageformat
+            repo_url: https://github.com/messageformat/messageformat
+            logo: 3264770_.svg
+            description: >-
+              ICU MessageFormat for Javascript - i18n Plural and Gender Capable
+              Messages
+          - item: 
+            name: filesize.js
+            homepage_url: https://github.com/avoidwork/filesize.js
+            repo_url: https://github.com/avoidwork/filesize.js
+            logo: 3602669_.svg
+            description: >-
+              JavaScript library to generate a human readable String describing
+              the file size
+          - item: 
+            name: nzh
+            homepage_url: https://github.com/cnwhy/nzh
+            repo_url: https://github.com/cnwhy/nzh
+            logo: 24092794_.svg
+            description: 数字转中文（大写，小写）数字，金额。
+          - item: 
+            name: linkify-it
+            homepage_url: https://github.com/markdown-it/linkify-it
+            repo_url: https://github.com/markdown-it/linkify-it
+            logo: 30506329_.svg
+            description: Links recognition library with full unicode support
+          - item: 
+            name: ngx-clipboard
+            homepage_url: https://github.com/maxisam/ngx-clipboard
+            repo_url: https://github.com/maxisam/ngx-clipboard
+            logo: 60649224_.svg
+            description: A pure angular clipboard directive
+          - item: 
+            name: node-chardet
+            homepage_url: https://github.com/runk/node-chardet
+            repo_url: https://github.com/runk/node-chardet
+            logo: 9749948_.svg
+            description: Character encoding detection tool for NodeJS
+          - item: 
+            name: strip-comments
+            homepage_url: https://github.com/jonschlinkert/strip-comments
+            repo_url: https://github.com/jonschlinkert/strip-comments
+            logo: 16693693_.svg
+            description: 'Strip block comments or line comments from JavaScript code. '
+          - item: 
+            name: hyphenate-style-name
+            homepage_url: https://github.com/rexxars/hyphenate-style-name
+            repo_url: https://github.com/rexxars/hyphenate-style-name
+            logo: 40114317_.svg
+            description: Hyphenates a camelcased CSS property name
+      - subcategory: 
+        name: 微前端
+        items:
+          - item: 
+            name: ice
+            homepage_url: https://github.com/alibaba/ice
+            repo_url: https://github.com/alibaba/ice
+            logo: 72717562_.svg
+            description: >-
+              🚀 ice.js: The Progressive App Framework Based On React（基于 React
+              的渐进式应用框架）
+          - item: 
+            name: qiankun
+            homepage_url: https://github.com/umijs/qiankun
+            repo_url: https://github.com/umijs/qiankun
+            logo: 186754830_.svg
+            description: >-
+              📦 🚀 Blazing fast, simple and complete solution for micro
+              frontends.
+          - item: 
+            name: single-spa
+            homepage_url: https://github.com/single-spa/single-spa
+            repo_url: https://github.com/single-spa/single-spa
+            logo: 42915978_.svg
+            description: The router for easy microfrontends
+          - item: 
+            name: MFE-starter
+            homepage_url: https://github.com/PatrickJS/MFE-starter
+            repo_url: https://github.com/PatrickJS/MFE-starter
+            logo: 31829770_.svg
+            description: MFE Starter
+          - item: 
+            name: module-federation-examples
+            homepage_url: https://github.com/module-federation/module-federation-examples
+            repo_url: https://github.com/module-federation/module-federation-examples
+            logo: 260317971_.svg
+            description: >-
+              Implementation examples of module federation , by the creators of
+              module federation
+          - item: 
+            name: micro-frontends
+            homepage_url: https://github.com/neuland/micro-frontends
+            repo_url: https://github.com/neuland/micro-frontends
+            logo: 86085748_.svg
+            description: extending the microservice paradigms to web development
+          - item: 
+            name: wujie
+            homepage_url: https://github.com/Tencent/wujie
+            repo_url: https://github.com/Tencent/wujie
+            logo: 508576019_.svg
+            description: 极致的微前端框架
+          - item: 
+            name: garfish
+            homepage_url: https://github.com/web-infra-dev/garfish
+            repo_url: https://github.com/web-infra-dev/garfish
+            logo: 323257322_.svg
+            description: A powerful micro front-end framework 🚚
+          - item: 
+            name: emp
+            homepage_url: https://github.com/empjs/emp
+            repo_url: https://github.com/empjs/emp
+            logo: 308235637_.svg
+            description: EMP Micro FE Base on Rspack & module federation
+          - item: 
+            name: icestark
+            homepage_url: https://github.com/ice-lab/icestark
+            repo_url: https://github.com/ice-lab/icestark
+            logo: 185713295_.svg
+            description: >-
+              :tiger: Micro Frontends solution for large
+              application（面向大型应用的微前端解决方案），站点国内镜像：https://icestark.gitee.io
+          - item: 
+            name: piral
+            homepage_url: https://github.com/smapiot/piral
+            repo_url: https://github.com/smapiot/piral
+            logo: 170884642_.svg
+            description: >-
+              Framework for next generation web apps using micro frontends.
+              :rocket:
+          - item: 
+            name: oc
+            homepage_url: https://github.com/opencomponents/oc
+            repo_url: https://github.com/opencomponents/oc
+            logo: 29561741_.svg
+            description: >-
+              OpenComponents, serverless in the front-end world for painless
+              micro-frontends delivery
+      - subcategory: 
+        name: Web Components
+        items:
+          - item: 
+            name: hammer.js
+            homepage_url: https://github.com/hammerjs/hammer.js
+            repo_url: https://github.com/hammerjs/hammer.js
+            logo: 3602123_.svg
+            description: >-
+              A javascript library for multi-touch gestures :// You can touch
+              this
+          - item: 
+            name: PhotoSwipe
+            homepage_url: https://github.com/dimsemenov/PhotoSwipe
+            repo_url: https://github.com/dimsemenov/PhotoSwipe
+            logo: 1580851_.svg
+            description: >-
+              JavaScript image gallery for mobile and desktop, modular,
+              framework independent
+          - item: 
+            name: scrollreveal
+            homepage_url: https://github.com/jlmakes/scrollreveal
+            repo_url: https://github.com/jlmakes/scrollreveal
+            logo: 15975439_.svg
+            description: Animate elements as they scroll into view.
+          - item: 
+            name: Fuse
+            homepage_url: https://github.com/krisk/Fuse
+            repo_url: https://github.com/krisk/Fuse
+            logo: 4467228_.svg
+            description: Lightweight fuzzy-search, in JavaScript
+          - item: 
+            name: sweetalert2
+            homepage_url: https://github.com/sweetalert2/sweetalert2
+            repo_url: https://github.com/sweetalert2/sweetalert2
+            logo: 28748255_.svg
+            description: >-
+              ✨ A beautiful, responsive, highly customizable and accessible
+              (WAI-ARIA) replacement for JavaScript's popup boxes. Zero
+              dependencies. 🇺🇦
+          - item: 
+            name: amphtml
+            homepage_url: https://github.com/ampproject/amphtml
+            repo_url: https://github.com/ampproject/amphtml
+            logo: 41766002_.svg
+            description: The AMP web component framework.
+          - item: 
+            name: mousetrap
+            homepage_url: https://github.com/ccampbell/mousetrap
+            repo_url: https://github.com/ccampbell/mousetrap
+            logo: 4897046_.svg
+            description: Simple library for handling keyboard shortcuts in Javascript
+          - item: 
+            name: viewerjs
+            homepage_url: https://github.com/fengyuanchen/viewerjs
+            repo_url: https://github.com/fengyuanchen/viewerjs
+            logo: 48531033_.svg
+            description: JavaScript image viewer.
+          - item: 
+            name: glide
+            homepage_url: https://github.com/glidejs/glide
+            repo_url: https://github.com/glidejs/glide
+            logo: 12213730_.svg
+            description: >-
+              A dependency-free JavaScript ES6 slider and carousel. It’s
+              lightweight, flexible and fast. Designed to slide. No less, no
+              more
+          - item: 
+            name: elevator.js
+            homepage_url: https://github.com/tholman/elevator.js
+            repo_url: https://github.com/tholman/elevator.js
+            logo: 33821984_.svg
+            description: >-
+              Finally, a "back to top" button that behaves like a real
+              elevator. 
+          - item: 
+            name: lightGallery
+            homepage_url: https://github.com/sachinchoolur/lightGallery
+            repo_url: https://github.com/sachinchoolur/lightGallery
+            logo: 17293434_.svg
+            description: 'A customizable, modular, responsive, lightbox gallery plugin. '
+          - item: 
+            name: gridstack.js
+            homepage_url: https://github.com/gridstack/gridstack.js
+            repo_url: https://github.com/gridstack/gridstack.js
+            logo: 26417283_.svg
+            description: Build interactive dashboards in minutes.
+          - item: 
+            name: plupload
+            homepage_url: https://github.com/moxiecode/plupload
+            repo_url: https://github.com/moxiecode/plupload
+            logo: 467461_.svg
+            description: >-
+              Plupload is JavaScript API for building file uploaders. It
+              supports multiple file selection, file filtering, chunked upload,
+              client side image downsizing and when necessary can fallback to
+              alternative runtimes, like Flash and Silverlight.
+          - item: 
+            name: lightgallery.js
+            homepage_url: https://github.com/sachinchoolur/lightgallery.js
+            repo_url: https://github.com/sachinchoolur/lightgallery.js
+            logo: 64635494_.svg
+            description: Full featured JavaScript image & video gallery. No dependencies
+          - item: 
+            name: jQuery-Knob
+            homepage_url: https://github.com/aterrien/jQuery-Knob
+            repo_url: https://github.com/aterrien/jQuery-Knob
+            logo: 2830198_.svg
+            description: Nice, downward compatible, touchable, jQuery dial
+          - item: 
+            name: ScrollTrigger
+            homepage_url: https://github.com/terwanerik/ScrollTrigger
+            repo_url: https://github.com/terwanerik/ScrollTrigger
+            logo: 61795939_.svg
+            description: Let your page react to scroll changes.
+          - item: 
+            name: autoComplete.js
+            homepage_url: https://github.com/TarekRaafat/autoComplete.js
+            repo_url: https://github.com/TarekRaafat/autoComplete.js
+            logo: 157978430_.svg
+            description: Simple autocomplete pure vanilla Javascript library.
+          - item: 
+            name: draggabilly
+            homepage_url: https://github.com/desandro/draggabilly
+            repo_url: https://github.com/desandro/draggabilly
+            logo: 7820076_.svg
+            description: ':point_down: Make that shiz draggable'
+          - item: 
+            name: jQuery-Autocomplete
+            homepage_url: https://github.com/devbridge/jQuery-Autocomplete
+            repo_url: https://github.com/devbridge/jQuery-Autocomplete
+            logo: 688157_.svg
+            description: >-
+              Ajax Autocomplete for jQuery allows you to easily create
+              autocomplete/autosuggest boxes for text input fields
+          - item: 
+            name: TweenJS
+            homepage_url: https://github.com/CreateJS/TweenJS
+            repo_url: https://github.com/CreateJS/TweenJS
+            logo: 1501185_.svg
+            description: >-
+              A simple but powerful tweening / animation library for Javascript.
+              Part of the CreateJS suite of libraries.
+          - item: 
+            name: Micromodal
+            homepage_url: https://github.com/ghosh/Micromodal
+            repo_url: https://github.com/ghosh/Micromodal
+            logo: 99948385_.svg
+            description: ⭕   Tiny javascript library for creating accessible modal dialogs
+          - item: 
+            name: skatejs
+            homepage_url: https://github.com/skatejs/skatejs
+            repo_url: https://github.com/skatejs/skatejs
+            logo: 16425042_.svg
+            description: Effortless custom elements powered by modern view libraries.
+          - item: 
+            name: hotkey
+            homepage_url: https://github.com/github/hotkey
+            repo_url: https://github.com/github/hotkey
+            logo: 166252898_.svg
+            description: Trigger an action on an element with a keyboard shortcut.
+          - item: 
+            name: final-form
+            homepage_url: https://github.com/final-form/final-form
+            repo_url: https://github.com/final-form/final-form
+            logo: 111720780_.svg
+            description: >-
+              🏁 Framework agnostic, high performance, subscription-based form
+              state management
+          - item: 
+            name: TimelineJS3
+            homepage_url: https://github.com/NUKnightLab/TimelineJS3
+            repo_url: https://github.com/NUKnightLab/TimelineJS3
+            logo: 22386765_.svg
+            description: >-
+              TimelineJS v3: A Storytelling Timeline built in JavaScript. 
+              http://timeline.knightlab.com
+          - item: 
+            name: github-elements
+            homepage_url: https://github.com/github/github-elements
+            repo_url: https://github.com/github/github-elements
+            logo: 138764380_.svg
+            description: GitHub's Web Component collection.
+          - item: 
+            name: swing
+            homepage_url: https://github.com/gajus/swing
+            repo_url: https://github.com/gajus/swing
+            logo: 25739007_.svg
+            description: >-
+              A swipeable cards interface. The swipe-left/swipe-right for yes/no
+              input. As seen in apps like Jelly and Tinder.
+          - item: 
+            name: mmenu-js
+            homepage_url: https://github.com/FrDH/mmenu-js
+            repo_url: https://github.com/FrDH/mmenu-js
+            logo: 13765233_.svg
+            description: >-
+              The best javascript plugin for app look-alike on- and off-canvas
+              menus with sliding submenus for your website and webapp.
+          - item: 
+            name: ion.rangeSlider
+            homepage_url: https://github.com/IonDen/ion.rangeSlider
+            repo_url: https://github.com/IonDen/ion.rangeSlider
+            logo: 7752664_.svg
+            description: jQuery only range slider
+          - item: 
+            name: baguetteBox.js
+            homepage_url: https://github.com/feimosi/baguetteBox.js
+            repo_url: https://github.com/feimosi/baguetteBox.js
+            logo: 22138403_.svg
+            description: >-
+              :zap: Simple and easy to use lightbox script written in pure
+              JavaScript
+      - subcategory: 
+        name: 模板引擎
+        items:
+          - item: 
+            name: pug
+            homepage_url: https://github.com/pugjs/pug
+            repo_url: https://github.com/pugjs/pug
+            logo: 734934_.svg
+            description: Pug – robust, elegant, feature rich template engine for Node.js
+          - item: 
+            name: handlebars.js
+            homepage_url: https://github.com/handlebars-lang/handlebars.js
+            repo_url: https://github.com/handlebars-lang/handlebars.js
+            logo: 809601_.svg
+            description: Minimal templating on steroids.
+          - item: 
+            name: mustache.js
+            homepage_url: https://github.com/janl/mustache.js
+            repo_url: https://github.com/janl/mustache.js
+            logo: 326688_.svg
+            description: Minimal templating with {{mustaches}} in JavaScript
+          - item: 
+            name: mdx-deck
+            homepage_url: https://github.com/jxnblk/mdx-deck
+            repo_url: https://github.com/jxnblk/mdx-deck
+            logo: 142714512_.svg
+            description: ♠️ React MDX-based presentation decks
+          - item: 
+            name: critical
+            homepage_url: https://github.com/addyosmani/critical
+            repo_url: https://github.com/addyosmani/critical
+            logo: 21299916_.svg
+            description: Extract & Inline Critical-path CSS in HTML pages
+          - item: 
+            name: art-template
+            homepage_url: https://github.com/aui/art-template
+            repo_url: https://github.com/aui/art-template
+            logo: 4534540_.svg
+            description: High performance JavaScript templating engine
+          - item: 
+            name: htm
+            homepage_url: https://github.com/developit/htm
+            repo_url: https://github.com/developit/htm
+            logo: 142916901_.svg
+            description: >-
+              Hyperscript Tagged Markup: JSX alternative using standard tagged
+              templates, with compiler support.
+          - item: 
+            name: nunjucks
+            homepage_url: https://github.com/mozilla/nunjucks
+            repo_url: https://github.com/mozilla/nunjucks
+            logo: 5351666_.svg
+            description: >-
+              A powerful templating engine with inheritance, asynchronous
+              control, and more (jinja2 inspired)
+          - item: 
+            name: ejs
+            homepage_url: https://github.com/mde/ejs
+            repo_url: https://github.com/mde/ejs
+            logo: 28671602_.svg
+            description: Embedded JavaScript templates -- http://ejs.co
+          - item: 
+            name: fastdom
+            homepage_url: https://github.com/wilsonpage/fastdom
+            repo_url: https://github.com/wilsonpage/fastdom
+            logo: 8135625_.svg
+            description: >-
+              Eliminates layout thrashing by batching DOM measurement and
+              mutation tasks
+          - item: 
+            name: hogan.js
+            homepage_url: https://github.com/twitter/hogan.js
+            repo_url: https://github.com/twitter/hogan.js
+            logo: 3029324_.svg
+            description: A compiler for the Mustache templating language
+          - item: 
+            name: doT
+            homepage_url: https://github.com/olado/doT
+            repo_url: https://github.com/olado/doT
+            logo: 1239398_.svg
+            description: >-
+              The fastest + concise javascript template engine for nodejs and
+              browsers. Partials, custom delimiters and more. 
+          - item: 
+            name: htmlparser2
+            homepage_url: https://github.com/fb55/htmlparser2
+            repo_url: https://github.com/fb55/htmlparser2
+            logo: 2279062_.svg
+            description: The fast & forgiving HTML and XML parser
+          - item: 
+            name: github-script
+            homepage_url: https://github.com/actions/github-script
+            repo_url: https://github.com/actions/github-script
+            logo: 205262760_.svg
+            description: Write workflows scripting the GitHub API in JavaScript
+          - item: 
+            name: RISE
+            homepage_url: https://github.com/damianavila/RISE
+            repo_url: https://github.com/damianavila/RISE
+            logo: 12387090_.svg
+            description: 'RISE: "Live" Reveal.js Jupyter/IPython Slideshow Extension'
+          - item: 
+            name: dustjs
+            homepage_url: https://github.com/linkedin/dustjs
+            repo_url: https://github.com/linkedin/dustjs
+            logo: 3813151_.svg
+            description: Asynchronous Javascript templating for the browser and server
+          - item: 
+            name: posthtml
+            homepage_url: https://github.com/posthtml/posthtml
+            repo_url: https://github.com/posthtml/posthtml
+            logo: 37989511_.svg
+            description: PostHTML is a tool to transform HTML/XML with JS plugins
+          - item: 
+            name: jsrender
+            homepage_url: https://github.com/BorisMoore/jsrender
+            repo_url: https://github.com/BorisMoore/jsrender
+            logo: 1650371_.svg
+            description: >-
+              A lightweight, powerful and highly extensible templating engine.
+              In the browser or on Node.js, with or without jQuery.
+          - item: 
+            name: twig.js
+            homepage_url: https://github.com/twigjs/twig.js
+            repo_url: https://github.com/twigjs/twig.js
+            logo: 2550451_.svg
+            description: JS implementation of the Twig Templating Language
+          - item: 
+            name: inspire.js
+            homepage_url: https://github.com/LeaVerou/inspire.js
+            repo_url: https://github.com/LeaVerou/inspire.js
+            logo: 1033339_.svg
+            description: >-
+              Lean, hackable, extensible slide deck framework. Previously known
+              as CSSS.
+          - item: 
+            name: liquidjs
+            homepage_url: https://github.com/harttle/liquidjs
+            repo_url: https://github.com/harttle/liquidjs
+            logo: 61016843_.svg
+            description: >-
+              A simple, expressive, safe and Shopify compatible template engine
+              in pure JavaScript.
+          - item: 
+            name: express-vue
+            homepage_url: https://github.com/express-vue/express-vue
+            repo_url: https://github.com/express-vue/express-vue
+            logo: 70153011_.svg
+            description: >-
+              Vue rendering engine for Express.js. Use .Vue files as templates
+              using streams
+          - item: 
+            name: eta
+            homepage_url: https://github.com/eta-dev/eta
+            repo_url: https://github.com/eta-dev/eta
+            logo: 250142018_.svg
+            description: >-
+              Embedded JS template engine for Node, Deno, and the browser.
+              Lighweight, fast, and pluggable. Written in TypeScript
+          - item: 
+            name: carbone
+            homepage_url: https://github.com/carboneio/carbone
+            repo_url: https://github.com/carboneio/carbone
+            logo: 86835227_.svg
+            description: >-
+              Fast and simple report generator, from JSON to pdf, xslx, docx,
+              odt...
+          - item: 
+            name: re-reselect
+            homepage_url: https://github.com/toomuchdesign/re-reselect
+            repo_url: https://github.com/toomuchdesign/re-reselect
+            logo: 82931976_.svg
+            description: >-
+              Enhance Reselect selectors with deeper memoization and cache
+              management.
+          - item: 
+            name: regular
+            homepage_url: https://github.com/regularjs/regular
+            repo_url: https://github.com/regularjs/regular
+            logo: 20005946_.svg
+            description: >-
+              regularjs: a living template engine that helps us to create
+              data-driven component.
+          - item: 
+            name: emblem.js
+            homepage_url: https://github.com/machty/emblem.js
+            repo_url: https://github.com/machty/emblem.js
+            logo: 7728267_.svg
+            description: >-
+              Emblem.js - Ember-friendly, indented syntax alternative for
+              Handlebars.js
+          - item: 
+            name: egg-view-nunjucks
+            homepage_url: https://github.com/eggjs/egg-view-nunjucks
+            repo_url: https://github.com/eggjs/egg-view-nunjucks
+            logo: 63524550_.svg
+            description: nunjucks view plugin for egg
+      - subcategory: 
+        name: Serverless
+        items:
+          - item: 
+            name: serverless
+            homepage_url: https://github.com/serverless/serverless
+            repo_url: https://github.com/serverless/serverless
+            logo: 34302698_.svg
+            description: >-
+              ⚡ Serverless Framework – Build web, mobile and IoT applications
+              with serverless architectures using AWS Lambda, Azure Functions,
+              Google CloudFunctions & more! – 
+          - item: 
+            name: homebridge
+            homepage_url: https://github.com/homebridge/homebridge
+            repo_url: https://github.com/homebridge/homebridge
+            logo: 27388642_.svg
+            description: HomeKit support for the impatient.
+          - item: 
+            name: FileSaver.js
+            homepage_url: https://github.com/eligrey/FileSaver.js
+            repo_url: https://github.com/eligrey/FileSaver.js
+            logo: 2051226_.svg
+            description: An HTML5 saveAs() FileSaver implementation
+          - item: 
+            name: parse-server
+            homepage_url: https://github.com/parse-community/parse-server
+            repo_url: https://github.com/parse-community/parse-server
+            logo: 50603846_.svg
+            description: Parse Server for Node.js / Express
+          - item: 
+            name: sst
+            homepage_url: https://github.com/sst/sst
+            repo_url: https://github.com/sst/sst
+            logo: 285092252_.svg
+            description: Build modern full-stack applications on AWS
+          - item: 
+            name: mysql
+            homepage_url: https://github.com/mysqljs/mysql
+            repo_url: https://github.com/mysqljs/mysql
+            logo: 805461_.svg
+            description: A pure node.js JavaScript Client implementing the MySQL protocol.
+          - item: 
+            name: statsd
+            homepage_url: https://github.com/statsd/statsd
+            repo_url: https://github.com/statsd/statsd
+            logo: 1207300_.svg
+            description: Daemon for easy but powerful stats aggregation
+          - item: 
+            name: taxonomy
+            homepage_url: https://github.com/shadcn-ui/taxonomy
+            repo_url: https://github.com/shadcn-ui/taxonomy
+            logo: 553759919_.svg
+            description: >-
+              An open source application built using the new router, server
+              components and everything new in Next.js 13.
+          - item: 
+            name: nodemailer
+            homepage_url: https://github.com/nodemailer/nodemailer
+            repo_url: https://github.com/nodemailer/nodemailer
+            logo: 1272424_.svg
+            description: ✉️ Send e-mails with Node.JS – easy as cake!
+          - item: 
+            name: trigger.dev
+            homepage_url: https://github.com/triggerdotdev/trigger.dev
+            repo_url: https://github.com/triggerdotdev/trigger.dev
+            logo: 572570113_.svg
+            description: >-
+              ✨ Trigger.dev is the open source background jobs framework for
+              TypeScript. With features like API integrations, webhooks,
+              scheduling and delays.
+          - item: 
+            name: turbo
+            homepage_url: https://github.com/hotwired/turbo
+            repo_url: https://github.com/hotwired/turbo
+            logo: 319370263_.svg
+            description: >-
+              The speed of a single-page web application without having to write
+              any JavaScript
+          - item: 
+            name: colyseus
+            homepage_url: https://github.com/colyseus/colyseus
+            repo_url: https://github.com/colyseus/colyseus
+            logo: 46684632_.svg
+            description: ⚔ Multiplayer Framework for Node.js
+          - item: 
+            name: serverless-offline
+            homepage_url: https://github.com/dherault/serverless-offline
+            repo_url: https://github.com/dherault/serverless-offline
+            logo: 51905436_.svg
+            description: >-
+              Emulate AWS λ and API Gateway locally when developing your
+              Serverless project
+          - item: 
+            name: serverless-next.js
+            homepage_url: https://github.com/serverless-nextjs/serverless-next.js
+            repo_url: https://github.com/serverless-nextjs/serverless-next.js
+            logo: 171566590_.svg
+            description: >-
+              ⚡ Deploy your Next.js apps on AWS Lambda@Edge via Serverless
+              Components
+          - item: 
+            name: edgetunnel
+            homepage_url: https://github.com/zizifn/edgetunnel
+            repo_url: https://github.com/zizifn/edgetunnel
+            logo: 320850140_.svg
+            description: Running V2ray inside edge/serverless runtime
+          - item: 
+            name: crud
+            homepage_url: https://github.com/nestjsx/crud
+            repo_url: https://github.com/nestjsx/crud
+            logo: 133998889_.svg
+            description: NestJs CRUD for RESTful APIs
+          - item: 
+            name: cli
+            homepage_url: https://github.com/acode/cli
+            repo_url: https://github.com/acode/cli
+            logo: 65198752_.svg
+            description: Autocode CLI and standard library tooling
+          - item: 
+            name: middy
+            homepage_url: https://github.com/middyjs/middy
+            repo_url: https://github.com/middyjs/middy
+            logo: 99244740_.svg
+            description: 🛵 The stylish Node.js middleware engine for AWS Lambda 🛵
+          - item: 
+            name: open-next
+            homepage_url: https://github.com/sst/open-next
+            repo_url: https://github.com/sst/open-next
+            logo: 572248260_.svg
+            description: Open source Next.js serverless adapter
+          - item: 
+            name: worker-dom
+            homepage_url: https://github.com/ampproject/worker-dom
+            repo_url: https://github.com/ampproject/worker-dom
+            logo: 145039143_.svg
+            description: The same DOM API and Frameworks you know, but in a Web Worker.
+          - item: 
+            name: EDtunnel
+            homepage_url: https://github.com/3Kmfi6HP/EDtunnel
+            repo_url: https://github.com/3Kmfi6HP/EDtunnel
+            logo: 650579041_.svg
+            description: >-
+              Use Cloudflare pages and worker serverless to implement VLESS
+              protocol
+          - item: 
+            name: serverless-chrome
+            homepage_url: https://github.com/adieuadieu/serverless-chrome
+            repo_url: https://github.com/adieuadieu/serverless-chrome
+            logo: 84632322_.svg
+            description: 🌐 Run headless Chrome/Chromium on AWS Lambda
+          - item: 
+            name: cep-promise
+            homepage_url: https://github.com/BrasilAPI/cep-promise
+            repo_url: https://github.com/BrasilAPI/cep-promise
+            logo: 47116945_.svg
+            description: >-
+              Busca por CEP integrado diretamente aos serviços dos Correios,
+              ViaCEP e outros (Node.js e Browser)
+          - item: 
+            name: amplify-cli
+            homepage_url: https://github.com/aws-amplify/amplify-cli
+            repo_url: https://github.com/aws-amplify/amplify-cli
+            logo: 145880460_.svg
+            description: >-
+              The AWS Amplify CLI is a toolchain for simplifying serverless web
+              and mobile development.
+          - item: 
+            name: supabase-js
+            homepage_url: https://github.com/supabase/supabase-js
+            repo_url: https://github.com/supabase/supabase-js
+            logo: 264192686_.svg
+            description: >-
+              An isomorphic Javascript client for Supabase. Query your Supabase
+              database, subscribe to realtime events, upload and download files,
+              browse typescript examples, invoke postgres functions via rpc,
+              invoke supabase edge functions, query pgvector.
+          - item: 
+            name: node_acl
+            homepage_url: https://github.com/OptimalBits/node_acl
+            repo_url: https://github.com/OptimalBits/node_acl
+            logo: 2205591_.svg
+            description: Access control lists for node applications
+          - item: 
+            name: architect
+            homepage_url: https://github.com/architect/architect
+            repo_url: https://github.com/architect/architect
+            logo: 97773427_.svg
+            description: >-
+              The simplest, most powerful way to build a functional web app
+              (fwa)
+          - item: 
+            name: components
+            homepage_url: https://github.com/serverless/components
+            repo_url: https://github.com/serverless/components
+            logo: 117983079_.svg
+            description: >-
+              The Serverless Framework's new infrastructure provisioning
+              technology — Build, compose, & deploy serverless apps in
+              seconds...
+          - item: 
+            name: budo
+            homepage_url: https://github.com/mattdesl/budo
+            repo_url: https://github.com/mattdesl/budo
+            logo: 30808587_.svg
+            description: ':clapper: a dev server for rapid prototyping'
+          - item: 
+            name: wundergraph
+            homepage_url: https://github.com/wundergraph/wundergraph
+            repo_url: https://github.com/wundergraph/wundergraph
+            logo: 495866218_.svg
+            description: >-
+              WunderGraph is a Backend for Frontend Framework to optimize
+              frontend, fullstack and backend developer workflows through API
+              Composition.
+  - category: 
+    name: Develop
+    subcategories:
+      - subcategory: 
+        name: 构建工具
+        items:
+          - item: 
+            name: javascript
+            homepage_url: https://github.com/airbnb/javascript
+            repo_url: https://github.com/airbnb/javascript
+            logo: 6498492_.svg
+            description: JavaScript Style Guide
+          - item: 
+            name: create-react-app
+            homepage_url: https://github.com/facebook/create-react-app
+            repo_url: https://github.com/facebook/create-react-app
+            logo: 63537249_.svg
+            description: Set up a modern web app by running one command.
+          - item: 
+            name: webpack
+            homepage_url: https://github.com/webpack/webpack
+            repo_url: https://github.com/webpack/webpack
+            logo: 3678731_.svg
+            description: >-
+              A bundler for javascript and friends. Packs many modules into a
+              few bundled assets. Code Splitting allows for loading parts of the
+              application on demand. Through "loaders", modules can be CommonJs,
+              AMD, ES6 modules, CSS, Images, JSON, Coffeescript, LESS, ... and
+              your custom stuff.
+          - item: 
+            name: vite
+            homepage_url: https://github.com/vitejs/vite
+            repo_url: https://github.com/vitejs/vite
+            logo: 257485422_.svg
+            description: Next generation frontend tooling. It's fast!
+          - item: 
+            name: prettier
+            homepage_url: https://github.com/prettier/prettier
+            repo_url: https://github.com/prettier/prettier
+            logo: 75104123_.svg
+            description: Prettier is an opinionated code formatter.
+          - item: 
+            name: parcel
+            homepage_url: https://github.com/parcel-bundler/parcel
+            repo_url: https://github.com/parcel-bundler/parcel
+            logo: 99598595_.svg
+            description: The zero configuration build tool for the web. 📦🚀
+          - item: 
+            name: babel
+            homepage_url: https://github.com/babel/babel
+            repo_url: https://github.com/babel/babel
+            logo: 24560307_.svg
+            description: 🐠 Babel is a compiler for writing next generation JavaScript.
+          - item: 
+            name: esbuild
+            homepage_url: https://github.com/evanw/esbuild
+            repo_url: https://github.com/evanw/esbuild
+            logo: 61137153_.svg
+            description: An extremely fast bundler for the web
+          - item: 
+            name: gulp
+            homepage_url: https://github.com/gulpjs/gulp
+            repo_url: https://github.com/gulpjs/gulp
+            logo: 11167738_.svg
+            description: A toolkit to automate & enhance your workflow
+          - item: 
+            name: slidev
+            homepage_url: https://github.com/slidevjs/slidev
+            repo_url: https://github.com/slidevjs/slidev
+            logo: 361044034_.svg
+            description: Presentation Slides for Developers
+          - item: 
+            name: swc
+            homepage_url: https://github.com/swc-project/swc
+            repo_url: https://github.com/swc-project/swc
+            logo: 115110181_.svg
+            description: Rust-based platform for the Web
+          - item: 
+            name: standard
+            homepage_url: https://github.com/standard/standard
+            repo_url: https://github.com/standard/standard
+            logo: 29891188_.svg
+            description: 🌟 JavaScript Style Guide, with linter & automatic code fixer
+          - item: 
+            name: rollup
+            homepage_url: https://github.com/rollup/rollup
+            repo_url: https://github.com/rollup/rollup
+            logo: 35640229_.svg
+            description: Next-generation ES module bundler
+          - item: 
+            name: turbo
+            homepage_url: https://github.com/vercel/turbo
+            repo_url: https://github.com/vercel/turbo
+            logo: 413918947_.svg
+            description: "Incremental bundler and build system optimized for JavaScript\_and TypeScript, written in Rust – including Turbopack and Turborepo."
+          - item: 
+            name: pkg
+            homepage_url: https://github.com/vercel/pkg
+            repo_url: https://github.com/vercel/pkg
+            logo: 65233633_.svg
+            description: Package your Node.js project into an executable
+          - item: 
+            name: eslint
+            homepage_url: https://github.com/eslint/eslint
+            repo_url: https://github.com/eslint/eslint
+            logo: 11061773_.svg
+            description: Find and fix problems in your JavaScript code.
+          - item: 
+            name: electron-react-boilerplate
+            homepage_url: >-
+              https://github.com/electron-react-boilerplate/electron-react-boilerplate
+            repo_url: >-
+              https://github.com/electron-react-boilerplate/electron-react-boilerplate
+            logo: 35810174_.svg
+            description: A Foundation for Scalable Cross-Platform Apps
+          - item: 
+            name: react-starter-kit
+            homepage_url: https://github.com/kriasoft/react-starter-kit
+            repo_url: https://github.com/kriasoft/react-starter-kit
+            logo: 18840003_.svg
+            description: >-
+              The web's most popular Jamstack front-end template (boilerplate)
+              for building web applications with React
+          - item: 
+            name: nx
+            homepage_url: https://github.com/nrwl/nx
+            repo_url: https://github.com/nrwl/nx
+            logo: 100061716_.svg
+            description: Smart Monorepos · Fast CI
+          - item: 
+            name: js-stack-from-scratch
+            homepage_url: https://github.com/verekia/js-stack-from-scratch
+            repo_url: https://github.com/verekia/js-stack-from-scratch
+            logo: 69798748_.svg
+            description: 🛠️⚡ Step-by-step tutorial to build a modern JavaScript stack.
+          - item: 
+            name: snowpack
+            homepage_url: https://github.com/FredKSchott/snowpack
+            repo_url: https://github.com/FredKSchott/snowpack
+            logo: 172741073_.svg
+            description: >-
+              ESM-powered frontend build tool. Instant, lightweight, unbundled
+              development. ✌️
+          - item: 
+            name: You-Dont-Need-Lodash-Underscore
+            homepage_url: https://github.com/you-dont-need/You-Dont-Need-Lodash-Underscore
+            repo_url: https://github.com/you-dont-need/You-Dont-Need-Lodash-Underscore
+            logo: 50418153_.svg
+            description: >-
+              List of JavaScript methods which you can use natively + ESLint
+              Plugin
+          - item: 
+            name: bit
+            homepage_url: https://github.com/teambit/bit
+            repo_url: https://github.com/teambit/bit
+            logo: 79723839_.svg
+            description: A build system for development of composable software.
+          - item: 
+            name: browserify
+            homepage_url: https://github.com/browserify/browserify
+            repo_url: https://github.com/browserify/browserify
+            logo: 931039_.svg
+            description: browser-side require() the node.js way
+          - item: 
+            name: typescript-eslint
+            homepage_url: https://github.com/typescript-eslint/typescript-eslint
+            repo_url: https://github.com/typescript-eslint/typescript-eslint
+            logo: 165536154_.svg
+            description: >-
+              :sparkles: Monorepo for all the tooling which enables ESLint to
+              support TypeScript
+          - item: 
+            name: electron-builder
+            homepage_url: https://github.com/electron-userland/electron-builder
+            repo_url: https://github.com/electron-userland/electron-builder
+            logo: 35998691_.svg
+            description: >-
+              A complete solution to package and build a ready for distribution
+              Electron app with “auto update” support out of the box
+          - item: 
+            name: requirejs
+            homepage_url: https://github.com/requirejs/requirejs
+            repo_url: https://github.com/requirejs/requirejs
+            logo: 501326_.svg
+            description: A file and module loader for JavaScript
+          - item: 
+            name: UglifyJS
+            homepage_url: https://github.com/mishoo/UglifyJS
+            repo_url: https://github.com/mishoo/UglifyJS
+            logo: 5569059_.svg
+            description: ' JavaScript parser / mangler / compressor / beautifier toolkit'
+          - item: 
+            name: lint-staged
+            homepage_url: https://github.com/lint-staged/lint-staged
+            repo_url: https://github.com/lint-staged/lint-staged
+            logo: 49704723_.svg
+            description: 🚫💩 — Run linters on git staged files
+          - item: 
+            name: nexe
+            homepage_url: https://github.com/nexe/nexe
+            repo_url: https://github.com/nexe/nexe
+            logo: 2857233_.svg
+            description: 🎉 create a single executable out of your node.js apps
+      - subcategory: 
+        name: CSS预处理
+        items:
+          - item: 
+            name: bootstrap
+            homepage_url: https://github.com/twbs/bootstrap
+            repo_url: https://github.com/twbs/bootstrap
+            logo: 2126244_.svg
+            description: >-
+              The most popular HTML, CSS, and JavaScript framework for
+              developing responsive, mobile first projects on the web.
+          - item: 
+            name: styled-components
+            homepage_url: https://github.com/styled-components/styled-components
+            repo_url: https://github.com/styled-components/styled-components
+            logo: 65794292_.svg
+            description: >-
+              Visual primitives for the component age. Use the best bits of ES6
+              and CSS to style your apps without stress 💅
+          - item: 
+            name: materialize
+            homepage_url: https://github.com/Dogfalo/materialize
+            repo_url: https://github.com/Dogfalo/materialize
+            logo: 23974149_.svg
+            description: Materialize, a CSS Framework based on Material Design
+          - item: 
+            name: postcss
+            homepage_url: https://github.com/postcss/postcss
+            repo_url: https://github.com/postcss/postcss
+            logo: 13078968_.svg
+            description: Transforming styles with JS plugins
+          - item: 
+            name: pure
+            homepage_url: https://github.com/pure-css/pure
+            repo_url: https://github.com/pure-css/pure
+            logo: 9603240_.svg
+            description: >-
+              A set of small, responsive CSS modules that you can use in every
+              web project.
+          - item: 
+            name: emotion
+            homepage_url: https://github.com/emotion-js/emotion
+            repo_url: https://github.com/emotion-js/emotion
+            logo: 92570536_.svg
+            description: >-
+              👩‍🎤 CSS-in-JS library designed for high performance style
+              composition
+          - item: 
+            name: less.js
+            homepage_url: https://github.com/less/less.js
+            repo_url: https://github.com/less/less.js
+            logo: 527644_.svg
+            description: Less. The dynamic stylesheet language.
+          - item: 
+            name: unocss
+            homepage_url: https://github.com/unocss/unocss
+            repo_url: https://github.com/unocss/unocss
+            logo: 412152628_.svg
+            description: The instant on-demand atomic CSS engine.
+          - item: 
+            name: sass
+            homepage_url: https://github.com/sass/sass
+            repo_url: https://github.com/sass/sass
+            logo: 929845_.svg
+            description: Sass makes CSS fun!
+          - item: 
+            name: bootswatch
+            homepage_url: https://github.com/thomaspark/bootswatch
+            repo_url: https://github.com/thomaspark/bootswatch
+            logo: 3374332_.svg
+            description: Themes for Bootstrap
+          - item: 
+            name: stylelint
+            homepage_url: https://github.com/stylelint/stylelint
+            repo_url: https://github.com/stylelint/stylelint
+            logo: 27549019_.svg
+            description: >-
+              A mighty CSS linter that helps you avoid errors and enforce
+              conventions.
+          - item: 
+            name: uncss
+            homepage_url: https://github.com/uncss/uncss
+            repo_url: https://github.com/uncss/uncss
+            logo: 9526392_.svg
+            description: Remove unused styles from CSS
+          - item: 
+            name: vanilla-extract
+            homepage_url: https://github.com/vanilla-extract-css/vanilla-extract
+            repo_url: https://github.com/vanilla-extract-css/vanilla-extract
+            logo: 351669095_.svg
+            description: Zero-runtime Stylesheets-in-TypeScript
+          - item: 
+            name: tailblocks
+            homepage_url: https://github.com/mertJF/tailblocks
+            repo_url: https://github.com/mertJF/tailblocks
+            logo: 263993730_.svg
+            description: Ready-to-use Tailwind CSS blocks.
+          - item: 
+            name: node-sass
+            homepage_url: https://github.com/sass/node-sass
+            repo_url: https://github.com/sass/node-sass
+            logo: 4128353_.svg
+            description: ':rainbow: Node.js bindings to libsass'
+          - item: 
+            name: stitches
+            homepage_url: https://github.com/stitchesjs/stitches
+            repo_url: https://github.com/stitchesjs/stitches
+            logo: 255535907_.svg
+            description: >-
+              [Not Actively Maintained] CSS-in-JS with near-zero runtime, SSR,
+              multi-variant support, and a best-in-class developer experience.
+          - item: 
+            name: purgecss
+            homepage_url: https://github.com/FullHuman/purgecss
+            repo_url: https://github.com/FullHuman/purgecss
+            logo: 95970824_.svg
+            description: Remove unused CSS
+          - item: 
+            name: polished
+            homepage_url: https://github.com/styled-components/polished
+            repo_url: https://github.com/styled-components/polished
+            logo: 72754695_.svg
+            description: A lightweight toolset for writing styles in JavaScript ✨
+          - item: 
+            name: jss
+            homepage_url: https://github.com/cssinjs/jss
+            repo_url: https://github.com/cssinjs/jss
+            logo: 25131304_.svg
+            description: >-
+              JSS is an authoring tool for CSS which uses JavaScript as a host
+              language.
+          - item: 
+            name: windicss
+            homepage_url: https://github.com/windicss/windicss
+            repo_url: https://github.com/windicss/windicss
+            logo: 325215114_.svg
+            description: Next generation utility-first CSS framework.
+          - item: 
+            name: Next-js-Boilerplate
+            homepage_url: https://github.com/ixartz/Next-js-Boilerplate
+            repo_url: https://github.com/ixartz/Next-js-Boilerplate
+            logo: 281769216_.svg
+            description: >-
+              🚀🎉📚 Boilerplate and Starter for Next.js 14+ with App Router and
+              Page Router support, Tailwind CSS 3.4 and TypeScript ⚡️ Made with
+              developer experience first: Next.js + TypeScript + ESLint +
+              Prettier + Husky + Lint-Staged + Jest + Testing Library + Cypress
+              + Storybook + Commitlint + VSCode + Netlify + PostCSS + Tailwind
+              CSS
+          - item: 
+            name: astexplorer
+            homepage_url: https://github.com/fkling/astexplorer
+            repo_url: https://github.com/fkling/astexplorer
+            logo: 21340422_.svg
+            description: A web tool to explore the ASTs generated by various parsers.
+          - item: 
+            name: cva
+            homepage_url: https://github.com/joe-bell/cva
+            repo_url: https://github.com/joe-bell/cva
+            logo: 443732549_.svg
+            description: Class Variance Authority
+          - item: 
+            name: cssnano
+            homepage_url: https://github.com/cssnano/cssnano
+            repo_url: https://github.com/cssnano/cssnano
+            logo: 33943153_.svg
+            description: A modular minifier, built on top of the PostCSS ecosystem.
+          - item: 
+            name: lost
+            homepage_url: https://github.com/peterramsing/lost
+            repo_url: https://github.com/peterramsing/lost
+            logo: 31844869_.svg
+            description: >-
+              LostGrid is a powerful grid system built in PostCSS that works
+              with any preprocessor and even vanilla CSS.
+          - item: 
+            name: panda
+            homepage_url: https://github.com/chakra-ui/panda
+            repo_url: https://github.com/chakra-ui/panda
+            logo: 518342568_.svg
+            description: 🐼 Universal, Type-Safe, CSS-in-JS Framework for Product Teams ⚡️
+          - item: 
+            name: clean-css
+            homepage_url: https://github.com/clean-css/clean-css
+            repo_url: https://github.com/clean-css/clean-css
+            logo: 1419138_.svg
+            description: Fast and efficient CSS optimizer for node.js and the Web
+          - item: 
+            name: tailwind-merge
+            homepage_url: https://github.com/dcastil/tailwind-merge
+            repo_url: https://github.com/dcastil/tailwind-merge
+            logo: 386221246_.svg
+            description: Merge Tailwind CSS classes without style conflicts
+          - item: 
+            name: style-dictionary
+            homepage_url: https://github.com/amzn/style-dictionary
+            repo_url: https://github.com/amzn/style-dictionary
+            logo: 75121110_.svg
+            description: A build system for creating cross-platform styles.
+          - item: 
+            name: design-system
+            homepage_url: https://github.com/salesforce-ux/design-system
+            repo_url: https://github.com/salesforce-ux/design-system
+            logo: 41759029_.svg
+            description: Salesforce Lightning Design System
+      - subcategory: 
+        name: 测试框架
+        items: []
+      - subcategory: 
+        name: 开发工具
+        items:
+          - item: 
+            name: supabase
+            homepage_url: https://github.com/supabase/supabase
+            repo_url: https://github.com/supabase/supabase
+            logo: 214587193_.svg
+            description: The open source Firebase alternative.
+          - item: 
+            name: superset
+            homepage_url: https://github.com/apache/superset
+            repo_url: https://github.com/apache/superset
+            logo: 39464018_.svg
+            description: >-
+              Apache Superset is a Data Visualization and Data Exploration
+              Platform
+          - item: 
+            name: uptime-kuma
+            homepage_url: https://github.com/louislam/uptime-kuma
+            repo_url: https://github.com/louislam/uptime-kuma
+            logo: 382496361_.svg
+            description: A fancy self-hosted monitoring tool
+          - item: 
+            name: type-challenges
+            homepage_url: https://github.com/type-challenges/type-challenges
+            repo_url: https://github.com/type-challenges/type-challenges
+            logo: 281975310_.svg
+            description: Collection of TypeScript type challenges with online judge
+          - item: 
+            name: n8n
+            homepage_url: https://github.com/n8n-io/n8n
+            repo_url: https://github.com/n8n-io/n8n
+            logo: 193215554_.svg
+            description: >-
+              Free and source-available fair-code licensed workflow automation
+              tool. Easily automate tasks across different services.
+          - item: 
+            name: husky
+            homepage_url: https://github.com/typicode/husky
+            repo_url: https://github.com/typicode/husky
+            logo: 21125024_.svg
+            description: Git hooks made easy 🐶 woof!
+          - item: 
+            name: appsmith
+            homepage_url: https://github.com/appsmithorg/appsmith
+            repo_url: https://github.com/appsmithorg/appsmith
+            logo: 275993885_.svg
+            description: >-
+              Platform to build admin panels, internal tools, and dashboards.
+              Integrates with 25+ databases and any API.
+          - item: 
+            name: todomvc
+            homepage_url: https://github.com/tastejs/todomvc
+            repo_url: https://github.com/tastejs/todomvc
+            logo: 1844251_.svg
+            description: >-
+              Helping you select an MV* framework - Todo apps for React.js,
+              Ember.js, Angular, and many more
+          - item: 
+            name: yapi
+            homepage_url: https://github.com/YMFE/yapi
+            repo_url: https://github.com/YMFE/yapi
+            logo: 59996401_.svg
+            description: YApi 是一个可本地部署的、打通前后端及QA的、可视化的接口管理平台
+          - item: 
+            name: nginxconfig.io
+            homepage_url: https://github.com/digitalocean/nginxconfig.io
+            repo_url: https://github.com/digitalocean/nginxconfig.io
+            logo: 116392709_.svg
+            description: ⚙️ NGINX config generator on steroids 💉
+          - item: 
+            name: folly
+            homepage_url: https://github.com/facebook/folly
+            repo_url: https://github.com/facebook/folly
+            logo: 4524181_.svg
+            description: An open-source C++ library developed and used at Facebook.
+          - item: 
+            name: mongoose
+            homepage_url: https://github.com/Automattic/mongoose
+            repo_url: https://github.com/Automattic/mongoose
+            logo: 597879_.svg
+            description: >-
+              MongoDB object modeling designed to work in an asynchronous
+              environment.
+          - item: 
+            name: Modernizr
+            homepage_url: https://github.com/Modernizr/Modernizr
+            repo_url: https://github.com/Modernizr/Modernizr
+            logo: 317757_.svg
+            description: >-
+              Modernizr is a JavaScript library that detects HTML5 and CSS3
+              features in the user’s browser.
+          - item: 
+            name: swagger-ui
+            homepage_url: https://github.com/swagger-api/swagger-ui
+            repo_url: https://github.com/swagger-api/swagger-ui
+            logo: 2055965_.svg
+            description: >-
+              Swagger UI is a collection of HTML, JavaScript, and CSS assets
+              that dynamically generate beautiful documentation from a
+              Swagger-compliant API.
+          - item: 
+            name: CyberChef
+            homepage_url: https://github.com/gchq/CyberChef
+            repo_url: https://github.com/gchq/CyberChef
+            logo: 74962515_.svg
+            description: >-
+              The Cyber Swiss Army Knife - a web app for encryption, encoding,
+              compression and data analysis
+          - item: 
+            name: autocomplete
+            homepage_url: https://github.com/withfig/autocomplete
+            repo_url: https://github.com/withfig/autocomplete
+            logo: 299482335_.svg
+            description: IDE-style autocomplete for your existing terminal & shell
+          - item: 
+            name: coc.nvim
+            homepage_url: https://github.com/neoclide/coc.nvim
+            repo_url: https://github.com/neoclide/coc.nvim
+            logo: 131770422_.svg
+            description: >-
+              Nodejs extension host for vim & neovim, load extensions like
+              VSCode and host language servers.
+          - item: 
+            name: plane
+            homepage_url: https://github.com/makeplane/plane
+            repo_url: https://github.com/makeplane/plane
+            logo: 568098118_.svg
+            description: >-
+              🔥 🔥 🔥 Open Source JIRA, Linear and Asana Alternative. Plane
+              helps you track your issues, epics, and product roadmaps in the
+              simplest way possible.
+          - item: 
+            name: github1s
+            homepage_url: https://github.com/conwnet/github1s
+            repo_url: https://github.com/conwnet/github1s
+            logo: 192175095_.svg
+            description: One second to read GitHub code with VS Code.
+          - item: 
+            name: SwitchHosts
+            homepage_url: https://github.com/oldj/SwitchHosts
+            repo_url: https://github.com/oldj/SwitchHosts
+            logo: 2312977_.svg
+            description: Switch hosts quickly!
+          - item: 
+            name: generator-jhipster
+            homepage_url: https://github.com/jhipster/generator-jhipster
+            repo_url: https://github.com/jhipster/generator-jhipster
+            logo: 13753636_.svg
+            description: >-
+              JHipster is a development platform to quickly generate, develop, &
+              deploy modern web applications & microservice architectures.
+          - item: 
+            name: kibana
+            homepage_url: https://github.com/elastic/kibana
+            repo_url: https://github.com/elastic/kibana
+            logo: 7833168_.svg
+            description: Your window into the Elastic Stack
+          - item: 
+            name: desktop
+            homepage_url: https://github.com/desktop/desktop
+            repo_url: https://github.com/desktop/desktop
+            logo: 58559694_.svg
+            description: Focus on what matters instead of fighting with Git.
+          - item: 
+            name: node-red
+            homepage_url: https://github.com/node-red/node-red
+            repo_url: https://github.com/node-red/node-red
+            logo: 12618379_.svg
+            description: Low-code programming for event-driven applications
+          - item: 
+            name: vConsole
+            homepage_url: https://github.com/Tencent/vConsole
+            repo_url: https://github.com/Tencent/vConsole
+            logo: 57180853_.svg
+            description: >-
+              A lightweight, extendable front-end developer tool for mobile web
+              page.
+          - item: 
+            name: Mobile-Security-Framework-MobSF
+            homepage_url: https://github.com/MobSF/Mobile-Security-Framework-MobSF
+            repo_url: https://github.com/MobSF/Mobile-Security-Framework-MobSF
+            logo: 30102273_.svg
+            description: >-
+              Mobile Security Framework (MobSF) is an automated, all-in-one
+              mobile application (Android/iOS/Windows) pen-testing, malware
+              analysis and security assessment framework capable of performing
+              static and dynamic analysis.
+          - item: 
+            name: renovate
+            homepage_url: https://github.com/renovatebot/renovate
+            repo_url: https://github.com/renovatebot/renovate
+            logo: 76734068_.svg
+            description: Universal dependency automation tool.
+          - item: 
+            name: compiler-explorer
+            homepage_url: https://github.com/compiler-explorer/compiler-explorer
+            repo_url: https://github.com/compiler-explorer/compiler-explorer
+            logo: 4414698_.svg
+            description: >-
+              Run compilers interactively from your web browser and interact
+              with the assembly
+          - item: 
+            name: jsdoc
+            homepage_url: https://github.com/jsdoc/jsdoc
+            repo_url: https://github.com/jsdoc/jsdoc
+            logo: 560495_.svg
+            description: An API documentation generator for JavaScript.
+          - item: 
+            name: koodo-reader
+            homepage_url: https://github.com/koodo-reader/koodo-reader
+            repo_url: https://github.com/koodo-reader/koodo-reader
+            logo: 245049028_.svg
+            description: >-
+              A modern ebook manager and reader with sync and backup capacities
+              for Windows, macOS, Linux and Web
+  - category: 
+    name: Runtime
+    subcategories:
+      - subcategory: 
+        name: Runtime
+        items:
+          - item: 
+            name: flutter
+            homepage_url: https://github.com/flutter/flutter
+            repo_url: https://github.com/flutter/flutter
+            logo: 31792824_.svg
+            description: >-
+              Flutter makes it easy and fast to build beautiful apps for mobile
+              and beyond
+          - item: 
+            name: react-native
+            homepage_url: https://github.com/facebook/react-native
+            repo_url: https://github.com/facebook/react-native
+            logo: 29028775_.svg
+            description: A framework for building native applications using React
+          - item: 
+            name: electron
+            homepage_url: https://github.com/electron/electron
+            repo_url: https://github.com/electron/electron
+            logo: 9384267_.svg
+            description: >-
+              :electron: Build cross-platform desktop apps with JavaScript,
+              HTML, and CSS
+          - item: 
+            name: node
+            homepage_url: https://github.com/nodejs/node
+            repo_url: https://github.com/nodejs/node
+            logo: 27193779_.svg
+            description: Node.js JavaScript runtime ✨🐢🚀✨
+          - item: 
+            name: TypeScript
+            homepage_url: https://github.com/microsoft/TypeScript
+            repo_url: https://github.com/microsoft/TypeScript
+            logo: 20929025_.svg
+            description: >-
+              TypeScript is a superset of JavaScript that compiles to clean
+              JavaScript output.
+          - item: 
+            name: deno
+            homepage_url: https://github.com/denoland/deno
+            repo_url: https://github.com/denoland/deno
+            logo: 133442384_.svg
+            description: A modern runtime for JavaScript and TypeScript.
+          - item: 
+            name: bun
+            homepage_url: https://github.com/oven-sh/bun
+            repo_url: https://github.com/oven-sh/bun
+            logo: 357728969_.svg
+            description: >-
+              Incredibly fast JavaScript runtime, bundler, test runner, and
+              package manager – all in one
+          - item: 
+            name: weex
+            homepage_url: https://github.com/alibaba/weex
+            repo_url: https://github.com/alibaba/weex
+            logo: 53658802_.svg
+            description: A framework for building Mobile cross-platform UI

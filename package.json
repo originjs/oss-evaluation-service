@@ -7,10 +7,10 @@
   "main": "index.js",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "lint": "eslint . --ext .js",
-    "lint-fix": "eslint --fix . --ext .js",
+    "lint": "eslint --cache --ext .js . --ignore-path .gitignore",
+    "lint-fix": "eslint --fix --cache --ext .js . --ignore-path .gitignore",
     "test": "vitest",
-    "dev": "pnpm -F website dev"
+    "dev-website": "pnpm -F @orginjs/oss-evaluation-website dev"
   },
   "keywords": [],
   "devDependencies": {

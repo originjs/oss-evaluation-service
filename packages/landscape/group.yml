@@ -1,0 +1,36 @@
+groups:
+  - name: Application
+    subcategories:
+      - UI库
+      - UI框架
+      - 编辑器
+      - 图表库
+  - name: Frameworks
+    subcategories:
+      - 前端框架
+      - 前端框架生态
+      - 状态关联
+      - 移动端框架
+      - 服务端框架
+      - CSS框架
+  - name: Library
+    subcategories:
+      - U解析器
+      - 网络压缩
+      - 加解密
+      - 压缩
+      - 日期时间
+      - 字符串
+      - 微前端
+      - Web Components
+      - 模板引擎
+      - Serverless
+  - name: Develop
+    subcategories:
+      - 构建工具
+      - CSS预处理
+      - 测试框架
+      - 开发工具
+  - name: Runtime
+    subcategories:
+      - Runtime

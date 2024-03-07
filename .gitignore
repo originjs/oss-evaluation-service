@@ -132,3 +132,5 @@ dist
 # profile
 *.idea
 packages/**/node_modules
+
+build
