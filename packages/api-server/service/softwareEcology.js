@@ -79,7 +79,7 @@ export async function getSoftwareCompassActivity(packageName) {
                contributor_count,
                grimoire_creation_date
         from github_projects project
-                 inner join compass_activity_detail_old compass on project.id = compass.project_id
+                 inner join compass_activity_detail compass on project.id = compass.project_id
         where full_name = :packageName
         order by grimoire_creation_date;
   `;
