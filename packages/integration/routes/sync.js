@@ -388,7 +388,7 @@ router.route('/github/:userToken/stars/projects').post(syncProjectByUserStar);
  *               techStack:
  *                 type: string
  *                 example: "frontend"
- *               score:
+ *               rawValue:
  *                 type: float
  *                 example: 1.9
  *               content:
