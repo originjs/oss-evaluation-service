@@ -1,44 +1,65 @@
 <script setup lang="ts">
+import { useWindowScroll } from '@vueuse/core'
+const { y } = useWindowScroll()
 </script>
 
 <template>
-  <div class="nav">
-    <div class="logo-wrapper">
-      <img class="logo" src="/common/logo.png" alt="logo">
-      <span class="desc">前端先进性评估</span>
-    </div>
+  <div class="nav" :class="{ 'top': y }">
+    <div class="nav-wrapper">
+      <div class="logo-wrapper">
+        <img class="logo" src="/common/logo.png" alt="logo">
+        <span class="desc">前端先进性评估</span>
+      </div>
 
-    <div class="search-wrapper">
-      <!--      todo 公共搜索组件 -->
-      <button class="search-btn">
+      <div class="search-wrapper">
+        <!--      todo 公共搜索组件 -->
+        <button class="search-btn">
         <span class="content">
           <img src="/navigation/search.svg" alt="search">
           <span class="desc">搜索开源项目</span>
         </span>
-      </button>
-    </div>
+        </button>
+      </div>
 
-    <!--    todo 后端获取数据渲染菜单 -->
-    <el-menu class="menu" mode="horizontal" :ellipsis="false">
-      <el-menu-item index="1">评估模型</el-menu-item>
-      <el-menu-item index="2">Landscape</el-menu-item>
-      <el-menu-item index="3">趋势榜单</el-menu-item>
-      <el-menu-item index="4">性能 Benchmark</el-menu-item>
-      <el-menu-item index="5">动态</el-menu-item>
-    </el-menu>
+      <!--    todo 后端获取数据渲染菜单 -->
+      <el-menu class="menu" mode="horizontal" :ellipsis="false">
+        <el-menu-item index="1">评估模型</el-menu-item>
+        <el-menu-item index="2">Landscape</el-menu-item>
+        <el-menu-item index="3">趋势榜单</el-menu-item>
+        <el-menu-item index="4">性能 Benchmark</el-menu-item>
+        <el-menu-item index="5">动态</el-menu-item>
+      </el-menu>
 
-    <div class="extra-info">
-      <a class="link" href="https://github.com/originjs/oss-evaluation-service" target="_blank">
-        <el-icon :size="22" color="#666666">
-          <el-icon-link/>
-        </el-icon>
-      </a>
+      <div class="extra-info">
+        <a class="link" href="https://github.com/originjs/oss-evaluation-service" target="_blank">
+          <el-icon :size="22" color="#666666">
+            <el-icon-link/>
+          </el-icon>
+        </a>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped lang="less">
 .nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 0 20px;
+  z-index: 30;
+  border-bottom: .5px solid #e2e2e3;
+  background-color: #ffffff;
+  transition: background-color, border-bottom-color 0.5s;
+
+  &:not(.top) {
+    background-color: transparent;
+    border-bottom-color: transparent;
+  }
+}
+
+.nav-wrapper {
   margin: 0 auto;
   display: flex;
   justify-content: space-around;
@@ -46,10 +67,6 @@
   height: 64px;
   min-width: 900px;
   max-width: 1400px;
-
-  * {
-    background-color: transparent;
-  }
 }
 
 .logo-wrapper {
@@ -95,6 +112,11 @@
       }
     }
   }
+}
+
+.el-menu {
+  height: 64px;
+  background-color: transparent;
 }
 
 .el-menu-item {

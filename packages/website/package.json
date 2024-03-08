@@ -19,8 +19,9 @@
     "unocss": "^0.58.5"
   },
   "dependencies": {
-    "@orginjs/oss-evaluation-data-model": "workspace:^",
     "@orginjs/oss-evaluation-components": "workspace:^",
+    "@orginjs/oss-evaluation-data-model": "workspace:^",
+    "@vueuse/nuxt": "^10.9.0",
     "echarts": "^5.5.0",
     "element-plus": "^2.5.6",
     "nuxt": "^3.10.3",

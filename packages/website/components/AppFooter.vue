@@ -13,6 +13,7 @@
 <style scoped lang="less">
 .footer {
   padding: 32px;
+  border-top: 1px solid #e2e2e3;
 }
 
 .footer-wrapper {

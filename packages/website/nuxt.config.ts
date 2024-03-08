@@ -7,6 +7,7 @@ export default defineNuxtConfig({
   modules: [
     '@element-plus/nuxt',
     '@unocss/nuxt',
+    '@vueuse/nuxt',
   ],
   devtools: { enabled: true },
   routeRules: {
