@@ -1,8 +1,7 @@
+import async from 'async';
 import { Op } from 'sequelize';
 import sequelize from '../util/database.js';
 import Benchmark from '../models/Benchmark.js';
-import GithubProjects from '../models/GithubProjects.js';
-import ProjectTechStack from '../models/ProjectTechStack.js';
 import EvaluationModel from '../models/EvaluationModel.js';
 import EvaluationSummary from '../models/EvaluationSummary.js';
 import { ServerError } from '../util/error.js';
@@ -15,10 +14,10 @@ const MetricType = Object.freeze({
 });
 
 export async function evaluateProjectHandler(req, res) {
-  const fullName = `${req.params.org}/${req.params.name}`;
-  const projectInfo = await GithubProjects.findOne({ where: { fullName } });
+  const projectName = `${req.params.org}/${req.params.name}`;
+  let project = await EvaluationSummary.findOne({ where: { projectName } });
   const model = await loadModel();
-  const project = await evaluateScore(projectInfo.id, model);
+  project = await evaluateScore(project, model);
   res.status(200).json(project);
 }
 
@@ -27,6 +26,10 @@ export async function calculateAllMetricsHandler(req, res) {
   await sequelize.query(`INSERT INTO oss_evaluation_summary(project_id,project_name) 
   SELECT id as project_id, full_name as project_name FROM github_projects WHERE id NOT IN
   (SELECT project_id FROM oss_evaluation_summary)`);
+  // update tech stack
+  await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN project_tech_stack t2
+  ON t1.project_id= t2.project_id SET t1.tech_stack= t2.subcategory
+  WHERE t2.category IS NOT NULL`);
   // update state of js
   await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN
   (SELECT a.project_id, a.satisfaction_percentage from state_of_js_detail a,
@@ -56,6 +59,8 @@ export async function calculateAllMetricsHandler(req, res) {
   t1.code_review_count= t2.code_review_count, t1.org_count= t2.org_count,
   t1.updated_issues_count= t2.updated_issues_count, t1.recent_releases_count= t2.recent_releases_count`);
 
+  const model = await loadModel();
+  await evaluateAllProjectScore(model);
   res.status(200).json('ok');
 }
 
@@ -74,11 +79,25 @@ async function loadModel() {
   return model;
 }
 
-async function evaluateScore(projectId, model) {
-  const project = await EvaluationSummary.findOne({ where: { projectId } });
+async function evaluateAllProjectScore(model) {
+  const projects = await EvaluationSummary.findAll();
+  async.mapLimit(
+    projects,
+    10,
+    async (project) => {
+      await evaluateScore(project, model);
+    },
+    (err) => {
+      if (err) throw err;
+    },
+  );
+}
+
+async function evaluateScore(project, model) {
   if (!project) {
     throw new ServerError('Project not found!');
   }
+  /* eslint-disable no-param-reassign */
   project.functionValue = getDimensionScore(project, model.function, model);
   project.qualityValue = getDimensionScore(project, model.quality, model);
   project.ecologyValue = getDimensionScore(project, model.ecology, model);
@@ -90,8 +109,7 @@ async function evaluateScore(projectId, model) {
 }
 
 async function getPerformanceScore(project, model) {
-  const stack = await ProjectTechStack.findByPk(project.projectId);
-  const metrics = model[stack.subcategory];
+  const metrics = model[project.techStack];
   if (!metrics) {
     return getDimensionScore(project, model.performance, model);
   }
@@ -121,7 +139,7 @@ function getDimensionScore(project, metrics, model) {
   for (const metric of metrics) {
     totalWeight += metric.weight;
     let paramData;
-    if (metric.field.startsWith('$')) {
+    if (metric.type === MetricType.MAIN) {
       const subMetrics = model[metric.field];
       paramData = getDimensionScore(project, subMetrics, model);
     } else {
@@ -134,7 +152,7 @@ function getDimensionScore(project, metrics, model) {
         paramData = metric.threshold;
       }
     }
-    totalScore += getParamScore(paramData, metric.weight, metric.threshold);
+    totalScore += paramData * metric.weight;
   }
   const score = totalScore / totalWeight;
   return Number.isNaN(score) ? null : score;

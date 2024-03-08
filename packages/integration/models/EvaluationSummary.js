@@ -11,6 +11,9 @@ export default sequelize.define(
     projectName: {
       type: DataTypes.STRING,
     },
+    techStack: {
+      type: DataTypes.STRING,
+    },
     functionValue: {
       type: DataTypes.DOUBLE,
     },

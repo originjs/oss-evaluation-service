@@ -7,10 +7,12 @@ defineProps<{
     <button class="button">{{ text }}</button>
 </template>
 
-<style scoped>
+<style scoped lang="less">
+@btn-bg: #00B7FF;
+
 .button {
   color: #ffffff;
-  background-color: #00B7FF;
+  background-color: @btn-bg;
   border-radius: 6px;
   padding: 8px;
 }

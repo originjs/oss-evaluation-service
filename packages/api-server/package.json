@@ -1,20 +1,21 @@
 {
   "name": "@orginjs/oss-evaluation-api-server",
   "version": "0.0.0",
-  "type":"module",
+  "type": "module",
   "private": false,
   "scripts": {
     "start": "node bin/www.js",
     "dev": "set DEBUG=* & nodemon ./bin/www.js"
   },
   "dependencies": {
+    "@orginjs/oss-evaluation-data-model": "workspace:^",
     "cookie-parser": "^1.4.4",
     "debug": "^2.6.9",
     "express": "^4.16.1",
     "morgan": "^1.9.1",
+    "sequelize": "^6.37.1",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.0",
-    "@orginjs/oss-evaluation-data-model": "workspace:^"
+    "swagger-ui-express": "^5.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.3"

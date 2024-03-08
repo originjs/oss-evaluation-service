@@ -1,0 +1,21 @@
+{
+  "name": "@orginjs/landscape",
+  "private": false,
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "update": "node -r dotenv/config update.js",
+    "build": "landscape2 build --data-file data.yml --settings-file settings.yml --logos-path logos --output-dir build",
+    "serve": "landscape2 serve --landscape-dir build"
+  },
+  "keywords": [],
+  "author": "",
+  "dependencies": {
+    "dotenv": "^16.4.1",
+    "js-yaml": "^4.1.0",
+    "mysql2": "^3.9.2",
+    "sequelize": "^6.37.1"
+  }
+}
