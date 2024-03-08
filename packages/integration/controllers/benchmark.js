@@ -6,7 +6,7 @@ import sequelize from '../util/database.js';
 
 export async function syncBenchmarkHandler(req, res) {
   const {
-    projectName, benchmark, techStack, score, content, platform,
+    projectName, benchmark, techStack, rawValue, content, platform,
   } = req.body;
   const projectId = await getIdByName(projectName);
   let { patchId } = req.body;
@@ -19,7 +19,7 @@ export async function syncBenchmarkHandler(req, res) {
       projectName,
       benchmark,
       techStack,
-      score,
+      rawValue,
       content,
       patchId,
       platform,
