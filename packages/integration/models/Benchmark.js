@@ -17,7 +17,7 @@ export default sequelize.define(
     techStack: {
       type: DataTypes.STRING,
     },
-    value: {
+    rawValue: {
       type: DataTypes.INTEGER,
     },
     content: {
