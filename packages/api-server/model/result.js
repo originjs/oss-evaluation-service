@@ -13,3 +13,11 @@ export default class Result {
     return new Result(code, null, msg);
   }
 }
+
+export function ok(data) {
+  return Result.ok(data);
+}
+
+export function fail(code, msg) {
+  return Result.fail(code, msg);
+}

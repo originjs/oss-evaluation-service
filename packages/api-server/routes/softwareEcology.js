@@ -1,5 +1,5 @@
 import express from 'express';
-import Result from '../model/result.js';
+import { ok } from '../model/result.js';
 import { getSoftwareCompassActivity, getSoftwareMaturity } from '../service/softwareEcology.js';
 
 const router = express.Router();
@@ -21,7 +21,7 @@ const router = express.Router();
 router.get('/ecology/maturity/:packageName', async (req, res) => {
   const { packageName } = req.params;
   const softwareMaturity = await getSoftwareMaturity(packageName);
-  res.json(Result.ok(softwareMaturity));
+  res.json(ok(softwareMaturity));
 });
 
 /**
@@ -41,7 +41,7 @@ router.get('/ecology/maturity/:packageName', async (req, res) => {
 router.get('/ecology/compassActivity/:packageName', async (req, res) => {
   const { packageName } = req.params;
   const softwareCompassActivity = await getSoftwareCompassActivity(packageName);
-  res.json(Result.ok(softwareCompassActivity));
+  res.json(ok(softwareCompassActivity));
 });
 
 export default router;

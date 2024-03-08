@@ -7,6 +7,7 @@ import swaggerJsdoc from 'swagger-jsdoc';
 import indexRouter from './routes/index.js';
 import ecologyRouter from './routes/softwareEcology.js';
 import detailRouter from './routes/softwareDetail.js';
+import trendPage from './routes/trendPage.js';
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use(cookieParser());
 
 app.use('/', indexRouter);
 app.use('/softwareDetail', detailRouter);
+app.use('/trend', trendPage);
 app.use('/', ecologyRouter);
 
 // swagger
