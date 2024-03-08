@@ -8,7 +8,7 @@ const sequelize = new Sequelize(
       ssl: false,
     },
     pool: {
-      max: 10,
+      max: 20,
       min: 0,
       idle: 20000,
     },
