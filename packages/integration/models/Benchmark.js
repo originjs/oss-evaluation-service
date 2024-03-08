@@ -18,7 +18,7 @@ export default sequelize.define(
       type: DataTypes.STRING,
     },
     rawValue: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.FLOAT,
     },
     content: {
       type: DataTypes.JSON,
