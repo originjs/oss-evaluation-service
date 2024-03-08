@@ -1,5 +1,5 @@
 import { GithubProjects } from '@orginjs/oss-evaluation-data-model';
-import Page from '../model/Page.js';
+import Page from '../model/page.js';
 
 const typeMap = new Map();
 typeMap.set('star', 'stargazers_count');

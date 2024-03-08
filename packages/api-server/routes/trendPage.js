@@ -1,6 +1,6 @@
 import express from 'express';
 import { githubTop } from '../service/trendService.js';
-import Page from '../model/Page.js';
+import Page from '../model/page.js';
 import { errHandler } from './routerTool.js';
 
 const router = express.Router();
