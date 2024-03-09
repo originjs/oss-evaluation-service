@@ -5,6 +5,38 @@ import { errHandler } from './routerTool.js';
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * /trend/{type}:
+ *   get:
+ *     summary: get trend
+ *     parameters:
+ *       - in: path
+ *         required: true
+ *         name: type
+ *         schema:
+ *            type: string
+ *            enum:
+ *               - "star"
+ *               - "fork"
+ *
+ *       - in: query
+ *         required: true
+ *         name: pageNo
+ *         description: Number of items per page
+ *         schema:
+ *            type: integer
+ *
+ *       - in: query
+ *         required: true
+ *         name: pageSize
+ *         description: Page number
+ *         schema:
+ *            type: integer
+ *     responses:
+ *       '200':
+ *         description: Successful response
+ */
 router.get('/:type', async (req, res) => {
   const { type } = req.params;
   const { pageNo, pageSize } = req.query;
