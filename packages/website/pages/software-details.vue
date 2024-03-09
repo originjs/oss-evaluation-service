@@ -1,5 +1,4 @@
 <template>
-  <AppHeader />
   <div ref='softwareDetailsEl' pb-50px bg-coolgray-50>
     <div overflow-hidden p-20px bg-white shadow-md>
       <div w-1280px m-auto>
@@ -259,14 +258,11 @@
       </div>
     </div>
   </div>
-  <AppFooter />
 </template>
 
 <script lang="ts" setup>
 import { Plus } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
-
-definePageMeta({ layout: false })
 
 const baseInfo = ref({
   logoUrl: 'https://v2.vuejs.org/images/logo.svg',

@@ -1,25 +1,19 @@
 <script setup lang="ts">
+import { SearchSoftware } from "@orginjs/oss-evaluation-components"
 import { useWindowScroll } from '@vueuse/core'
 const { y } = useWindowScroll()
+const route = useRoute()
 </script>
 
 <template>
-  <div class="nav" :class="{ 'top': y }">
+  <div class="nav" :class="{ 'top': route.path === '/' ? y : true }">
     <div class="nav-wrapper">
       <div class="logo-wrapper">
         <img class="logo" src="/common/logo.png" alt="logo">
         <span class="desc">前端先进性评估</span>
       </div>
 
-      <div class="search-wrapper">
-        <!--      todo 公共搜索组件 -->
-        <button class="search-btn">
-        <span class="content">
-          <img src="/navigation/search.svg" alt="search">
-          <span class="desc">搜索开源项目</span>
-        </span>
-        </button>
-      </div>
+      <div class="search-wrapper"><SearchSoftware/></div>
 
       <!--    todo 后端获取数据渲染菜单 -->
       <el-menu class="menu" mode="horizontal" :ellipsis="false">
@@ -86,32 +80,6 @@ const { y } = useWindowScroll()
 .search-wrapper {
   margin-left: 40px;
   flex: 1;
-
-  .search-btn {
-    display: flex;
-    align-items: center;
-    padding: 12px;
-    border-radius: 8px;
-    height: 40px;
-    background-color: #f6f6f7;
-    cursor: pointer;
-    outline: none;
-    border: 1px solid transparent;
-    color: rgba(0, 0, 0, 0.75);
-
-    &:hover {
-      border-color: #3451b2;
-    }
-
-    .content {
-      display: flex;
-      align-items: center;
-
-      .desc {
-        margin-left: 6px;
-      }
-    }
-  }
 }
 
 .el-menu {

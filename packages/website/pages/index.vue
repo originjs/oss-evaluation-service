@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { SearchSoftware } from "@orginjs/oss-evaluation-components"
+
 const features = ref([
   {
     icon: 'ELIConSearch',
@@ -26,15 +28,7 @@ const features = ref([
           <h1 class="name"><span class="clip">OSS Evaluation</span></h1>
           <p class="text">前端先进性评估</p>
           <p class="tagline">前端先进性评估</p>
-          <div class="actions">
-            <!--      todo 公共搜索组件 -->
-            <button class="search-btn">
-              <span class="content">
-                <img src="/navigation/search.svg" alt="search">
-                <span class="desc">搜索开源项目</span>
-              </span>
-            </button>
-          </div>
+          <div class="actions"><SearchSoftware class="w-[280px]" /></div>
         </div>
         <div class="image">
           <div class="image-wrapper">
@@ -62,7 +56,7 @@ const features = ref([
 
 <style scoped lang="less">
 .home {
-  margin-bottom: 108px;
+  margin: 20px 20px 108px;
 }
 
 .intro {
@@ -115,33 +109,6 @@ const features = ref([
       align-items: center;
       flex-wrap: wrap;
       padding-top: 32px;
-
-      .search-btn {
-        display: flex;
-        align-items: center;
-        padding: 12px;
-        border-radius: 8px;
-        height: 40px;
-        width: 280px;
-        background-color: #f6f6f7;
-        cursor: pointer;
-        outline: none;
-        border: 1px solid transparent;
-        color: rgba(0, 0, 0, 0.75);
-
-        &:hover {
-          border-color: #3451b2;
-        }
-
-        .content {
-          display: flex;
-          align-items: center;
-
-          .desc {
-            margin-left: 6px;
-          }
-        }
-      }
     }
   }
 

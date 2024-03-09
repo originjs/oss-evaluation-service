@@ -16,9 +16,10 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-width: 1366px;
 }
 
 .page {
-  padding: 64px 20px 20px;
+  padding-top: 64px;
 }
 </style>
