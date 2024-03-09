@@ -4,14 +4,14 @@ import { Op } from 'sequelize';
 // eslint-disable-next-line import/prefer-default-export
 export async function search(keyword) {
   return GithubProjects.findAll({
-    attributes: ['full_name', 'html_url', 'description', 'stargazers_count'],
+    attributes: ['fullName', 'htmlUrl', 'description', 'stargazersCount'],
     where: {
       fullName: {
         [Op.like]: `%${keyword}%`,
       },
     },
     order: [
-      ['stargazers_count', 'desc'],
+      ['stargazersCount', 'desc'],
     ],
     limit: 10,
   });
