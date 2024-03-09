@@ -1,12 +1,12 @@
 import sequelize from '@orginjs/oss-evaluation-data-model/util/database.js';
 
 /**
- * getSoftwareMaturity
+ * getSoftwareEcologyOverview
  *
  * @param packageName packageName
- * @returns softwareMaturity
+ * @returns softwareEcologyOverview
  */
-export async function getSoftwareMaturity(packageName) {
+export async function getSoftwareEcologyOverview(packageName) {
   const sql = `
         select name,
                full_name,
@@ -30,7 +30,7 @@ export async function getSoftwareMaturity(packageName) {
         group by project_name;
   `;
 
-  const softwareMaturity = await sequelize.query(
+  const softwareEcologyOverview = await sequelize.query(
     sql,
     {
       replacements: { packageName },
@@ -44,19 +44,20 @@ export async function getSoftwareMaturity(packageName) {
       type: sequelize.QueryTypes.SELECT,
     },
   );
-  if (softwareMaturity.length === 0 || softwareDownload.length === 0) {
+  if (softwareEcologyOverview.length === 0 || softwareDownload.length === 0) {
     return {};
   }
   return {
-    name: softwareMaturity[0].name,
-    fullName: softwareMaturity[0].full_name,
+    name: softwareEcologyOverview[0].name,
+    fullName: softwareEcologyOverview[0].full_name,
     downloads: softwareDownload[0].downloads,
-    stargazersCount: softwareMaturity[0].stargazers_count,
-    forksCount: softwareMaturity[0].forks_count,
-    busFactor: softwareMaturity[0].bus_factor,
-    openRank: softwareMaturity[0].openrank,
-    criticalityScore: softwareMaturity[0].criticality_score,
-    contributorCount: softwareMaturity[0].contributor_count,
+    stargazersCount: softwareEcologyOverview[0].stargazers_count,
+    forksCount: softwareEcologyOverview[0].forks_count,
+    busFactor: softwareEcologyOverview[0].bus_factor,
+    openRank: softwareEcologyOverview[0].openrank,
+    criticalityScore: softwareEcologyOverview[0].criticality_score,
+    contributorCount: softwareEcologyOverview[0].contributor_count,
+    dependentCount: 0,
   };
 }
 
@@ -66,7 +67,7 @@ export async function getSoftwareMaturity(packageName) {
  * @param packageName packageName
  * @returns softwareCompassActivity
  */
-export async function getSoftwareCompassActivity(packageName) {
+export async function getSoftwareActivity(packageName) {
   const sql = `
         select project_id,
                name,
@@ -83,14 +84,14 @@ export async function getSoftwareCompassActivity(packageName) {
         where full_name = :packageName
         order by grimoire_creation_date;
   `;
-  const softwareCompassActivity = await sequelize.query(
+  const softwareActivity = await sequelize.query(
     sql,
     {
       replacements: { packageName },
       type: sequelize.QueryTypes.SELECT,
     },
   );
-  if (softwareCompassActivity.length === 0) {
+  if (softwareActivity.length === 0) {
     return {};
   }
   const commitFrequency = [];
@@ -99,41 +100,41 @@ export async function getSoftwareCompassActivity(packageName) {
   const closedIssuesCount = [];
   const orgCount = [];
   const contributorCount = [];
-  for (const activity of softwareCompassActivity) {
+  for (const activity of softwareActivity) {
     commitFrequency.push({
       projectId: activity.project_id,
       fullName: activity.full_name,
-      number: activity.commit_frequency,
+      value: activity.commit_frequency,
       date: activity.grimoire_creation_date,
     });
     commentFrequency.push({
       projectId: activity.project_id,
       fullName: activity.full_name,
-      number: activity.comment_frequency,
+      value: activity.comment_frequency,
       date: activity.grimoire_creation_date,
     });
     updatedIssuesCount.push({
       projectId: activity.project_id,
       fullName: activity.full_name,
-      number: activity.updated_issues_count,
+      value: activity.updated_issues_count,
       date: activity.grimoire_creation_date,
     });
     closedIssuesCount.push({
       projectId: activity.project_id,
       fullName: activity.full_name,
-      number: activity.closed_issues_count,
+      value: activity.closed_issues_count,
       date: activity.grimoire_creation_date,
     });
     orgCount.push({
       projectId: activity.project_id,
       fullName: activity.full_name,
-      number: activity.org_count,
+      value: activity.org_count,
       date: activity.grimoire_creation_date,
     });
     contributorCount.push({
       projectId: activity.project_id,
       fullName: activity.full_name,
-      number: activity.contributor_count,
+      value: activity.contributor_count,
       date: activity.grimoire_creation_date,
     });
   }
