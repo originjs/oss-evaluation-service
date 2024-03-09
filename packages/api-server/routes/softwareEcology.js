@@ -1,14 +1,14 @@
 import express from 'express';
 import { ok } from '../model/result.js';
-import { getSoftwareCompassActivity, getSoftwareMaturity } from '../service/softwareEcology.js';
+import { getSoftwareActivity, getSoftwareEcologyOverview } from '../service/softwareEcology.js';
 
 const router = express.Router();
 
 /**
  * @swagger
- * /ecology/maturity/{packageName}:
+ * /ecology/overview/{packageName}:
  *   get:
- *     summary: getSoftwareMaturity
+ *     summary: getSoftwareEcologyOverview
  *     parameters:
  *       - in: path
  *         name: packageName
@@ -18,17 +18,17 @@ const router = express.Router();
  *       '200':
  *         description: Successful response
  */
-router.get('/ecology/maturity/:packageName', async (req, res) => {
+router.get('/ecology/overview/:packageName', async (req, res) => {
   const { packageName } = req.params;
-  const softwareMaturity = await getSoftwareMaturity(packageName);
-  res.json(ok(softwareMaturity));
+  const softwareEcologyOverview = await getSoftwareEcologyOverview(packageName);
+  res.json(ok(softwareEcologyOverview));
 });
 
 /**
  * @swagger
- * /ecology/compassActivity/{packageName}:
+ * /ecology/activity/{packageName}:
  *   get:
- *     summary: getSoftwareCompassActivity
+ *     summary: getSoftwareActivity
  *     parameters:
  *       - in: path
  *         name: packageName
@@ -38,10 +38,10 @@ router.get('/ecology/maturity/:packageName', async (req, res) => {
  *       '200':
  *         description: Successful response
  */
-router.get('/ecology/compassActivity/:packageName', async (req, res) => {
+router.get('/ecology/activity/:packageName', async (req, res) => {
   const { packageName } = req.params;
-  const softwareCompassActivity = await getSoftwareCompassActivity(packageName);
-  res.json(ok(softwareCompassActivity));
+  const softwareActivity = await getSoftwareActivity(packageName);
+  res.json(ok(softwareActivity));
 });
 
 export default router;
