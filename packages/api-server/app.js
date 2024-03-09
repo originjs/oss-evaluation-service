@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser';
 import logger from 'morgan';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
+import cors from 'cors';
 
 import indexRouter from './routes/index.js';
 import ecologyRouter from './routes/softwareEcology.js';
@@ -12,6 +13,8 @@ import homePage from './routes/homePage.js';
 
 const app = express();
 
+// cors
+app.use(cors());
 app.use(logger('dev'));
 app.use(json());
 app.use(urlencoded({ extended: false }));
