@@ -2,8 +2,8 @@ import { GithubProjects } from '@orginjs/oss-evaluation-data-model';
 import Page from '../model/page.js';
 
 const typeMap = new Map();
-typeMap.set('star', 'stargazers_count');
-typeMap.set('fork', 'forks_count');
+typeMap.set('star', 'stargazersCount');
+typeMap.set('fork', 'forksCount');
 // typeMap.set("contributors" , "stargazers_count");
 
 // eslint-disable-next-line import/prefer-default-export

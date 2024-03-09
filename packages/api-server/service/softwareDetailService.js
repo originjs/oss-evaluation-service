@@ -1,11 +1,11 @@
 import {
   ProjectPackage, GithubProjects, StateOfJs, CncfDocumentScore,
-  PackageSizeDetail, Scorecard,
+  PackageSizeDetail, Scorecard, PackageDownloadCount,
 } from '@orginjs/oss-evaluation-data-model';
 import ChartData from '../model/chartData.js';
 
-export async function getSoftwareFunction(packageName) {
-  const { projectId } = await getProjectInfoByPackageName(packageName);
+export async function getSoftwareFunction(repoName) {
+  const projectId = await getProjectIdByRepoName(repoName);
   const stateOfJsData = await StateOfJs.findAll({
     where: {
       projectId,
@@ -48,11 +48,11 @@ export async function getSoftwareFunction(packageName) {
 
 /**
  * get software overview
- * @param packageName packageName
+ * @param repoName repoName
  * @returns {Promise<{firstCommit, license: *, star: *, language: *}>}
  */
-export async function getSoftwareOverview(packageName) {
-  const { projectId } = await getProjectInfoByPackageName(packageName);
+export async function getSoftwareOverview(repoName) {
+  const projectId = await getProjectIdByRepoName(repoName);
   //   get star num
   const githubInfo = await GithubProjects.findOne({
     where: {
@@ -70,7 +70,8 @@ export async function getSoftwareOverview(packageName) {
   };
 }
 
-export async function getPerformance(packageName) {
+export async function getPerformance(repoName) {
+  const packageName = await getMaxDownloadPackageByRepoName(repoName);
   const packageSize = await PackageSizeDetail.findOne({
     where: {
       packageName,
@@ -78,6 +79,7 @@ export async function getPerformance(packageName) {
     order: [
       ['version', 'desc'],
     ],
+    attributes: ['size', 'gzipSize'],
   });
 
   return {
@@ -88,8 +90,8 @@ export async function getPerformance(packageName) {
   };
 }
 
-export async function getQuality(packageName) {
-  const { projectId } = await getProjectInfoByPackageName(packageName);
+export async function getQuality(repoName) {
+  const projectId = await getProjectIdByRepoName(repoName);
   const res = {};
   const {
     score, maintained, codeReview, ciiBestPractices, license, branchProtection,
@@ -98,7 +100,7 @@ export async function getQuality(packageName) {
       projectId,
     },
     order: [
-      ['updated_at', 'desc'],
+      ['updatedAt', 'desc'],
     ],
   })) || {};
   res.scorecard = {
@@ -109,17 +111,45 @@ export async function getQuality(packageName) {
   return res;
 }
 
-async function getProjectInfoByPackageName(packageName) {
+async function getProjectIdByRepoName(repoName) {
   const data = await ProjectPackage.findOne({
     where: {
-      package: packageName,
+      projectName: repoName,
     },
+    attributes: ['projectId'],
   });
-
   if (!data) {
-    const msg = `cant find project named {${packageName}}!`;
+    const msg = `cant find repo named {${repoName}}!`;
     console.warn(msg);
     throw new Error(msg);
   }
-  return data;
+  return data.projectId;
+}
+
+async function getMaxDownloadPackageByRepoName(repoName) {
+  const data = await ProjectPackage.findAll({
+    where: {
+      projectName: repoName,
+    },
+    attributes: ['package'],
+  });
+
+  const packageNames = data.map((item) => item.package);
+
+  // get max download count package
+  const maxDownloadPackageName = await PackageDownloadCount.findOne({
+    where: {
+      package_name: packageNames,
+    },
+    order: [
+      ['downloads', 'desc'],
+    ],
+    attributes: ['packageName'],
+  });
+  if (!maxDownloadPackageName) {
+    const msg = `cant find package in {${repoName}}!`;
+    console.warn(msg);
+    throw new Error(msg);
+  }
+  return maxDownloadPackageName.packageName;
 }
