@@ -1,9 +1,13 @@
 import debug from 'debug';
+import { Cron } from 'croner';
+import Dayjs from 'dayjs';
 import fetch from '@adobe/node-fetch-retry';
 import { chunk } from 'underscore';
+import { Op } from 'sequelize';
 import sequelize from '../util/database.js';
 import PackageDownloadCount from '../models/PackageDownloadCount.js';
 import { getWeekOfYearList } from '../util/weekOfYearUtil.js';
+import ProjectPackage from '../models/ProjectPackage.js';
 
 const PAGE_SIZE = 128;
 
@@ -32,6 +36,53 @@ const QUERY_NONE_SCOPED_PACKAGE = `
 const QUERY_PACKAGE_END = `
         order by project_id, package
     `;
+
+const errorHandler = (e) => {
+  debug.log(e);
+};
+
+const jobScopedPackageDownloadCount = Cron('0 0 0 ? * TUE', { catch: errorHandler, timezone: 'Etc/UTC' }, async () => {
+  debug.log('jobScopedPackageDownloadCount start!', jobScopedPackageDownloadCount.getPattern());
+  const maxProjectId = await ProjectPackage.max('project_id', { where: { package: { [Op.like]: '%/%' } } });
+  const minProjectId = await ProjectPackage.min('project_id', { where: { package: { [Op.like]: '%/%' } } });
+  const queryLastDate = `
+    select max(end_date) as endDate
+    from package_download_count
+    where package_name like '%/%';
+  `;
+  const lastDate = await sequelize.query(
+    queryLastDate,
+    {
+      type: sequelize.QueryTypes.SELECT,
+    },
+  );
+  const startDate = new Dayjs(lastDate[0].endDate).add(1, 'day');
+  const endDate = new Dayjs((new Date()));
+  await getScopedPackageDownloadCount(startDate, endDate, minProjectId, maxProjectId);
+  debug.log('jobScopedPackageDownloadCount end!', jobScopedPackageDownloadCount.getPattern());
+});
+
+const jobNoneScopedPackageDownloadCount = Cron('0 0 0 ? * TUE', { catch: errorHandler, timezone: 'Etc/UTC' }, async () => {
+  debug.log('jobNoneScopedPackageDownloadCount start!', jobNoneScopedPackageDownloadCount.getPattern());
+  const maxProjectId = await ProjectPackage.max('project_id', { where: { package: { [Op.notLike]: '%/%' } } });
+  const minProjectId = await ProjectPackage.min('project_id', { where: { package: { [Op.notLike]: '%/%' } } });
+  const queryLastDate = `
+    select max(end_date) as endDate
+    from package_download_count
+    where package_name not like '%/%';
+  `;
+
+  const lastDate = await sequelize.query(
+    queryLastDate,
+    {
+      type: sequelize.QueryTypes.SELECT,
+    },
+  );
+  const startDate = new Dayjs(lastDate[0].endDate).add(1, 'day');
+  const endDate = new Dayjs(new Date());
+  await getNoneScopedPackageDownloadCount(startDate, endDate, minProjectId, maxProjectId);
+  debug.log('jobNoneScopedPackageDownloadCount end!', jobNoneScopedPackageDownloadCount.getPattern());
+});
 
 export async function syncNoneScopedPackageDownloadCount(req, res) {
   const {
