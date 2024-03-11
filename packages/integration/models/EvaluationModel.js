@@ -11,6 +11,9 @@ export default sequelize.define(
     dimension: {
       type: DataTypes.STRING,
     },
+    techStack: {
+      type: DataTypes.STRING,
+    },
     table: {
       type: DataTypes.STRING,
     },
@@ -18,6 +21,12 @@ export default sequelize.define(
       type: DataTypes.STRING,
     },
     weight: {
+      type: DataTypes.DOUBLE,
+    },
+    median: {
+      type: DataTypes.DOUBLE,
+    },
+    p10: {
       type: DataTypes.DOUBLE,
     },
     threshold: {

@@ -1,5 +1,8 @@
 import express from 'express';
-import { calculateAllMetricsHandler, evaluateProjectHandler } from '../controllers/evaluate.js';
+import {
+  calculateAllMetricsHandler,
+  evaluateProjectHandler, evaluateScoreById, setAllMedianAndP10,
+} from '../controllers/evaluate.js';
 
 const router = express.Router();
 
@@ -21,7 +24,7 @@ router.route('/all').post(calculateAllMetricsHandler);
  * @swagger
  * tags:
  *   name: Evaluate
- * /eval/{org}/{name}:
+ * /eval/project/{org}/{name}:
  *   get:
  *     summary: Evaluate single specified project
  *     parameters:
@@ -36,6 +39,38 @@ router.route('/all').post(calculateAllMetricsHandler);
  *       200:
  *         description: Success
  */
-router.route('/:org/:name').get(evaluateProjectHandler);
+router.route('project/:org/:name').get(evaluateProjectHandler);
+
+/**
+ * @swagger
+ * tags:
+ *   name: Evaluate
+ * /eval/evaluateScoreById/{projectId}:
+ *   get:
+ *     summary: Evaluate single specified project
+ *     parameters:
+ *      - in: path
+ *        name: projectId
+ *        type: string
+ *     tags: [Evaluate]
+ *     responses:
+ *       200:
+ *         description: Success
+ */
+router.route('/evaluateScoreById/:projectId').get(evaluateScoreById);
+
+/**
+ * @swagger
+ * tags:
+ *   name: Evaluate
+ * /eval/setAllMedianAndP10:
+ *   get:
+ *     summary: Evaluate single specified project
+ *     tags: [Evaluate]
+ *     responses:
+ *       200:
+ *         description: Success
+ */
+router.route('/setAllMedianAndP10').get(setAllMedianAndP10);
 
 export default router;

@@ -86,6 +86,15 @@ export default sequelize.define(
     updatedIssuesCount: {
       type: DataTypes.INTEGER,
     },
+    busFactor: {
+      type: DataTypes.INTEGER,
+    },
+    stargazersCount: {
+      type: DataTypes.INTEGER,
+    },
+    forksCount: {
+      type: DataTypes.INTEGER,
+    },
     // sonarcloudScore: {
     //   type: DataTypes.DOUBLE,
     // },
