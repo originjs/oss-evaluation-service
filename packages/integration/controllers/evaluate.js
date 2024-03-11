@@ -11,7 +11,6 @@ import OpenDigger from '../models/OpenDigger.js';
 import CompassActivity from '../models/CompassActivity.js';
 import GithubProjects from '../models/GithubProjects.js';
 import CncfDocumentScoreOnly from '../models/CncfDocumentScoreOnly.js';
-import LighthouseConfig from '../models/LighthouseConfig.js';
 
 const MetricType = Object.freeze({
   MAIN: 1,
@@ -26,120 +25,90 @@ const DataSource = Object.freeze([
     scoreName: 'score',
     isDesc: true,
     saveTo: 'scorecardScore',
-    m: 3.4,
-    p10: 5.4,
   },
   {
     model: CriticalityScore,
     scoreName: 'score',
     isDesc: true,
     saveTo: 'criticalityScore',
-    m: 0.46346,
-    p10: 0.62094,
   },
   {
     model: OpenDigger,
     scoreName: 'openrank',
     isDesc: true,
     saveTo: 'openrank',
-    m: 2.29,
-    p10: 20.32,
   },
   {
     model: OpenDigger,
     scoreName: 'busFactor',
     isDesc: true,
     saveTo: 'busFactor',
-    m: 3,
-    p10: 18,
   },
   {
     model: CompassActivity,
     scoreName: 'contributorCount',
     isDesc: true,
     saveTo: 'contributorCount',
-    m: 10,
-    p10: 167,
   },
   {
     model: CompassActivity,
     scoreName: 'orgCount',
     isDesc: true,
     saveTo: 'orgCount',
-    m: 0,
-    p10: 6,
   },
   {
     model: CompassActivity,
     scoreName: 'commentFrequency',
     isDesc: true,
     saveTo: 'commentFrequency',
-    m: 0.5,
-    p10: 2,
   },
   {
     model: CompassActivity,
     scoreName: 'codeReviewCount',
     isDesc: true,
     saveTo: 'codeReviewCount',
-    m: 2,
-    p10: 6,
   },
   {
     model: CompassActivity,
     scoreName: 'updatedIssuesCount',
     isDesc: true,
     saveTo: 'updatedIssuesCount',
-    m: 8,
-    p10: 202,
   },
   {
     model: CompassActivity,
     scoreName: 'closedIssuesCount',
     isDesc: true,
     saveTo: 'closedIssuesCount',
-    m: 2,
-    p10: 91,
   },
   {
     model: CompassActivity,
     scoreName: 'recentReleasesCount',
     isDesc: true,
     saveTo: 'recentReleasesCount',
-    m: 0,
-    p10: 42,
   },
   {
     model: GithubProjects,
     scoreName: 'pushedAt',
     isDesc: false,
     saveTo: 'pushedAt',
-    m: 9676800,
-    p10: 1468800,
   },
   {
     model: GithubProjects,
     scoreName: 'pushedAt',
     isDesc: false,
     saveTo: 'pushedAt',
-    m: 9676800,
-    p10: 1468800,
   },
   {
     model: GithubProjects,
     scoreName: 'stargazersCount',
     isDesc: true,
     saveTo: 'stargazersCount',
-    m: 2041,
-    p10: 9748,
   },
   {
     model: CncfDocumentScoreOnly,
     scoreName: 'documentScore',
     isDesc: true,
     saveTo: 'documentScore',
-    m: 73.6842,
-    p10: 94.7368,
   },
 ]);
 
@@ -289,7 +258,7 @@ async function getDimensionScore(project, dimension, techStack) {
     const {
       field, techStack: subTechStack, weight, median, p10, isDesc, type,
     } = fieldItem;
-    if (type === 1) {
+    if (type === MetricType.MAIN) {
       const fieldScore = await getDimensionScore(project, field, subTechStack);
       totalScore += weight * fieldScore;
     } else {
@@ -342,38 +311,15 @@ function getProportionValue(values, proportion) {
   );
 }
 
-export async function getScorecardScoreHandler(req, res) {
-  const { projectId, isDesc } = req.params;
-  const result = await getModelScore(Scorecard, 'score', projectId, isDesc);
-  res.status(200).send(`${result}`);
-}
-
-export async function getModelScore(model, scoreName, projectId, isDesc, m, p10) {
-  let project;
-  if (model.tableName === 'compass_activity_detail') {
-    project = await sequelize.query(`SELECT * FROM compass_activity_detail WHERE project_id = '${projectId}' and grimoire_creation_date = (SELECT MAX(grimoire_creation_date) FROM compass_activity_detail WHERE project_id = '${projectId}')`);
-  } else if (model.tableName === 'github_projects') {
-    project = await model.findOne({ where: { id: projectId } });
-  } else {
-    project = await model.findOne({ where: { projectId } });
-  }
-  let value = project[scoreName];
-  if (scoreName === 'pushedAt') {
-    const date = new Date(value);
-    const NOW_DATE = 1709827200; // timestamp for 2024-03-08
-    value = NOW_DATE - date.getTime();
-  }
-  return calLighthouseScore(value || 0, p10, m, isDesc);
-}
-
 export async function setAllMedianAndP10(req, res) {
   for (const fieldItem of DataSource) {
     const {
-      model, scoreName, isDesc, saveTo,
+      model, scoreName, saveTo,
     } = fieldItem;
     const dataList = (await model.findAll()).map((item) => item[scoreName]);
+    const field = EvaluationModel.findOne({ where: { field: saveTo } });
+    const { isDesc } = field;
     const { median, p10 } = generateMedianAndP10(dataList, isDesc);
-    const field = LighthouseConfig.findOne({ where: { fieldName: saveTo } });
     field.median = median;
     field.p10 = p10;
     await field.save();

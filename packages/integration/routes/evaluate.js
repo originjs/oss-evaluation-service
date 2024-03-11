@@ -1,7 +1,7 @@
 import express from 'express';
 import {
   calculateAllMetricsHandler,
-  evaluateProjectHandler, getScorecardScoreHandler, evaluateScoreById, setAllMedianAndP10,
+  evaluateProjectHandler, evaluateScoreById, setAllMedianAndP10,
 } from '../controllers/evaluate.js';
 
 const router = express.Router();
@@ -40,27 +40,6 @@ router.route('/all').post(calculateAllMetricsHandler);
  *         description: Success
  */
 router.route('project/:org/:name').get(evaluateProjectHandler);
-
-/**
- * @swagger
- * tags:
- *   name: Evaluate
- * /eval/singleScore/{projectId}/{isDesc}:
- *   get:
- *     summary: Evaluate single specified project
- *     parameters:
- *      - in: path
- *        name: projectId
- *        type: string
- *      - in: path
- *        name: isDesc
- *        type: boolean
- *     tags: [Evaluate]
- *     responses:
- *       200:
- *         description: Success
- */
-router.route('/singleScore/:projectId/:isDesc').get(getScorecardScoreHandler);
 
 /**
  * @swagger
