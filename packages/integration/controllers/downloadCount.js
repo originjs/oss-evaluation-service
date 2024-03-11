@@ -37,11 +37,12 @@ const QUERY_PACKAGE_END = `
         order by project_id, package
     `;
 
-const errorHandler = (e) => {
+const scopedErrorHandler = (e) => {
   debug.log(e);
+  jobScopedPackageDownloadCount.trigger();
 };
 
-const jobScopedPackageDownloadCount = Cron('0 0 0 ? * TUE', { catch: errorHandler, timezone: 'Etc/UTC' }, async () => {
+const jobScopedPackageDownloadCount = Cron('0 0 0 ? * TUE', { catch: scopedErrorHandler, timezone: 'Etc/UTC' }, async () => {
   debug.log('jobScopedPackageDownloadCount start!', jobScopedPackageDownloadCount.getPattern());
   const maxProjectId = await ProjectPackage.max('project_id', { where: { package: { [Op.like]: '%/%' } } });
   const minProjectId = await ProjectPackage.min('project_id', { where: { package: { [Op.like]: '%/%' } } });
@@ -62,7 +63,12 @@ const jobScopedPackageDownloadCount = Cron('0 0 0 ? * TUE', { catch: errorHandle
   debug.log('jobScopedPackageDownloadCount end!', jobScopedPackageDownloadCount.getPattern());
 });
 
-const jobNoneScopedPackageDownloadCount = Cron('0 0 0 ? * TUE', { catch: errorHandler, timezone: 'Etc/UTC' }, async () => {
+const noneScopedErrorHandler = (e) => {
+  debug.log(e);
+  jobNoneScopedPackageDownloadCount.trigger();
+};
+
+const jobNoneScopedPackageDownloadCount = Cron('0 0 0 ? * TUE', { catch: noneScopedErrorHandler, timezone: 'Etc/UTC' }, async () => {
   debug.log('jobNoneScopedPackageDownloadCount start!', jobNoneScopedPackageDownloadCount.getPattern());
   const maxProjectId = await ProjectPackage.max('project_id', { where: { package: { [Op.notLike]: '%/%' } } });
   const minProjectId = await ProjectPackage.min('project_id', { where: { package: { [Op.notLike]: '%/%' } } });
