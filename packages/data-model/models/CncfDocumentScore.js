@@ -45,9 +45,6 @@ export default sequelize.define(
     hasContributing: {
       type: DataTypes.BOOLEAN,
     },
-    hasRelease: {
-      type: DataTypes.BOOLEAN,
-    },
   },
   {
     tableName: 'cncf_document_score',
