@@ -1,8 +1,6 @@
 import fs from 'fs';
-import Scorecard from '../models/Scorecard.js';
-import ProjectTechStack from '../models/ProjectTechStack.js';
+import { ScorecardComplem, ProjectTechStack, Scorecard } from '@orginjs/oss-evaluation-data-model';
 import { ServerError, BadRequestError } from '../util/error.js';
-import ScorecardComplem from '../models/ScorecardComplem.js';
 
 export async function syncScorecardHandler(req, res) {
   try {

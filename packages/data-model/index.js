@@ -1,19 +1,17 @@
-import GithubProjects from './models/GithubProjects.js';
-import ProjectPackage from './models/ProjectPackage.js';
-import StateOfJs from './models/StateOfJs.js';
-import CncfDocumentScore from './models/CncfDocumentScore.js';
-import PackageSizeDetail from './models/PackageSizeDetail.js';
-import Scorecard from './models/Scorecard.js';
-import PackageDownloadCount from './models/PackageDownloadCount.js';
-import EvaluationSummary from './models/EvaluationSummary.js';
-
-export {
-  GithubProjects,
-  ProjectPackage,
-  StateOfJs,
-  CncfDocumentScore,
-  PackageSizeDetail,
-  Scorecard,
-  PackageDownloadCount,
-  EvaluationSummary,
-};
+export { default as GithubProjects } from './models/GithubProjects.js';
+export { default as ProjectPackage } from './models/ProjectPackage.js';
+export { default as StateOfJs } from './models/StateOfJs.js';
+export { default as CncfDocumentScore } from './models/CncfDocumentScore.js';
+export { default as PackageSizeDetail } from './models/PackageSizeDetail.js';
+export { default as Scorecard } from './models/Scorecard.js';
+export { default as PackageDownloadCount } from './models/PackageDownloadCount.js';
+export { default as EvaluationSummary } from './models/EvaluationSummary.js';
+export { default as Benchmark } from './models/Benchmark.js';
+export { default as CncfDocumentScoreOnly } from './models/CncfDocumentScoreOnly.js';
+export { default as CompassActivity } from './models/CompassActivity.js';
+export { default as CriticalityScore } from './models/CriticalityScore.js';
+export { default as EvaluationModel } from './models/EvaluationModel.js';
+export { default as OpenDigger } from './models/OpenDigger.js';
+export { default as ProjectTechStack } from './models/ProjectTechStack.js';
+export { default as ScorecardComplem } from './models/ScorecardComplem.js';
+export { default as StackOverFlow } from './models/StackOverFlow.js';
