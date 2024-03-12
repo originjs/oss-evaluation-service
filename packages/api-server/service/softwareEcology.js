@@ -19,7 +19,7 @@ export async function getSoftwareEcologyOverview(packageName) {
         from github_projects project
            inner join opendigger_info digeer on project.id = digeer.project_id
            inner join criticality_score criticality on project.id = criticality.project_id
-           inner join compass_activity_detail_old compass on project.id = compass.project_id
+           inner join compass_activity_detail compass on project.id = compass.project_id
         where full_name = :packageName
   `;
   const downloadSql = `
