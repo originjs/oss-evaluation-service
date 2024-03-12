@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { SearchSoftware } from "@orginjs/oss-evaluation-components"
+import { SearchSoftware } from '@orginjs/oss-evaluation-components'
 
 const features = ref([
   {
@@ -28,7 +28,7 @@ const features = ref([
           <h1 class="name"><span class="clip">OSS Evaluation</span></h1>
           <p class="text">前端先进性评估</p>
           <p class="tagline">前端先进性评估</p>
-          <div class="actions"><SearchSoftware class="w-[280px]" /></div>
+          <div class="actions"><SearchSoftware /></div>
         </div>
         <div class="image">
           <div class="image-wrapper">
@@ -79,13 +79,17 @@ const features = ref([
     .tagline,
     .actions {
       width: 100%;
+
+      :deep(.search-btn) {
+        width: 280px;
+      }
     }
 
     .clip {
       background-image: linear-gradient(74deg, #4d93fb 16%, #ff2992);
       background-clip: text;
       -webkit-text-fill-color: transparent;
-      letter-spacing: -.4px;
+      letter-spacing: -0.4px;
       line-height: 64px;
       font-size: 56px;
       font-weight: 700;
@@ -94,14 +98,14 @@ const features = ref([
     .text {
       line-height: 64px;
       font-size: 56px;
-      letter-spacing: -.4px;
+      letter-spacing: -0.4px;
       font-weight: 700;
       color: rgba(60, 60, 67);
     }
 
     .tagline {
       padding-top: 12px;
-      color: rgba(60, 60, 67, .78);
+      color: rgba(60, 60, 67, 0.78);
       font-weight: 500;
       line-height: 36px;
       font-size: 24px;
@@ -183,7 +187,7 @@ const features = ref([
         align-items: center;
         margin-bottom: 20px;
         border-radius: 6px;
-        background-color: rgba(142, 150, 170, .14);
+        background-color: rgba(142, 150, 170, 0.14);
         width: 48px;
         height: 48px;
         font-size: 24px;
@@ -201,7 +205,7 @@ const features = ref([
         line-height: 24px;
         font-size: 14px;
         font-weight: 500;
-        color: rgba(60, 60, 67, .78);
+        color: rgba(60, 60, 67, 0.78);
       }
     }
   }

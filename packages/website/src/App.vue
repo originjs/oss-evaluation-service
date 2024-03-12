@@ -9,5 +9,5 @@ import Layout from '@components/Layout.vue'
 </template>
 
 <style lang="less">
-@import '@assets/less/index.less';
+@import '@orginjs/oss-evaluation-components/dist/index.css';
 </style>

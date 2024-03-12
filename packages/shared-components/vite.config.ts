@@ -1,8 +1,8 @@
-import { defineConfig } from 'vite';
-import vue from '@vitejs/plugin-vue';
-import dts from 'vite-plugin-dts';
-import { resolve } from 'pathe';
-import AutoImport from 'unplugin-auto-import/vite';
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import dts from 'vite-plugin-dts'
+import { resolve } from 'pathe'
+import AutoImport from 'unplugin-auto-import/vite'
 import UnoCSS from 'unocss/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
@@ -36,14 +36,10 @@ export default defineConfig({
         'vue-router',
       ],
 
-      resolvers: [
-        ElementPlusResolver(),
-      ],
+      resolvers: [ElementPlusResolver()],
     }),
     Components({
-      resolvers: [
-        ElementPlusResolver(),
-      ],
+      resolvers: [ElementPlusResolver()],
     }),
     UnoCSS(),
   ],
@@ -65,8 +61,9 @@ export default defineConfig({
         },
       },
     },
+    cssCodeSplit: true,
   },
   optimizeDeps: {
     exclude: ['vue'],
   },
-});
+})
