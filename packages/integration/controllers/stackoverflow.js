@@ -1,6 +1,7 @@
 import debug from 'debug';
+import { StackOverFlow } from '@orginjs/oss-evaluation-data-model';
 import resultData2023 from '../metadata/stackoverflow/result2023.js';
-import StackOverFlow from '../models/StackOverFlow.js';
+
 import { underscoreToSmallCamelCase } from '../util/string.js';
 
 let resultYear = '2023';

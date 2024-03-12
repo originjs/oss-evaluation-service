@@ -1,6 +1,6 @@
 import { log } from 'debug';
+import { PackageSizeDetail } from '@orginjs/oss-evaluation-data-model';
 import sequelize from '../util/database.js';
-import PackageSizeDetail from '../models/PackageSizeDetail.js';
 import { sleep } from '../util/util.js';
 
 export async function getPackageSize(name, version) {

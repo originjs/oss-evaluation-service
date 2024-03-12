@@ -4,10 +4,9 @@ import Dayjs from 'dayjs';
 import fetch from '@adobe/node-fetch-retry';
 import { chunk } from 'underscore';
 import { Op } from 'sequelize';
+import { ProjectPackage, PackageDownloadCount } from '@orginjs/oss-evaluation-data-model';
 import sequelize from '../util/database.js';
-import PackageDownloadCount from '../models/PackageDownloadCount.js';
 import { getWeekOfYearList } from '../util/weekOfYearUtil.js';
-import ProjectPackage from '../models/ProjectPackage.js';
 
 const PAGE_SIZE = 128;
 

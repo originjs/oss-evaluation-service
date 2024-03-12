@@ -2,7 +2,7 @@ import debug from 'debug';
 import https from 'node:https';
 import * as fs from 'node:fs';
 import { Octokit } from '@octokit/core';
-import GithubProjects from '../models/GithubProjects.js';
+import { GithubProjects } from '@orginjs/oss-evaluation-data-model';
 
 /**
  *  There are 952 github projects between 1000 and 1130 stars.

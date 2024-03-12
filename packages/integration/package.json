@@ -11,6 +11,7 @@
   "dependencies": {
     "@adobe/node-fetch-retry": "^2.2.0",
     "@octokit/core": "^5.1.0",
+    "@orginjs/oss-evaluation-data-model": "workspace:^",
     "async": "^3.2.5",
     "dayjs": "^1.11.10",
     "debug": "^4.3.4",

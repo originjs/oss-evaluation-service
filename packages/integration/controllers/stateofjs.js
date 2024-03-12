@@ -1,6 +1,7 @@
 import { request, gql } from 'graphql-request';
 import debug from 'debug';
-import StateOfJs from '../models/StateOfJs.js';
+import { StateOfJs } from '@orginjs/oss-evaluation-data-model';
+
 import { underscoreToSmallCamelCase } from '../util/string.js';
 
 let version = 'js2022';

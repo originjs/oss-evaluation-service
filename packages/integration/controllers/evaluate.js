@@ -1,16 +1,18 @@
 import async from 'async';
 import { Op } from 'sequelize';
+import {
+  Benchmark,
+  EvaluationModel,
+  EvaluationSummary,
+  Scorecard,
+  CriticalityScore,
+  OpenDigger,
+  CompassActivity,
+  GithubProjects,
+  CncfDocumentScoreOnly,
+} from '@orginjs/oss-evaluation-data-model';
 import sequelize from '../util/database.js';
-import Benchmark from '../models/Benchmark.js';
-import EvaluationModel from '../models/EvaluationModel.js';
-import EvaluationSummary from '../models/EvaluationSummary.js';
 import { ServerError } from '../util/error.js';
-import Scorecard from '../models/Scorecard.js';
-import CriticalityScore from '../models/CriticalityScore.js';
-import OpenDigger from '../models/OpenDigger.js';
-import CompassActivity from '../models/CompassActivity.js';
-import GithubProjects from '../models/GithubProjects.js';
-import CncfDocumentScoreOnly from '../models/CncfDocumentScoreOnly.js';
 
 const MetricType = Object.freeze({
   MAIN: 1,

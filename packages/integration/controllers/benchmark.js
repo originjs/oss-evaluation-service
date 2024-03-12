@@ -1,7 +1,6 @@
 import dayjs from 'dayjs';
 import debug from 'debug';
-import Benchmark from '../models/Benchmark.js';
-import ProjectTechStack from '../models/ProjectTechStack.js';
+import { Benchmark, ProjectTechStack } from '@orginjs/oss-evaluation-data-model';
 import sequelize from '../util/database.js';
 
 export async function syncBenchmarkHandler(req, res) {

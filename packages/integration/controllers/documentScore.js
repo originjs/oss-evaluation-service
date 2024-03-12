@@ -1,7 +1,6 @@
 import debug from 'debug';
 import { Octokit } from '@octokit/core';
-import GithubProjects from '../models/GithubProjects.js';
-import CncfDocumentScore from '../models/CncfDocumentScore.js';
+import { GithubProjects, CncfDocumentScore } from '@orginjs/oss-evaluation-data-model';
 
 // cncf document checks item
 const cncfDocumentChecks = {
