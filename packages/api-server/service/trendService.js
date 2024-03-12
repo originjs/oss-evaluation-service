@@ -1,5 +1,6 @@
 import { GithubProjects } from '@orginjs/oss-evaluation-data-model';
 import Page from '../model/page.js';
+import ChartData from '../model/chartData.js';
 
 const typeMap = new Map();
 typeMap.set('star', 'stargazersCount');
@@ -19,11 +20,16 @@ export async function githubTop(page, type) {
     offset: page.pageSize * (page.pageNo - 1),
   });
   const resData = data.map((item) => {
-    const _ = {};
-    _.githubUrl = item.htmlUrl;
-    _.starCount = item.stargazersCount;
-    _.forkCount = item.forksCount;
-    return _;
+    const { htmlUrl } = item;
+    return {
+      htmlUrl,
+      starCount: item.stargazersCount,
+      forkCount: item.forksCount,
+      // TODO contributor count
+      contributorCount: null,
+      // TODO star/fork/contributor trend
+      trend: new ChartData([], []),
+    };
   });
   const res = Page.clone(page);
   res.data = resData;
