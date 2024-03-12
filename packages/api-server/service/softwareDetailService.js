@@ -1,7 +1,14 @@
 import {
-  ProjectPackage, GithubProjects, StateOfJs, CncfDocumentScore,
-  PackageSizeDetail, Scorecard, PackageDownloadCount,
+  ProjectPackage,
+  GithubProjects,
+  StateOfJs,
+  CncfDocumentScore,
+  PackageSizeDetail,
+  Scorecard,
+  PackageDownloadCount,
+  EvaluationSummary,
 } from '@orginjs/oss-evaluation-data-model';
+import dayjs from 'dayjs';
 import ChartData from '../model/chartData.js';
 
 export async function getSoftwareFunction(repoName) {
@@ -10,9 +17,7 @@ export async function getSoftwareFunction(repoName) {
     where: {
       projectId,
     },
-    order: [
-      ['year', 'asc'],
-    ],
+    order: [['year', 'asc']],
   });
   const res = {};
   // TODO github star trends
@@ -49,7 +54,8 @@ export async function getSoftwareFunction(repoName) {
 /**
  * get software overview
  * @param repoName repoName
- * @returns {Promise<{firstCommit, license: *, star: *, language: *}>}
+ * @return {Promise<{codeLines: number, evaluation: *,
+ * firstCommit, license: *, star: *, description, language: *, tags: *}>}
  */
 export async function getSoftwareOverview(repoName) {
   const projectId = await getProjectIdByRepoName(repoName);
@@ -60,13 +66,29 @@ export async function getSoftwareOverview(repoName) {
     },
   });
 
+  const evaluation = await EvaluationSummary.findOne({
+    where: {
+      projectId,
+    },
+    order: [['evaluateTime', 'desc']],
+    attributes: [
+      'functionScore',
+      'qualityScore',
+      'performanceScore',
+      'ecologyScore',
+      'innovationValue',
+    ],
+  });
+
   return {
     star: githubInfo.stargazersCount,
     language: githubInfo.language,
-    firstCommit: githubInfo.createdAt,
+    firstCommit: dayjs(new Date(githubInfo.createdAt)).format('YYYY-MM-DD HH:mm:ss'),
     license: githubInfo.license,
     description: githubInfo.description,
     tags: githubInfo.topics,
+    codeLines: Number.NaN,
+    evaluation,
   };
 }
 
@@ -76,9 +98,7 @@ export async function getPerformance(repoName) {
     where: {
       packageName,
     },
-    order: [
-      ['version', 'desc'],
-    ],
+    order: [['version', 'desc']],
     attributes: ['size', 'gzipSize'],
   });
 
@@ -99,12 +119,15 @@ export async function getQuality(repoName) {
     where: {
       projectId,
     },
-    order: [
-      ['updatedAt', 'desc'],
-    ],
+    order: [['updatedAt', 'desc']],
   })) || {};
   res.scorecard = {
-    score, maintained, codeReview, ciiBestPractices, license, branchProtection,
+    score,
+    maintained,
+    codeReview,
+    ciiBestPractices,
+    license,
+    branchProtection,
   };
   // TODO sonarCloud
   res.sonar = {};
@@ -141,9 +164,7 @@ async function getMaxDownloadPackageByRepoName(repoName) {
     where: {
       package_name: packageNames,
     },
-    order: [
-      ['downloads', 'desc'],
-    ],
+    order: [['downloads', 'desc']],
     attributes: ['packageName'],
   });
   if (!maxDownloadPackageName) {
