@@ -4,6 +4,7 @@ import logger from 'morgan';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 import cors from 'cors';
+import 'dotenv/config';
 
 import indexRouter from './routes/index.js';
 import ecologyRouter from './routes/softwareEcology.js';
