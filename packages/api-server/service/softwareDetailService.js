@@ -34,11 +34,14 @@ export async function getSoftwareFunction(repoName) {
 
   // documentation best practices
   const {
-    documentScore, hasReadme, hasChangelog, hasWebsite, hasContributing, hasRelease,
+    documentScore, hasReadme, hasChangelog, hasWebsite, hasContributing,
   } = (await CncfDocumentScore.findOne({
     where: {
       projectId,
     },
+    attributes: [
+      'documentScore', 'hasReadme', 'hasChangelog', 'hasWebsite', 'hasContributing',
+    ],
   })) || {};
   res.document = {
     documentScore,
@@ -46,7 +49,6 @@ export async function getSoftwareFunction(repoName) {
     hasChangelog,
     hasWebsite,
     hasContributing,
-    hasRelease,
   };
   return res;
 }

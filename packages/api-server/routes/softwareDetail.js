@@ -34,7 +34,7 @@ router.get('/overview/:repoName', (req, res) => {
  *       - in: path
  *         name: repoName
  *         required: true
- *         example: "vuejs/core"
+ *         example: "vuejs/vue"
  *     responses:
  *       '200':
  *         description: Successful response
