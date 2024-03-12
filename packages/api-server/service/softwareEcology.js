@@ -71,14 +71,13 @@ export async function getSoftwareActivity(packageName) {
   const sql = `
         select project_id,
                name,
-               full_name,
                commit_frequency,
                comment_frequency,
                updated_issues_count,
                closed_issues_count,
                org_count,
                contributor_count,
-               grimoire_creation_date
+               date_format(grimoire_creation_date, '%Y-%m-%d') as grimoire_creation_date
         from github_projects project
                  inner join compass_activity_detail compass on project.id = compass.project_id
         where full_name = :packageName
@@ -103,37 +102,31 @@ export async function getSoftwareActivity(packageName) {
   for (const activity of softwareActivity) {
     commitFrequency.push({
       projectId: activity.project_id,
-      fullName: activity.full_name,
       value: activity.commit_frequency,
       date: activity.grimoire_creation_date,
     });
     commentFrequency.push({
       projectId: activity.project_id,
-      fullName: activity.full_name,
       value: activity.comment_frequency,
       date: activity.grimoire_creation_date,
     });
     updatedIssuesCount.push({
       projectId: activity.project_id,
-      fullName: activity.full_name,
       value: activity.updated_issues_count,
       date: activity.grimoire_creation_date,
     });
     closedIssuesCount.push({
       projectId: activity.project_id,
-      fullName: activity.full_name,
       value: activity.closed_issues_count,
       date: activity.grimoire_creation_date,
     });
     orgCount.push({
       projectId: activity.project_id,
-      fullName: activity.full_name,
       value: activity.org_count,
       date: activity.grimoire_creation_date,
     });
     contributorCount.push({
       projectId: activity.project_id,
-      fullName: activity.full_name,
       value: activity.contributor_count,
       date: activity.grimoire_creation_date,
     });
