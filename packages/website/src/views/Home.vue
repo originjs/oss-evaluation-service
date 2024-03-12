@@ -30,7 +30,7 @@ const features = ref([
             <!--      todo 公共搜索组件 -->
             <button class="search-btn">
               <span class="content">
-                <img src="/navigation/search.svg" alt="search">
+                <span i-ph-magnifying-glass-bold mt-1px />
                 <span class="desc">搜索开源项目</span>
               </span>
             </button>
@@ -39,7 +39,7 @@ const features = ref([
         <div class="image">
           <div class="image-wrapper">
             <div class="image-bg"></div>
-            <img src="/common/logo.png" alt="logo" class="image-src">
+            <img src="/logo.png" alt="logo" class="image-src" />
           </div>
         </div>
       </div>
@@ -49,7 +49,7 @@ const features = ref([
         <div class="items">
           <div class="item" v-for="item in features">
             <div class="item-wrapper">
-              <el-icon class="icon"><el-icon-link/></el-icon>
+              <el-icon class="icon"><Link /></el-icon>
               <div class="title">{{ item.title }}</div>
               <div class="details">{{ item.details }}</div>
             </div>
@@ -63,6 +63,7 @@ const features = ref([
 <style scoped lang="less">
 .home {
   margin-bottom: 108px;
+  padding-top: 20px;
 }
 
 .intro {
@@ -80,7 +81,10 @@ const features = ref([
     max-width: 592px;
     text-align: left;
 
-    .name, .text, .tagline, .actions {
+    .name,
+    .text,
+    .tagline,
+    .actions {
       width: 100%;
     }
 
@@ -88,7 +92,7 @@ const features = ref([
       background-image: linear-gradient(74deg, #4d93fb 16%, #ff2992);
       background-clip: text;
       -webkit-text-fill-color: transparent;
-      letter-spacing: -.4px;
+      letter-spacing: -0.4px;
       line-height: 64px;
       font-size: 56px;
       font-weight: 700;
@@ -97,14 +101,14 @@ const features = ref([
     .text {
       line-height: 64px;
       font-size: 56px;
-      letter-spacing: -.4px;
+      letter-spacing: -0.4px;
       font-weight: 700;
-      color: rgba(60, 60, 67)
+      color: rgba(60, 60, 67);
     }
 
     .tagline {
       padding-top: 12px;
-      color: rgba(60, 60, 67, .78);
+      color: rgba(60, 60, 67, 0.78);
       font-weight: 500;
       line-height: 36px;
       font-size: 24px;
@@ -158,7 +162,8 @@ const features = ref([
     height: 100%;
     transform: translate(-32px, -32px);
 
-    .image-bg, .image-src {
+    .image-bg,
+    .image-src {
       position: absolute;
       top: 50%;
       left: 50%;
@@ -212,7 +217,7 @@ const features = ref([
         align-items: center;
         margin-bottom: 20px;
         border-radius: 6px;
-        background-color: rgba(142, 150, 170, .14);
+        background-color: rgba(142, 150, 170, 0.14);
         width: 48px;
         height: 48px;
         font-size: 24px;
@@ -230,7 +235,7 @@ const features = ref([
         line-height: 24px;
         font-size: 14px;
         font-weight: 500;
-        color: rgba(60, 60, 67, .78);
+        color: rgba(60, 60, 67, 0.78);
       }
     }
   }
