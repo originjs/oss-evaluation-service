@@ -21,8 +21,9 @@
     "pre-commit": "pnpm lint-staged"
   },
   "lint-staged": {
-    "*.{vue,ts?(x),js,json,css}": [
-      "prettier --write"
+    "*.{vue,ts?(x),js,css}": [
+      "eslint --cache --fix",
+      "eslint"
     ]
   },
   "keywords": [],
