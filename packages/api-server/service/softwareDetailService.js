@@ -84,7 +84,7 @@ export async function getSoftwareOverview(repoName) {
     star: githubInfo.stargazersCount,
     language: githubInfo.language,
     firstCommit: dayjs(new Date(githubInfo.createdAt)).format('YYYY-MM-DD HH:mm:ss'),
-    license: githubInfo.license,
+    license: githubInfo.licenseName,
     description: githubInfo.description,
     tags: githubInfo.topics,
     codeLines: Number.NaN,
