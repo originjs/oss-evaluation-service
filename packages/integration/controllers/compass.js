@@ -1,7 +1,6 @@
 import { request, gql } from 'graphql-request';
 import debug from 'debug';
-import CompassActivity from '../models/CompassActivity.js';
-import GithubProjects from '../models/GithubProjects.js';
+import { GithubProjects, CompassActivity } from '@orginjs/oss-evaluation-data-model';
 
 const query = gql`
     query MetricActivity($label: String!, $level: String, $beginDate: ISO8601DateTime, $endDate: ISO8601DateTime) {

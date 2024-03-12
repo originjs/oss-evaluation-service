@@ -1,8 +1,7 @@
 import async from 'async';
 import debug from 'debug';
 import sequelize, { Op } from 'sequelize';
-import OpenDigger from '../models/OpenDigger.js';
-import GithubProjects from '../models/GithubProjects.js';
+import { OpenDigger, GithubProjects } from '@orginjs/oss-evaluation-data-model';
 import { ServerError } from '../util/error.js';
 
 export async function getOpenRank(projectPath) {
