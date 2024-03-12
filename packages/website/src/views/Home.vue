@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { SearchSoftware } from '@orginjs/oss-evaluation-components'
+import { SearchSoftware } from '@orginjs/oss-evaluation-components';
+
+const router = useRouter();
 
 const features = ref([
   {
@@ -17,7 +19,16 @@ const features = ref([
     title: '先进性评估',
     details: '功能、性能、生态、质量、创新多维度数字化画像，一键自动化生成评估报告',
   },
-])
+]);
+
+const onSearchSoftwareName = (repoName: string) => {
+  router.push({
+    path: 'software-details',
+    query: {
+      repoName,
+    },
+  });
+};
 </script>
 
 <template>
@@ -28,7 +39,7 @@ const features = ref([
           <h1 class="name"><span class="clip">OSS Evaluation</span></h1>
           <p class="text">前端先进性评估</p>
           <p class="tagline">前端先进性评估</p>
-          <div class="actions"><SearchSoftware /></div>
+          <div class="actions"><SearchSoftware @searchName="onSearchSoftwareName" /></div>
         </div>
         <div class="image">
           <div class="image-wrapper">

@@ -1,19 +1,29 @@
 <script setup lang="ts">
-import { SearchSoftware } from "@orginjs/oss-evaluation-components"
-import { useWindowScroll } from '@vueuse/core'
-const { y } = useWindowScroll()
-const route = useRoute()
+import { SearchSoftware } from '@orginjs/oss-evaluation-components';
+import { useWindowScroll } from '@vueuse/core';
+const { y } = useWindowScroll();
+const route = useRoute();
+const router = useRouter();
+
+const onSearchSoftwareName = (repoName: string) => {
+  router.push({
+    path: 'software-details',
+    query: {
+      repoName,
+    },
+  });
+};
 </script>
 
 <template>
-  <div class="nav" :class="{ 'top': route.path === '/' ? y : true }">
+  <div class="nav" :class="{ top: route.path === '/' ? y : true }">
     <div class="nav-wrapper">
-      <div class="logo-wrapper">
-        <img class="logo" src="/logo.png" alt="logo">
+      <div class="logo-wrapper cursor-pointer" @click="() => router.push('/')">
+        <img class="logo" src="/logo.png" alt="logo" />
         <span class="desc">前端先进性评估</span>
       </div>
 
-      <div class="search-wrapper"><SearchSoftware/></div>
+      <div class="search-wrapper"><SearchSoftware @searchName="onSearchSoftwareName" /></div>
 
       <!--    todo 后端获取数据渲染菜单 -->
       <el-menu class="menu" mode="horizontal" :ellipsis="false">
@@ -43,9 +53,11 @@ const route = useRoute()
   width: 100%;
   padding: 0 20px;
   z-index: 30;
-  border-bottom: .5px solid #e2e2e3;
+  border-bottom: 0.5px solid #e2e2e3;
   background-color: #ffffff;
-  transition: background-color, border-bottom-color 0.5s;
+  transition:
+    background-color,
+    border-bottom-color 0.5s;
 
   &:not(.top) {
     background-color: transparent;

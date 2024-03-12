@@ -12,7 +12,7 @@ const pathSrc = resolve(__dirname, './src')
 export default defineConfig({
   resolve: {
     alias: {
-      '/@': pathSrc,
+      '@': pathSrc,
     },
   },
   plugins: [
@@ -65,5 +65,13 @@ export default defineConfig({
   },
   optimizeDeps: {
     exclude: ['vue'],
+  },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
   },
 })

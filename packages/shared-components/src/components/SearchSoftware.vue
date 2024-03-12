@@ -1,29 +1,33 @@
 <script setup lang="ts">
-import { Search } from '@element-plus/icons-vue'
+import { Search } from '@element-plus/icons-vue';
+import { getSoftwareNamesApi, SoftwareInfo } from '../api/SearchSoftware';
 
-const showSearchBox = ref(false)
-const searchValue = ref('')
-const softwareNames = ref<string[]>([])
-const loadingSoftwareNames = ref(false)
+const emit = defineEmits<{
+  searchName: [name: string];
+}>();
+
+const showSearchBox = ref(false);
+const searchValue = ref('');
+const softwareNames = ref<SoftwareInfo[]>([]);
+const loadingSoftwareNames = ref(false);
 
 const getSoftwareNames = async (query: string) => {
   if (!query) {
-    softwareNames.value = []
-    return
+    softwareNames.value = [];
+    return;
   }
-  loadingSoftwareNames.value = true
-  await new Promise(r => setTimeout(r, 2000)) // sleep time
-  softwareNames.value = ['vue', 'element-plus', 'axios']
-  loadingSoftwareNames.value = false
-}
+  loadingSoftwareNames.value = true;
+  const res = await getSoftwareNamesApi(searchValue.value);
+  if (res.code === 200) {
+    softwareNames.value = res.data;
+  }
+  loadingSoftwareNames.value = false;
+};
 
-const onOpen = (key: string) => {
-  console.log(key)
-}
-
-const onClose = (key: string) => {
-  console.log(key)
-}
+const onClickSoftware = (name: string) => {
+  emit('searchName', name);
+  showSearchBox.value = false;
+};
 </script>
 
 <template>
@@ -52,10 +56,14 @@ const onClose = (key: string) => {
             <span v-show="!softwareNames.length">暂无最近搜索记录...</span>
             <span v-show="loadingSoftwareNames">搜索中...</span>
           </div>
-          <el-menu @open="onOpen" @close="onClose">
-            <el-menu-item v-for="(name, i) in softwareNames" :index="String(i)"
-              ><span>{{ name }}</span></el-menu-item
+          <el-menu>
+            <el-menu-item
+              v-for="({ fullName }, i) in softwareNames"
+              :index="String(i)"
+              @click="onClickSoftware(fullName)"
             >
+              <span>{{ fullName }}</span>
+            </el-menu-item>
           </el-menu>
         </el-scrollbar>
       </div>

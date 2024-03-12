@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import Button from './components/Button.vue'
-import SearchSoftware from "/@/components/SearchSoftware.vue";
+import { Button, SearchSoftware } from './components'
 </script>
 
 <template>
-  <Button text="Hello World!"/>
-  <SearchSoftware/>
+  <Button text="Hello World!" />
+  <SearchSoftware />
 </template>
 
 <style scoped></style>
