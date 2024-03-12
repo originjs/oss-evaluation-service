@@ -13,6 +13,7 @@
     "@orginjs/oss-evaluation-components": "workspace:^",
     "@orginjs/oss-evaluation-data-model": "workspace:^",
     "@vueuse/core": "^10.9.0",
+    "axios": "^1.6.7",
     "echarts": "^5.5.0",
     "element-plus": "^2.6.1",
     "vue": "^3.4.19",

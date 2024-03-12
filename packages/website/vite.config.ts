@@ -9,6 +9,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
+      '@api': resolve(__dirname, './src/api'),
       '@assets': resolve(__dirname, './src/assets'),
       '@components': resolve(__dirname, './src/components'),
       '@router': resolve(__dirname, './src/router'),
@@ -23,4 +24,12 @@ export default defineConfig({
       dts: true,
     }),
   ],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        rewrite: path => path.replace(/^\/api/, ''),
+      },
+    },
+  },
 })

@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { Plus } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
+import { getPerformance } from '@api/SoftwareDetails'
+
+const route = useRoute()
+
+const repoName = ref(encodeURIComponent(String(route.query.repoName ?? '')))
 
 const baseInfo = ref({
   logoUrl: 'https://v2.vuejs.org/images/logo.svg',
@@ -215,9 +220,13 @@ const docItems = ref([
 ])
 
 const performance = ref({
-  minified: '110.6kB',
-  compress: '40kB',
-  benchmarkScore: 89,
+  size: 0,
+  gzipSize: 0,
+  benchmarkScore: 0,
+})
+
+getPerformance(repoName.value).then(res => {
+  performance.value = res.data
 })
 
 const openSSFScordcard = ref({
@@ -384,11 +393,11 @@ onMounted(() => {
         <div>包大小</div>
         <div flex flex-items-center h-86px>
           <div mr-200px>
-            <div mb-2 font-bold>{{ performance.minified }}</div>
+            <div mb-2 font-bold>{{ performance.size }} B</div>
             <div>MINIFIED</div>
           </div>
           <div mr-200px>
-            <div mb-2 font-bold>{{ performance.compress }}</div>
+            <div mb-2 font-bold>{{ performance.gzipSize }} B</div>
             <div>Gzip压缩后</div>
           </div>
         </div>
