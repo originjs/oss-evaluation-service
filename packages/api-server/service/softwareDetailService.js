@@ -21,6 +21,7 @@ export async function getSoftwareFunction(repoName) {
   });
   const res = {};
   // TODO github star trends
+  res.starTrend = new ChartData([], []);
   // developer satisfaction
   if (stateOfJsData?.length !== 0) {
     const x = [];
