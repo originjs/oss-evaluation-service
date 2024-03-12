@@ -1,0 +1,13 @@
+<script setup lang="ts">
+import Layout from '@components/Layout.vue'
+</script>
+
+<template>
+  <Layout>
+    <router-view />
+  </Layout>
+</template>
+
+<style lang="less">
+@import '@assets/less/index.less';
+</style>

@@ -33,7 +33,7 @@ const features = ref([
         <div class="image">
           <div class="image-wrapper">
             <div class="image-bg"></div>
-            <img src="/common/logo.png" alt="logo" class="image-src">
+            <img src="/logo.png" alt="logo" class="image-src" />
           </div>
         </div>
       </div>
@@ -43,7 +43,7 @@ const features = ref([
         <div class="items">
           <div class="item" v-for="item in features">
             <div class="item-wrapper">
-              <el-icon class="icon"><el-icon-link/></el-icon>
+              <el-icon class="icon"><Link /></el-icon>
               <div class="title">{{ item.title }}</div>
               <div class="details">{{ item.details }}</div>
             </div>
@@ -74,7 +74,10 @@ const features = ref([
     max-width: 592px;
     text-align: left;
 
-    .name, .text, .tagline, .actions {
+    .name,
+    .text,
+    .tagline,
+    .actions {
       width: 100%;
     }
 
@@ -93,7 +96,7 @@ const features = ref([
       font-size: 56px;
       letter-spacing: -.4px;
       font-weight: 700;
-      color: rgba(60, 60, 67)
+      color: rgba(60, 60, 67);
     }
 
     .tagline {
@@ -125,7 +128,8 @@ const features = ref([
     height: 100%;
     transform: translate(-32px, -32px);
 
-    .image-bg, .image-src {
+    .image-bg,
+    .image-src {
       position: absolute;
       top: 50%;
       left: 50%;

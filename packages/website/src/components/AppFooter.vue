@@ -1,5 +1,4 @@
-<script setup lang="ts">
-</script>
+<script setup lang="ts"></script>
 
 <template>
   <div class="footer">
@@ -20,10 +19,11 @@
   text-align: center;
 }
 
-.message, .copyright {
+.message,
+.copyright {
   line-height: 24px;
   font-size: 14px;
   font-weight: 500;
-  color: rgba(60, 60, 67, .78);
+  color: rgba(60, 60, 67, 0.78);
 }
 </style>

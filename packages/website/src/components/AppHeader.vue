@@ -9,7 +9,7 @@ const route = useRoute()
   <div class="nav" :class="{ 'top': route.path === '/' ? y : true }">
     <div class="nav-wrapper">
       <div class="logo-wrapper">
-        <img class="logo" src="/common/logo.png" alt="logo">
+        <img class="logo" src="/logo.png" alt="logo">
         <span class="desc">前端先进性评估</span>
       </div>
 
@@ -27,7 +27,7 @@ const route = useRoute()
       <div class="extra-info">
         <a class="link" href="https://github.com/originjs/oss-evaluation-service" target="_blank">
           <el-icon :size="22" color="#666666">
-            <el-icon-link/>
+            <Link />
           </el-icon>
         </a>
       </div>
@@ -121,6 +121,6 @@ const route = useRoute()
   width: 1px;
   height: 24px;
   background-color: #666666;
-  content: "";
+  content: '';
 }
 </style>
