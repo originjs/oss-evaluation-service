@@ -12,7 +12,7 @@ export async function getSoftwareEcologyOverview(packageName) {
                name,
                full_name,
                stargazers_count,
-               forks,
+               forks_count,
                bus_factor,
                openrank,
                score as criticality_score,

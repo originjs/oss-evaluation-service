@@ -343,7 +343,7 @@ getQualityModuleInfo(encodeURIComponent(repoName.value)).then(({ data }) => {
   openSSFScordcard.value = {
     score: scorecard.score,
     items: [
-    {
+      {
         label: 'Code-Review',
         value: scorecard.codeReview,
       },
@@ -552,12 +552,12 @@ getEcologyActivityCategoryApi(encodeURIComponent(repoName.value))
         <div>包大小</div>
         <div flex flex-items-center h-86px>
           <div mr-200px>
-            <div mb-2 font-bold>{{ performanceModuleInfo.size }} B</div>
+            <div mb-2 font-bold>{{ (performanceModuleInfo.size / 1024).toFixed(1) }} kB</div>
             <div>MINIFIED</div>
           </div>
           <div mr-200px>
-            <div mb-2 font-bold>{{ performanceModuleInfo.gzipSize }} B</div>
-            <div>Gzip压缩后</div>
+            <div mb-2 font-bold>{{ (performanceModuleInfo.gzipSize / 1024).toFixed(1) }} kB</div>
+            <div>MINIFIED + GZIPPED</div>
           </div>
         </div>
         <div flex flex-items-center h-30px>
@@ -576,10 +576,10 @@ getEcologyActivityCategoryApi(encodeURIComponent(repoName.value))
         <div>{{ openSSFScordcard.score }} / 10</div>
         <div v-for="item in openSSFScordcard.items" :key="item.label" flex flex-items-center h-30px>
           <span w-190px>{{ item.label }}</span>
-          <el-progress :percentage="item.value * 10"  :stroke-width="10" flex-auto
-            :color="scorecardProgressColor(item.value)" >
+          <el-progress :percentage="item.value * 10" :stroke-width="10" flex-auto
+            :color="scorecardProgressColor(item.value)">
             <span>{{ item.value }} / 10</span>
-            </el-progress>
+          </el-progress>
         </div>
       </el-card>
       <el-card>
@@ -661,21 +661,21 @@ getEcologyActivityCategoryApi(encodeURIComponent(repoName.value))
               <div i-custom:download font-size-14 mr-4 />
               <div>
                 <div font-bold font-size-5>{{ toKilo(ecologyOverview?.downloads) }}</div>
-                <div line-height-7>npm 下载量（k）</div>
+                <div line-height-7>npm周下载量（k）</div>
               </div>
             </div>
             <div flex w-210px>
               <div i-custom:star font-size-14 mr-4 />
               <div>
                 <div font-bold font-size-5>{{ toKilo(ecologyOverview?.stargazersCount) }}</div>
-                <div line-height-7>star数量（k）</div>
+                <div line-height-7>Star数量（k）</div>
               </div>
             </div>
             <div flex w-210px>
               <div i-custom:fork font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ toKilo(ecologyOverview?.forkNum) }}</div>
-                <div line-height-7>fork数量（k）</div>
+                <div font-bold font-size-5>{{ toKilo(ecologyOverview?.forksCount) }}</div>
+                <div line-height-7>Fork数量（k）</div>
               </div>
             </div>
             <div flex w-210px>
