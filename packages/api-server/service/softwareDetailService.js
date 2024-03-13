@@ -116,22 +116,13 @@ export async function getPerformance(repoName) {
 export async function getQuality(repoName) {
   const projectId = await getProjectIdByRepoName(repoName);
   const res = {};
-  const {
-    score, maintained, codeReview, ciiBestPractices, license, branchProtection,
-  } = (await Scorecard.findOne({
+  const scorecard = await Scorecard.findOne({
     where: {
       projectId,
     },
     order: [['updatedAt', 'desc']],
-  })) || {};
-  res.scorecard = {
-    score,
-    maintained,
-    codeReview,
-    ciiBestPractices,
-    license,
-    branchProtection,
-  };
+  });
+  res.scorecard = scorecard || {};
   // TODO sonarCloud
   res.sonar = {};
   return res;

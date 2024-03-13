@@ -343,36 +343,68 @@ getQualityModuleInfo(encodeURIComponent(repoName.value)).then(({ data }) => {
   openSSFScordcard.value = {
     score: scorecard.score,
     items: [
+    {
+        label: 'Code-Review',
+        value: scorecard.codeReview,
+      },
       {
         label: 'Maintained',
         value: scorecard.maintained,
-      },
-      {
-        label: 'Code-Review',
-        value: scorecard.codeReview,
       },
       {
         label: 'CII-Best-Practices',
         value: scorecard.ciiBestPractices,
       },
       {
-        label: 'license',
+        label: 'License',
         value: scorecard.license,
+      },
+      {
+        label: 'Security-Policy',
+        value: scorecard.securityPolicy,
+      },
+      {
+        label: 'Dangerous-Workflow',
+        value: scorecard.dangerousWorkflow,
       },
       {
         label: 'Branch-Protection',
         value: scorecard.branchProtection,
+      },
+      {
+        label: 'Token-Permissions',
+        value: scorecard.tokenPermissions,
+      },
+      {
+        label: 'Binary-Artifacts',
+        value: scorecard.binaryArtifacts,
+      },
+      {
+        label: 'Fuzzing',
+        value: scorecard.fuzzing,
+      },
+      {
+        label: 'SAST',
+        value: scorecard.sast,
+      },
+      {
+        label: 'Vulnerabilities',
+        value: scorecard.vulnerabilities,
+      },
+      {
+        label: 'Pinned-Dependencies',
+        value: scorecard.pinnedDependencies,
       },
     ],
   };
 });
 
 function scorecardProgressColor(score: number) {
-  if (score < 20) {
+  if (score < 2) {
     return '#f43146';
-  } else if (score < 50) {
+  } else if (score < 5) {
     return '#ec6f1a';
-  } else if (score < 80) {
+  } else if (score < 8) {
     return '#eeba18';
   } else {
     return '#2da769';
@@ -540,12 +572,14 @@ getEcologyActivityCategoryApi(encodeURIComponent(repoName.value))
         <span>质量</span>
       </div>
       <el-card mb-6>
-        <div mb-4 font-size-5 font-bold>OpenSSF scorecard</div>
+        <div mb-4 font-size-5 font-bold>OpenSSF Scorecard</div>
         <div>{{ openSSFScordcard.score }} / 10</div>
-        <div v-for="item in openSSFScordcard.items" :key="item.label" flex flex-items-center h-50px>
+        <div v-for="item in openSSFScordcard.items" :key="item.label" flex flex-items-center h-30px>
           <span w-190px>{{ item.label }}</span>
-          <el-progress :percentage="item.value" text-inside :stroke-width="15" flex-auto
-            :color="scorecardProgressColor(item.value)" />
+          <el-progress :percentage="item.value * 10"  :stroke-width="10" flex-auto
+            :color="scorecardProgressColor(item.value)" >
+            <span>{{ item.value }} / 10</span>
+            </el-progress>
         </div>
       </el-card>
       <el-card>
