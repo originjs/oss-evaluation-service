@@ -64,3 +64,38 @@ type QualityModuleInfo = {
 export function getQualityModuleInfo(repoName: string) {
   return HttpRequest.get<QualityModuleInfo>(`/api/softwareDetail/quality/${repoName}`);
 }
+
+export type EcologyOverview = {
+  name: string;
+  fullName: string;
+  downloads: number;
+  stargazersCount: number;
+  busFactor: number;
+  openRank: number;
+  criticalityScore: number;
+  contributorCount: number;
+  dependentCount: number;
+};
+
+export function getEcologyOverviewApi(repoName: string) {
+  return HttpRequest.get<EcologyOverview>(`/api/ecology/overview/${repoName}`);
+}
+
+export type EcologyActivity = {
+  projectId: number;
+  value: number;
+  date: string;
+};
+
+export type EcologyActivityCategory = {
+  commitFrequency: EcologyActivity[];
+  commentFrequency: EcologyActivity[];
+  updatedIssuesCount: EcologyActivity[];
+  closedIssuesCount: EcologyActivity[];
+  orgCount: EcologyActivity[];
+  contributorCount: EcologyActivity[];
+};
+
+export function getEcologyActivityCategoryApi(repoName: string) {
+  return HttpRequest.get<EcologyActivityCategory>(`/api/ecology/activity/${repoName}`);
+}
