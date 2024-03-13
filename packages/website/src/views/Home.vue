@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { SearchSoftware } from '@orginjs/oss-evaluation-components';
+
+const router = useRouter();
+
 const features = ref([
   {
     icon: 'ELIConSearch',
@@ -15,7 +19,16 @@ const features = ref([
     title: '先进性评估',
     details: '功能、性能、生态、质量、创新多维度数字化画像，一键自动化生成评估报告',
   },
-])
+]);
+
+const onSearchSoftwareName = (repoName: string) => {
+  router.push({
+    path: 'software-details',
+    query: {
+      repoName,
+    },
+  });
+};
 </script>
 
 <template>
@@ -26,15 +39,7 @@ const features = ref([
           <h1 class="name"><span class="clip">OSS Evaluation</span></h1>
           <p class="text">前端先进性评估</p>
           <p class="tagline">前端先进性评估</p>
-          <div class="actions">
-            <!--      todo 公共搜索组件 -->
-            <button class="search-btn">
-              <span class="content">
-                <span i-ph-magnifying-glass-bold mt-1px />
-                <span class="desc">搜索开源项目</span>
-              </span>
-            </button>
-          </div>
+          <div class="actions"><SearchSoftware @searchName="onSearchSoftwareName" /></div>
         </div>
         <div class="image">
           <div class="image-wrapper">
@@ -62,8 +67,7 @@ const features = ref([
 
 <style scoped lang="less">
 .home {
-  margin-bottom: 108px;
-  padding-top: 20px;
+  margin: 20px 20px 108px;
 }
 
 .intro {
@@ -86,6 +90,10 @@ const features = ref([
     .tagline,
     .actions {
       width: 100%;
+
+      :deep(.search-btn) {
+        width: 280px;
+      }
     }
 
     .clip {
@@ -119,33 +127,6 @@ const features = ref([
       align-items: center;
       flex-wrap: wrap;
       padding-top: 32px;
-
-      .search-btn {
-        display: flex;
-        align-items: center;
-        padding: 12px;
-        border-radius: 8px;
-        height: 40px;
-        width: 280px;
-        background-color: #f6f6f7;
-        cursor: pointer;
-        outline: none;
-        border: 1px solid transparent;
-        color: rgba(0, 0, 0, 0.75);
-
-        &:hover {
-          border-color: #3451b2;
-        }
-
-        .content {
-          display: flex;
-          align-items: center;
-
-          .desc {
-            margin-left: 6px;
-          }
-        }
-      }
     }
   }
 

@@ -5,11 +5,11 @@ import AppFooter from '@components/AppFooter.vue'
 
 <template>
   <div class="layout">
-    <el-container>
-      <el-header><AppHeader /></el-header>
-      <el-main><slot /></el-main>
-      <el-footer><AppFooter /></el-footer>
-    </el-container>
+    <AppHeader/>
+    <div class="page">
+      <slot/>
+    </div>
+    <AppFooter/>
   </div>
 </template>
 
@@ -18,19 +18,10 @@ import AppFooter from '@components/AppFooter.vue'
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-width: 1366px;
 }
 
-.el-header {
-  z-index: 30;
-}
-
-.el-main {
-  overflow: visible;
-  padding: 0;
-}
-
-.el-footer {
-  height: 100%;
-  border-top: 1px solid #e2e2e3;
+.page {
+  padding-top: 64px;
 }
 </style>

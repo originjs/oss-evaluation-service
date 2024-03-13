@@ -1,12 +1,18 @@
-import { defineConfig } from 'vite';
-import vue from '@vitejs/plugin-vue';
-import dts from 'vite-plugin-dts';
-import { resolve } from 'pathe';
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import dts from 'vite-plugin-dts'
+import { resolve } from 'pathe'
+import AutoImport from 'unplugin-auto-import/vite'
+import UnoCSS from 'unocss/vite'
+import Components from 'unplugin-vue-components/vite'
+import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
+
+const pathSrc = resolve(__dirname, './src')
 
 export default defineConfig({
   resolve: {
     alias: {
-      '/@': resolve(__dirname, './src'),
+      '@': pathSrc,
     },
   },
   plugins: [
@@ -14,15 +20,37 @@ export default defineConfig({
     dts({
       insertTypesEntry: true,
     }),
+    AutoImport({
+      // targets to transform
+      include: [
+        /\.[tj]sx?$/, // .ts, .tsx, .js, .jsx
+        /\.vue$/,
+        /\.vue\?vue/, // .vue
+        /\.md$/, // .md
+      ],
+
+      // global imports to register
+      imports: [
+        // presets
+        'vue',
+        'vue-router',
+      ],
+
+      resolvers: [ElementPlusResolver()],
+    }),
+    Components({
+      resolvers: [ElementPlusResolver()],
+    }),
+    UnoCSS(),
   ],
   build: {
     lib: {
-      entry: resolve(__dirname, 'src/components/index.ts'),
+      entry: resolve(pathSrc, 'components/index.ts'),
       name: 'index',
       fileName: 'index',
     },
     watch: {
-      include: [resolve(__dirname, 'src')],
+      include: [pathSrc],
     },
     rollupOptions: {
       external: ['vue'],
@@ -33,15 +61,17 @@ export default defineConfig({
         },
       },
     },
+    cssCodeSplit: true,
   },
   optimizeDeps: {
     exclude: ['vue'],
   },
-  css: {
-    preprocessorOptions: {
-      less: {
-        additionalData: '@import "src/style/index.less";',
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },
   },
-});
+})

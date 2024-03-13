@@ -1,43 +1,71 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { SearchSoftware } from '@orginjs/oss-evaluation-components';
+import { useWindowScroll } from '@vueuse/core';
+const { y } = useWindowScroll();
+const route = useRoute();
+const router = useRouter();
+
+const onSearchSoftwareName = (repoName: string) => {
+  router.push({
+    path: 'software-details',
+    query: {
+      repoName,
+    },
+  });
+};
+</script>
 
 <template>
-  <div class="nav">
-    <div class="logo-wrapper">
-      <img class="logo" src="/logo.png" alt="logo" />
-      <span class="desc">前端先进性评估</span>
-    </div>
+  <div class="nav" :class="{ top: route.path === '/' ? y : true }">
+    <div class="nav-wrapper">
+      <div class="logo-wrapper cursor-pointer" @click="() => router.push('/')">
+        <img class="logo" src="/logo.png" alt="logo" />
+        <span class="desc">前端先进性评估</span>
+      </div>
 
-    <div class="search-wrapper">
-      <!--      todo 公共搜索组件 -->
-      <button class="search-btn">
-        <span class="content">
-          <span i-ph-magnifying-glass-bold important-bg-current mt-1 />
-          <span class="desc">搜索开源项目</span>
-        </span>
-      </button>
-    </div>
+      <div class="search-wrapper"><SearchSoftware @searchName="onSearchSoftwareName" /></div>
 
-    <!--    todo 后端获取数据渲染菜单 -->
-    <el-menu class="menu" mode="horizontal" :ellipsis="false">
-      <el-menu-item index="1">评估模型</el-menu-item>
-      <el-menu-item index="2">Landscape</el-menu-item>
-      <el-menu-item index="3">趋势榜单</el-menu-item>
-      <el-menu-item index="4">性能 Benchmark</el-menu-item>
-      <el-menu-item index="5">动态</el-menu-item>
-    </el-menu>
+      <!--    todo 后端获取数据渲染菜单 -->
+      <el-menu class="menu" mode="horizontal" :ellipsis="false">
+        <el-menu-item index="1">评估模型</el-menu-item>
+        <el-menu-item index="2">Landscape</el-menu-item>
+        <el-menu-item index="3">趋势榜单</el-menu-item>
+        <el-menu-item index="4">性能 Benchmark</el-menu-item>
+        <el-menu-item index="5">动态</el-menu-item>
+      </el-menu>
 
-    <div class="extra-info">
-      <a class="link" href="https://github.com/originjs/oss-evaluation-service" target="_blank">
-        <el-icon :size="22" color="#666666">
-          <Link />
-        </el-icon>
-      </a>
+      <div class="extra-info">
+        <a class="link" href="https://github.com/originjs/oss-evaluation-service" target="_blank">
+          <el-icon :size="22" color="#666666">
+            <Link />
+          </el-icon>
+        </a>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped lang="less">
 .nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 0 20px;
+  z-index: 30;
+  border-bottom: 0.5px solid #e2e2e3;
+  background-color: #ffffff;
+  transition:
+    background-color,
+    border-bottom-color 0.5s;
+
+  &:not(.top) {
+    background-color: transparent;
+    border-bottom-color: transparent;
+  }
+}
+
+.nav-wrapper {
   margin: 0 auto;
   display: flex;
   justify-content: space-around;
@@ -45,10 +73,6 @@
   height: 64px;
   min-width: 900px;
   max-width: 1400px;
-
-  * {
-    background-color: transparent;
-  }
 }
 
 .logo-wrapper {
@@ -68,32 +92,11 @@
 .search-wrapper {
   margin-left: 40px;
   flex: 1;
+}
 
-  .search-btn {
-    display: flex;
-    align-items: center;
-    padding: 12px;
-    border-radius: 8px;
-    height: 40px;
-    background-color: #f6f6f7;
-    cursor: pointer;
-    outline: none;
-    border: 1px solid transparent;
-    color: rgba(0, 0, 0, 0.75);
-
-    &:hover {
-      border-color: #3451b2;
-    }
-
-    .content {
-      display: flex;
-      align-items: center;
-
-      .desc {
-        margin-left: 6px;
-      }
-    }
-  }
+.el-menu {
+  height: 64px;
+  background-color: transparent;
 }
 
 .el-menu-item {
