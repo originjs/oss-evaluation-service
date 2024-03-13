@@ -21,7 +21,7 @@
     "pre-commit": "npx lint-staged"
   },
   "lint-staged": {
-    "*.{vue,ts?(x),js,css}": [
+    "*.{ts?(x),js,css}": [
       "eslint --cache --fix",
       "eslint"
     ]

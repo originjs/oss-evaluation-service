@@ -161,25 +161,26 @@ getFunctionModuleInfo(encodeURIComponent(repoName.value))
       score: data.document.documentScore,
       items: [
         {
-          title: 'Changelog',
-          content: '（暂无）',
-          has: data.document.hasChangelog,
-        },
-        {
-          title: 'Governance',
-          content: '（暂无）',
-          has: data.document.hasContributing,
-        },
-        {
           title: 'Readme',
-          content: '（暂无）',
+          content: 'The readme file introduces and explains a project. It contains information that is commonly required to understand what the project is about.',
           has: data.document.hasReadme,
         },
         {
           title: 'Website',
-          content: '（暂无）',
+          content: 'A url that users can visit to learn more about your project.',
           has: data.document.hasWebsite,
         },
+        {
+          title: 'Changelog',
+          content: 'A curated, chronologically ordered list of notable changes for each version.',
+          has: data.document.hasChangelog,
+        },
+        {
+          title: 'Governance',
+          content: 'Document that explains how the governance and committer process works in the repository.',
+          has: data.document.hasContributing,
+        },
+
       ],
     };
   })
@@ -443,24 +444,19 @@ getEcologyActivityCategoryApi(encodeURIComponent(repoName.value))
         <el-image :src="baseInfo.logo" fit="contain" class="float-left w-96px h-96px mr-14px">
           <template #error>
             <div flex flex-justify-center flex-items-center w-full h-full bg-gray-100>
-              <el-icon font-size-7 color-gray-400><Picture /></el-icon>
+              <el-icon font-size-7 color-gray-400>
+                <Picture />
+              </el-icon>
             </div>
           </template>
         </el-image>
         <div float-left w-825px>
           <div position-relative flex flex-items-center>
             <el-tooltip effect="light" :teleported="false">
-              <div
-                mt--5px
-                mr-12px
-                max-w-600px
-                font-size-7
-                font-bold
-                line-height-normal
-                class="text-over"
-              >
+              <div mt--5px mr-12px max-w-600px font-size-7 font-bold line-height-normal class="text-over">
                 {{ repoName }}
               </div>
+
               <template #content>
                 <div max-w-900px>{{ repoName }}</div>
               </template>
@@ -470,29 +466,20 @@ getEcologyActivityCategoryApi(encodeURIComponent(repoName.value))
           </div>
           <el-tooltip effect="light" :teleported="false">
             <div mb-2 font-size-3.5 class="text-over">{{ baseInfo.description }}</div>
+
             <template #content>
               <div max-w-900px>{{ baseInfo.description }}</div>
             </template>
           </el-tooltip>
           <el-tag v-for="(label, idx) in baseInfo.tags" :key="idx" :type="tagType(idx)" mr-2 mb-2>{{
-            label
-          }}</el-tag>
+      label
+    }}</el-tag>
         </div>
         <div id="software-radar-chart" float-right w-328px h-303px pt-30px bg-coolgray-50 />
-        <el-table
-          :data="baseInfo.tableData"
-          stripe
-          border
-          :show-header="false"
-          show-overflow-tooltip
-          tooltip-effect="light"
-        >
+        <el-table :data="baseInfo.tableData" stripe border :show-header="false" show-overflow-tooltip
+          tooltip-effect="light">
           <el-table-column prop="label" align="center" />
-          <el-table-column
-            prop="value"
-            align="center"
-            :formatter="(row: TableRow) => row.value ?? 'NA'"
-          />
+          <el-table-column prop="value" align="center" :formatter="(row: TableRow) => row.value ?? 'NA'" />
         </el-table>
       </div>
     </div>
@@ -514,14 +501,7 @@ getEcologyActivityCategoryApi(encodeURIComponent(repoName.value))
         <div flex>
           <div id="doc-best-practices-chart" w-280px h-208px flex-none />
           <div flex flex-wrap justify-between content-between h-208px>
-            <div
-              v-for="(docItem, idx) in documentInfo.items"
-              :key="idx"
-              w-470px
-              h-95px
-              p-3
-              bg-coolgray-50
-            >
+            <div v-for="(docItem, idx) in documentInfo.items" :key="idx" w-470px h-95px p-3 bg-coolgray-50>
               <div flex flex-items-center font-bold mb-1>
                 <span v-if="docItem.has" i-ph-check-circle mr-1 font-size-5 color-green-300 />
                 <span v-else i-ph-minus-circle mr-1 font-size-5 color-gray-400 />
@@ -550,14 +530,8 @@ getEcologyActivityCategoryApi(encodeURIComponent(repoName.value))
         </div>
         <div flex flex-items-center h-30px>
           <span font-bold>Benchmark Score: </span>
-          <el-progress
-            :percentage="performanceModuleInfo.benchmarkScore"
-            text-inside
-            :stroke-width="15"
-            flex-auto
-            ml-6
-            mr-6
-          />
+          <el-progress :percentage="performanceModuleInfo.benchmarkScore" text-inside :stroke-width="15" flex-auto ml-6
+            mr-6 />
           <a href="" color-revert>查看性能Benchmark</a>
         </div>
       </el-card>
@@ -570,13 +544,8 @@ getEcologyActivityCategoryApi(encodeURIComponent(repoName.value))
         <div>{{ openSSFScordcard.score }} / 10</div>
         <div v-for="item in openSSFScordcard.items" :key="item.label" flex flex-items-center h-50px>
           <span w-190px>{{ item.label }}</span>
-          <el-progress
-            :percentage="item.value"
-            text-inside
-            :stroke-width="15"
-            flex-auto
-            :color="scorecardProgressColor(item.value)"
-          />
+          <el-progress :percentage="item.value" text-inside :stroke-width="15" flex-auto
+            :color="scorecardProgressColor(item.value)" />
         </div>
       </el-card>
       <el-card>
@@ -593,8 +562,7 @@ getEcologyActivityCategoryApi(encodeURIComponent(repoName.value))
               <span i-ph-question-duotone font-size-5 ml-1 mb-2px></span>
             </div>
             <div
-              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% bg-blue text-center translate-y--50%"
-            >
+              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% bg-blue text-center translate-y--50%">
               <span vertical-middle color-white>{{ sonarCloudScan.reliabilityLevel }}</span>
             </div>
           </div>
@@ -609,8 +577,7 @@ getEcologyActivityCategoryApi(encodeURIComponent(repoName.value))
               <span i-ph-question-duotone font-size-5 ml-1 mb-2px></span>
             </div>
             <div
-              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% bg-blue text-center translate-y--50%"
-            >
+              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% bg-blue text-center translate-y--50%">
               <span vertical-middle color-white>{{ sonarCloudScan.maintainabilityLevel }}</span>
             </div>
           </div>
@@ -625,8 +592,7 @@ getEcologyActivityCategoryApi(encodeURIComponent(repoName.value))
               <span i-ph-question-duotone font-size-5 ml-1 mb-2px></span>
             </div>
             <div
-              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% bg-blue text-center translate-y--50%"
-            >
+              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% bg-blue text-center translate-y--50%">
               <span vertical-middle color-white>{{ sonarCloudScan.securityLevel }}</span>
             </div>
           </div>
@@ -643,8 +609,7 @@ getEcologyActivityCategoryApi(encodeURIComponent(repoName.value))
               <span font-light>{{ sonarCloudScan.reviewed }} Reviewed</span>
             </div>
             <div
-              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% bg-blue text-center translate-y--50%"
-            >
+              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% bg-blue text-center translate-y--50%">
               <span vertical-middle color-white>{{ sonarCloudScan.securityReviewLevel }}</span>
             </div>
           </div>
@@ -755,6 +720,7 @@ getEcologyActivityCategoryApi(encodeURIComponent(repoName.value))
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .text-over-2 {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -762,11 +728,13 @@ getEcologyActivityCategoryApi(encodeURIComponent(repoName.value))
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
+
 :deep(.el-table) {
   float: left;
   margin-top: 14px;
   width: 935px;
   height: 185px;
+
   .cell {
     line-height: 20px;
   }
