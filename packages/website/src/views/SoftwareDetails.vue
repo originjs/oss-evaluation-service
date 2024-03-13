@@ -3,13 +3,22 @@ import { Plus } from '@element-plus/icons-vue';
 import * as echarts from 'echarts';
 import dayjs from 'dayjs';
 import {
+  EcologyActivity,
+  EcologyActivityCategory,
+  EcologyOverview,
   getBaseInfo,
+  getEcologyActivityCategoryApi,
+  getEcologyOverviewApi,
   getFunctionModuleInfo,
   getPerformanceModuleInfo,
   getQualityModuleInfo,
 } from '@api/SoftwareDetails';
 
 const route = useRoute();
+
+function toKilo(num: number) {
+  return Math.floor(num / 1000);
+}
 
 const repoName = ref(String(route.query.repoName ?? ''));
 
@@ -369,42 +378,32 @@ function scorecardProgressColor(score: number) {
   }
 }
 
-const maturity = ref({
-  npmDownloadNum: 83.38,
-  starNum: 83.38,
-  forkNum: 200,
-  busFactor: 200,
-});
-
-const influence = ref({
-  openRankScore: 83.38,
-  criticalityScore: 83.38,
-  contributorsNum: 200,
-  dependentNum: 200,
-});
-
-function renderLineChart(container: string) {
+function renderLineChart(container: string, data: EcologyActivity[]) {
   const chartDom = softwareDetailsEl.value.querySelector(container);
   if (!chartDom) {
     return;
   }
   const chart = echarts.init(chartDom);
   const option: echarts.EChartsOption = {
+    tooltip: {
+      show: true,
+      trigger: 'axis',
+    },
     xAxis: {
       type: 'category',
-      data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+      data: data.map(item => item.date),
     },
     yAxis: {
       type: 'value',
     },
     series: [
       {
-        data: [20, 30, 60, 80, 60, 30, 20],
+        data: data.map(item => item.value),
         type: 'line',
       },
     ],
     grid: {
-      left: '6%',
+      left: '8%',
       right: '5%',
       top: '8%',
       bottom: '12%',
@@ -412,14 +411,29 @@ function renderLineChart(container: string) {
   };
   chart.setOption(option);
 }
-onMounted(() => {
-  renderLineChart('#code-submit-frequency-chart');
-  renderLineChart('#issue-comment-frequency-chart');
-  renderLineChart('#update-issue-count-chart');
-  renderLineChart('#close-issue-count-chart');
-  renderLineChart('#organization-count-chart');
-  renderLineChart('#maintainer-count-chart');
+
+const ecologyOverview = ref<EcologyOverview>();
+getEcologyOverviewApi(encodeURIComponent(repoName.value)).then(({ data }) => {
+  ecologyOverview.value = data;
 });
+
+const ecologyActivityCategory = ref<EcologyActivityCategory>();
+
+getEcologyActivityCategoryApi(encodeURIComponent(repoName.value))
+  .then(({ data }) => {
+    ecologyActivityCategory.value = data;
+  })
+  .then(() => {
+    renderLineChart('#code-submit-frequency-chart', ecologyActivityCategory.value?.commitFrequency);
+    renderLineChart(
+      '#issue-comment-frequency-chart',
+      ecologyActivityCategory.value?.commentFrequency,
+    );
+    renderLineChart('#update-issue-count-chart', ecologyActivityCategory.value?.updatedIssuesCount);
+    renderLineChart('#close-issue-count-chart', ecologyActivityCategory.value?.closedIssuesCount);
+    renderLineChart('#organization-count-chart', ecologyActivityCategory.value?.orgCount);
+    renderLineChart('#maintainer-count-chart', ecologyActivityCategory.value?.contributorCount);
+  });
 </script>
 
 <template>
@@ -647,28 +661,28 @@ onMounted(() => {
             <div flex w-210px>
               <div i-custom:download font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ maturity.npmDownloadNum }}</div>
+                <div font-bold font-size-5>{{ toKilo(ecologyOverview?.downloads) }}</div>
                 <div line-height-7>npm 下载量（k）</div>
               </div>
             </div>
             <div flex w-210px>
               <div i-custom:star font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ maturity.npmDownloadNum }}</div>
+                <div font-bold font-size-5>{{ toKilo(ecologyOverview?.stargazersCount) }}</div>
                 <div line-height-7>star数量（k）</div>
               </div>
             </div>
             <div flex w-210px>
               <div i-custom:fork font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ maturity.forkNum }}</div>
+                <div font-bold font-size-5>{{ toKilo(ecologyOverview?.forkNum) }}</div>
                 <div line-height-7>fork数量（k）</div>
               </div>
             </div>
             <div flex w-210px>
               <div i-custom:bus font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ maturity.busFactor }}</div>
+                <div font-bold font-size-5>{{ ecologyOverview?.busFactor }}</div>
                 <div line-height-7>巴士系数</div>
               </div>
             </div>
@@ -679,28 +693,28 @@ onMounted(() => {
             <div flex w-210px>
               <div i-custom:medal font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ influence.openRankScore }}</div>
+                <div font-bold font-size-5>{{ ecologyOverview?.openRank }}</div>
                 <div line-height-7>OpenRank得分</div>
               </div>
             </div>
             <div flex w-210px>
               <div i-custom:trophy font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ influence.criticalityScore }}</div>
+                <div font-bold font-size-5>{{ ecologyOverview?.criticalityScore }}</div>
                 <div line-height-7>Criticality得分</div>
               </div>
             </div>
             <div flex w-210px>
               <div i-custom:contributor font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ influence.contributorsNum }}</div>
+                <div font-bold font-size-5>{{ ecologyOverview?.contributorCount }}</div>
                 <div line-height-7>贡献者数量</div>
               </div>
             </div>
             <div flex w-210px>
               <div i-custom:link font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ influence.dependentNum }}</div>
+                <div font-bold font-size-5>{{ ecologyOverview?.dependentCount }}</div>
                 <div line-height-7>被依赖数量</div>
               </div>
             </div>
