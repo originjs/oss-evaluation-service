@@ -1,72 +1,107 @@
 <script setup lang="ts">
-import { Plus } from '@element-plus/icons-vue'
-import * as echarts from 'echarts'
-import { getPerformance } from '@api/SoftwareDetails'
+import { Plus } from '@element-plus/icons-vue';
+import * as echarts from 'echarts';
+import dayjs from 'dayjs';
+import {
+  getBaseInfo,
+  getFunctionModuleInfo,
+  getPerformanceModuleInfo,
+  getQualityModuleInfo,
+} from '@api/SoftwareDetails';
 
-const route = useRoute()
+const route = useRoute();
 
-const repoName = ref(encodeURIComponent(String(route.query.repoName ?? '')))
+const repoName = ref(String(route.query.repoName ?? ''));
 
-const baseInfo = ref({
-  logoUrl: 'https://v2.vuejs.org/images/logo.svg',
-  name: 'vuejs/vue ',
-  introduction:
-    'Vue.js is a progressive,incrementally-adoptable JavaScript framework for building UI on the web.',
-  labels: ['vue', 'UI Framework'],
-  tableData: [
-    {
-      label: 'Stars',
-      value: '444225',
-    },
-    {
-      label: '开发语言',
-      value: 'TypeScript',
-    },
-    {
-      label: '代码量',
-      value: '75K',
-    },
-    {
-      label: '首次提交',
-      value: '7年前',
-    },
-    {
-      label: 'License',
-      value: 'MIT',
-    },
-  ],
-})
+type TableRow = {
+  label: string;
+  value: string | number;
+};
+
+const baseInfo = reactive({
+  logo: '',
+  description: '',
+  tags: [] as Array<string>,
+  tableData: [] as Array<TableRow>,
+  evaluation: {
+    functionScore: 0,
+    qualityScore: 0,
+    performanceScore: 0,
+    ecologyScore: 0,
+    innovationValue: 0,
+  },
+});
+const overviewLoading = ref(true);
+
+getBaseInfo(encodeURIComponent(repoName.value))
+  .then(({ data }) => {
+    baseInfo.logo = data.logo;
+    baseInfo.description = data.description;
+    baseInfo.tags = data.tags ? data.tags.split('|') : [];
+    baseInfo.tableData = [
+      {
+        label: 'Stars',
+        value: data.star,
+      },
+      {
+        label: '开发语言',
+        value: data.language,
+      },
+      {
+        label: '代码量',
+        value: data.codeLines,
+      },
+      {
+        label: '首次提交',
+        value: dayjs(data.firstCommit).format('YYYY-MM-DD'),
+      },
+      {
+        label: 'License',
+        value: data.license,
+      },
+    ];
+    baseInfo.evaluation = data.evaluation;
+  })
+  .then(() => {
+    renderSoftwareRadarChart();
+  })
+  .finally(() => {
+    overviewLoading.value = false;
+  });
 
 function tagType(idx: number) {
-  const remainder = idx % 4
+  const remainder = idx % 4;
   switch (remainder) {
     case 0:
-      return 'primary'
+      return 'primary';
     case 1:
-      return 'success'
+      return 'success';
     case 2:
-      return 'warning'
+      return 'warning';
     case 3:
-      return 'danger'
+      return 'danger';
   }
 }
 
-const softwareDetailsEl = ref()
+const softwareDetailsEl = ref();
 
 function renderSoftwareRadarChart() {
-  const chartDom = softwareDetailsEl.value?.querySelector('#software-radar-chart')
+  const chartDom = softwareDetailsEl.value?.querySelector('#software-radar-chart');
   if (!chartDom) {
-    return
+    return;
   }
-  const chart = echarts.init(chartDom)
+  const chart = echarts.init(chartDom);
   const option: echarts.EChartsOption = {
+    tooltip: {
+      trigger: 'axis',
+    },
     radar: {
       indicator: [
-        { name: '功能', max: 6500 },
-        { name: '质量', max: 16000 },
-        { name: '性能', max: 30000 },
-        { name: '生态', max: 38000 },
-        { name: '创新', max: 52000 },
+        { name: '功能', max: 100 },
+        { name: '质量', max: 100 },
+        { name: '性能', max: 100 },
+        { name: '生态', max: 100 },
+        { name: '创新', max: 100 },
       ],
     },
     series: [
@@ -74,26 +109,90 @@ function renderSoftwareRadarChart() {
         type: 'radar',
         data: [
           {
-            value: [5000, 14000, 28000, 26000, 42000],
+            value: [
+              baseInfo.evaluation.functionScore,
+              baseInfo.evaluation.qualityScore,
+              baseInfo.evaluation.performanceScore,
+              baseInfo.evaluation.ecologyScore,
+              baseInfo.evaluation.innovationValue,
+            ],
+            name: '分数',
           },
         ],
+        tooltip: {
+          trigger: 'item',
+        },
+        areaStyle: {},
       },
     ],
-  }
-  chart.setOption(option)
+  };
+  chart.setOption(option);
 }
-onMounted(renderSoftwareRadarChart)
+
+const developerSatisfaction = ref({
+  xAxis: [] as Array<number>,
+  yAxis: [] as Array<number>,
+});
+const documentInfo = ref<{
+  score: number;
+  items: Array<{
+    title: string;
+    content: string;
+    has: boolean;
+  }>;
+}>({
+  score: 0,
+  items: [],
+});
+
+getFunctionModuleInfo(encodeURIComponent(repoName.value))
+  .then(({ data }) => {
+    developerSatisfaction.value = data.satisfaction;
+    documentInfo.value = {
+      score: data.document.documentScore,
+      items: [
+        {
+          title: 'Changelog',
+          content: '（暂无）',
+          has: data.document.hasChangelog,
+        },
+        {
+          title: 'Governance',
+          content: '（暂无）',
+          has: data.document.hasContributing,
+        },
+        {
+          title: 'Readme',
+          content: '（暂无）',
+          has: data.document.hasReadme,
+        },
+        {
+          title: 'Website',
+          content: '（暂无）',
+          has: data.document.hasWebsite,
+        },
+      ],
+    };
+  })
+  .then(() => {
+    renderGithubStartChart();
+    renderDeveloperSatisfactionChart();
+    renderDocBestPracticesChart();
+  });
 
 function renderGithubStartChart() {
-  const chartDom = softwareDetailsEl.value.querySelector('#github-start-chart')
+  const chartDom = softwareDetailsEl.value.querySelector('#github-start-chart');
   if (!chartDom) {
-    return
+    return;
   }
-  const chart = echarts.init(chartDom)
+  const chart = echarts.init(chartDom);
   const option: echarts.EChartsOption = {
+    tooltip: {
+      trigger: 'axis',
+    },
     xAxis: {
       type: 'category',
-      data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+      data: ['2016', '2017', '2018', '2019', '2020', '2021', '2022'],
     },
     yAxis: {
       type: 'value',
@@ -109,28 +208,30 @@ function renderGithubStartChart() {
       right: '4%',
       bottom: '10%',
     },
-  }
-  chart.setOption(option)
+  };
+  chart.setOption(option);
 }
-onMounted(renderGithubStartChart)
 
 function renderDeveloperSatisfactionChart() {
-  const chartDom = softwareDetailsEl.value?.querySelector('#developer-satisfaction-chart')
+  const chartDom = softwareDetailsEl.value?.querySelector('#developer-satisfaction-chart');
   if (!chartDom) {
-    return
+    return;
   }
-  const chart = echarts.init(chartDom)
+  const chart = echarts.init(chartDom);
   const option: echarts.EChartsOption = {
+    tooltip: {
+      trigger: 'axis',
+    },
     xAxis: {
       type: 'category',
-      data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+      data: developerSatisfaction.value.xAxis,
     },
     yAxis: {
       type: 'value',
     },
     series: [
       {
-        data: [20, 30, 60, 80, 60, 30, 20],
+        data: developerSatisfaction.value.yAxis,
         type: 'line',
       },
     ],
@@ -139,17 +240,16 @@ function renderDeveloperSatisfactionChart() {
       right: '4%',
       bottom: '10%',
     },
-  }
-  chart.setOption(option)
+  };
+  chart.setOption(option);
 }
-onMounted(renderDeveloperSatisfactionChart)
 
 function renderDocBestPracticesChart() {
-  const chartDom = softwareDetailsEl.value?.querySelector('#doc-best-practices-chart')
+  const chartDom = softwareDetailsEl.value?.querySelector('#doc-best-practices-chart');
   if (!chartDom) {
-    return
+    return;
   }
-  const chart = echarts.init(chartDom)
+  const chart = echarts.init(chartDom);
   const option: echarts.EChartsOption = {
     series: [
       {
@@ -186,56 +286,35 @@ function renderDocBestPracticesChart() {
         },
         data: [
           {
-            value: 44,
+            value: documentInfo.value.score || 0,
           },
         ],
       },
     ],
-  }
-  chart.setOption(option)
+  };
+  chart.setOption(option);
 }
-onMounted(renderDocBestPracticesChart)
 
-const docItems = ref([
-  {
-    title: 'Changelog',
-    content:
-      'The npm package reactives a total of 22910623 downloads a week.As such,we scored react popularity level to be Key ecosystem project.',
-  },
-  {
-    title: 'Governance',
-    content:
-      'The npm package reactives a total of 22910623 downloads a week.As such,we scored react popularity level to be Key ecosystem project.',
-  },
-  {
-    title: 'Readme',
-    content:
-      'The npm package reactives a total of 22910623 downloads a week.As such,we scored react popularity level to be Key ecosystem project.',
-  },
-  {
-    title: 'Website',
-    content:
-      'The npm package reactives a total of 22910623 downloads a week.As such,we scored react popularity level to be Key ecosystem project.',
-  },
-])
-
-const performance = ref({
+const performanceModuleInfo = ref({
   size: 0,
   gzipSize: 0,
   benchmarkScore: 0,
-})
+});
 
-getPerformance(repoName.value).then(res => {
-  performance.value = res.data
-})
+getPerformanceModuleInfo(encodeURIComponent(repoName.value)).then(({ data }) => {
+  performanceModuleInfo.value = data;
+});
 
-const openSSFScordcard = ref({
-  Maintained: 56,
-  'Code-Review': 12,
-  'CII-Best-Practices': 30,
-  license: 46,
-  'Branch-Protection': 88,
-})
+const openSSFScordcard = ref<{
+  score: number;
+  items: Array<{
+    label: string;
+    value: number;
+  }>;
+}>({
+  score: 0,
+  items: [],
+});
 
 const sonarCloudScan = ref({
   bug: 1,
@@ -247,28 +326,69 @@ const sonarCloudScan = ref({
   maintainabilityLevel: 'A',
   securityLevel: 'A',
   securityReviewLevel: 'E',
-})
+});
+
+getQualityModuleInfo(encodeURIComponent(repoName.value)).then(({ data }) => {
+  const scorecard = data.scorecard;
+  openSSFScordcard.value = {
+    score: scorecard.score,
+    items: [
+      {
+        label: 'Maintained',
+        value: scorecard.maintained,
+      },
+      {
+        label: 'Code-Review',
+        value: scorecard.codeReview,
+      },
+      {
+        label: 'CII-Best-Practices',
+        value: scorecard.ciiBestPractices,
+      },
+      {
+        label: 'license',
+        value: scorecard.license,
+      },
+      {
+        label: 'Branch-Protection',
+        value: scorecard.branchProtection,
+      },
+    ],
+  };
+});
+
+function scorecardProgressColor(score: number) {
+  if (score < 20) {
+    return '#f43146';
+  } else if (score < 50) {
+    return '#ec6f1a';
+  } else if (score < 80) {
+    return '#eeba18';
+  } else {
+    return '#2da769';
+  }
+}
 
 const maturity = ref({
   npmDownloadNum: 83.38,
   starNum: 83.38,
   forkNum: 200,
   busFactor: 200,
-})
+});
 
 const influence = ref({
   openRankScore: 83.38,
   criticalityScore: 83.38,
   contributorsNum: 200,
   dependentNum: 200,
-})
+});
 
 function renderLineChart(container: string) {
-  const chartDom = softwareDetailsEl.value.querySelector(container)
+  const chartDom = softwareDetailsEl.value.querySelector(container);
   if (!chartDom) {
-    return
+    return;
   }
-  const chart = echarts.init(chartDom)
+  const chart = echarts.init(chartDom);
   const option: echarts.EChartsOption = {
     xAxis: {
       type: 'category',
@@ -289,24 +409,30 @@ function renderLineChart(container: string) {
       top: '8%',
       bottom: '12%',
     },
-  }
-  chart.setOption(option)
+  };
+  chart.setOption(option);
 }
 onMounted(() => {
-  renderLineChart('#code-submit-frequency-chart')
-  renderLineChart('#issue-comment-frequency-chart')
-  renderLineChart('#update-issue-count-chart')
-  renderLineChart('#close-issue-count-chart')
-  renderLineChart('#organization-count-chart')
-  renderLineChart('#maintainer-count-chart')
-})
+  renderLineChart('#code-submit-frequency-chart');
+  renderLineChart('#issue-comment-frequency-chart');
+  renderLineChart('#update-issue-count-chart');
+  renderLineChart('#close-issue-count-chart');
+  renderLineChart('#organization-count-chart');
+  renderLineChart('#maintainer-count-chart');
+});
 </script>
 
 <template>
   <div ref="softwareDetailsEl" pb-50px bg-coolgray-50>
-    <div overflow-hidden p-20px bg-white shadow-md>
+    <div overflow-hidden p-20px bg-white shadow-md v-loading="overviewLoading">
       <div w-1280px m-auto>
-        <el-image :src="baseInfo.logoUrl" fit="contain" class="float-left w-96px h-96px mr-14px" />
+        <el-image :src="baseInfo.logo" fit="contain" class="float-left w-96px h-96px mr-14px">
+          <template #error>
+            <div flex flex-justify-center flex-items-center w-full h-full bg-gray-100>
+              <el-icon font-size-7 color-gray-400><Picture /></el-icon>
+            </div>
+          </template>
+        </el-image>
         <div float-left w-825px>
           <div position-relative flex flex-items-center>
             <el-tooltip effect="light" :teleported="false">
@@ -319,29 +445,24 @@ onMounted(() => {
                 line-height-normal
                 class="text-over"
               >
-                {{ baseInfo.name }}
+                {{ repoName }}
               </div>
               <template #content>
-                <div max-w-900px>{{ baseInfo.name }}</div>
+                <div max-w-900px>{{ repoName }}</div>
               </template>
             </el-tooltip>
             <el-button type="primary" plain :icon="Plus">对比</el-button>
             <el-button type="primary" position-absolute right-0>导出评估报告</el-button>
           </div>
           <el-tooltip effect="light" :teleported="false">
-            <div mb-2 font-size-3.5 class="text-over">{{ baseInfo.introduction }}</div>
+            <div mb-2 font-size-3.5 class="text-over">{{ baseInfo.description }}</div>
             <template #content>
-              <div max-w-900px>{{ baseInfo.introduction }}</div>
+              <div max-w-900px>{{ baseInfo.description }}</div>
             </template>
           </el-tooltip>
-          <el-tag
-            v-for="(label, idx) in baseInfo.labels"
-            :key="idx"
-            :type="tagType(idx)"
-            mr-2
-            mb-2
-            >{{ label }}</el-tag
-          >
+          <el-tag v-for="(label, idx) in baseInfo.tags" :key="idx" :type="tagType(idx)" mr-2 mb-2>{{
+            label
+          }}</el-tag>
         </div>
         <div id="software-radar-chart" float-right w-328px h-303px pt-30px bg-coolgray-50 />
         <el-table
@@ -353,7 +474,11 @@ onMounted(() => {
           tooltip-effect="light"
         >
           <el-table-column prop="label" align="center" />
-          <el-table-column prop="value" align="center" />
+          <el-table-column
+            prop="value"
+            align="center"
+            :formatter="(row: TableRow) => row.value ?? 'NA'"
+          />
         </el-table>
       </div>
     </div>
@@ -363,7 +488,7 @@ onMounted(() => {
         <span>功能</span>
       </div>
       <el-card mb-6>
-        <div font-size-5 font-bold>Github Star 趋势</div>
+        <div font-size-5 font-bold>Github Star 趋势（演示数据）</div>
         <div id="github-start-chart" h-252px />
       </el-card>
       <el-card mb-6>
@@ -375,9 +500,17 @@ onMounted(() => {
         <div flex>
           <div id="doc-best-practices-chart" w-280px h-208px flex-none />
           <div flex flex-wrap justify-between content-between h-208px>
-            <div v-for="(docItem, idx) in docItems" :key="idx" w-470px h-95px p-3 bg-coolgray-50>
+            <div
+              v-for="(docItem, idx) in documentInfo.items"
+              :key="idx"
+              w-470px
+              h-95px
+              p-3
+              bg-coolgray-50
+            >
               <div flex flex-items-center font-bold mb-1>
-                <span i-ph-check-circle-light mr-1 font-size-5 color-green-300 />
+                <span v-if="docItem.has" i-ph-check-circle mr-1 font-size-5 color-green-300 />
+                <span v-else i-ph-minus-circle mr-1 font-size-5 color-gray-400 />
                 <span>{{ docItem.title }}</span>
               </div>
               <div font-size-14px color-gray class="text-over-2">{{ docItem.content }}</div>
@@ -393,18 +526,18 @@ onMounted(() => {
         <div>包大小</div>
         <div flex flex-items-center h-86px>
           <div mr-200px>
-            <div mb-2 font-bold>{{ performance.size }} B</div>
+            <div mb-2 font-bold>{{ performanceModuleInfo.size }} B</div>
             <div>MINIFIED</div>
           </div>
           <div mr-200px>
-            <div mb-2 font-bold>{{ performance.gzipSize }} B</div>
+            <div mb-2 font-bold>{{ performanceModuleInfo.gzipSize }} B</div>
             <div>Gzip压缩后</div>
           </div>
         </div>
         <div flex flex-items-center h-30px>
           <span font-bold>Benchmark Score: </span>
           <el-progress
-            :percentage="performance.benchmarkScore"
+            :percentage="performanceModuleInfo.benchmarkScore"
             text-inside
             :stroke-width="15"
             flex-auto
@@ -420,14 +553,20 @@ onMounted(() => {
       </div>
       <el-card mb-6>
         <div mb-4 font-size-5 font-bold>OpenSSF scorecard</div>
-        <div>5.4/10</div>
-        <div v-for="(value, key) in openSSFScordcard" :key="key" flex flex-items-center h-50px>
-          <span w-190px>{{ key }}</span>
-          <el-progress :percentage="value" text-inside :stroke-width="15" flex-auto />
+        <div>{{ openSSFScordcard.score }} / 10</div>
+        <div v-for="item in openSSFScordcard.items" :key="item.label" flex flex-items-center h-50px>
+          <span w-190px>{{ item.label }}</span>
+          <el-progress
+            :percentage="item.value"
+            text-inside
+            :stroke-width="15"
+            flex-auto
+            :color="scorecardProgressColor(item.value)"
+          />
         </div>
       </el-card>
       <el-card>
-        <div mb-4 font-size-5 font-bold>SonarCloud Scan</div>
+        <div mb-4 font-size-5 font-bold>SonarCloud Scan（演示数据）</div>
         <div h-207px flex flex-wrap justify-between content-between>
           <div position-relative pt-3 pd-3 pl-4 pr-4 w-607px h-92px bg-coolgray-50>
             <div mb-4 font-bold>
