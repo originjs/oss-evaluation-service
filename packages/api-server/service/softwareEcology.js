@@ -1,4 +1,8 @@
 import sequelize from '@orginjs/oss-evaluation-data-model/util/database.js';
+import ejsExcel from 'ejsexcel';
+import fs from 'fs';
+import debug from 'debug';
+import EvaluationSummary from '@orginjs/oss-evaluation-data-model/models/EvaluationSummary.js';
 
 /**
  * getSoftwareEcologyOverview
@@ -32,20 +36,14 @@ export async function getSoftwareEcologyOverview(packageName) {
         group by project_name;
   `;
 
-  const softwareEcologyOverview = await sequelize.query(
-    sql,
-    {
-      replacements: { packageName },
-      type: sequelize.QueryTypes.SELECT,
-    },
-  );
-  const softwareDownload = await sequelize.query(
-    downloadSql,
-    {
-      replacements: { packageName },
-      type: sequelize.QueryTypes.SELECT,
-    },
-  );
+  const softwareEcologyOverview = await sequelize.query(sql, {
+    replacements: { packageName },
+    type: sequelize.QueryTypes.SELECT,
+  });
+  const softwareDownload = await sequelize.query(downloadSql, {
+    replacements: { packageName },
+    type: sequelize.QueryTypes.SELECT,
+  });
   if (softwareEcologyOverview.length === 0 || softwareDownload.length === 0) {
     return {};
   }
@@ -86,13 +84,10 @@ export async function getSoftwareActivity(packageName) {
             and grimoire_creation_date between DATE_SUB(CURDATE(), INTERVAL 3 MONTH) and CURDATE()
         order by grimoire_creation_date;
   `;
-  const softwareActivity = await sequelize.query(
-    sql,
-    {
-      replacements: { packageName },
-      type: sequelize.QueryTypes.SELECT,
-    },
-  );
+  const softwareActivity = await sequelize.query(sql, {
+    replacements: { packageName },
+    type: sequelize.QueryTypes.SELECT,
+  });
   if (softwareActivity.length === 0) {
     return {};
   }
@@ -142,4 +137,27 @@ export async function getSoftwareActivity(packageName) {
     orgCount,
     contributorCount,
   };
+}
+
+export async function exportExcel(packageName) {
+  const exlBuf = fs.readFileSync('./excel/evaluation-template.xlsx');
+  let path = `${Date.now()}.xlsx`;
+  const data = await EvaluationSummary.findOne({
+    where: {
+      project_name: packageName,
+    },
+  });
+  if (data === undefined || data === null) {
+    return '';
+  }
+  await ejsExcel
+    .renderExcel(exlBuf, data)
+    .then((exlBuf2) => {
+      path = `./excel/download/${path}`;
+      fs.writeFileSync(path, exlBuf2);
+    })
+    .catch((err) => {
+      debug.log(err);
+    });
+  return path;
 }
