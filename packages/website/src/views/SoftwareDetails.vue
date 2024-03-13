@@ -224,7 +224,7 @@ function renderGithubStartChart() {
 
 function renderDeveloperSatisfactionChart() {
   const chartDom = softwareDetailsEl.value?.querySelector('#developer-satisfaction-chart');
-  if (!chartDom) {
+  if (!chartDom || !developerSatisfaction.value) {
     return;
   }
   const chart = echarts.init(chartDom);
@@ -524,7 +524,7 @@ getEcologyActivityCategoryApi(encodeURIComponent(repoName.value))
         <div font-size-5 font-bold>Github Star 趋势（演示数据）</div>
         <div id="github-start-chart" h-252px />
       </el-card>
-      <el-card mb-6>
+      <el-card mb-6 v-if="developerSatisfaction">
         <div font-size-5 font-bold>开发者满意度</div>
         <div id="developer-satisfaction-chart" h-252px />
       </el-card>
