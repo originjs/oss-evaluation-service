@@ -84,6 +84,8 @@ export async function getSoftwareOverview(repoName) {
   });
 
   return {
+    url: githubInfo.htmlUrl,
+    logo: githubInfo.ownerAvatarUrl,
     star: githubInfo.stargazersCount,
     language: githubInfo.language,
     firstCommit: dayjs(new Date(githubInfo.createdAt)).format('YYYY-MM-DD HH:mm:ss'),

@@ -45,6 +45,7 @@ const overviewLoading = ref(true);
 getBaseInfo(encodeURIComponent(repoName.value))
   .then(({ data }) => {
     baseInfo.logo = data.logo;
+    baseInfo.url = data.url;
     baseInfo.description = data.description;
     baseInfo.tags = data.tags ? data.tags.split('|') : [];
     baseInfo.tableData = [
@@ -486,7 +487,9 @@ getEcologyActivityCategoryApi(encodeURIComponent(repoName.value))
           <div position-relative flex flex-items-center>
             <el-tooltip effect="light" :teleported="false">
               <div mt--5px mr-12px max-w-600px font-size-7 font-bold line-height-normal class="text-over">
-                {{ repoName }}
+                <a :href="baseInfo.url" target="_blank" rel="noreferrer">
+                  {{ repoName }}
+                </a>
               </div>
 
               <template #content>
