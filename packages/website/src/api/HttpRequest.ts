@@ -1,10 +1,11 @@
-import axios, {
+import type {
   AxiosInstance,
   AxiosRequestConfig,
   AxiosError,
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from 'axios';
+import axios from 'axios';
 import { ElMessage } from 'element-plus';
 
 enum Code {
@@ -70,8 +71,8 @@ const defaultConfig = {
   withCredentials: false,
   headers: {
     'Access-Control-Allow-Origin': '*',
-    'Content-Type': 'application/json'
-  }
+    'Content-Type': 'application/json',
+  },
 };
 
 export default new HttpRequest(defaultConfig);
