@@ -111,9 +111,9 @@ function renderSoftwareRadarChart() {
       indicator: [
         { name: '功能', max: 100 },
         { name: '质量', max: 100 },
-        { name: '性能', max: 100 },
         { name: '生态', max: 100 },
         { name: '创新', max: 100 },
+        { name: '性能', max: 100 },
       ],
     },
     series: [
@@ -122,11 +122,11 @@ function renderSoftwareRadarChart() {
         data: [
           {
             value: [
-              baseInfo.evaluation.functionScore,
-              baseInfo.evaluation.qualityScore,
-              baseInfo.evaluation.performanceScore,
-              baseInfo.evaluation.ecologyScore,
-              baseInfo.evaluation.innovationValue,
+              baseInfo.evaluation.functionScore?.toFixed(2),
+              baseInfo.evaluation.qualityScore?.toFixed(2),
+              baseInfo.evaluation.ecologyScore?.toFixed(2),
+              baseInfo.evaluation.innovationValue?.toFixed(2),
+              baseInfo.evaluation.performanceScore?.toFixed(2),
             ],
             name: '分数',
           },
