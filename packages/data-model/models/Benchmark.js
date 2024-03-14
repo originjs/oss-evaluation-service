@@ -11,6 +11,12 @@ export default sequelize.define(
     projectName: {
       type: DataTypes.STRING,
     },
+    displayName: {
+      type: DataTypes.STRING(256),
+    },
+    indexName: {
+      type: DataTypes.STRING(256),
+    },
     benchmark: {
       type: DataTypes.STRING,
     },

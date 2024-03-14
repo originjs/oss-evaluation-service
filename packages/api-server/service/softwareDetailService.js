@@ -5,7 +5,7 @@ import {
   CncfDocumentScore,
   PackageSizeDetail,
   Scorecard,
-  EvaluationSummary,
+  EvaluationSummary, Benchmark,
 } from '@orginjs/oss-evaluation-data-model';
 import dayjs from 'dayjs';
 import ChartData from '../model/chartData.js';
@@ -106,11 +106,39 @@ export async function getPerformance(repoName) {
     attributes: ['size', 'gzipSize'],
   });
 
+  // benchmark
+  const projectId = await getProjectIdByRepoName(repoName);
+  const maxPatchIdData = await Benchmark.findOne({
+    where: {
+      projectId,
+    },
+    limit: 1,
+    order: [
+      ['patchId', 'desc'],
+    ],
+  });
+  let benchmarkData = {};
+  if (maxPatchIdData) {
+    const benchmarkQuery = await Benchmark.findAll({
+      where: {
+        projectId,
+        patchId: maxPatchIdData.patchId,
+      },
+      attributes: ['displayName', 'indexName', 'rawValue'],
+    });
+    benchmarkData = benchmarkQuery?.map(({ displayName, indexName, rawValue }) => ({
+      displayName,
+      indexName,
+      rawValue,
+    }));
+  }
+
   return {
     size: packageSize.size,
     gzipSize: packageSize.gzipSize,
     //   TODO benchmark score
     benchmarkScore: 0,
+    benchmarkData,
   };
 }
 

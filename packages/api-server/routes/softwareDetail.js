@@ -53,7 +53,7 @@ router.get('/function/:repoName', (req, res) => {
  *       - in: path
  *         name: repoName
  *         required: true
- *         example: "vuejs/core"
+ *         example: "web-infra-dev/rspack"
  *     responses:
  *       '200':
  *         description: Successful response
