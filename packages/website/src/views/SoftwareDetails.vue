@@ -165,7 +165,8 @@ getFunctionModuleInfo(encodeURIComponent(repoName.value))
       items: [
         {
           title: 'Readme',
-          content: 'The readme file introduces and explains a project. It contains information that is commonly required to understand what the project is about.',
+          content:
+            'The readme file introduces and explains a project. It contains information that is commonly required to understand what the project is about.',
           has: data.document.hasReadme,
         },
         {

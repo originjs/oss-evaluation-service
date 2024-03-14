@@ -3,16 +3,25 @@ import express from 'express';
 import { syncProjectHandler } from '../controllers/sync.js';
 import { getScorecardHandler, syncScorecardHandler } from '../controllers/scorecard.js';
 import { syncOpendiggerHandler } from '../controllers/opendigger.js';
-import { syncNoneScopedPackageDownloadCount, syncScopedPackageDownloadCount } from '../controllers/downloadCount.js';
+import {
+  syncNoneScopedPackageDownloadCount,
+  syncScopedPackageDownloadCount,
+} from '../controllers/downloadCount.js';
 import { syncPackageSizeHandler } from '../controllers/packageSize.js';
 import { syncCompassActivityMetric } from '../controllers/compass.js';
 import { syncStateOfJsData } from '../controllers/stateofjs.js';
 import { syncStackOverFlowResultData } from '../controllers/stackoverflow.js';
 import {
-  observeProjectsByStar, syncProjectByStar, syncProjectByRepo, syncProjectByUserStar,
+  observeProjectsByStar,
+  syncProjectByStar,
+  syncProjectByRepo,
+  syncProjectByUserStar,
 } from '../controllers/github.js';
 import {
-  bulkAddBenchmarkHandler, getPatchId, syncBenchmarkHandler, updateScore,
+  bulkAddBenchmarkHandler,
+  getPatchId,
+  syncBenchmarkHandler,
+  updateScore,
 } from '../controllers/benchmark.js';
 import getDelayedMessage from '../controllers/common.js';
 import syncCNCFDocumentScore from '../controllers/documentScore.js';
@@ -45,7 +54,9 @@ router.route('/CNCFDocumentScore').post(syncCNCFDocumentScore);
  *             properties:
  *               repoUrl:
  *                 type: string
- *                 description: Passing a project URL like 'https://github.com/vuejs/router' indicates integration of a single project compass metric; otherwise, it represents full-scale compass activity metric integration.
+ *                 description: Passing a project URL like 'https://github.com/vuejs/router' indicates integration of
+ *                              a single project compass metric; otherwise, it represents full-scale compass activity
+ *                              metric integration.
  *                 example: ""
  *               beginDate:
  *                 type: string
