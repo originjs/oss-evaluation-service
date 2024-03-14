@@ -103,5 +103,5 @@ export function getEcologyActivityCategoryApi(repoName: string) {
 }
 
 export function getExportExcelFileApi(repoName: string) {
-  return axios({url:`/ecology/export/${repoName}`, method:'post', data:null, responseType:'blob'});
+  return axios({url:`api/ecology/export/${repoName}`, method:'post', data:null, responseType:'blob'});
 }
