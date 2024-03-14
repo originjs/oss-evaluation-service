@@ -21,7 +21,7 @@ type BaseInfo = {
 };
 
 export function getBaseInfo(repoName: string) {
-  return HttpRequest.get<BaseInfo>(`/api/softwareDetail/overview/${repoName}`);
+  return HttpRequest.get<BaseInfo>(`/softwareDetail/overview/${repoName}`);
 }
 
 type functionModuleInfo = {
@@ -39,7 +39,7 @@ type functionModuleInfo = {
 };
 
 export function getFunctionModuleInfo(repoName: string) {
-  return HttpRequest.get<functionModuleInfo>(`/api/softwareDetail/function/${repoName}`);
+  return HttpRequest.get<functionModuleInfo>(`/softwareDetail/function/${repoName}`);
 }
 
 type PerformanceModuleInfo = {
@@ -49,7 +49,7 @@ type PerformanceModuleInfo = {
 };
 
 export function getPerformanceModuleInfo(repoName: string) {
-  return HttpRequest.get<PerformanceModuleInfo>(`/api/softwareDetail/performance/${repoName}`);
+  return HttpRequest.get<PerformanceModuleInfo>(`/softwareDetail/performance/${repoName}`);
 }
 
 type QualityModuleInfo = {
@@ -64,7 +64,7 @@ type QualityModuleInfo = {
 };
 
 export function getQualityModuleInfo(repoName: string) {
-  return HttpRequest.get<QualityModuleInfo>(`/api/softwareDetail/quality/${repoName}`);
+  return HttpRequest.get<QualityModuleInfo>(`/softwareDetail/quality/${repoName}`);
 }
 
 export type EcologyOverview = {
@@ -80,7 +80,7 @@ export type EcologyOverview = {
 };
 
 export function getEcologyOverviewApi(repoName: string) {
-  return HttpRequest.get<EcologyOverview>(`/api/ecology/overview/${repoName}`);
+  return HttpRequest.get<EcologyOverview>(`/ecology/overview/${repoName}`);
 }
 
 export type EcologyActivity = {
@@ -99,9 +99,9 @@ export type EcologyActivityCategory = {
 };
 
 export function getEcologyActivityCategoryApi(repoName: string) {
-  return HttpRequest.get<EcologyActivityCategory>(`/api/ecology/activity/${repoName}`);
+  return HttpRequest.get<EcologyActivityCategory>(`/ecology/activity/${repoName}`);
 }
 
 export function getExportExcelFileApi(repoName: string) {
-  return axios({url:`/api/ecology/export/${repoName}`, method:'post', data:null, responseType:'blob'});
+  return axios({url:`/ecology/export/${repoName}`, method:'post', data:null, responseType:'blob'});
 }
