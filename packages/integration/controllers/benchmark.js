@@ -7,7 +7,7 @@ export async function syncBenchmarkHandler(req, res) {
   const {
     projectName, benchmark, techStack, rawValue, content, platform,
   } = req.body;
-  const projectId = await getIdByName(projectName);
+  const projectId = await getIdByName(projectName, techStack);
   let { patchId } = req.body;
   if (!patchId) {
     patchId = generatePatchId();
@@ -90,8 +90,15 @@ function updateThreshold(dataList, weightMap, isDesc) {
   return result;
 }
 
-async function getIdByName(projectName) {
-  const project = await ProjectTechStack.findOne({ where: { name: projectName } });
+async function getIdByName(projectName, techStack) {
+  const project = await ProjectTechStack.findOne(
+    {
+      where: {
+        // Cases occur where names replicate, add techStack validation
+        name: projectName, subTechStack: techStack,
+      },
+    },
+  );
   const { projectId } = project;
   return projectId;
 }

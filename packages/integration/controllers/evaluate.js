@@ -220,37 +220,16 @@ async function evaluateScore(project) {
   if (!project) {
     throw new ServerError('Project not found!');
   }
+  const { techStack } = project;
   /* eslint-disable no-param-reassign */
   project.functionValue = await getDimensionScore(project, 'function', 'common');
   project.qualityValue = await getDimensionScore(project, 'quality', 'common');
   project.ecologyValue = await getDimensionScore(project, 'ecology', 'common');
-  project.innovationValue = getDimensionScore(project, 'innovation', 'common');
-  project.performanceValue = await getPerformanceScore(project);
+  project.innovationValue = await getDimensionScore(project, 'innovation', 'common');
+  project.performanceValue = await getDimensionScore(project, 'performance', techStack);
   // update score to database
   await project.save();
   return project;
-}
-
-async function getPerformanceScore(project, model) {
-  const metrics = model[project.techStack];
-  if (!metrics) {
-    return getDimensionScore(project, model.performance, model);
-  }
-  let totalWeight = 0;
-  let totalScore = 0;
-  for (const metric of metrics) {
-    totalWeight += metric.weight;
-    const benchmark = await Benchmark.findOne({
-      attributes: ['score'],
-      where: {
-        projectId: project.projectId,
-        benchmark: metric.field,
-      },
-    });
-    totalScore += getParamScore(benchmark?.score, metric.weight, metric.threshold);
-  }
-  const score = totalScore / totalWeight;
-  return Number.isNaN(score) ? null : score;
 }
 
 async function getDimensionScore(project, dimension, techStack) {
@@ -265,17 +244,34 @@ async function getDimensionScore(project, dimension, techStack) {
       totalScore += weight * fieldScore;
     } else {
       // score 0 if no data provided
-      if (p10 === null || median === null || project[field] == null) {
+      if (p10 === null || median === null) {
         continue;
       }
-      totalScore += weight * calLighthouseScore(project[field], p10, median, isDesc);
+      let rawValue;
+      if (techStack !== 'common') {
+        const { projectId } = project;
+        rawValue = await getPerformanceRawValue(projectId, field, techStack);
+        if (rawValue == null) {
+          continue;
+        }
+      } else {
+        if (project[field] == null) {
+          continue;
+        }
+        rawValue = project[field];
+      }
+      totalScore += weight * calLighthouseScore(rawValue, p10, median, isDesc);
     }
   }
   return totalScore;
 }
 
-function getParamScore(param, weight, threshold) {
-  return (Math.log(1 + param) / Math.log(1 + Math.max(param, threshold))) * weight;
+async function getPerformanceRawValue(projectId, field, techStack) {
+  const rawData = await Benchmark.findOne({ where: { benchmark: field, projectId, techStack } });
+  if (rawData == null) {
+    throw new Error(`Project ${projectId} data not found`);
+  }
+  return rawData.rawValue;
 }
 
 /**
