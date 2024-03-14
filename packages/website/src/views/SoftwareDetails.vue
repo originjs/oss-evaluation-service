@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Plus } from '@element-plus/icons-vue';
+import { ElMessage } from 'element-plus';
 import * as echarts from 'echarts';
 import dayjs from 'dayjs';
 import {
@@ -12,6 +13,7 @@ import {
   getFunctionModuleInfo,
   getPerformanceModuleInfo,
   getQualityModuleInfo,
+  getExportExcelFileApi
 } from '@api/SoftwareDetails';
 
 const route = useRoute();
@@ -468,6 +470,19 @@ getEcologyActivityCategoryApi(encodeURIComponent(repoName.value))
     renderLineChart('#organization-count-chart', ecologyActivityCategory.value?.orgCount);
     renderLineChart('#maintainer-count-chart', ecologyActivityCategory.value?.contributorCount);
   });
+
+function exportToExcel(repoName:string) {
+  getExportExcelFileApi(repoName).then((res:any) =>{
+    const blob = new Blob([res.data], { type: 'application/xlsx' });
+    const link = document.createElement('a');
+    link.href= window.URL.createObjectURL(blob);
+    link.download = `${ repoName }`+`_${ dayjs() }`+`.xlsx`;
+    link.click();
+    ElMessage.success('导出成功');
+  }).catch(()=>{
+    ElMessage.error('导出失败');
+  })
+}
 </script>
 
 <template>
@@ -497,7 +512,7 @@ getEcologyActivityCategoryApi(encodeURIComponent(repoName.value))
               </template>
             </el-tooltip>
             <el-button type="primary" plain :icon="Plus">对比</el-button>
-            <el-button type="primary" position-absolute right-0>导出评估报告</el-button>
+            <el-button type="primary" position-absolute right-0 @click="exportToExcel(encodeURIComponent(repoName))">导出评估报告</el-button>
           </div>
           <el-tooltip effect="light" :teleported="false">
             <div mb-2 font-size-3.5 class="text-over">{{ baseInfo.description }}</div>

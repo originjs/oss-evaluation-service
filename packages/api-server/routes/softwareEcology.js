@@ -52,18 +52,20 @@ router.get('/ecology/activity/:packageName', async (req, res) => {
 /**
  * @swagger
  * /ecology/export/{packageName}:
- *   get:
+ *   post:
  *     summary: export
  *     parameters:
  *       - in: path
  *         name: packageName
  *         required: true
  *         example: "vuejs/vue"
+ *     requestBody:
+ *       required: false
  *     responses:
  *       '200':
  *         description: Successful response
  */
-router.get('/ecology/export/:packageName', async (req, res) => {
+router.post('/ecology/export/:packageName', async (req, res) => {
   const { packageName } = req.params;
   const path = await exportExcel(packageName);
   if (path === '') {

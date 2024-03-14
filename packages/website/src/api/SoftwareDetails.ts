@@ -1,4 +1,5 @@
 import HttpRequest from '@api/HttpRequest';
+import axios from 'axios';
 
 type BaseInfo = {
   logo: string;
@@ -99,4 +100,8 @@ export type EcologyActivityCategory = {
 
 export function getEcologyActivityCategoryApi(repoName: string) {
   return HttpRequest.get<EcologyActivityCategory>(`/api/ecology/activity/${repoName}`);
+}
+
+export function getExportExcelFileApi(repoName: string) {
+  return axios({url:`/api/ecology/export/${repoName}`, method:'post', data:null, responseType:'blob'});
 }
