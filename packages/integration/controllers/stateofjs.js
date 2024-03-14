@@ -301,11 +301,7 @@ function getQuery() {
 async function syncFullDetailData() {
   // request
   const query = getQuery();
-  const res = await request(
-    GRAPHIQL_API_URL,
-    query,
-    {},
-  ).catch((error) => {
+  const res = await request(GRAPHIQL_API_URL, query, {}).catch(error => {
     debug.log('Post to state_of_js error : ', error.message);
   });
 
@@ -318,9 +314,13 @@ async function syncFullDetailData() {
 
   const surveyResultData = res.surveys?.state_of_js?.[version];
   if (surveyResultData) {
-    Object.keys(surveyResultData).forEach(async (technologyStack) => {
-      await updateDetailData(surveyResultData[technologyStack][`${technologyStack}_experience`].items, surveyResultData[technologyStack][`${technologyStack}_section`].items, underscoreToSmallCamelCase(technologyStack));
-    });
+    for (const technologyStack of Object.keys(surveyResultData)) {
+      await updateDetailData(
+        surveyResultData[technologyStack][`${technologyStack}_experience`].items,
+        surveyResultData[technologyStack][`${technologyStack}_section`].items,
+        underscoreToSmallCamelCase(technologyStack),
+      );
+    }
   }
 
   return 'state_of_js data integration success';
@@ -328,8 +328,8 @@ async function syncFullDetailData() {
 
 async function updateDetailData(experiences, sections, technologyStack) {
   const softwareMap = {};
-  experiences.forEach((experience) => {
-    experience.usage.forEach((item) => {
+  experiences.forEach(experience => {
+    experience.usage.forEach(item => {
       if (item.rank && item.percentageQuestion) {
         const keyName = getSoftwareMapKey(experience.id, item.year);
         softwareMap[keyName] = softwareMap[keyName] ? softwareMap[keyName] : {};
@@ -337,7 +337,7 @@ async function updateDetailData(experiences, sections, technologyStack) {
         softwareMap[keyName].usagePercentage = item.percentageQuestion;
       }
     });
-    experience.awareness.forEach((item) => {
+    experience.awareness.forEach(item => {
       if (item.rank && item.percentageQuestion) {
         const keyName = getSoftwareMapKey(experience.id, item.year);
         softwareMap[keyName] = softwareMap[keyName] ? softwareMap[keyName] : {};
@@ -345,7 +345,7 @@ async function updateDetailData(experiences, sections, technologyStack) {
         softwareMap[keyName].awarenessPercentage = item.percentageQuestion;
       }
     });
-    experience.interest.forEach((item) => {
+    experience.interest.forEach(item => {
       if (item.rank && item.percentageQuestion) {
         const keyName = getSoftwareMapKey(experience.id, item.year);
         softwareMap[keyName] = softwareMap[keyName] ? softwareMap[keyName] : {};
@@ -353,7 +353,7 @@ async function updateDetailData(experiences, sections, technologyStack) {
         softwareMap[keyName].interestPercentage = item.percentageQuestion;
       }
     });
-    experience.satisfaction.forEach((item) => {
+    experience.satisfaction.forEach(item => {
       if (item.rank && item.percentageQuestion) {
         const keyName = getSoftwareMapKey(experience.id, item.year);
         softwareMap[keyName] = softwareMap[keyName] ? softwareMap[keyName] : {};
@@ -363,25 +363,27 @@ async function updateDetailData(experiences, sections, technologyStack) {
     });
   });
 
-  sections.forEach((section) => {
-    section.responses.allEditions.forEach((edition) => {
+  sections.forEach(section => {
+    section.responses.allEditions.forEach(edition => {
       const keyName = getSoftwareMapKey(section.id, edition.year);
-      edition.buckets.forEach((bucket) => {
+      edition.buckets.forEach(bucket => {
         softwareMap[keyName] = softwareMap[keyName] ? softwareMap[keyName] : {};
-        softwareMap[keyName][`${underscoreToSmallCamelCase(bucket.id)}QuestionPercentage`] = bucket.percentageQuestion;
-        softwareMap[keyName][`${underscoreToSmallCamelCase(bucket.id)}SurveyPercentage`] = bucket.percentageSurvey;
+        softwareMap[keyName][`${underscoreToSmallCamelCase(bucket.id)}QuestionPercentage`] =
+          bucket.percentageQuestion;
+        softwareMap[keyName][`${underscoreToSmallCamelCase(bucket.id)}SurveyPercentage`] =
+          bucket.percentageSurvey;
         softwareMap[keyName][`${underscoreToSmallCamelCase(bucket.id)}Count`] = bucket.count;
       });
     });
   });
-  Object.keys(softwareMap).forEach(async (key) => {
+  Object.keys(softwareMap).forEach(async key => {
     const [projectName, year] = key.split(',');
     softwareMap[key].projectName = projectName;
     softwareMap[key].year = Number(year);
     softwareMap[key].technologyStack = technologyStack;
     // exclude item whose percent data is null
     if (softwareMap[key].usageRank && softwareMap[key].usagePercentage) {
-      await StateOfJs.upsert(softwareMap[key]).catch((error) => {
+      await StateOfJs.upsert(softwareMap[key]).catch(error => {
         debug.log('upsert error: ', error.message);
       });
     }

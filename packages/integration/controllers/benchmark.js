@@ -4,9 +4,7 @@ import { Benchmark, ProjectTechStack } from '@orginjs/oss-evaluation-data-model'
 import sequelize from '../util/database.js';
 
 export async function syncBenchmarkHandler(req, res) {
-  const {
-    projectName, benchmark, techStack, rawValue, content, platform,
-  } = req.body;
+  const { projectName, benchmark, techStack, rawValue, content, platform } = req.body;
   const projectId = await getIdByName(projectName, techStack);
   let { patchId } = req.body;
   if (!patchId) {
@@ -39,11 +37,11 @@ export async function updateScore(req, res) {
   const weightMap = getWeightMap();
   const newWeightMap = updateThreshold(dataList, weightMap, isDesc);
   for (const benchmarkItem of dataList) {
-    const {
-      projectId, content, patchId: itemPatchId, benchmark: itemBenchmark,
-    } = benchmarkItem;
+    const { projectId, content, patchId: itemPatchId, benchmark: itemBenchmark } = benchmarkItem;
     const score = await calScore(newWeightMap, content);
-    await sequelize.query(`UPDATE benchmark SET score=${score} WHERE project_id = ${projectId} AND benchmark = '${itemBenchmark}' AND patch_id = '${itemPatchId}'`);
+    await sequelize.query(
+      `UPDATE benchmark SET score=${score} WHERE project_id = ${projectId} AND benchmark = '${itemBenchmark}' AND patch_id = '${itemPatchId}'`,
+    );
   }
   res.status(200).send('Update Success!');
 }
@@ -91,14 +89,13 @@ function updateThreshold(dataList, weightMap, isDesc) {
 }
 
 async function getIdByName(projectName, techStack) {
-  const project = await ProjectTechStack.findOne(
-    {
-      where: {
-        // Cases occur where names replicate, add techStack validation
-        name: projectName, subTechStack: techStack,
-      },
+  const project = await ProjectTechStack.findOne({
+    where: {
+      // Cases occur where names replicate, add techStack validation
+      name: projectName,
+      subTechStack: techStack,
     },
-  );
+  });
   const { projectId } = project;
   return projectId;
 }
@@ -148,20 +145,20 @@ function generatePatchId() {
  * @param {*} res result
  */
 export async function bulkAddBenchmarkHandler(req, res) {
-  const {
-    projectName, techStack, platform, list,
-  } = req.body;
+  const { projectName, techStack, platform, list } = req.body;
   let { patchId } = req.body;
   if (!patchId) {
     patchId = generatePatchId();
   }
   // generate stardard list for data insert
   const benchmarkList = await genBenchmarkList(projectName, techStack, platform, patchId, list);
-  await Benchmark.bulkCreate(benchmarkList).then((compass) => {
-    debug.log('insert into database: ', compass.length);
-  }).catch((error) => {
-    debug.log('Batch insert error: ', error.message);
-  });
+  await Benchmark.bulkCreate(benchmarkList)
+    .then(compass => {
+      debug.log('insert into database: ', compass.length);
+    })
+    .catch(error => {
+      debug.log('Batch insert error: ', error.message);
+    });
   res.status(200).send('Bulk create benchmark success!');
 }
 
