@@ -49,9 +49,6 @@ export default defineConfig({
       name: 'index',
       fileName: 'index',
     },
-    watch: {
-      include: [pathSrc],
-    },
     rollupOptions: {
       external: ['vue'],
       output: {

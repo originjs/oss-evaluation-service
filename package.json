@@ -11,10 +11,13 @@
     "lint-fix": "eslint --fix --cache --ext .js . --ignore-path .gitignore",
     "format": "prettier --write --cache .",
     "test": "vitest",
-    "dev-website": "pnpm -C packages/website dev",
+    "dev-api-server": "pnpm -C packages/api-server dev",
     "dev-shared-components": "pnpm -C packages/shared-components dev",
-    "serve-website": "run-p serve-shared-components dev-website",
+    "build-shared-components": "pnpm -C packages/shared-components build",
     "serve-shared-components": "pnpm -C packages/shared-components build --watch",
+    "dev-website": "pnpm -C packages/website dev",
+    "serve-website": "run-s build-shared-components dev-website",
+    "serve": "run-p dev-api-server serve-website",
     "postinstall": "simple-git-hooks"
   },
   "simple-git-hooks": {
