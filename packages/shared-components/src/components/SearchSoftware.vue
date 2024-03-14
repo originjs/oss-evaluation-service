@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { Search } from '@element-plus/icons-vue';
-import { getSoftwareNamesApi, SoftwareInfo } from '../api/SearchSoftware';
+import type { SoftwareInfo } from '@/api/SearchSoftware';
+import { getSoftwareNamesApi } from '@/api/SearchSoftware';
+import type { PromisifyFn } from '@vueuse/core';
+import { useDebounceFn } from '@vueuse/core';
 
 const emit = defineEmits<{
   searchName: [name: string];
@@ -11,18 +14,21 @@ const searchValue = ref('');
 const softwareNames = ref<SoftwareInfo[]>([]);
 const loadingSoftwareNames = ref(false);
 
-const getSoftwareNames = async (query: string) => {
-  if (!query) {
-    softwareNames.value = [];
-    return;
-  }
-  loadingSoftwareNames.value = true;
-  const res = await getSoftwareNamesApi(searchValue.value);
-  if (res.code === 200) {
-    softwareNames.value = res.data;
-  }
-  loadingSoftwareNames.value = false;
-};
+const getSoftwareNames: PromisifyFn<(query: string) => Promise<void>> = useDebounceFn(
+  async (query: string) => {
+    if (!query) {
+      softwareNames.value = [];
+      return;
+    }
+    loadingSoftwareNames.value = true;
+    const res = await getSoftwareNamesApi(searchValue.value);
+    if (res.code === 200) {
+      softwareNames.value = res.data;
+    }
+    loadingSoftwareNames.value = false;
+  },
+  500,
+);
 
 const onClickSoftware = (name: string) => {
   emit('searchName', name);
@@ -49,9 +55,10 @@ const onClickSoftware = (name: string) => {
           class="w-full"
           placeholder="搜索开源项目"
           :prefix-icon="Search"
-          @change="getSoftwareNames"
+          clearable
+          @input="getSoftwareNames"
         />
-        <el-scrollbar class="h-full max-h-200px" v-loading="loadingSoftwareNames">
+        <el-scrollbar v-loading="loadingSoftwareNames" class="h-full max-h-200px">
           <div class="text-center pt-10px line-height-50px">
             <span v-show="!softwareNames.length">暂无最近搜索记录...</span>
             <span v-show="loadingSoftwareNames">搜索中...</span>
