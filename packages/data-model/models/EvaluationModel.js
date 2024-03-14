@@ -29,6 +29,9 @@ export default sequelize.define(
     p10: {
       type: DataTypes.DOUBLE,
     },
+    isDesc: {
+      type: DataTypes.BOOLEAN,
+    },
     threshold: {
       type: DataTypes.DOUBLE,
     },
