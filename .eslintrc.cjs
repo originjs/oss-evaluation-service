@@ -28,7 +28,7 @@ module.exports = {
     },
   },
   plugins: ['prettier', 'vitest'],
-  ignorePatterns: ['vite-env.d.ts'],
+  ignorePatterns: ['vite-env.d.ts', 'packages/integration/metadata/**/*'],
   rules: {
     'vue/multi-word-component-names': [
       'error',
