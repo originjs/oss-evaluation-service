@@ -18,7 +18,8 @@
     "morgan": "^1.9.1",
     "sequelize": "^6.37.1",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.0"
+    "swagger-ui-express": "^5.0.0",
+    "ejsexcel": "^4.2.2"
   },
   "devDependencies": {
     "nodemon": "^3.0.3"
