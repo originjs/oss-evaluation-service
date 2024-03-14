@@ -3,14 +3,16 @@ import ejsExcel from 'ejsexcel';
 import fs from 'fs';
 import debug from 'debug';
 import EvaluationSummary from '@orginjs/oss-evaluation-data-model/models/EvaluationSummary.js';
+import { PackageDownloadCount } from '@orginjs/oss-evaluation-data-model';
+import { getMainPackageByRepoName } from './softwareDetailService.js';
 
 /**
  * getSoftwareEcologyOverview
  *
- * @param packageName packageName
+ * @param repoName repoName
  * @returns softwareEcologyOverview
  */
-export async function getSoftwareEcologyOverview(packageName) {
+export async function getSoftwareEcologyOverview(repoName) {
   const sql = `
         select project.id,
                name,
@@ -28,29 +30,31 @@ export async function getSoftwareEcologyOverview(packageName) {
         where full_name = :packageName
         group by project.id;
   `;
-  const downloadSql = `
-        select project_name, max(downloads) as downloads
-        from project_packages project
-                 inner join package_download_count package on project.package = package_name
-        where project_name = :packageName
-        group by project_name;
-  `;
 
-  const softwareEcologyOverview = await sequelize.query(sql, {
-    replacements: { packageName },
-    type: sequelize.QueryTypes.SELECT,
+  const packageName = await getMainPackageByRepoName(repoName);
+  const softwareEcologyOverview = await sequelize.query(
+    sql,
+    {
+      replacements: { packageName: repoName },
+      type: sequelize.QueryTypes.SELECT,
+    },
+  );
+  const downloadData = await PackageDownloadCount.findOne({
+    where: {
+      packageName,
+    },
+    attributes: ['downloads'],
+    order: [
+      ['week', 'desc'],
+    ],
   });
-  const softwareDownload = await sequelize.query(downloadSql, {
-    replacements: { packageName },
-    type: sequelize.QueryTypes.SELECT,
-  });
-  if (softwareEcologyOverview.length === 0 || softwareDownload.length === 0) {
+  if (softwareEcologyOverview.length === 0 || !downloadData) {
     return {};
   }
   return {
     name: softwareEcologyOverview[0].name,
     fullName: softwareEcologyOverview[0].full_name,
-    downloads: softwareDownload[0].downloads,
+    downloads: downloadData.downloads,
     stargazersCount: softwareEcologyOverview[0].stargazers_count,
     forksCount: softwareEcologyOverview[0].forks_count,
     busFactor: softwareEcologyOverview[0].bus_factor,
