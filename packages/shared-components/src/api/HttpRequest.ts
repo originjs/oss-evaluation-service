@@ -62,9 +62,13 @@ export class HttpRequest {
 }
 
 const defaultConfig = {
-  baseURL: '',
+  baseURL: import.meta.env.VITE_BACKEND_SERVICE_URL || 'api',
   timeout: 3000,
-  withCredentials: true,
+  withCredentials: false,
+  headers: {
+    'Access-Control-Allow-Origin': '*',
+    'Content-Type': 'application/json'
+  }
 };
 
 export default new HttpRequest(defaultConfig);
