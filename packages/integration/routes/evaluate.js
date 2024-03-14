@@ -24,22 +24,21 @@ router.route('/all').post(calculateAllMetricsHandler);
  * @swagger
  * tags:
  *   name: Evaluate
- * /eval/project/{org}/{name}:
+ * /eval/project/{repoName}:
  *   get:
  *     summary: Evaluate single specified project
  *     parameters:
  *      - in: path
- *        name: org
+ *        name: repoName
  *        type: string
- *      - in: path
- *        name: name
- *        type: string
+ *        required: true
+ *        example: "vuejs/vue"
  *     tags: [Evaluate]
  *     responses:
  *       200:
  *         description: Success
  */
-router.route('project/:org/:name').get(evaluateProjectHandler);
+router.route('/project/:repoName').get(evaluateProjectHandler);
 
 /**
  * @swagger

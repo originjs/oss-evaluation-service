@@ -14,9 +14,6 @@ export default sequelize.define(
     techStack: {
       type: DataTypes.STRING,
     },
-    table: {
-      type: DataTypes.STRING,
-    },
     field: {
       type: DataTypes.STRING,
     },

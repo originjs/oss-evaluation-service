@@ -15,8 +15,9 @@ import sequelize from '../util/database.js';
 import { ServerError } from '../util/error.js';
 
 const MetricType = Object.freeze({
-  MAIN: 1,
-  SUB: 2,
+  L0: 0, // L0: Function / Quality / Performance / Ecology / Innovation
+  MAIN: 1, // L1: usability ...
+  SUB: 2, // L2: satisfaction ...
   BENCH: 3,
   BENCH_SUB: 4,
 });
@@ -96,12 +97,6 @@ const DataSource = Object.freeze([
   },
   {
     model: GithubProjects,
-    scoreName: 'pushedAt',
-    isDesc: false,
-    saveTo: 'pushedAt',
-  },
-  {
-    model: GithubProjects,
     scoreName: 'stargazersCount',
     isDesc: true,
     saveTo: 'stargazersCount',
@@ -113,14 +108,6 @@ const DataSource = Object.freeze([
     saveTo: 'documentScore',
   },
 ]);
-
-export async function evaluateProjectHandler(req, res) {
-  const projectName = `${req.params.org}/${req.params.name}`;
-  let project = await EvaluationSummary.findOne({ where: { projectName } });
-  const model = await loadModel();
-  project = await evaluateScore(project, model);
-  res.status(200).json(project);
-}
 
 export async function calculateAllMetricsHandler(req, res) {
   // create all project summary
@@ -176,14 +163,15 @@ export async function calculateAllMetricsHandler(req, res) {
 
 async function loadModel() {
   const metricList = await EvaluationModel.findAll({
-    where: { type: { [Op.lte]: MetricType.BENCH } },
+    where: { type: { [Op.gt]: MetricType.L0 } },
   });
   const model = {};
   for (const metric of metricList) {
-    if (!model[metric.dimension]) {
-      model[metric.dimension] = [metric];
+    const key = metric.dimension + metric.techStack;
+    if (!model[key]) {
+      model[key] = [metric];
     } else {
-      model[metric.dimension].push(metric);
+      model[key].push(metric);
     }
   }
   return model;
@@ -203,6 +191,14 @@ async function evaluateAllProjectScore(model) {
   );
 }
 
+export async function evaluateProjectHandler(req, res) {
+  const { repoName: projectName } = req.params;
+  let project = await EvaluationSummary.findOne({ where: { projectName } });
+  const model = await loadModel();
+  project = await evaluateScore(project, model);
+  res.status(200).json(project);
+}
+
 export async function evaluateScoreById(req, res) {
   const { projectId } = req.params;
   if (projectId === '0') {
@@ -216,31 +212,44 @@ export async function evaluateScoreById(req, res) {
   }
   res.status(200).send('Done!');
 }
-async function evaluateScore(project) {
+async function evaluateScore(project, model) {
   if (!project) {
     throw new ServerError('Project not found!');
   }
-  const { techStack } = project;
+
   /* eslint-disable no-param-reassign */
-  project.functionValue = await getDimensionScore(project, 'function', 'common');
-  project.qualityValue = await getDimensionScore(project, 'quality', 'common');
-  project.ecologyValue = await getDimensionScore(project, 'ecology', 'common');
-  project.innovationValue = await getDimensionScore(project, 'innovation', 'common');
-  project.performanceValue = await getDimensionScore(project, 'performance', techStack);
+  project.functionValue = await getDimensionScore(project, 'function', 'common', model);
+  project.qualityValue = await getDimensionScore(project, 'quality', 'common', model);
+  project.ecologyValue = await getDimensionScore(project, 'ecology', 'common', model);
+  project.innovationValue = await getDimensionScore(project, 'innovation', 'common', model);
+  project.performanceValue = await getDimensionScore(project, 'performance', project.techStack, model);
+
+  let metric = await EvaluationModel.findOne({
+    where: { type: MetricType.L0, dimension: 'function' },
+  });
+  project.functionScore = calLighthouseScore(project.functionValue, metric.p10, metric.median) * 100;
+  metric = await EvaluationModel.findOne({
+    where: { type: MetricType.L0, dimension: 'quality' },
+  });
+  project.qualityScore = calLighthouseScore(project.qualityValue, metric.p10, metric.median) * 100;
+  metric = await EvaluationModel.findOne({
+    where: { type: MetricType.L0, dimension: 'ecology' },
+  });
+  project.ecologyScore = calLighthouseScore(project.ecologyValue, metric.p10, metric.median) * 100;
   // update score to database
   await project.save();
   return project;
 }
 
-async function getDimensionScore(project, dimension, techStack) {
-  const fieldList = await EvaluationModel.findAll({ where: { dimension, techStack } });
+async function getDimensionScore(project, dimension, techStack, model) {
+  const fieldList = model[dimension + techStack] || [];
   let totalScore = 0;
   for (const fieldItem of fieldList) {
     const {
       field, techStack: subTechStack, weight, median, p10, isDesc, type,
     } = fieldItem;
     if (type === MetricType.MAIN) {
-      const fieldScore = await getDimensionScore(project, field, subTechStack);
+      const fieldScore = await getDimensionScore(project, field, subTechStack, model);
       totalScore += weight * fieldScore;
     } else {
       // score 0 if no data provided
@@ -314,7 +323,9 @@ export async function setAllMedianAndP10(req, res) {
     const {
       model, scoreName, saveTo,
     } = fieldItem;
-    const dataList = (await model.findAll()).map((item) => item[scoreName]);
+    const dataList = (await model.findAll({
+      attributes: [scoreName],
+    })).map((item) => item[scoreName]);
     const field = EvaluationModel.findOne({ where: { field: saveTo } });
     const { isDesc } = field;
     const { median, p10 } = generateMedianAndP10(dataList, isDesc);
