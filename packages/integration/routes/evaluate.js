@@ -1,7 +1,8 @@
 import express from 'express';
 import {
   calculateAllMetricsHandler,
-  evaluateProjectHandler, evaluateScoreById, setAllMedianAndP10,
+  evaluateProjectHandler,
+  setAllMedianAndP10,
 } from '../controllers/evaluate.js';
 
 const router = express.Router();
@@ -39,24 +40,6 @@ router.route('/all').post(calculateAllMetricsHandler);
  *         description: Success
  */
 router.route('/project/:repoName').get(evaluateProjectHandler);
-
-/**
- * @swagger
- * tags:
- *   name: Evaluate
- * /eval/evaluateScoreById/{projectId}:
- *   get:
- *     summary: Evaluate single specified project
- *     parameters:
- *      - in: path
- *        name: projectId
- *        type: string
- *     tags: [Evaluate]
- *     responses:
- *       200:
- *         description: Success
- */
-router.route('/evaluateScoreById/:projectId').get(evaluateScoreById);
 
 /**
  * @swagger
