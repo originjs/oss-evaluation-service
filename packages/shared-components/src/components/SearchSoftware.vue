@@ -59,6 +59,7 @@ const onClickSoftware = (name: string) => {
           <el-menu>
             <el-menu-item
               v-for="({ fullName }, i) in softwareNames"
+              :key="fullName"
               :index="String(i)"
               @click="onClickSoftware(fullName)"
             >

@@ -52,11 +52,11 @@ export class HttpRequest {
     );
   }
 
-  get<T>(url: string, params?: Object): Promise<ResultData<T>> {
+  get<T>(url: string, params?: object): Promise<ResultData<T>> {
     return this.service.get(url, params);
   }
 
-  post<T>(url: string, params?: Object, config?: AxiosRequestConfig): Promise<ResultData<T>> {
+  post<T>(url: string, params?: object, config?: AxiosRequestConfig): Promise<ResultData<T>> {
     return this.service.post(url, params, config);
   }
 }
