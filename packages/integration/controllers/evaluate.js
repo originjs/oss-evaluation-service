@@ -1,3 +1,4 @@
+import debug from 'debug';
 import async from 'async';
 import { Op } from 'sequelize';
 import {
@@ -182,10 +183,10 @@ async function evaluateAllProjectScore(model) {
   async.mapLimit(
     projects,
     10,
-    async (project) => {
+    async project => {
       await evaluateScore(project, model);
     },
-    (err) => {
+    err => {
       if (err) throw err;
     },
   );
@@ -199,19 +200,6 @@ export async function evaluateProjectHandler(req, res) {
   res.status(200).json(project);
 }
 
-export async function evaluateScoreById(req, res) {
-  const { projectId } = req.params;
-  if (projectId === '0') {
-    const allProjectList = await EvaluationSummary.findAll({});
-    for (const project of allProjectList) {
-      await evaluateScore(project);
-    }
-  } else {
-    const project = await EvaluationSummary.findByPk(projectId);
-    await evaluateScore(project);
-  }
-  res.status(200).send('Done!');
-}
 async function evaluateScore(project, model) {
   if (!project) {
     throw new ServerError('Project not found!');
@@ -222,12 +210,18 @@ async function evaluateScore(project, model) {
   project.qualityValue = await getDimensionScore(project, 'quality', 'common', model);
   project.ecologyValue = await getDimensionScore(project, 'ecology', 'common', model);
   project.innovationValue = await getDimensionScore(project, 'innovation', 'common', model);
-  project.performanceValue = await getDimensionScore(project, 'performance', project.techStack, model);
+  project.performanceValue = await getDimensionScore(
+    project,
+    'performance',
+    project.techStack,
+    model,
+  );
 
   let metric = await EvaluationModel.findOne({
     where: { type: MetricType.L0, dimension: 'function' },
   });
-  project.functionScore = calLighthouseScore(project.functionValue, metric.p10, metric.median) * 100;
+  project.functionScore =
+    calLighthouseScore(project.functionValue, metric.p10, metric.median) * 100;
   metric = await EvaluationModel.findOne({
     where: { type: MetricType.L0, dimension: 'quality' },
   });
@@ -245,9 +239,7 @@ async function getDimensionScore(project, dimension, techStack, model) {
   const fieldList = model[dimension + techStack] || [];
   let totalScore = 0;
   for (const fieldItem of fieldList) {
-    const {
-      field, techStack: subTechStack, weight, median, p10, isDesc, type,
-    } = fieldItem;
+    const { field, techStack: subTechStack, weight, median, p10, isDesc, type } = fieldItem;
     if (type === MetricType.MAIN) {
       const fieldScore = await getDimensionScore(project, field, subTechStack, model);
       totalScore += weight * fieldScore;
@@ -278,7 +270,8 @@ async function getDimensionScore(project, dimension, techStack, model) {
 async function getPerformanceRawValue(projectId, field, techStack) {
   const rawData = await Benchmark.findOne({ where: { benchmark: field, projectId, techStack } });
   if (rawData == null) {
-    throw new Error(`Project ${projectId} data not found`);
+    debug.log(`Project ${projectId} data not found`);
+    return null;
   }
   return rawData.rawValue;
 }
@@ -311,21 +304,20 @@ function getProportionValue(values, proportion) {
     return newValues[0];
   }
 
-  const remaining = (targetIndex) % 1;
-  return (!remaining
+  const remaining = targetIndex % 1;
+  return !remaining
     ? newValues[index]
-    : newValues[index] + (newValues[index + 1] - newValues[index]) * remaining
-  );
+    : newValues[index] + (newValues[index + 1] - newValues[index]) * remaining;
 }
 
 export async function setAllMedianAndP10(req, res) {
   for (const fieldItem of DataSource) {
-    const {
-      model, scoreName, saveTo,
-    } = fieldItem;
-    const dataList = (await model.findAll({
-      attributes: [scoreName],
-    })).map((item) => item[scoreName]);
+    const { model, scoreName, saveTo } = fieldItem;
+    const dataList = (
+      await model.findAll({
+        attributes: [scoreName],
+      })
+    ).map(item => item[scoreName]);
     const field = EvaluationModel.findOne({ where: { field: saveTo } });
     const { isDesc } = field;
     const { median, p10 } = generateMedianAndP10(dataList, isDesc);
@@ -361,8 +353,9 @@ function calLighthouseScore(x, p10, m, isDesc = true) {
   const t = 1 / (1 + p * Math.abs(position));
   const signFlag = position >= 0 ? 1 : -1;
   const descFlag = isDesc ? 1 : -1;
-  const err = signFlag
-    * (1 - (((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t * Math.exp(-(position * position))));
+  const err =
+    signFlag *
+    (1 - ((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t * Math.exp(-(position * position)));
   // isDesc为true的时候，数据越高，得分越高，用log-normal CDF，反之用complementary log-normal CDF
   const result = (1 + descFlag * err) / 2;
   return result;
