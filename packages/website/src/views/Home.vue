@@ -52,7 +52,7 @@ const onSearchSoftwareName = (repoName: string) => {
     <div class="features">
       <div class="features-wrapper">
         <div class="items">
-          <div class="item" v-for="item in features">
+          <div v-for="item in features" :key="item.title" class="item">
             <div class="item-wrapper">
               <el-icon class="icon"><Link /></el-icon>
               <div class="title">{{ item.title }}</div>

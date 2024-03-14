@@ -1,12 +1,9 @@
 import { PackageDownloadCount, ProjectPackage } from '@orginjs/oss-evaluation-data-model';
 import sequelize from '../util/database.js';
 
-// eslint-disable-next-line import/prefer-default-export
 export async function refreshMainPackage(req, res) {
   const { week } = await PackageDownloadCount.findOne({
-    order: [
-      ['week', 'desc'],
-    ],
+    order: [['week', 'desc']],
     offset: 1,
     limit: 1,
   });
@@ -39,7 +36,7 @@ export async function refreshMainPackage(req, res) {
   });
 
   const map = new Map();
-  maxDownloadPackage.forEach((item) => {
+  maxDownloadPackage.forEach(item => {
     map.set(item.projectName, item.package);
   });
 
@@ -62,6 +59,5 @@ export async function refreshMainPackage(req, res) {
       },
     );
   }
-  res.status(200)
-    .json('{success}');
+  res.status(200).json('{success}');
 }

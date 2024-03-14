@@ -4,8 +4,8 @@ import axios, {
   AxiosError,
   AxiosResponse,
   InternalAxiosRequestConfig,
-} from 'axios'
-import { ElMessage } from 'element-plus'
+} from 'axios';
+import { ElMessage } from 'element-plus';
 
 enum Code {
   SUCCESS = 200,
@@ -14,53 +14,53 @@ enum Code {
 }
 
 export type ResultData<T> = {
-  code: Code
-  data: T
-  msg: string
-}
+  code: Code;
+  data: T;
+  msg: string;
+};
 
 export class HttpRequest {
-  service: AxiosInstance
+  service: AxiosInstance;
 
   public constructor(config: AxiosRequestConfig) {
-    this.service = axios.create(config)
+    this.service = axios.create(config);
     this.service.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
-        return config
+        return config;
       },
       (error: AxiosError) => {
-        return Promise.reject(error)
-      }
-    )
+        return Promise.reject(error);
+      },
+    );
     this.service.interceptors.response.use(
       (response: AxiosResponse) => {
-        const { data } = response
+        const { data } = response;
         if (data.code === Code.HANDLE_SEPARATELY) {
-          return Promise.reject(data)
+          return Promise.reject(data);
         }
         if (data.code !== Code.SUCCESS) {
-          ElMessage.error(data.msg || 'Request failed')
-          return Promise.reject(data)
+          ElMessage.error(data.msg || 'Request failed');
+          return Promise.reject(data);
         }
-        return data
+        return data;
       },
       (error: AxiosError) => {
-        const { response } = error
+        const { response } = error;
         if (response) {
-          ElMessage.error('Request failed')
+          ElMessage.error('Request failed');
         } else if (!window.navigator.onLine) {
-          ElMessage.error('Network connection failed')
+          ElMessage.error('Network connection failed');
         }
-        return Promise.reject(error)
-      }
-    )
+        return Promise.reject(error);
+      },
+    );
   }
 
-  get<T>(url: string, params?: Object): Promise<ResultData<T>> {
-    return this.service.get(url, params)
+  get<T>(url: string, params?: object): Promise<ResultData<T>> {
+    return this.service.get(url, params);
   }
-  post<T>(url: string, params?: Object, config?: AxiosRequestConfig): Promise<ResultData<T>> {
-    return this.service.post(url, params, config)
+  post<T>(url: string, params?: object, config?: AxiosRequestConfig): Promise<ResultData<T>> {
+    return this.service.post(url, params, config);
   }
 }
 
@@ -72,11 +72,11 @@ const defaultConfig = {
     'Access-Control-Allow-Origin': '*',
     'Content-Type': 'application/json'
   }
-}
+};
 
-export default new HttpRequest(defaultConfig)
+export default new HttpRequest(defaultConfig);
 
 export const HttpRequestLong = new HttpRequest({
   ...defaultConfig,
   timeout: 0,
-})
+});

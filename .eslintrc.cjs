@@ -29,6 +29,14 @@ module.exports = {
   },
   plugins: ['prettier', 'vitest'],
   ignorePatterns: ['vite-env.d.ts'],
-  rules: {},
+  rules: {
+    'vue/multi-word-component-names': [
+      'error',
+      {
+        ignores: ['Layout', 'Home'],
+      },
+    ],
+    '@typescript-eslint/no-explicit-any': ['off'],
+  },
   globals: {},
 };

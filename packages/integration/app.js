@@ -13,7 +13,7 @@ import evaluateRouter from './routes/evaluate.js';
 const app = express();
 
 const info = debug('info');
-app.use(logger('combined', { stream: { write: (msg) => info(msg) } }));
+app.use(logger('combined', { stream: { write: msg => info(msg) } }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static('public'));
@@ -31,11 +31,7 @@ const options = {
 };
 
 const specs = swaggerJsdoc(options);
-app.use(
-  '/api-docs',
-  swaggerUi.serve,
-  swaggerUi.setup(specs, { explorer: true }),
-);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, { explorer: true }));
 // mount routers
 app.use('/', indexRouter);
 app.use('/sync', syncRouter);
@@ -49,7 +45,7 @@ app.use((req, res) => {
   });
 });
 
-// eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err, req, res, next) => {
   let { statusCode } = res;
   // Even in error cases, status code is 200 by default
