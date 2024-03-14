@@ -5,7 +5,6 @@ import {
   CncfDocumentScore,
   PackageSizeDetail,
   Scorecard,
-  PackageDownloadCount,
   EvaluationSummary,
 } from '@orginjs/oss-evaluation-data-model';
 import dayjs from 'dayjs';
@@ -98,7 +97,7 @@ export async function getSoftwareOverview(repoName) {
 }
 
 export async function getPerformance(repoName) {
-  const packageName = await getMaxDownloadPackageByRepoName(repoName);
+  const packageName = await getMainPackageByRepoName(repoName);
   const packageSize = await PackageSizeDetail.findOne({
     where: {
       packageName,
@@ -145,28 +144,23 @@ async function getProjectIdByRepoName(repoName) {
   return data.projectId;
 }
 
-async function getMaxDownloadPackageByRepoName(repoName) {
-  const data = await ProjectPackage.findAll({
+/**
+ * get main package of project
+ * @param repoName projectName
+ * @return {Promise<string>} packageName
+ */
+export async function getMainPackageByRepoName(repoName) {
+  const data = await ProjectPackage.findOne({
     where: {
+      mainPackage: true,
       projectName: repoName,
     },
     attributes: ['package'],
   });
-
-  const packageNames = data.map((item) => item.package);
-
-  // get max download count package
-  const maxDownloadPackageName = await PackageDownloadCount.findOne({
-    where: {
-      package_name: packageNames,
-    },
-    order: [['downloads', 'desc']],
-    attributes: ['packageName'],
-  });
-  if (!maxDownloadPackageName) {
-    const msg = `cant find package in {${repoName}}!`;
+  if (!data) {
+    const msg = `cant find main package of project:{${repoName}}!`;
     console.warn(msg);
     throw new Error(msg);
   }
-  return maxDownloadPackageName.packageName;
+  return data.package;
 }
