@@ -15,6 +15,12 @@ export default sequelize.define(
     package: {
       type: DataTypes.STRING(255),
     },
+    mainPackage: {
+      type: DataTypes.BOOLEAN,
+    },
+    mainPackageFreshType: {
+      type: DataTypes.STRING(128),
+    },
   },
   {
     sequelize,
