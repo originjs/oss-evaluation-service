@@ -3,10 +3,12 @@ import { Plus } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import * as echarts from 'echarts';
 import dayjs from 'dayjs';
-import {
+import type {
   EcologyActivity,
   EcologyActivityCategory,
   EcologyOverview,
+} from '@api/SoftwareDetails';
+import {
   getBaseInfo,
   getEcologyActivityCategoryApi,
   getEcologyOverviewApi,

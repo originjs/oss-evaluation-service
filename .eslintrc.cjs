@@ -45,6 +45,7 @@ module.exports = {
     'no-await-in-loop': 'off',
     'no-restricted-syntax': 'off',
     'no-continue': 'off',
+    '@typescript-eslint/consistent-type-imports': 'error',
   },
   globals: {},
 };
