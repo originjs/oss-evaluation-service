@@ -16,6 +16,7 @@ import {
 } from '../controllers/benchmark.js';
 import getDelayedMessage from '../controllers/common.js';
 import syncCNCFDocumentScore from '../controllers/documentScore.js';
+import { refreshMainPackage } from '../controllers/refreshMainPackage.js';
 
 const router = express.Router();
 
@@ -217,6 +218,17 @@ router.route('/scorecard/getScorecardTest').post(getScorecardHandler);
  *         description: success.
  */
 router.route('/packagesize').post(syncPackageSizeHandler);
+
+/**
+ * @swagger
+ * /sync/refreshProjectMainPackage:
+ *   get:
+ *     summary: refresh main package of project
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/refreshProjectMainPackage').get(refreshMainPackage);
 
 /**
  * @swagger
