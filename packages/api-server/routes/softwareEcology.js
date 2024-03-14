@@ -23,9 +23,9 @@ const router = express.Router();
  *       '200':
  *         description: Successful response
  */
-router.get('/ecology/overview/:packageName', async (req, res) => {
-  const { packageName } = req.params;
-  const softwareEcologyOverview = await getSoftwareEcologyOverview(packageName);
+router.get('/ecology/overview/:repoName', async (req, res) => {
+  const { repoName } = req.params;
+  const softwareEcologyOverview = await getSoftwareEcologyOverview(repoName);
   res.json(ok(softwareEcologyOverview));
 });
 
