@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Button, SearchSoftware } from './components'
+import { SearchSoftware } from './components'
 </script>
 
 <template>

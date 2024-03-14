@@ -54,6 +54,7 @@ export async function syncProjectByUserStar(req, res) {
   });
 
   let i = 0;
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     i += 1;
     const response = await octokit.request('GET /user/starred', {
@@ -101,7 +102,7 @@ async function savaData(projects) {
 function saveCSVFile(projects, fileName) {
   let csv = Object.keys(projects[0]).join(',');
   csv += '\n';
-  csv += projects.map((row) => Object.values(row).join(',')).join('\n');
+  csv += projects.map(row => Object.values(row).join(',')).join('\n');
 
   if (!fs.existsSync('github_projects')) {
     fs.mkdirSync('github_projects');
@@ -120,11 +121,11 @@ async function pagingQuery(url) {
     headers.Accept = 'application/vnd.github+json';
   }
 
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     https
-      .get(url, { headers, timeout: 60000 }, (res) => {
+      .get(url, { headers, timeout: 60000 }, res => {
         let result = Buffer.from('');
-        res.on('data', (d) => {
+        res.on('data', d => {
           result = Buffer.concat([result, d], result.length + d.length);
         });
 
@@ -135,7 +136,9 @@ async function pagingQuery(url) {
           }
           const links = parseLinks(res.headers.link);
           const resultBody = JSON.parse(result.toString());
-          console.log(`Integrate the total rows of records: ${resultBody.total_count},Rows of this integration:${resultBody.items.length}`);
+          console.log(
+            `Integrate the total rows of records: ${resultBody.total_count},Rows of this integration:${resultBody.items.length}`,
+          );
 
           const projects = parseProjects(resultBody.items);
           resolve({
@@ -146,7 +149,7 @@ async function pagingQuery(url) {
           });
         });
       })
-      .on('error', (e) => {
+      .on('error', e => {
         debug.log(e);
         resolve({
           hasNext: false,
@@ -159,7 +162,7 @@ async function pagingQuery(url) {
 }
 
 function parseProjects(items) {
-  return items.map((project) => ({
+  return items.map(project => ({
     id: project.id,
     name: project.name,
     fullName: project.full_name,
@@ -241,18 +244,15 @@ async function queryProjectByRepUrl(url) {
 
   const tokens = JSON.parse(process.env.GITHUB_TOKEN);
   // const agent = new HttpsProxyAgent('http://127.0.0.1:8080');
-  const response = await fetch(
-    `https://api.github.com/repos/${ownerRepo[0]}/${ownerRepo[1]}`,
-    {
-      // agent,
-      headers: {
-        'User-Agent': 'nodejs/18.19.0',
-        Authorization: tokens[0],
-        'X-GitHub-Api-Version': '2022-11-28',
-        Accept: 'application/vnd.github+json',
-      },
+  const response = await fetch(`https://api.github.com/repos/${ownerRepo[0]}/${ownerRepo[1]}`, {
+    // agent,
+    headers: {
+      'User-Agent': 'nodejs/18.19.0',
+      Authorization: tokens[0],
+      'X-GitHub-Api-Version': '2022-11-28',
+      Accept: 'application/vnd.github+json',
     },
-  );
+  });
 
   let project = null;
   if (response.ok) {
@@ -279,7 +279,7 @@ function parseLinks(linksStr) {
   const links = {};
   let key;
   let value;
-  linksArray.forEach((link) => {
+  linksArray.forEach(link => {
     key = link.match(/rel="(.*)"/)?.[1];
     value = link.match(/<(.*?)>/)?.[1];
     if (!key) {

@@ -1,6 +1,5 @@
 import { syncOpendigger } from './opendigger.js';
 
-// eslint-disable-next-line import/prefer-default-export
 export async function syncProjectHandler(req, res) {
   const id = req.params.projecId;
   try {
