@@ -117,7 +117,7 @@ export async function getPerformance(repoName) {
       ['patchId', 'desc'],
     ],
   });
-  let benchmarkData = {};
+  let benchmarkData = [];
   if (maxPatchIdData) {
     const benchmarkQuery = await Benchmark.findAll({
       where: {
@@ -126,11 +126,15 @@ export async function getPerformance(repoName) {
       },
       attributes: ['displayName', 'indexName', 'rawValue'],
     });
-    benchmarkData = benchmarkQuery?.map(({ displayName, indexName, rawValue }) => ({
-      displayName,
-      indexName,
-      rawValue,
-    }));
+    const map = new Map();
+    benchmarkQuery.forEach(({ displayName, indexName, rawValue }) => {
+      if (!map.has(displayName)) {
+        map.set(displayName, []);
+      }
+      const data = map.get(displayName);
+      data.push({ displayName, indexName, rawValue });
+    });
+    benchmarkData = [...map.values()];
   }
 
   return {
