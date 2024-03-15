@@ -278,6 +278,9 @@ importers:
       element-plus:
         specifier: ^2.6.1
         version: 2.6.1(vue@3.4.21)
+      file-saver:
+        specifier: ^2.0.5
+        version: 2.0.5
       vue:
         specifier: ^3.4.19
         version: 3.4.21(typescript@4.7.4)
@@ -291,6 +294,9 @@ importers:
       '@iconify/utils':
         specifier: ^2.1.22
         version: 2.1.22
+      '@types/file-saver':
+        specifier: ^2.0.7
+        version: 2.0.7
       '@vitejs/plugin-vue':
         specifier: ^5.0.4
         version: 5.0.4(vite@5.1.4)(vue@3.4.21)
@@ -1404,6 +1410,10 @@ packages:
 
   /@types/estree@1.0.5:
     resolution: {integrity: sha512-/kYRxGDLWzHOB7q+wtSUQlFrtcdUccpfy+X+9iMBpHK8QLLhx2wIPYuS5DYtR9Wa/YlZAbIovy7qVdB1Aq6Lyw==}
+    dev: true
+
+  /@types/file-saver@2.0.7:
+    resolution: {integrity: sha512-dNKVfHd/jk0SkR/exKGj2ggkB45MAkzvWCaqLUUgkyjITkGNzH8H+yUwr+BLJUBjZOe9w8X3wgmXhZDRg1ED6A==}
     dev: true
 
   /@types/json-schema@7.0.15:
@@ -3112,6 +3122,10 @@ packages:
     dependencies:
       flat-cache: 3.2.0
     dev: true
+
+  /file-saver@2.0.5:
+    resolution: {integrity: sha512-P9bmyZ3h/PRG+Nzga+rbdI4OEpNDzAVyy74uVO9ATgzLK6VtAsYybF/+TOCvrc0MO793d6+42lLyZTw7/ArVzA==}
+    dev: false
 
   /fill-range@7.0.1:
     resolution: {integrity: sha512-qOo9F+dMUmC2Lcb4BbVvnKJxTPjCm+RRpe4gDuGrzkL7mEVl/djYSu2OdQ2Pa302N4oqkSg9ir6jaLWJ2USVpQ==}
