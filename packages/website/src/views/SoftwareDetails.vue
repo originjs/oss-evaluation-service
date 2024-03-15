@@ -15,8 +15,9 @@ import {
   getFunctionModuleInfo,
   getPerformanceModuleInfo,
   getQualityModuleInfo,
-  getExportExcelFileApi
+  exportFileApi
 } from '@api/SoftwareDetails';
+import { saveAs } from 'file-saver';
 
 const route = useRoute();
 
@@ -474,17 +475,14 @@ getEcologyActivityCategoryApi(encodeURIComponent(repoName.value))
     renderLineChart('#maintainer-count-chart', ecologyActivityCategory.value?.contributorCount);
   });
 
-function exportToExcel(repoName:string) {
-  getExportExcelFileApi(repoName).then((res:any) =>{
-    const blob = new Blob([res.data], { type: 'application/xlsx' });
-    const link = document.createElement('a');
-    link.href= window.URL.createObjectURL(blob);
-    link.download = `${ repoName }`+`_${ dayjs() }`+`.xlsx`;
-    link.click();
+async function exportToExcel(repoName: string) {
+  try {
+    const data = await exportFileApi(repoName);
+    saveAs(data, `${decodeURIComponent(repoName)}` + `_${dayjs().format()}` + `.xlsx`);
     ElMessage.success('导出成功');
-  }).catch(()=>{
+  } catch (e) {
     ElMessage.error('导出失败');
-  })
+  }
 }
 </script>
 

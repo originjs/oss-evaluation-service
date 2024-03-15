@@ -17,12 +17,14 @@
     "dayjs": "^1.11.10",
     "echarts": "^5.5.0",
     "element-plus": "^2.6.1",
+    "file-saver": "^2.0.5",
     "vue": "^3.4.19",
     "vue-router": "^4.3.0"
   },
   "devDependencies": {
     "@iconify/json": "^2.2.190",
     "@iconify/utils": "^2.1.22",
+    "@types/file-saver": "^2.0.7",
     "@vitejs/plugin-vue": "^5.0.4",
     "less": "^4.2.0",
     "unocss": "^0.58.5",
