@@ -36,6 +36,9 @@ export class HttpRequest {
     this.service.interceptors.response.use(
       (response: AxiosResponse) => {
         const { data } = response;
+        if (data instanceof Blob) {
+          return data;
+        }
         if (data.code === Code.HANDLE_SEPARATELY) {
           return Promise.reject(data);
         }
@@ -60,7 +63,11 @@ export class HttpRequest {
   get<T>(url: string, params?: object): Promise<ResultData<T>> {
     return this.service.get(url, params);
   }
-  post<T>(url: string, params?: object, config?: AxiosRequestConfig): Promise<ResultData<T>> {
+  post<T>(
+    url: string,
+    params?: object,
+    config?: AxiosRequestConfig,
+  ): Promise<T extends Blob ? Blob : ResultData<T>> {
     return this.service.post(url, params, config);
   }
 }
