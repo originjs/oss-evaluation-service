@@ -23,9 +23,8 @@
     "pre-commit": "npx lint-staged"
   },
   "lint-staged": {
-    "*.{ts?(x),js,css}": [
-      "eslint --cache --fix",
-      "eslint"
+    "*.{ts?(x),js,css,vue}": [
+      "pnpm run lint"
     ]
   },
   "keywords": [],
