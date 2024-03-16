@@ -40,6 +40,7 @@ const baseInfo = reactive({
   description: '',
   tags: [] as Array<string>,
   tableData: [] as Array<TableRow>,
+  url: '',
   evaluation: {
     functionScore: 0,
     qualityScore: 0,
@@ -504,15 +505,15 @@ getEcologyActivityCategoryApi(encodeURIComponent(repoName.value))
     ecologyActivityCategory.value = data;
   })
   .then(() => {
-    renderLineChart('#code-submit-frequency-chart', ecologyActivityCategory.value?.commitFrequency);
+    renderLineChart('#code-submit-frequency-chart', ecologyActivityCategory.value!.commitFrequency);
     renderLineChart(
       '#issue-comment-frequency-chart',
-      ecologyActivityCategory.value?.commentFrequency,
+      ecologyActivityCategory.value!.commentFrequency,
     );
-    renderLineChart('#update-issue-count-chart', ecologyActivityCategory.value?.updatedIssuesCount);
-    renderLineChart('#close-issue-count-chart', ecologyActivityCategory.value?.closedIssuesCount);
-    renderLineChart('#organization-count-chart', ecologyActivityCategory.value?.orgCount);
-    renderLineChart('#maintainer-count-chart', ecologyActivityCategory.value?.contributorCount);
+    renderLineChart('#update-issue-count-chart', ecologyActivityCategory.value!.updatedIssuesCount);
+    renderLineChart('#close-issue-count-chart', ecologyActivityCategory.value!.closedIssuesCount);
+    renderLineChart('#organization-count-chart', ecologyActivityCategory.value!.orgCount);
+    renderLineChart('#maintainer-count-chart', ecologyActivityCategory.value!.contributorCount);
   });
 
 async function exportToExcel(repoName: string) {
