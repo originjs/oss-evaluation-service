@@ -1,11 +1,13 @@
 import express from 'express';
-import { fail, ok } from '../model/result.js';
+import { ok } from '../model/result.js';
 import {
-  exportExcel,
+  exportBenchmarkExcel,
+  exportScoreExcel,
   getSoftwareActivity,
   getSoftwareEcologyOverview,
 } from '../service/softwareEcology.js';
 import dayjs from 'dayjs';
+import { appendSheet } from '../util/excel.js';
 
 const router = express.Router();
 
@@ -51,12 +53,12 @@ router.get('/ecology/activity/:packageName', async (req, res) => {
 
 /**
  * @swagger
- * /ecology/export/{packageName}:
+ * /ecology/export/{repoName}:
  *   post:
  *     summary: export
  *     parameters:
  *       - in: path
- *         name: packageName
+ *         name: repoName
  *         required: true
  *         example: "vuejs/vue"
  *     requestBody:
@@ -65,18 +67,25 @@ router.get('/ecology/activity/:packageName', async (req, res) => {
  *       '200':
  *         description: Successful response
  */
-router.post('/ecology/export/:packageName', async (req, res) => {
-  const { packageName } = req.params;
-  const buffer = await exportExcel(packageName);
-  if (buffer === null) {
-    res.json(fail(500, 'export error!'));
+router.post('/ecology/export/:repoName', async (req, res) => {
+  const { repoName } = req.params;
+  const scoreExcel = await exportScoreExcel(repoName);
+  const benchmarkExcel = await exportBenchmarkExcel(repoName);
+  let exportBuffer;
+
+  if (!scoreExcel) {
+    throw new Error(`no data for export excel,repo name :${repoName}`);
+  }
+  if (benchmarkExcel) {
+    //   merge scoreExcel and benchmarkExcel into one excel
+    exportBuffer = appendSheet(scoreExcel, benchmarkExcel);
   }
   res.setHeader('Content-disposition', 'attachment; filename=' + dayjs() + '.xlsx');
   res.setHeader(
     'Content-type',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   );
-  res.write(buffer, 'binary');
+  res.write(exportBuffer, 'binary');
   res.end(null, 'binary');
 });
 

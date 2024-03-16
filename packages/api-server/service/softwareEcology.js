@@ -1,10 +1,11 @@
 import sequelize from '@orginjs/oss-evaluation-data-model/util/database.js';
 import ejsExcel from 'ejsexcel';
-import fs from 'fs';
 import debug from 'debug';
 import EvaluationSummary from '@orginjs/oss-evaluation-data-model/models/EvaluationSummary.js';
 import { PackageDownloadCount } from '@orginjs/oss-evaluation-data-model';
-import { getMainPackageByRepoName } from './softwareDetailService.js';
+import { getMainPackageByRepoName, getPerformanceBenchmark } from './softwareDetailService.js';
+import { readFileSync } from 'node:fs';
+import XLSX from 'xlsx';
 
 /**
  * getSoftwareEcologyOverview
@@ -138,20 +139,56 @@ export async function getSoftwareActivity(packageName) {
   };
 }
 
-export async function exportExcel(packageName) {
-  const exlBuf = fs.readFileSync('./excel/evaluation-template.xlsx');
+export async function exportScoreExcel(packageName) {
+  const excelTemplate = readFileSync('./excel/evaluation-template.xlsx');
   const data = await EvaluationSummary.findOne({
     where: {
       project_name: packageName,
     },
   });
-  if (data === undefined || data === null) {
-    return null;
+  if (!data) {
+    return;
   }
   try {
-    return await ejsExcel.renderExcel(exlBuf, data);
+    return ejsExcel.renderExcel(excelTemplate, data);
   } catch (err) {
     debug.log(err);
-    return null;
+  }
+}
+
+export async function exportBenchmarkExcel(repoName) {
+  let benchmarkData = await getPerformanceBenchmark(repoName);
+  if (!benchmarkData) {
+    return;
+  }
+  const headers = [];
+  // empty first cell
+  headers.push('');
+  benchmarkData.forEach(item => {
+    headers.push(item[0].displayName);
+  });
+  const map = new Map();
+  benchmarkData.flat().forEach(({ indexName, rawValue }) => {
+    if (!map.has(indexName)) {
+      map.set(indexName, []);
+    }
+    const value = map.get(indexName);
+    value.push(rawValue);
+  });
+  const rows = [];
+  for (let [k, v] of map.entries()) {
+    const row = [];
+    row.push(k, ...v);
+    rows.push(row);
+  }
+  try {
+    const workbook = XLSX.utils.book_new();
+    let sheet = XLSX.utils.json_to_sheet([headers, ...rows], {
+      skipHeader: true,
+    });
+    XLSX.utils.book_append_sheet(workbook, sheet, 'benchmark');
+    return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+  } catch (err) {
+    debug.log(err);
   }
 }
