@@ -5,7 +5,7 @@ import {
   getPerformance,
   getQuality,
 } from '../service/softwareDetailService.js';
-import { errHandler } from './routerTool.js';
+import { ok } from '../model/result.js';
 
 const router = express.Router();
 
@@ -25,7 +25,7 @@ const router = express.Router();
  */
 router.get('/overview/:repoName', (req, res) => {
   const { repoName } = req.params;
-  errHandler(getSoftwareOverview(repoName), res);
+  res.json(ok(getSoftwareOverview(repoName)));
 });
 
 /**
@@ -44,7 +44,7 @@ router.get('/overview/:repoName', (req, res) => {
  */
 router.get('/function/:repoName', (req, res) => {
   const { repoName } = req.params;
-  errHandler(getSoftwareFunction(repoName), res);
+  res.json(ok(getSoftwareFunction(repoName)));
 });
 
 /**
@@ -63,7 +63,7 @@ router.get('/function/:repoName', (req, res) => {
  */
 router.get('/performance/:repoName', (req, res) => {
   const { repoName } = req.params;
-  errHandler(getPerformance(repoName), res);
+  res.json(ok(getPerformance(repoName)));
 });
 
 /**
@@ -82,7 +82,7 @@ router.get('/performance/:repoName', (req, res) => {
  */
 router.get('/quality/:repoName', (req, res) => {
   const { repoName } = req.params;
-  errHandler(getQuality(repoName), res);
+  res.json(ok(getQuality(repoName)));
 });
 
 export default router;
