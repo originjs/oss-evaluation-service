@@ -20,7 +20,8 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc && vite build"
+    "build": "vue-tsc && vite build",
+    "serve": "vue-tsc && vite build --watch"
   },
   "peerDependencies": {
     "axios": "^1.6.7",

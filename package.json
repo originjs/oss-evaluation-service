@@ -15,7 +15,7 @@
     "dev-web": "pnpm -C packages/website dev",
     "build-share": "pnpm -C packages/shared-components build",
     "serve": "run-p dev-server serve-web",
-    "serve-share": "pnpm -C packages/shared-components build --watch",
+    "serve-share": "pnpm -C packages/shared-components serve",
     "serve-web": "run-s build-share dev-web",
     "postinstall": "simple-git-hooks"
   },
