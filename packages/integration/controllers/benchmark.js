@@ -93,7 +93,7 @@ async function getIdByName(projectName, techStack) {
     where: {
       // Cases occur where names replicate, add techStack validation
       name: projectName,
-      subTechStack: techStack,
+      subcategory: techStack,
     },
   });
   const { projectId } = project;
