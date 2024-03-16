@@ -352,12 +352,14 @@ function processBenchmarkData(benchmarkData: BenchmarkData) {
       const displayName = benchmarkData[i][j].displayName;
       const indexName = benchmarkData[i][j].indexName;
       const rawValue = benchmarkData[i][j].rawValue;
-      data[indexName] = {
-        indexName,
-        ...(data[indexName] || {}),
-        [displayName]: rawValue,
-      };
-      names.add(displayName);
+      if (displayName && indexName) {
+        data[indexName] = {
+          indexName,
+          ...(data[indexName] || {}),
+          [displayName]: rawValue,
+        };
+        names.add(displayName);
+      }
     }
   }
   benchmarkCompareData.value = data;
