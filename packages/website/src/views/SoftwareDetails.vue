@@ -28,7 +28,15 @@ function toKilo(num: number) {
   return Math.floor(num / 1000);
 }
 
-const repoName = ref(String(route.query.repoName ?? ''));
+const repoName = computed(() => String(route.query.repoName ?? ''));
+const encodedRepoName = computed(() => encodeURIComponent(repoName.value));
+
+watch(
+  () => repoName.value,
+  () => {
+    location.reload();
+  },
+);
 
 type TableRow = {
   label: string;
@@ -51,7 +59,7 @@ const baseInfo = reactive({
 });
 const overviewLoading = ref(true);
 
-getBaseInfo(encodeURIComponent(repoName.value))
+getBaseInfo(encodedRepoName.value)
   .then(({ data }) => {
     baseInfo.logo = data.logo;
     baseInfo.url = data.url;
@@ -164,7 +172,7 @@ const documentInfo = ref<{
   items: [],
 });
 
-getFunctionModuleInfo(encodeURIComponent(repoName.value))
+getFunctionModuleInfo(encodedRepoName.value)
   .then(({ data }) => {
     developerSatisfaction.value = data.satisfaction;
     documentInfo.value = {
@@ -325,7 +333,7 @@ const performanceModuleInfo = ref<PerformanceModuleInfo>({
   benchmarkData: [],
 });
 
-getPerformanceModuleInfo(encodeURIComponent(repoName.value)).then(({ data }) => {
+getPerformanceModuleInfo(encodedRepoName.value).then(({ data }) => {
   performanceModuleInfo.value = data;
   processBenchmarkData(data.benchmarkData);
 });
@@ -386,7 +394,7 @@ const sonarCloudScan = ref({
   securityReviewLevel: 'E',
 });
 
-getQualityModuleInfo(encodeURIComponent(repoName.value)).then(({ data }) => {
+getQualityModuleInfo(encodedRepoName.value).then(({ data }) => {
   const scorecard = data.scorecard;
   openSSFScordcard.value = {
     score: scorecard.score,
@@ -494,13 +502,13 @@ function renderLineChart(container: string, data: EcologyActivity[]) {
 }
 
 const ecologyOverview = ref<EcologyOverview>();
-getEcologyOverviewApi(encodeURIComponent(repoName.value)).then(({ data }) => {
+getEcologyOverviewApi(encodedRepoName.value).then(({ data }) => {
   ecologyOverview.value = data;
 });
 
 const ecologyActivityCategory = ref<EcologyActivityCategory>();
 
-getEcologyActivityCategoryApi(encodeURIComponent(repoName.value))
+getEcologyActivityCategoryApi(encodedRepoName.value)
   .then(({ data }) => {
     ecologyActivityCategory.value = data;
   })
@@ -516,10 +524,10 @@ getEcologyActivityCategoryApi(encodeURIComponent(repoName.value))
     renderLineChart('#maintainer-count-chart', ecologyActivityCategory.value!.contributorCount);
   });
 
-async function exportToExcel(repoName: string) {
+async function exportToExcel() {
   try {
-    const data = await exportFileApi(repoName);
-    saveAs(data, `${decodeURIComponent(repoName)}` + `_${dayjs().format()}` + `.xlsx`);
+    const data = await exportFileApi(encodedRepoName.value);
+    saveAs(data, `${repoName.value}` + `_${dayjs().format()}` + `.xlsx`);
     ElMessage.success('导出成功');
   } catch (e) {
     ElMessage.error('导出失败');
@@ -562,11 +570,7 @@ async function exportToExcel(repoName: string) {
               </template>
             </el-tooltip>
             <el-button type="primary" plain :icon="Plus">对比</el-button>
-            <el-button
-              type="primary"
-              position-absolute
-              right-0
-              @click="exportToExcel(encodeURIComponent(repoName))"
+            <el-button type="primary" position-absolute right-0 @click="exportToExcel"
               >导出评估报告</el-button
             >
           </div>
