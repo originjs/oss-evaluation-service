@@ -1,11 +1,11 @@
 import express from 'express';
-import debug from 'debug';
 import { fail, ok } from '../model/result.js';
 import {
   exportExcel,
   getSoftwareActivity,
   getSoftwareEcologyOverview,
 } from '../service/softwareEcology.js';
+import dayjs from 'dayjs';
 
 const router = express.Router();
 
@@ -67,13 +67,17 @@ router.get('/ecology/activity/:packageName', async (req, res) => {
  */
 router.post('/ecology/export/:packageName', async (req, res) => {
   const { packageName } = req.params;
-  const path = await exportExcel(packageName);
-  if (path === '') {
+  const buffer = await exportExcel(packageName);
+  if (buffer === null) {
     res.json(fail(500, 'export error!'));
   }
-  res.download(path, 'evaluation.xlsx', (err) => {
-    debug.log(err);
-  });
+  res.setHeader('Content-disposition', 'attachment; filename=' + dayjs() + '.xlsx');
+  res.setHeader(
+    'Content-type',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  );
+  res.write(buffer, 'binary');
+  res.end(null, 'binary');
 });
 
 export default router;
