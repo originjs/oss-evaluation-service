@@ -4,9 +4,11 @@ import { ElMessage } from 'element-plus';
 import * as echarts from 'echarts';
 import dayjs from 'dayjs';
 import type {
+  BenchmarkData,
   EcologyActivity,
   EcologyActivityCategory,
   EcologyOverview,
+  PerformanceModuleInfo,
 } from '@api/SoftwareDetails';
 import {
   getBaseInfo,
@@ -15,9 +17,10 @@ import {
   getFunctionModuleInfo,
   getPerformanceModuleInfo,
   getQualityModuleInfo,
-  exportFileApi
+  exportFileApi,
 } from '@api/SoftwareDetails';
 import { saveAs } from 'file-saver';
+import { SearchSoftware } from '@orginjs/oss-evaluation-components';
 
 const route = useRoute();
 
@@ -184,10 +187,10 @@ getFunctionModuleInfo(encodeURIComponent(repoName.value))
         },
         {
           title: 'Governance',
-          content: 'Document that explains how the governance and committer process works in the repository.',
+          content:
+            'Document that explains how the governance and committer process works in the repository.',
           has: data.document.hasContributing,
         },
-
       ],
     };
   })
@@ -312,15 +315,52 @@ function renderDocBestPracticesChart() {
   chart.setOption(option);
 }
 
-const performanceModuleInfo = ref({
+const showBenchmarkCompare = ref(false);
+
+const performanceModuleInfo = ref<PerformanceModuleInfo>({
   size: 0,
   gzipSize: 0,
   benchmarkScore: 0,
+  benchmarkData: [],
 });
 
 getPerformanceModuleInfo(encodeURIComponent(repoName.value)).then(({ data }) => {
   performanceModuleInfo.value = data;
+  processBenchmarkData(data.benchmarkData);
 });
+
+type CompareData = Record<string, Record<string, string | number>>;
+const benchmarkCompareData = ref<CompareData>({});
+const compareSoftwareNames = ref<Set<string>>(new Set(['indexName']));
+const benchmarkCompareTableData = computed(() => Object.values(benchmarkCompareData.value));
+
+// Extract table row data and column names from object array data
+function processBenchmarkData(benchmarkData: BenchmarkData) {
+  const data: CompareData = { ...benchmarkCompareData.value };
+  const names: Set<string> = new Set([...compareSoftwareNames.value]);
+  for (let i = 0; i < benchmarkData.length; i++) {
+    for (let j = 0; j < benchmarkData[i].length; j++) {
+      const displayName = benchmarkData[i][j].displayName;
+      const indexName = benchmarkData[i][j].indexName;
+      const rawValue = benchmarkData[i][j].rawValue;
+      data[indexName] = {
+        indexName,
+        ...(data[indexName] || {}),
+        [displayName]: rawValue,
+      };
+      names.add(displayName);
+    }
+  }
+  benchmarkCompareData.value = data;
+  compareSoftwareNames.value = names;
+}
+
+async function addBenchmarkCompare(name: string) {
+  const {
+    data: { benchmarkData },
+  } = await getPerformanceModuleInfo(encodeURIComponent(name));
+  processBenchmarkData(benchmarkData);
+}
 
 const openSSFScordcard = ref<{
   score: number;
@@ -488,7 +528,7 @@ async function exportToExcel(repoName: string) {
 
 <template>
   <div ref="softwareDetailsEl" pb-50px bg-coolgray-50>
-    <div overflow-hidden p-20px bg-white shadow-md v-loading="overviewLoading">
+    <div v-loading="overviewLoading" overflow-hidden p-20px bg-white shadow-md>
       <div w-1280px m-auto>
         <el-image :src="baseInfo.logo" fit="contain" class="float-left w-96px h-96px mr-14px">
           <template #error>
@@ -502,7 +542,15 @@ async function exportToExcel(repoName: string) {
         <div float-left w-825px>
           <div position-relative flex flex-items-center>
             <el-tooltip effect="light" :teleported="false">
-              <div mt--5px mr-12px max-w-600px font-size-7 font-bold line-height-normal class="text-over">
+              <div
+                mt--5px
+                mr-12px
+                max-w-600px
+                font-size-7
+                font-bold
+                line-height-normal
+                class="text-over"
+              >
                 <a :href="baseInfo.url" target="_blank" rel="noreferrer">
                   {{ repoName }}
                 </a>
@@ -513,7 +561,13 @@ async function exportToExcel(repoName: string) {
               </template>
             </el-tooltip>
             <el-button type="primary" plain :icon="Plus">对比</el-button>
-            <el-button type="primary" position-absolute right-0 @click="exportToExcel(encodeURIComponent(repoName))">导出评估报告</el-button>
+            <el-button
+              type="primary"
+              position-absolute
+              right-0
+              @click="exportToExcel(encodeURIComponent(repoName))"
+              >导出评估报告</el-button
+            >
           </div>
           <el-tooltip effect="light" :teleported="false">
             <div mb-2 font-size-3.5 class="text-over">{{ baseInfo.description }}</div>
@@ -523,14 +577,25 @@ async function exportToExcel(repoName: string) {
             </template>
           </el-tooltip>
           <el-tag v-for="(label, idx) in baseInfo.tags" :key="idx" :type="tagType(idx)" mr-2 mb-2>{{
-      label
-    }}</el-tag>
+            label
+          }}</el-tag>
         </div>
         <div id="software-radar-chart" float-right w-328px h-303px pt-30px bg-coolgray-50 />
-        <el-table :data="baseInfo.tableData" stripe border :show-header="false" show-overflow-tooltip
-          tooltip-effect="light">
+        <el-table
+          class="base-info"
+          :data="baseInfo.tableData"
+          stripe
+          border
+          :show-header="false"
+          show-overflow-tooltip
+          tooltip-effect="light"
+        >
           <el-table-column prop="label" align="center" />
-          <el-table-column prop="value" align="center" :formatter="(row: TableRow) => row.value ?? 'NA'" />
+          <el-table-column
+            prop="value"
+            align="center"
+            :formatter="(row: TableRow) => row.value ?? 'NA'"
+          />
         </el-table>
       </div>
     </div>
@@ -543,7 +608,7 @@ async function exportToExcel(repoName: string) {
         <div font-size-5 font-bold>Github Star 趋势（演示数据）</div>
         <div id="github-start-chart" h-252px />
       </el-card>
-      <el-card mb-6 v-if="developerSatisfaction">
+      <el-card v-if="developerSatisfaction" mb-6>
         <div font-size-5 font-bold>开发者满意度</div>
         <div id="developer-satisfaction-chart" h-252px />
       </el-card>
@@ -552,7 +617,14 @@ async function exportToExcel(repoName: string) {
         <div flex>
           <div id="doc-best-practices-chart" w-280px h-208px flex-none />
           <div flex flex-wrap justify-between content-between h-208px>
-            <div v-for="(docItem, idx) in documentInfo.items" :key="idx" w-470px h-95px p-3 bg-coolgray-50>
+            <div
+              v-for="(docItem, idx) in documentInfo.items"
+              :key="idx"
+              w-470px
+              h-95px
+              p-3
+              bg-coolgray-50
+            >
               <div flex flex-items-center font-bold mb-1>
                 <span v-if="docItem.has" i-ph-check-circle mr-1 font-size-5 color-green-300 />
                 <span v-else i-ph-minus-circle mr-1 font-size-5 color-gray-400 />
@@ -581,9 +653,42 @@ async function exportToExcel(repoName: string) {
         </div>
         <div flex flex-items-center h-30px>
           <span font-bold>Benchmark Score: </span>
-          <el-progress :percentage="performanceModuleInfo.benchmarkScore" text-inside :stroke-width="15" flex-auto ml-6
-            mr-6 />
-          <a href="" color-revert>查看性能Benchmark</a>
+          <el-progress
+            :percentage="performanceModuleInfo.benchmarkScore"
+            text-inside
+            :stroke-width="15"
+            flex-auto
+            ml-6
+            mr-6
+          />
+          <el-link
+            :underline="false"
+            type="primary"
+            @click="showBenchmarkCompare = !showBenchmarkCompare"
+          >
+            {{ showBenchmarkCompare ? '隐藏' : '显示' }}性能Benchmark
+          </el-link>
+        </div>
+        <div v-show="showBenchmarkCompare">
+          <SearchSoftware @search-name="addBenchmarkCompare">
+            <button
+              class="search-btn flex flex-items-center p-12px rd-8px h-40px bg-#f6f6f7 b-1 b-solid b-transparent color-black-75 hover:b-#3451b2 mt-10px mb-10px"
+            >
+              <span class="flex flex-items-center">
+                <span i-ph-magnifying-glass-bold />
+                <span class="ml-6px">添加软件对比</span>
+              </span>
+            </button>
+            <!--            <el-button class="mt-10px mb-10px" :icon="CirclePlus">添加软件对比</el-button>-->
+          </SearchSoftware>
+          <el-table :data="benchmarkCompareTableData" border :max-height="400">
+            <el-table-column
+              v-for="name in compareSoftwareNames"
+              :key="name"
+              :prop="name"
+              :label="name === 'indexName' ? 'Name' : name"
+            />
+          </el-table>
         </div>
       </el-card>
       <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
@@ -595,8 +700,12 @@ async function exportToExcel(repoName: string) {
         <div>{{ openSSFScordcard.score }} / 10</div>
         <div v-for="item in openSSFScordcard.items" :key="item.label" flex flex-items-center h-30px>
           <span w-190px>{{ item.label }}</span>
-          <el-progress :percentage="item.value * 10" :stroke-width="10" flex-auto
-            :color="scorecardProgressColor(item.value)">
+          <el-progress
+            :percentage="item.value * 10"
+            :stroke-width="10"
+            flex-auto
+            :color="scorecardProgressColor(item.value)"
+          >
             <span>{{ item.value }} / 10</span>
           </el-progress>
         </div>
@@ -615,7 +724,8 @@ async function exportToExcel(repoName: string) {
               <span i-ph-question-duotone font-size-5 ml-1 mb-2px></span>
             </div>
             <div
-              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% bg-blue text-center translate-y--50%">
+              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% bg-blue text-center translate-y--50%"
+            >
               <span vertical-middle color-white>{{ sonarCloudScan.reliabilityLevel }}</span>
             </div>
           </div>
@@ -630,7 +740,8 @@ async function exportToExcel(repoName: string) {
               <span i-ph-question-duotone font-size-5 ml-1 mb-2px></span>
             </div>
             <div
-              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% bg-blue text-center translate-y--50%">
+              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% bg-blue text-center translate-y--50%"
+            >
               <span vertical-middle color-white>{{ sonarCloudScan.maintainabilityLevel }}</span>
             </div>
           </div>
@@ -645,7 +756,8 @@ async function exportToExcel(repoName: string) {
               <span i-ph-question-duotone font-size-5 ml-1 mb-2px></span>
             </div>
             <div
-              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% bg-blue text-center translate-y--50%">
+              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% bg-blue text-center translate-y--50%"
+            >
               <span vertical-middle color-white>{{ sonarCloudScan.securityLevel }}</span>
             </div>
           </div>
@@ -662,7 +774,8 @@ async function exportToExcel(repoName: string) {
               <span font-light>{{ sonarCloudScan.reviewed }} Reviewed</span>
             </div>
             <div
-              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% bg-blue text-center translate-y--50%">
+              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% bg-blue text-center translate-y--50%"
+            >
               <span vertical-middle color-white>{{ sonarCloudScan.securityReviewLevel }}</span>
             </div>
           </div>
@@ -782,7 +895,7 @@ async function exportToExcel(repoName: string) {
   -webkit-line-clamp: 2;
 }
 
-:deep(.el-table) {
+:deep(.el-table.base-info) {
   float: left;
   margin-top: 14px;
   width: 935px;
@@ -791,5 +904,9 @@ async function exportToExcel(repoName: string) {
   .cell {
     line-height: 20px;
   }
+}
+
+:deep(.search-btn) {
+  width: 280px;
 }
 </style>

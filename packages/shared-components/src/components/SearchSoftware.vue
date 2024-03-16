@@ -38,15 +38,18 @@ const onClickSoftware = (name: string) => {
 
 <template>
   <div>
-    <button
-      class="search-btn flex flex-items-center p-12px rd-8px h-40px bg-#f6f6f7 b-1 b-solid b-transparent color-black-75 hover:b-#3451b2"
-      @click="showSearchBox = true"
-    >
-      <span class="flex flex-items-center">
-        <span i-ph-magnifying-glass-bold />
-        <span class="ml-6px">搜索开源项目</span>
-      </span>
-    </button>
+    <div @click="showSearchBox = true">
+      <slot>
+        <button
+          class="search-btn flex flex-items-center p-12px rd-8px h-40px bg-#f6f6f7 b-1 b-solid b-transparent color-black-75 hover:b-#3451b2"
+        >
+          <span class="flex flex-items-center">
+            <span i-ph-magnifying-glass-bold />
+            <span class="ml-6px">搜索开源项目</span>
+          </span>
+        </button>
+      </slot>
+    </div>
 
     <el-dialog v-model="showSearchBox" width="500" :show-close="false">
       <div class="p-10px">
