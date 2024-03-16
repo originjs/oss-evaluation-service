@@ -66,6 +66,14 @@ type QualityModuleInfo = {
     ciiBestPractices: number;
     license: number;
     branchProtection: number;
+    securityPolicy: number;
+    dangerousWorkflow: number;
+    tokenPermissions: number;
+    binaryArtifacts: number;
+    fuzzing: number;
+    sast: number;
+    pinnedDependencies: number;
+    vulnerabilities: number;
   };
 };
 
