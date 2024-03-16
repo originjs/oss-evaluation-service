@@ -32,21 +32,16 @@ export async function getSoftwareEcologyOverview(repoName) {
   `;
 
   const packageName = await getMainPackageByRepoName(repoName);
-  const softwareEcologyOverview = await sequelize.query(
-    sql,
-    {
-      replacements: { packageName: repoName },
-      type: sequelize.QueryTypes.SELECT,
-    },
-  );
+  const softwareEcologyOverview = await sequelize.query(sql, {
+    replacements: { packageName: repoName },
+    type: sequelize.QueryTypes.SELECT,
+  });
   const downloadData = await PackageDownloadCount.findOne({
     where: {
       packageName,
     },
     attributes: ['downloads'],
-    order: [
-      ['week', 'desc'],
-    ],
+    order: [['week', 'desc']],
   });
   if (softwareEcologyOverview.length === 0 || !downloadData) {
     return {};
@@ -145,23 +140,18 @@ export async function getSoftwareActivity(packageName) {
 
 export async function exportExcel(packageName) {
   const exlBuf = fs.readFileSync('./excel/evaluation-template.xlsx');
-  let path = `${Date.now()}.xlsx`;
   const data = await EvaluationSummary.findOne({
     where: {
       project_name: packageName,
     },
   });
   if (data === undefined || data === null) {
-    return '';
+    return null;
   }
-  await ejsExcel
-    .renderExcel(exlBuf, data)
-    .then((exlBuf2) => {
-      path = `./excel/download/${path}`;
-      fs.writeFileSync(path, exlBuf2);
-    })
-    .catch((err) => {
-      debug.log(err);
-    });
-  return path;
+  try {
+    return await ejsExcel.renderExcel(exlBuf, data);
+  } catch (err) {
+    debug.log(err);
+    return null;
+  }
 }
