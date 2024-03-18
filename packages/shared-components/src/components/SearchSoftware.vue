@@ -9,6 +9,7 @@ const emit = defineEmits<{
   searchName: [name: string];
 }>();
 
+const searchInputInstance = ref();
 const showSearchBox = ref(false);
 const searchValue = ref('');
 const softwareNames = ref<SoftwareInfo[]>([]);
@@ -51,9 +52,15 @@ const onClickSoftware = (name: string) => {
       </slot>
     </div>
 
-    <el-dialog v-model="showSearchBox" width="500" :show-close="false">
+    <el-dialog
+      v-model="showSearchBox"
+      width="500"
+      :show-close="false"
+      @opened="searchInputInstance.focus()"
+    >
       <div class="p-10px">
         <el-input
+          ref="searchInputInstance"
           v-model="searchValue"
           class="w-full"
           placeholder="搜索开源项目"
