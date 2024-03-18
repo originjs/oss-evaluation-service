@@ -34,7 +34,6 @@ export default sequelize.define(
       type: DataTypes.DATE,
       allowNull: true,
       defaultValue: sequelize.Sequelize.literal('CURRENT_TIMESTAMP'),
-
     },
   },
   {
@@ -47,18 +46,13 @@ export default sequelize.define(
         name: 'PRIMARY',
         unique: true,
         using: 'BTREE',
-        fields: [
-          { name: 'id' },
-        ],
+        fields: [{ name: 'id' }],
       },
       {
         name: 'package_download_count_package_name_week_uindex',
         unique: true,
         using: 'BTREE',
-        fields: [
-          { name: 'package_name' },
-          { name: 'week' },
-        ],
+        fields: [{ name: 'package_name' }, { name: 'week' }],
       },
     ],
   },

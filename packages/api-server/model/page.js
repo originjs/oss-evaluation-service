@@ -19,6 +19,6 @@ export default class Page {
     if (!this.pageSize || this.pageSize <= 0 || this.pageSize >= 100) {
       this.pageSize = 10;
     }
-    this.pageNo = (!this.pageNo || this.pageNo <= 0) ? 1 : this.pageNo;
+    this.pageNo = !this.pageNo || this.pageNo <= 0 ? 1 : this.pageNo;
   }
 }

@@ -15,7 +15,8 @@ export async function syncScorecardHandler(req, res) {
       const projectPath = project.htmlUrl.substring('https://'.length);
       const result = await syncScorecard(projectId, projectPath);
       res.status(200).json(result);
-    } else if (req.body.category) { // sync a category
+    } else if (req.body.category) {
+      // sync a category
       const options = req.body.category === 'all' ? {} : { where: { category: req.body.category } };
       let projects;
       if (req.body.complementary) {
@@ -33,7 +34,7 @@ export async function syncScorecardHandler(req, res) {
       fs.writeFileSync('errorList.txt', JSON.stringify(retryList));
       res.status(200).json({
         status: 'success',
-        projects: projects.map((item) => item.name),
+        projects: projects.map(item => item.name),
       });
     }
   } catch (e) {
@@ -49,7 +50,7 @@ function fetchData(projects) {
     const chunk = projects.slice(index, index + interval);
     for (const project of chunk) {
       const projectPath = project.htmlUrl.substring('https://'.length);
-      await syncScorecard(project.projectId, projectPath).catch((e) => {
+      await syncScorecard(project.projectId, projectPath).catch(e => {
         retryList.push(e.message);
       });
     }
@@ -72,16 +73,18 @@ export async function syncScorecard(projectId, address, platform, org, repo) {
     score = await getScorecard(url);
   } catch (e) {
     throw ServerError({
-      projectId, address, platform, org, repo,
+      projectId,
+      address,
+      platform,
+      org,
+      repo,
     });
   }
   const row = { ...score, projectId };
-  const [data, created] = await Scorecard.findOrCreate(
-    {
-      where: { projectId: row.projectId },
-      defaults: row,
-    },
-  );
+  const [data, created] = await Scorecard.findOrCreate({
+    where: { projectId: row.projectId },
+    defaults: row,
+  });
   if (!created) {
     data.update(row);
   }

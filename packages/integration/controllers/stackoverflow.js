@@ -40,7 +40,7 @@ async function syncFullDetailData() {
     return errMsg;
   }
 
-  Object.keys(resultData).forEach(async (technologyStack) => {
+  Object.keys(resultData).forEach(async technologyStack => {
     await updateDetailData(JSON.parse(resultData[technologyStack]), technologyStack);
   });
 
@@ -49,20 +49,20 @@ async function syncFullDetailData() {
 
 async function updateDetailData(dataArray, technologyStack) {
   const softwareMap = {};
-  dataArray.forEach((data) => {
+  dataArray.forEach(data => {
     const keyName = data.response;
     softwareMap[keyName] = softwareMap[keyName] ? softwareMap[keyName] : {};
-    Object.keys(data).forEach((dataKey) => {
+    Object.keys(data).forEach(dataKey => {
       if (dataKey !== 'response') {
         softwareMap[keyName][underscoreToSmallCamelCase(dataKey)] = data[dataKey];
       }
     });
   });
-  Object.keys(softwareMap).forEach(async (key) => {
+  Object.keys(softwareMap).forEach(async key => {
     softwareMap[key].projectName = key;
     softwareMap[key].year = Number(resultYear);
     softwareMap[key].technologyStack = technologyStack;
-    await StackOverFlow.upsert(softwareMap[key]).catch((error) => {
+    await StackOverFlow.upsert(softwareMap[key]).catch(error => {
       debug.log('upsert error: ', error.message);
     });
   });

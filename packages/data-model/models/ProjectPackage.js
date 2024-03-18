@@ -31,9 +31,7 @@ export default sequelize.define(
       {
         name: 'idx_project_id',
         using: 'BTREE',
-        fields: [
-          { name: 'project_id' },
-        ],
+        fields: [{ name: 'project_id' }],
       },
     ],
   },

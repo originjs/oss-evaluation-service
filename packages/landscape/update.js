@@ -18,7 +18,7 @@ function generateSvg(text, path) {
 
 function parseSoftware(results, subcategory) {
   for (const result of results) {
-    if (subcategory.items.find((it) => it.name === result.name)) {
+    if (subcategory.items.find(it => it.name === result.name)) {
       console.warn('Find duplicate: ', result.name);
       continue;
     }
@@ -52,7 +52,8 @@ async function updateData() {
       subcategories: [],
     };
     for (const categoryName of group.subcategories) {
-      const [rows] = await connection.query(`SELECT p.* FROM github_projects AS p LEFT JOIN project_tech_stack AS t ON p.id = t.project_id 
+      const [rows] =
+        await connection.query(`SELECT p.* FROM github_projects AS p LEFT JOIN project_tech_stack AS t ON p.id = t.project_id 
       WHERE t.category = '${categoryName}' AND t.archived IS NULL ORDER BY stargazers_count DESC LIMIT 30`);
       count += rows.length;
       const subcategory = {
@@ -66,9 +67,12 @@ async function updateData() {
     data.landscape.push(category);
   }
   connection.end();
-  fs.writeFileSync('./data.yml', yaml.dump(data, {
-    styles: { '!!null': 'empty' },
-  }));
+  fs.writeFileSync(
+    './data.yml',
+    yaml.dump(data, {
+      styles: { '!!null': 'empty' },
+    }),
+  );
   console.log(`----------Update data.yml ${count}------------`);
 }
 
