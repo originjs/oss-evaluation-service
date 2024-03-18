@@ -1,3 +1,5 @@
+import sequelize from './util/database.js';
+export { sequelize };
 export { default as GithubProjects } from './models/GithubProjects.js';
 export { default as ProjectPackage } from './models/ProjectPackage.js';
 export { default as StateOfJs } from './models/StateOfJs.js';
@@ -15,3 +17,4 @@ export { default as OpenDigger } from './models/OpenDigger.js';
 export { default as ProjectTechStack } from './models/ProjectTechStack.js';
 export { default as ScorecardComplem } from './models/ScorecardComplem.js';
 export { default as StackOverFlow } from './models/StackOverFlow.js';
+export { default as BenchmarkIndex } from './models/BenchmarkIndex.js';
