@@ -14,9 +14,6 @@ export default sequelize.define(
     displayName: {
       type: DataTypes.STRING(256),
     },
-    indexName: {
-      type: DataTypes.STRING(256),
-    },
     benchmark: {
       type: DataTypes.STRING,
     },
