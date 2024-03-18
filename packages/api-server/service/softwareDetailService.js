@@ -10,6 +10,7 @@ import {
   sequelize,
 } from '@orginjs/oss-evaluation-data-model';
 import ChartData from '../model/chartData.js';
+import { fixedRound } from '../util/math.js';
 
 export async function getSoftwareFunction(repoName) {
   const projectId = await getProjectIdByRepoName(repoName);
@@ -42,7 +43,7 @@ export async function getSoftwareFunction(repoName) {
       attributes: ['documentScore', 'hasReadme', 'hasChangelog', 'hasWebsite', 'hasContributing'],
     })) || {};
   res.document = {
-    documentScore,
+    documentScore: fixedRound(documentScore, 2),
     hasReadme,
     hasChangelog,
     hasWebsite,
@@ -155,7 +156,7 @@ order by benchmark.display_name, index_name.order`;
   const map = new Map();
   benchmarkData.forEach(item => {
     // fill unit(ms,kb..)
-    item.rawValue = (!item.rawValue || item.rawValue === -1) ? null : `${item.rawValue} ${item.unit}`;
+    item.rawValue = !item.rawValue || item.rawValue === -1 ? null : `${item.rawValue} ${item.unit}`;
     const { displayName, indexName, rawValue } = item;
     if (!map.has(displayName)) {
       map.set(displayName, []);
