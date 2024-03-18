@@ -15,8 +15,14 @@ const cncfDocumentChecks = {
     id: 'changelog',
     weight: 1,
     repoPattern: new RegExp(['changelog*'].join('|'), 'i'),
-    readmePattern: new RegExp([String.raw`^#+.*changelog.*$`, String.raw`^changelog$`,
-      String.raw`\[.*changelog.*\]\(.*\)`].join('|'), 'im'),
+    readmePattern: new RegExp(
+      [
+        String.raw`^#+.*changelog.*$`,
+        String.raw`^changelog$`,
+        String.raw`\[.*changelog.*\]\(.*\)`,
+      ].join('|'),
+      'im',
+    ),
     releasePattern: new RegExp(['changelog', 'changes'].join('|'), 'i'),
     checked: false,
     path: '',
@@ -24,9 +30,18 @@ const cncfDocumentChecks = {
   contributing: {
     id: 'contributing',
     weight: 4,
-    repoPattern: new RegExp(['contributing*', '.github/contributing*', 'docs/contributing*'].join('|'), 'i'),
-    readmePattern: new RegExp([String.raw`^#+.*contributing.*$`, String.raw`^contributing$`,
-      String.raw`\[.*contributing.*\]\(.*\)`].join('|'), 'im'),
+    repoPattern: new RegExp(
+      ['contributing*', '.github/contributing*', 'docs/contributing*'].join('|'),
+      'i',
+    ),
+    readmePattern: new RegExp(
+      [
+        String.raw`^#+.*contributing.*$`,
+        String.raw`^contributing$`,
+        String.raw`\[.*contributing.*\]\(.*\)`,
+      ].join('|'),
+      'im',
+    ),
     checked: false,
     path: '',
   },
@@ -52,16 +67,17 @@ export default async function syncCNCFDocumentScore(req, res) {
     debug.log('**Current Progress**: ', `${count}/${sumOfProject}`);
     count += 1;
 
-    const documentProject = await CncfDocumentScore
-      .findOne({ where: { repoUrl: project.htmlUrl } });
+    const documentProject = await CncfDocumentScore.findOne({
+      where: { repoUrl: project.htmlUrl },
+    });
     if (documentProject != null) {
       debug.log('*** Already calculate, skip to next project ***');
       continue;
     }
 
-    const {
-      readme, filename, website, release,
-    } = await integrateCncfDocumentInformation(project.htmlUrl);
+    const { readme, filename, website, release } = await integrateCncfDocumentInformation(
+      project.htmlUrl,
+    );
     runDocumentChecks(readme, filename, website, release);
     const score = calculateCncfScore();
 
@@ -84,7 +100,7 @@ export default async function syncCNCFDocumentScore(req, res) {
 
 function runDocumentChecks(readme, filename, website, release) {
   //  1. Check if there is a website
-  cncfDocumentChecks.website.checked = (website != null && website !== '' && website !== undefined);
+  cncfDocumentChecks.website.checked = website != null && website !== '' && website !== undefined;
   if (cncfDocumentChecks.website.checked) {
     cncfDocumentChecks.website.path = website;
   }
@@ -103,8 +119,9 @@ function runDocumentChecks(readme, filename, website, release) {
   // 3. Check if change_log is in the most recent release
   debug.log('Check if change_log is in the most recent release');
   if (release != null && release.length !== 0) {
-    cncfDocumentChecks.changelog.checked = cncfDocumentChecks.changelog
-      .releasePattern.test(release.body);
+    cncfDocumentChecks.changelog.checked = cncfDocumentChecks.changelog.releasePattern.test(
+      release.body,
+    );
     cncfDocumentChecks.changelog.path = 'release';
   }
   // 4. Checks changelog/contributing in readme content
@@ -114,15 +131,14 @@ function runDocumentChecks(readme, filename, website, release) {
   }
 
   if (!cncfDocumentChecks.changelog.checked) {
-    cncfDocumentChecks.changelog.checked = cncfDocumentChecks.changelog
-      .readmePattern.test(readme);
+    cncfDocumentChecks.changelog.checked = cncfDocumentChecks.changelog.readmePattern.test(readme);
     if (cncfDocumentChecks.changelog.checked) {
       cncfDocumentChecks.changelog.path = cncfDocumentChecks.readme.path;
     }
   }
   if (!cncfDocumentChecks.contributing.checked) {
-    cncfDocumentChecks.contributing.checked = cncfDocumentChecks.contributing
-      .readmePattern.test(readme);
+    cncfDocumentChecks.contributing.checked =
+      cncfDocumentChecks.contributing.readmePattern.test(readme);
     if (cncfDocumentChecks.contributing.checked) {
       cncfDocumentChecks.contributing.path = cncfDocumentChecks.readme.path;
     }
@@ -191,16 +207,22 @@ function calculateCncfScore() {
   let score = 0.0;
   let weight = 0;
 
-  Object.values(cncfDocumentChecks).forEach((item) => {
+  Object.values(cncfDocumentChecks).forEach(item => {
     weight += item.weight;
   });
-  Object.values(cncfDocumentChecks).filter((item) => item.checked).forEach((item) => {
-    score += (item.weight / weight) * 100.0;
-  });
+  Object.values(cncfDocumentChecks)
+    .filter(item => item.checked)
+    .forEach(item => {
+      score += (item.weight / weight) * 100.0;
+    });
 
-  debug.log('*** Passed item: ', Object.values(cncfDocumentChecks)
-    .filter((item) => item.checked)
-    .map((item) => `${item.id}: ${item.path}`), `\n*** weight: ${weight}, score: ${score}`);
+  debug.log(
+    '*** Passed item: ',
+    Object.values(cncfDocumentChecks)
+      .filter(item => item.checked)
+      .map(item => `${item.id}: ${item.path}`),
+    `\n*** weight: ${weight}, score: ${score}`,
+  );
 
   return score;
 }
@@ -238,7 +260,7 @@ async function getRepoFileContent(octokit, owner, repo) {
   // Get the file name and directory name in the project root directory
   const firstDirs = [];
   const firstFileName = [];
-  content.data.forEach((data) => {
+  content.data.forEach(data => {
     if (data.type === 'file') {
       firstFileName.push(data.name);
     }
@@ -257,9 +279,9 @@ async function getRepoFileContent(octokit, owner, repo) {
         'X-GitHub-Api-Version': '2022-11-28',
       },
     });
-    secondDirFileName.push(...fileName.data
-      .filter((file) => file.type === 'file')
-      .map((file) => `${dir}/${file.name}`));
+    secondDirFileName.push(
+      ...fileName.data.filter(file => file.type === 'file').map(file => `${dir}/${file.name}`),
+    );
   }
   firstFileName.push(...secondDirFileName);
   return firstFileName;

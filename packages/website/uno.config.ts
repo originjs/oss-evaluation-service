@@ -1,8 +1,8 @@
-import { resolve } from 'node:path'
-import { defineConfig, presetUno, presetAttributify, presetIcons } from 'unocss'
-import { FileSystemIconLoader } from '@iconify/utils/lib/loader/node-loaders'
+import { resolve } from 'node:path';
+import { defineConfig, presetUno, presetAttributify, presetIcons } from 'unocss';
+import { FileSystemIconLoader } from '@iconify/utils/lib/loader/node-loaders';
 
-const iconDirectory = resolve(__dirname, 'src/assets/svg')
+const iconDirectory = resolve(__dirname, 'src/assets/svg');
 
 export default defineConfig({
   presets: [
@@ -18,4 +18,4 @@ export default defineConfig({
       },
     }),
   ],
-})
+});

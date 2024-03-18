@@ -39,7 +39,7 @@ const onSearchSoftwareName = (repoName: string) => {
           <h1 class="name"><span class="clip">OSS Evaluation</span></h1>
           <p class="text">前端先进性评估</p>
           <p class="tagline">前端先进性评估</p>
-          <div class="actions"><SearchSoftware @searchName="onSearchSoftwareName" /></div>
+          <div class="actions"><SearchSoftware @search-name="onSearchSoftwareName" /></div>
         </div>
         <div class="image">
           <div class="image-wrapper">

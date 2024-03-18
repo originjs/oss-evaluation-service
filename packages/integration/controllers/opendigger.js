@@ -5,7 +5,9 @@ import { OpenDigger, GithubProjects } from '@orginjs/oss-evaluation-data-model';
 import { ServerError } from '../util/error.js';
 
 export async function getOpenRank(projectPath) {
-  const response = await fetch(`https://oss.x-lab.info/open_digger/github/${projectPath}/openrank.json`);
+  const response = await fetch(
+    `https://oss.x-lab.info/open_digger/github/${projectPath}/openrank.json`,
+  );
   if (response.ok) {
     const body = await response.json();
     let year = new Date().getFullYear();
@@ -23,7 +25,9 @@ export async function getOpenRank(projectPath) {
 }
 
 export async function getBusFactor(projectPath) {
-  const response = await fetch(`https://oss.x-lab.info/open_digger/github/${projectPath}/bus_factor.json`);
+  const response = await fetch(
+    `https://oss.x-lab.info/open_digger/github/${projectPath}/bus_factor.json`,
+  );
   if (response.ok) {
     const body = await response.json();
     let year = new Date().getFullYear();
@@ -51,12 +55,10 @@ export async function syncOpendigger(projectId, projectPath) {
     busFactor: bus.busfactor,
     busFactorDate: bus.date,
   };
-  const [data, created] = await OpenDigger.findOrCreate(
-    {
-      where: { projectId },
-      defaults: row,
-    },
-  );
+  const [data, created] = await OpenDigger.findOrCreate({
+    where: { projectId },
+    defaults: row,
+  });
   if (!created) {
     data.update(row);
   }
@@ -74,13 +76,15 @@ export async function syncOpendiggerHandler(req, res) {
     }
     const result = await syncOpendigger(projectId, project.fullName);
     res.status(200).json(result);
-  } else { // sync all
+  } else {
+    // sync all
     const options = {
       attributes: ['id', 'htmlUrl'],
       where: {
         id: {
-          [Op.notIn]:
-            sequelize.literal('(SELECT project_id from opendigger_info where updated_at >= DATE(NOW()) - INTERVAL 30 DAY)'),
+          [Op.notIn]: sequelize.literal(
+            '(SELECT project_id from opendigger_info where updated_at >= DATE(NOW()) - INTERVAL 30 DAY)',
+          ),
         },
       },
     };
@@ -89,7 +93,7 @@ export async function syncOpendiggerHandler(req, res) {
     async.mapLimit(
       projects,
       5,
-      async (project) => {
+      async project => {
         try {
           await syncOpendigger(project.id, project.fullName);
         } catch (e) {
@@ -98,7 +102,7 @@ export async function syncOpendiggerHandler(req, res) {
           }
         }
       },
-      (err) => {
+      err => {
         if (err) throw err;
       },
     );

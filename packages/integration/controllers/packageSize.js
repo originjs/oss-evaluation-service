@@ -16,7 +16,10 @@ export async function getPackageSize(name, version) {
   };
 
   console.time('fetchTime');
-  const response = await fetch(`https://bundlephobia.com/api/size?record=true&package=${name}${version ? (`@${version}`) : ''}`, requestOptions);
+  const response = await fetch(
+    `https://bundlephobia.com/api/size?record=true&package=${name}${version ? `@${version}` : ''}`,
+    requestOptions,
+  );
   console.timeEnd('fetchTime');
   if (response.ok) {
     const body = await response.json();
@@ -41,10 +44,10 @@ export async function getPackageSize(name, version) {
 
 export async function syncSinglePackageSize(name, version) {
   return getPackageSize(name, version)
-    .then((row) => {
+    .then(row => {
       PackageSizeDetail.upsert(row);
     })
-    .catch((e) => {
+    .catch(e => {
       PackageSizeDetail.upsert({
         version: '',
         packageName: e.packageName,

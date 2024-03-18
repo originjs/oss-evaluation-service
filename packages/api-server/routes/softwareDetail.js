@@ -1,6 +1,9 @@
 import express from 'express';
 import {
-  getSoftwareOverview, getSoftwareFunction, getPerformance, getQuality,
+  getSoftwareOverview,
+  getSoftwareFunction,
+  getPerformance,
+  getQuality,
 } from '../service/softwareDetailService.js';
 import { errHandler } from './routerTool.js';
 

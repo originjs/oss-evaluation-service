@@ -23,7 +23,7 @@ const onSearchSoftwareName = (repoName: string) => {
         <span class="desc">前端先进性评估</span>
       </div>
 
-      <div class="search-wrapper"><SearchSoftware @searchName="onSearchSoftwareName" /></div>
+      <div class="search-wrapper"><SearchSoftware @search-name="onSearchSoftwareName" /></div>
 
       <!--    todo 后端获取数据渲染菜单 -->
       <el-menu class="menu" mode="horizontal" :ellipsis="false">

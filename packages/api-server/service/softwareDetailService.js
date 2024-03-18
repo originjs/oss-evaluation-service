@@ -5,7 +5,8 @@ import {
   CncfDocumentScore,
   PackageSizeDetail,
   Scorecard,
-  EvaluationSummary, Benchmark,
+  EvaluationSummary,
+  Benchmark,
 } from '@orginjs/oss-evaluation-data-model';
 import dayjs from 'dayjs';
 import ChartData from '../model/chartData.js';
@@ -25,7 +26,7 @@ export async function getSoftwareFunction(repoName) {
   if (stateOfJsData?.length !== 0) {
     const x = [];
     const y = [];
-    stateOfJsData.forEach((item) => {
+    stateOfJsData.forEach(item => {
       x.push(item.year);
       y.push(item.satisfactionPercentage);
     });
@@ -33,16 +34,13 @@ export async function getSoftwareFunction(repoName) {
   }
 
   // documentation best practices
-  const {
-    documentScore, hasReadme, hasChangelog, hasWebsite, hasContributing,
-  } = (await CncfDocumentScore.findOne({
-    where: {
-      projectId,
-    },
-    attributes: [
-      'documentScore', 'hasReadme', 'hasChangelog', 'hasWebsite', 'hasContributing',
-    ],
-  })) || {};
+  const { documentScore, hasReadme, hasChangelog, hasWebsite, hasContributing } =
+    (await CncfDocumentScore.findOne({
+      where: {
+        projectId,
+      },
+      attributes: ['documentScore', 'hasReadme', 'hasChangelog', 'hasWebsite', 'hasContributing'],
+    })) || {};
   res.document = {
     documentScore,
     hasReadme,
@@ -113,9 +111,7 @@ export async function getPerformance(repoName) {
       projectId,
     },
     limit: 1,
-    order: [
-      ['patchId', 'desc'],
-    ],
+    order: [['patchId', 'desc']],
   });
   let benchmarkData = [];
   if (maxPatchIdData) {

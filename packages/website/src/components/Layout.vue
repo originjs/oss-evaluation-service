@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import AppHeader from '@components/AppHeader.vue'
-import AppFooter from '@components/AppFooter.vue'
+import AppHeader from '@components/AppHeader.vue';
+import AppFooter from '@components/AppFooter.vue';
 </script>
 
 <template>
   <div class="layout">
-    <AppHeader/>
+    <AppHeader />
     <div class="page">
-      <slot/>
+      <slot />
     </div>
-    <AppFooter/>
+    <AppFooter />
   </div>
 </template>
 

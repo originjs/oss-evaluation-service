@@ -1,19 +1,16 @@
 import { Sequelize } from 'sequelize';
 import debug from 'debug';
 
-const sequelize = new Sequelize(
-  process.env.DATABASE_URL,
-  {
-    dialectOptions: {
-      ssl: false,
-    },
-    pool: {
-      max: 10,
-      min: 0,
-      idle: 20000,
-    },
+const sequelize = new Sequelize(process.env.DATABASE_URL, {
+  dialectOptions: {
+    ssl: false,
   },
-);
+  pool: {
+    max: 10,
+    min: 0,
+    idle: 20000,
+  },
+});
 
 export async function checkConnection() {
   try {
