@@ -7,6 +7,7 @@ import {
   Scorecard,
   EvaluationSummary,
   Benchmark,
+  sequelize,
 } from '@orginjs/oss-evaluation-data-model';
 import ChartData from '../model/chartData.js';
 
@@ -127,18 +128,35 @@ export async function getPerformanceBenchmark(repoName) {
   if (!maxPatchIdData) {
     return;
   }
-  const benchmarkQuery = await Benchmark.findAll({
-    where: {
+
+  const benchmarkQuery = `
+  select if(benchmark.display_name = '',benchmark.project_name,benchmark.display_name) as displayName,
+       ifnull(index_name.display_name, benchmark.benchmark) as indexName,
+       benchmark.raw_value as rawValue,
+       unit
+from benchmark
+         join benchmark_index index_name
+              on benchmark.tech_stack = index_name.tech_stack
+                  and benchmark.index_name = index_name.index_name
+where benchmark.project_id = :projectId
+      and benchmark.patch_id = :patchId
+order by benchmark.display_name, index_name.order`;
+
+  const benchmarkData = await sequelize.query(benchmarkQuery, {
+    type: sequelize.QueryTypes.SELECT,
+    replacements: {
       projectId,
       patchId: maxPatchIdData.patchId,
     },
-    attributes: ['displayName', 'indexName', 'rawValue'],
   });
-  if (!benchmarkQuery || !benchmarkQuery.length) {
+  if (!benchmarkData || !benchmarkData.length) {
     return;
   }
   const map = new Map();
-  benchmarkQuery.forEach(({ displayName, indexName, rawValue }) => {
+  benchmarkData.forEach(item => {
+    // fill unit(ms,kb..)
+    item.rawValue = (!item.rawValue || item.rawValue === -1) ? null : `${item.rawValue} ${item.unit}`;
+    const { displayName, indexName, rawValue } = item;
     if (!map.has(displayName)) {
       map.set(displayName, []);
     }
