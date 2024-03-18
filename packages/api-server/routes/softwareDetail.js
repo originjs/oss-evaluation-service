@@ -5,7 +5,7 @@ import {
   getPerformance,
   getQuality,
 } from '../service/softwareDetailService.js';
-import { errHandler } from './routerTool.js';
+import { ok } from '../model/result.js';
 
 const router = express.Router();
 
@@ -23,9 +23,9 @@ const router = express.Router();
  *       '200':
  *         description: Successful response
  */
-router.get('/overview/:repoName', (req, res) => {
+router.get('/overview/:repoName', async (req, res) => {
   const { repoName } = req.params;
-  errHandler(getSoftwareOverview(repoName), res);
+  res.json(ok(await getSoftwareOverview(repoName)));
 });
 
 /**
@@ -42,9 +42,9 @@ router.get('/overview/:repoName', (req, res) => {
  *       '200':
  *         description: Successful response
  */
-router.get('/function/:repoName', (req, res) => {
+router.get('/function/:repoName', async (req, res) => {
   const { repoName } = req.params;
-  errHandler(getSoftwareFunction(repoName), res);
+  res.json(ok(await getSoftwareFunction(repoName)));
 });
 
 /**
@@ -61,9 +61,9 @@ router.get('/function/:repoName', (req, res) => {
  *       '200':
  *         description: Successful response
  */
-router.get('/performance/:repoName', (req, res) => {
+router.get('/performance/:repoName', async (req, res) => {
   const { repoName } = req.params;
-  errHandler(getPerformance(repoName), res);
+  res.json(ok(await getPerformance(repoName)));
 });
 
 /**
@@ -80,9 +80,9 @@ router.get('/performance/:repoName', (req, res) => {
  *       '200':
  *         description: Successful response
  */
-router.get('/quality/:repoName', (req, res) => {
+router.get('/quality/:repoName', async (req, res) => {
   const { repoName } = req.params;
-  errHandler(getQuality(repoName), res);
+  res.json(ok(await getQuality(repoName)));
 });
 
 export default router;

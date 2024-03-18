@@ -105,6 +105,17 @@ export async function getPerformance(repoName) {
   });
 
   // benchmark
+  let benchmarkData = await getPerformanceBenchmark(repoName);
+  return {
+    size: packageSize.size,
+    gzipSize: packageSize.gzipSize,
+    //   TODO benchmark score
+    benchmarkScore: 0,
+    benchmarkData,
+  };
+}
+
+export async function getPerformanceBenchmark(repoName) {
   const projectId = await getProjectIdByRepoName(repoName);
   const maxPatchIdData = await Benchmark.findOne({
     where: {
@@ -113,33 +124,28 @@ export async function getPerformance(repoName) {
     limit: 1,
     order: [['patchId', 'desc']],
   });
-  let benchmarkData = [];
-  if (maxPatchIdData) {
-    const benchmarkQuery = await Benchmark.findAll({
-      where: {
-        projectId,
-        patchId: maxPatchIdData.patchId,
-      },
-      attributes: ['displayName', 'indexName', 'rawValue'],
-    });
-    const map = new Map();
-    benchmarkQuery.forEach(({ displayName, indexName, rawValue }) => {
-      if (!map.has(displayName)) {
-        map.set(displayName, []);
-      }
-      const data = map.get(displayName);
-      data.push({ displayName, indexName, rawValue });
-    });
-    benchmarkData = [...map.values()];
+  if (!maxPatchIdData) {
+    return;
   }
-
-  return {
-    size: packageSize.size,
-    gzipSize: packageSize.gzipSize,
-    //   TODO benchmark score
-    benchmarkScore: 0,
-    benchmarkData,
-  };
+  const benchmarkQuery = await Benchmark.findAll({
+    where: {
+      projectId,
+      patchId: maxPatchIdData.patchId,
+    },
+    attributes: ['displayName', 'indexName', 'rawValue'],
+  });
+  if (!benchmarkQuery || !benchmarkQuery.length) {
+    return;
+  }
+  const map = new Map();
+  benchmarkQuery.forEach(({ displayName, indexName, rawValue }) => {
+    if (!map.has(displayName)) {
+      map.set(displayName, []);
+    }
+    const data = map.get(displayName);
+    data.push({ displayName, indexName, rawValue });
+  });
+  return [...map.values()];
 }
 
 export async function getQuality(repoName) {
