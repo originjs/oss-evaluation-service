@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Plus } from '@element-plus/icons-vue';
+import type { CellStyle } from 'element-plus';
 import { ElMessage } from 'element-plus';
 import * as echarts from 'echarts';
 import dayjs from 'dayjs';
@@ -351,15 +352,30 @@ getPerformanceModuleInfo(encodedRepoName.value).then(({ data }) => {
   processBenchmarkData(data.benchmarkData);
 });
 
-type CompareData = Record<string, Record<string, string | number>>;
-const benchmarkCompareData = ref<CompareData>({});
-const compareSoftwareNames = ref<Set<string>>(new Set(['indexName']));
+type BenchmarkCompareRow = Record<string, string | number>;
+type BenchmarkCompareData = Record<string, BenchmarkCompareRow>;
+const benchmarkCompareData = ref<BenchmarkCompareData>({});
+const BenchmarkCompareColumns = ref<Set<string>>(new Set(['indexName']));
 const benchmarkCompareTableData = computed(() => Object.values(benchmarkCompareData.value));
+const minRowValues = computed(() => {
+  const res: Record<string, number> = {};
+  for (const [k, v] of Object.entries(benchmarkCompareData.value)) {
+    const vKeys = Object.keys(v);
+    res[k] = vKeys.reduce((min, result, i) => {
+      const val = v[vKeys[i]];
+      if (typeof val !== 'number' || val <= 0) {
+        return min;
+      }
+      return Math.min(min, val);
+    }, Infinity);
+  }
+  return res;
+});
 
 // Extract table row data and column names from object array data
 function processBenchmarkData(benchmarkData: BenchmarkData) {
-  const data: CompareData = { ...benchmarkCompareData.value };
-  const names: Set<string> = new Set([...compareSoftwareNames.value]);
+  const data: BenchmarkCompareData = { ...benchmarkCompareData.value };
+  const columns: Set<string> = new Set([...BenchmarkCompareColumns.value]);
   for (let i = 0; i < benchmarkData.length; i++) {
     for (let j = 0; j < benchmarkData[i].length; j++) {
       const displayName = benchmarkData[i][j].displayName;
@@ -371,12 +387,12 @@ function processBenchmarkData(benchmarkData: BenchmarkData) {
           ...(data[indexName] || {}),
           [displayName]: rawValue,
         };
-        names.add(displayName);
+        columns.add(displayName);
       }
     }
   }
   benchmarkCompareData.value = data;
-  compareSoftwareNames.value = names;
+  BenchmarkCompareColumns.value = columns;
 }
 
 async function addBenchmarkCompare(name: string) {
@@ -385,6 +401,28 @@ async function addBenchmarkCompare(name: string) {
   } = await getPerformanceModuleInfo(encodeURIComponent(name));
   processBenchmarkData(benchmarkData);
 }
+
+const computeColor: CellStyle<BenchmarkCompareRow> = function ({ row, column }) {
+  const cellVal = Number(row[column.property]);
+  if (column.property === 'indexName' || cellVal <= 0) {
+    return {};
+  }
+  const min = minRowValues.value[row.indexName];
+  const factor = cellVal / min;
+  if (factor < 2.0) {
+    const a = factor - 1.0;
+    const r = (1.0 - a) * 99 + a * 255;
+    const g = (1.0 - a) * 191 + a * 236;
+    const b = (1.0 - a) * 124 + a * 132;
+    return { backgroundColor: `rgb(${r.toFixed(0)}, ${g.toFixed(0)}, ${b.toFixed(0)})` };
+  } else {
+    const a = Math.min((factor - 2.0) / 2.0, 1.0);
+    const r = (1.0 - a) * 255 + a * 249;
+    const g = (1.0 - a) * 236 + a * 105;
+    const b = (1.0 - a) * 132 + a * 108;
+    return { backgroundColor: `rgb(${r.toFixed(0)}, ${g.toFixed(0)}, ${b.toFixed(0)})` };
+  }
+};
 
 const openSSFScordcard = ref<{
   score: number;
@@ -699,14 +737,18 @@ async function exportToExcel() {
                 <span class="ml-6px">添加软件对比</span>
               </span>
             </button>
-            <!--            <el-button class="mt-10px mb-10px" :icon="CirclePlus">添加软件对比</el-button>-->
           </SearchSoftware>
-          <el-table :data="benchmarkCompareTableData" border :max-height="400">
+          <el-table
+            :data="benchmarkCompareTableData"
+            border
+            :max-height="400"
+            :cell-style="computeColor"
+          >
             <el-table-column
-              v-for="name in compareSoftwareNames"
-              :key="name"
-              :prop="name"
-              :label="name === 'indexName' ? 'Name' : name"
+              v-for="column in BenchmarkCompareColumns"
+              :key="column"
+              :prop="column"
+              :label="column === 'indexName' ? 'Name' : column"
             />
           </el-table>
         </div>
