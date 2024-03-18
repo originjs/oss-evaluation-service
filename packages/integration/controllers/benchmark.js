@@ -4,7 +4,7 @@ import { Benchmark, ProjectTechStack } from '@orginjs/oss-evaluation-data-model'
 import sequelize from '../util/database.js';
 
 export async function syncBenchmarkHandler(req, res) {
-  const { projectName, benchmark, techStack, rawValue, content, platform } = req.body;
+  const { projectName, benchmark, techStack, rawValue, content, platform, displayName } = req.body;
   const projectId = await getIdByName(projectName, techStack);
   let { patchId } = req.body;
   if (!patchId) {
@@ -14,6 +14,7 @@ export async function syncBenchmarkHandler(req, res) {
     await Benchmark.upsert({
       projectId,
       projectName,
+      displayName: displayName ?? '',
       benchmark,
       techStack,
       rawValue,
@@ -166,7 +167,7 @@ async function genBenchmarkList(projectName, techStack, platform, patchId, list)
   const benchmarkList = [];
   for (const data of list) {
     const dataProjectName = projectName || data.projectName;
-    const { benchmark, content } = data;
+    const { benchmark, content, rawValue, displayName } = data;
     const projectId = await getIdByName(dataProjectName);
     const item = {
       projectId,
@@ -175,6 +176,8 @@ async function genBenchmarkList(projectName, techStack, platform, patchId, list)
       platform,
       patchId,
       benchmark,
+      rawValue,
+      displayName: displayName ?? '',
       content,
     };
     benchmarkList.push(item);

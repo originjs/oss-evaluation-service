@@ -130,7 +130,7 @@ export async function getPerformanceBenchmark(repoName) {
   }
 
   const benchmarkQuery = `
-  select benchmark.display_name as displayName,
+  select if(benchmark.display_name = '',benchmark.project_name,benchmark.display_name) as displayName,
        ifnull(index_name.display_name, benchmark.benchmark) as indexName,
        benchmark.raw_value as rawValue,
        unit
