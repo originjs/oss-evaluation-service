@@ -6,6 +6,7 @@ type BaseInfo = {
   description: string;
   tags: string;
   star: number;
+  fork: number;
   language: string;
   codeLines: number;
   firstCommit: string;

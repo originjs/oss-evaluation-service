@@ -8,7 +8,6 @@ import {
   EvaluationSummary,
   Benchmark,
 } from '@orginjs/oss-evaluation-data-model';
-import dayjs from 'dayjs';
 import ChartData from '../model/chartData.js';
 
 export async function getSoftwareFunction(repoName) {
@@ -84,8 +83,9 @@ export async function getSoftwareOverview(repoName) {
     url: githubInfo.htmlUrl,
     logo: githubInfo.ownerAvatarUrl,
     star: githubInfo.stargazersCount,
+    fork: githubInfo.forksCount,
     language: githubInfo.language,
-    firstCommit: dayjs(new Date(githubInfo.createdAt)).format('YYYY-MM-DD HH:mm:ss'),
+    firstCommit: githubInfo.createdAt,
     license: githubInfo.licenseName,
     description: githubInfo.description,
     tags: githubInfo.topics,
