@@ -6,6 +6,7 @@ import { PackageDownloadCount } from '@orginjs/oss-evaluation-data-model';
 import { getMainPackageByRepoName, getPerformanceBenchmark } from './softwareDetailService.js';
 import { readFileSync } from 'node:fs';
 import XLSX from 'xlsx';
+import { fixedRound } from '../util/math.js';
 
 /**
  * getSoftwareEcologyOverview
@@ -54,8 +55,8 @@ export async function getSoftwareEcologyOverview(repoName) {
     stargazersCount: softwareEcologyOverview[0].stargazers_count,
     forksCount: softwareEcologyOverview[0].forks_count,
     busFactor: softwareEcologyOverview[0].bus_factor,
-    openRank: softwareEcologyOverview[0].openrank,
-    criticalityScore: softwareEcologyOverview[0].criticality_score,
+    openRank: fixedRound(softwareEcologyOverview[0].openrank, 2),
+    criticalityScore: fixedRound(softwareEcologyOverview[0].criticality_score, 2),
     contributorCount: softwareEcologyOverview[0].contributor_count,
     dependentCount: 0,
   };
@@ -100,12 +101,12 @@ export async function getSoftwareActivity(packageName) {
   for (const activity of softwareActivity) {
     commitFrequency.push({
       projectId: activity.project_id,
-      value: activity.commit_frequency,
+      value: fixedRound(activity.commit_frequency, 2),
       date: activity.grimoire_creation_date,
     });
     commentFrequency.push({
       projectId: activity.project_id,
-      value: activity.comment_frequency,
+      value: fixedRound(activity.comment_frequency, 2),
       date: activity.grimoire_creation_date,
     });
     updatedIssuesCount.push({
