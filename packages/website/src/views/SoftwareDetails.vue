@@ -24,8 +24,17 @@ import { SearchSoftware } from '@orginjs/oss-evaluation-components';
 
 const route = useRoute();
 
-function toKilo(num: number) {
-  return Math.floor(num / 1000);
+function toKilo(num: number | undefined) {
+  if (!num) {
+    return 'NaN';
+  }
+  if (num < 1000) {
+    return num.toString();
+  } else if (num < 100000) {
+    return (num / 1000).toFixed(1) + 'k';
+  } else {
+    return Math.round(num / 1000) + 'k';
+  }
 }
 
 const repoName = computed(() => String(route.query.repoName ?? ''));
@@ -68,16 +77,20 @@ getBaseInfo(encodedRepoName.value)
     baseInfo.tableData = [
       {
         label: 'Stars',
-        value: data.star,
+        value: toKilo(data.star),
+      },
+      {
+        label: 'Fork',
+        value: toKilo(data.fork),
       },
       {
         label: '开发语言',
         value: data.language,
       },
-      {
-        label: '代码量',
-        value: data.codeLines,
-      },
+      // {
+      //   label: '代码量',
+      //   value: data.codeLines,
+      // },
       {
         label: '首次提交',
         value: dayjs(data.firstCommit).format('YYYY-MM-DD'),
@@ -800,14 +813,14 @@ async function exportToExcel() {
               <div i-custom:download font-size-14 mr-4 />
               <div>
                 <div font-bold font-size-5>{{ toKilo(ecologyOverview?.downloads) }}</div>
-                <div line-height-7>npm周下载量（k）</div>
+                <div line-height-7>npm周下载量</div>
               </div>
             </div>
             <div flex w-210px>
               <div i-custom:star font-size-14 mr-4 />
               <div>
                 <div font-bold font-size-5>{{ toKilo(ecologyOverview?.stargazersCount) }}</div>
-                <div line-height-7>Star数量（k）</div>
+                <div line-height-7>Star数量</div>
               </div>
             </div>
             <div flex w-210px>
