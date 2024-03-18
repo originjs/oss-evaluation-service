@@ -92,6 +92,7 @@ export type EcologyOverview = {
   criticalityScore: number;
   contributorCount: number;
   dependentCount: number;
+  forksCount: number;
 };
 
 export function getEcologyOverviewApi(repoName: string) {
