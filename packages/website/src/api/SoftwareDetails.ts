@@ -41,10 +41,17 @@ export function getFunctionModuleInfo(repoName: string) {
   return HttpRequest.get<functionModuleInfo>(`/softwareDetail/function/${repoName}`);
 }
 
-type PerformanceModuleInfo = {
+export type BenchmarkData = {
+  displayName: string;
+  indexName: string;
+  rawValue: number;
+}[][];
+
+export type PerformanceModuleInfo = {
   size: number;
   gzipSize: number;
   benchmarkScore: number;
+  benchmarkData: BenchmarkData;
 };
 
 export function getPerformanceModuleInfo(repoName: string) {
@@ -59,6 +66,14 @@ type QualityModuleInfo = {
     ciiBestPractices: number;
     license: number;
     branchProtection: number;
+    securityPolicy: number;
+    dangerousWorkflow: number;
+    tokenPermissions: number;
+    binaryArtifacts: number;
+    fuzzing: number;
+    sast: number;
+    pinnedDependencies: number;
+    vulnerabilities: number;
   };
 };
 
