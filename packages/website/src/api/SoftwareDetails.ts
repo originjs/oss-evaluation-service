@@ -45,7 +45,7 @@ export function getFunctionModuleInfo(repoName: string) {
 export type BenchmarkData = {
   displayName: string;
   indexName: string;
-  rawValue: number;
+  rawValue: null | string;
 }[][];
 
 export type PerformanceModuleInfo = {

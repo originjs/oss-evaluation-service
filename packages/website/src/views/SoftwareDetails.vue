@@ -352,47 +352,50 @@ getPerformanceModuleInfo(encodedRepoName.value).then(({ data }) => {
   processBenchmarkData(data.benchmarkData);
 });
 
-type BenchmarkCompareRow = Record<string, string | number>;
-type BenchmarkCompareData = Record<string, BenchmarkCompareRow>;
-const benchmarkCompareData = ref<BenchmarkCompareData>({});
-const BenchmarkCompareColumns = ref<Set<string>>(new Set(['indexName']));
-const benchmarkCompareTableData = computed(() => Object.values(benchmarkCompareData.value));
-const minRowValues = computed(() => {
-  const res: Record<string, number> = {};
-  for (const [k, v] of Object.entries(benchmarkCompareData.value)) {
-    const vKeys = Object.keys(v);
-    res[k] = vKeys.reduce((min, result, i) => {
-      const val = v[vKeys[i]];
-      if (typeof val !== 'number' || val <= 0) {
-        return min;
-      }
-      return Math.min(min, val);
-    }, Infinity);
-  }
-  return res;
-});
+// remove unit: `999 ms`
+function removeUnit(str: string) {
+  return Number(str.split(' ')[0]);
+}
 
-// Extract table row data and column names from object array data
+type BenchmarkCompareRow = Record<string, string | null>;
+type BenchmarkCompareData = Record<string, BenchmarkCompareRow>;
+type MinRowValue = Record<string, number>;
+const benchmarkCompareRows = ref<BenchmarkCompareData>({});
+const benchmarkCompareColumns = ref<Set<string>>(new Set(['indexName']));
+const benchmarkCompareTable = computed(() => Object.values(benchmarkCompareRows.value));
+const minRowValue = ref<MinRowValue>({});
+
+// Extract table row, min row value and column name from object array data
 function processBenchmarkData(benchmarkData: BenchmarkData) {
-  const data: BenchmarkCompareData = { ...benchmarkCompareData.value };
-  const columns: Set<string> = new Set([...BenchmarkCompareColumns.value]);
+  const rows: BenchmarkCompareData = { ...benchmarkCompareRows.value };
+  const minRowV: MinRowValue = { ...minRowValue.value };
+  const columns: Set<string> = new Set([...benchmarkCompareColumns.value]);
   for (let i = 0; i < benchmarkData.length; i++) {
     for (let j = 0; j < benchmarkData[i].length; j++) {
-      const displayName = benchmarkData[i][j].displayName;
       const indexName = benchmarkData[i][j].indexName;
+      const displayName = benchmarkData[i][j].displayName;
       const rawValue = benchmarkData[i][j].rawValue;
-      if (displayName && indexName) {
-        data[indexName] = {
-          indexName,
-          ...(data[indexName] || {}),
-          [displayName]: rawValue,
-        };
+      if (indexName && displayName) {
+        // get row
+        let row = rows[indexName] || { indexName };
+        row = { ...row, [displayName]: rawValue };
+        rows[indexName] = row;
+
+        // get min row value
+        if (rawValue && rawValue.includes(' ')) {
+          const num = removeUnit(rawValue);
+          const min = minRowV[indexName] || Infinity;
+          minRowV[indexName] = Math.min(min, num);
+        }
+
+        // get column
         columns.add(displayName);
       }
     }
   }
-  benchmarkCompareData.value = data;
-  BenchmarkCompareColumns.value = columns;
+  benchmarkCompareRows.value = rows;
+  minRowValue.value = minRowV;
+  benchmarkCompareColumns.value = columns;
 }
 
 async function addBenchmarkCompare(name: string) {
@@ -403,12 +406,12 @@ async function addBenchmarkCompare(name: string) {
 }
 
 const computeColor: CellStyle<BenchmarkCompareRow> = function ({ row, column }) {
-  const cellVal = Number(row[column.property]);
-  if (column.property === 'indexName' || cellVal <= 0) {
+  const cellVal = row[column.property];
+  if (column.property === 'indexName' || !cellVal) {
     return {};
   }
-  const min = minRowValues.value[row.indexName];
-  const factor = cellVal / min;
+  const min = minRowValue.value[row.indexName!];
+  const factor = removeUnit(cellVal) / min;
   if (factor < 2.0) {
     const a = factor - 1.0;
     const r = (1.0 - a) * 99 + a * 255;
@@ -739,13 +742,13 @@ async function exportToExcel() {
             </button>
           </SearchSoftware>
           <el-table
-            :data="benchmarkCompareTableData"
+            :data="benchmarkCompareTable"
             border
             :max-height="400"
             :cell-style="computeColor"
           >
             <el-table-column
-              v-for="column in BenchmarkCompareColumns"
+              v-for="column in benchmarkCompareColumns"
               :key="column"
               :prop="column"
               :label="column === 'indexName' ? 'Name' : column"
