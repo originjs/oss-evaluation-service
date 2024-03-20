@@ -18,3 +18,5 @@ export { default as ProjectTechStack } from './models/ProjectTechStack.js';
 export { default as ScorecardComplem } from './models/ScorecardComplem.js';
 export { default as StackOverFlow } from './models/StackOverFlow.js';
 export { default as BenchmarkIndex } from './models/BenchmarkIndex.js';
+export { default as OssGithubFork } from './models/OssGithubFork.js';
+export { default as SonarCloudProject} from './models/SonarCloudProject.js';

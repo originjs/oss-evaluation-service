@@ -66,6 +66,10 @@ importers:
         specifier: ^2.0.6
         version: 2.0.6(typescript@4.7.4)
 
+  packages/api-sdk/github: {}
+
+  packages/api-sdk/sonarCloud: {}
+
   packages/api-server:
     dependencies:
       '@orginjs/oss-evaluation-data-model':
@@ -132,9 +136,15 @@ importers:
       '@octokit/core':
         specifier: ^5.1.0
         version: 5.1.0
+      '@orginjs/github-sdk':
+        specifier: workspace:^
+        version: link:../api-sdk/github
       '@orginjs/oss-evaluation-data-model':
         specifier: workspace:^
         version: link:../data-model
+      '@orginjs/sonarCloud-sdk':
+        specifier: workspace:^
+        version: link:../api-sdk/sonarCloud
       async:
         specifier: ^3.2.5
         version: 3.2.5
