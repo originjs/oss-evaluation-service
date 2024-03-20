@@ -671,11 +671,25 @@ async function exportToExcel() {
         <div id="github-start-chart" h-252px />
       </el-card>
       <el-card v-if="developerSatisfaction" mb-6>
-        <div font-size-5 font-bold>开发者满意度</div>
+        <div flex>
+          <div font-size-5 font-bold>开发者满意度</div>
+          <el-tooltip
+            content="数据来源于历年StateOfJS生态调查报告，更多结果可以查看 https://stateofjs.com/en-US"
+          >
+            <el-icon size-5 color-gray-400> <InfoFilled /></el-icon>
+          </el-tooltip>
+        </div>
         <div id="developer-satisfaction-chart" h-252px />
       </el-card>
       <el-card>
-        <div font-size-5 font-bold>文档最佳实践</div>
+        <div flex>
+          <div font-size-5 font-bold>文档最佳实践</div>
+          <el-tooltip
+            content="最佳实践评分基于Linux Foundation建议的Best Practices检查，每个检查项都有不同的权重"
+          >
+            <el-icon size-5 color-gray-400> <InfoFilled /></el-icon>
+          </el-tooltip>
+        </div>
         <div flex>
           <div id="doc-best-practices-chart" w-280px h-208px flex-none />
           <div flex flex-wrap justify-between content-between h-208px>
@@ -764,8 +778,15 @@ async function exportToExcel() {
         <span font-size-5 float-right>{{ baseInfo.evaluation.qualityScore }}/10</span>
       </div>
       <el-card mb-6>
-        <div mb-4 font-size-5 font-bold>OpenSSF Scorecard</div>
-        <div>{{ openSSFScordcard.score }} / 10</div>
+        <div flex>
+          <div mb-4 font-size-5 font-bold>OpenSSF Scorecard</div>
+          <el-tooltip
+            content="OpenSSF开源安全基金会是一个跨行业合作组织，旨在提高开源软件的安全性。Scorecard为开源项目提供安全健康指标。"
+          >
+            <el-icon size-5 color-gray-400> <InfoFilled /></el-icon>
+          </el-tooltip>
+        </div>
+        <div font-bold>{{ openSSFScordcard.score }} / 10</div>
         <div v-for="item in openSSFScordcard.items" :key="item.label" flex flex-items-center h-30px>
           <span w-190px>{{ item.label }}</span>
           <el-progress
@@ -883,7 +904,14 @@ async function exportToExcel() {
               <div i-custom:bus font-size-14 mr-4 />
               <div>
                 <div font-bold font-size-5>{{ ecologyOverview?.busFactor }}</div>
-                <div line-height-7>巴士系数</div>
+                <div flex>
+                  <div line-height-7>巴士系数</div>
+                  <el-tooltip
+                    content="一个项目失去多少贡献者参与（“被巴士撞了”）即导致项目停滞的成员数量"
+                  >
+                    <el-icon size-5 color-gray-400> <InfoFilled /></el-icon>
+                  </el-tooltip>
+                </div>
               </div>
             </div>
           </div>
@@ -894,14 +922,26 @@ async function exportToExcel() {
               <div i-custom:medal font-size-14 mr-4 />
               <div>
                 <div font-bold font-size-5>{{ ecologyOverview?.openRank }}</div>
-                <div line-height-7>OpenRank得分</div>
+                <div flex>
+                  <div line-height-7>OpenRank得分</div>
+                  <el-tooltip content="X-lab提出的一种基于全域开发者协作网络的项目影响力评估方法">
+                    <el-icon size-5 color-gray-400> <InfoFilled /></el-icon>
+                  </el-tooltip>
+                </div>
               </div>
             </div>
             <div flex w-210px>
               <div i-custom:trophy font-size-14 mr-4 />
               <div>
                 <div font-bold font-size-5>{{ ecologyOverview?.criticalityScore }}</div>
-                <div line-height-7>Criticality得分</div>
+                <div flex>
+                  <div line-height-7>Criticality得分</div>
+                  <el-tooltip
+                    content="OpenSSF提供的开源项目关键度得分，定义了项目的影响力和重要性。它是一个介于0(最不关键)和1(最关键)之间的数字"
+                  >
+                    <el-icon size-5 color-gray-400> <InfoFilled /></el-icon>
+                  </el-tooltip>
+                </div>
               </div>
             </div>
             <div flex w-210px>
@@ -922,22 +962,29 @@ async function exportToExcel() {
         </el-card>
         <el-card mb-6 w-626px>
           <div mb-4 font-size-5 font-bold>代码提交频率</div>
+          <div mb-2 font-size-3>过去90天内平均每周代码提交次数。</div>
           <div id="code-submit-frequency-chart" h-200px />
         </el-card>
         <el-card mb-6 w-626px>
           <div mb-4 font-size-5 font-bold>Issue评论频率</div>
+          <div mb-2 font-size-3>
+            过去90天内新建 Issue 的评论平均数（不包含机器人和 Issue 作者本人评论）。
+          </div>
           <div id="issue-comment-frequency-chart" h-200px />
         </el-card>
         <el-card mb-6 w-626px>
           <div mb-4 font-size-5 font-bold>更新Issue数量</div>
+          <div mb-2 font-size-3>过去90天 Issue 更新的数量。</div>
           <div id="update-issue-count-chart" h-200px />
         </el-card>
         <el-card mb-6 w-626px>
           <div mb-4 font-size-5 font-bold>关闭Issue数量</div>
+          <div mb-2 font-size-3>过去90天 Issue 更新的数量。</div>
           <div id="close-issue-count-chart" h-200px />
         </el-card>
         <el-card mb-6 w-626px>
           <div mb-4 font-size-5 font-bold>组织数量</div>
+          <div mb-2 font-size-3>过去90天内活跃的代码提交者所属组织的数目。</div>
           <div id="organization-count-chart" h-200px />
         </el-card>
         <el-card mb-6 w-626px>
