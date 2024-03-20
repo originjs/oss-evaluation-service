@@ -31,15 +31,8 @@ export class GithubInfo {
   }
 }
 export class createProjectInternalParam {
-  constructor(
-    projects,
-    githubProjectId,
-    newCodeDefinitionValue,
-    newCodeDefinitionType,
-    organization,
-  ) {
+  constructor(projects, newCodeDefinitionValue, newCodeDefinitionType, organization) {
     this.projects = projects;
-    this.githubProjectId = githubProjectId;
     this.newCodeDefinitionValue = newCodeDefinitionValue;
     this.newCodeDefinitionType = newCodeDefinitionType;
     this.organization = organization;
@@ -81,4 +74,20 @@ export function createProjectInternalApi(param, token) {
   };
 
   return fetch('https://sonarcloud.io/api/alm_integration/provision_projects', requestOptions);
+}
+
+/**
+ * active auto scan
+ * @param projectKey projectKey
+ * @param token token
+ * @return {Promise<Response>}
+ */
+export function activeAutoScanInternalApi(projectKey, token) {
+  return fetch(
+    `https://sonarcloud.io/api/autoscan/eligibility?autoEnable=true&projectKey=${projectKey}`,
+    {
+      method: 'GET',
+      headers: authorizationHeader(token),
+    },
+  );
 }

@@ -26,6 +26,7 @@ import {
 import getDelayedMessage from '../controllers/common.js';
 import syncCNCFDocumentScore from '../controllers/documentScore.js';
 import { refreshMainPackage } from '../controllers/refreshMainPackage.js';
+import { collectSonarCloudData, createSonarCloudProject } from '../controllers/sonarCloud.js';
 
 const router = express.Router();
 
@@ -548,4 +549,35 @@ router.route('/benchmark/getDelayedMessage').post(getDelayedMessage);
  *         description: success.
  */
 router.route('/benchmark/updateScore').post(updateScore);
+
+/**
+ * @swagger
+ * /sync/sonarCloud/create:
+ *   get:
+ *     summary: create sonarCloud project
+ *     parameters:
+ *         - name: projects
+ *           in: query
+ *           description: projects parameter
+ *           required: true
+ *           type: array
+ *           items:
+ *             type: string
+ *           example: ['vitejs/vite','vuejs/vue']
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/sonarCloud/create').get(createSonarCloudProject);
+
+/**
+ * @swagger
+ * /sync/sonarCloud/collect:
+ *   get:
+ *     summary: collect sonarCloud data
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/sonarCloud/collect').get(await collectSonarCloudData);
 export default router;
