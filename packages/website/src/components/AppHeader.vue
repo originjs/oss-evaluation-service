@@ -36,9 +36,7 @@ const onSearchSoftwareName = (repoName: string) => {
 
       <div class="extra-info">
         <a class="link" href="https://github.com/originjs/oss-evaluation-service" target="_blank">
-          <el-icon :size="22" color="#666666">
-            <Link />
-          </el-icon>
+          <div i-custom:github font-size-5 />
         </a>
       </div>
     </div>

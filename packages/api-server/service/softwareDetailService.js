@@ -10,7 +10,7 @@ import {
   sequelize,
 } from '@orginjs/oss-evaluation-data-model';
 import ChartData from '../model/chartData.js';
-import { fixedRound } from '../util/math.js';
+import { round } from '../util/math.js';
 
 export async function getSoftwareFunction(repoName) {
   const projectId = await getProjectIdByRepoName(repoName);
@@ -43,7 +43,7 @@ export async function getSoftwareFunction(repoName) {
       attributes: ['documentScore', 'hasReadme', 'hasChangelog', 'hasWebsite', 'hasContributing'],
     })) || {};
   res.document = {
-    documentScore: fixedRound(documentScore, 2),
+    documentScore: round(documentScore, 0),
     hasReadme,
     hasChangelog,
     hasWebsite,
