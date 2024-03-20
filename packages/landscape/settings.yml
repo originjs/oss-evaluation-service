@@ -119,12 +119,12 @@ featured_items:
 #   logo: <LOGO_URL>  # Foundation logo featured on the footer
 #   text: <TEXT>      # Copyright notice, for example
 #
-footer:
-  links:
+# footer:
+#   links:
 
-    github: "https://github.com/originjs"
-    homepage: "https://orignjs.org"
-  logo: "https://originjs.org/assets/img/logo.png"
+#     github: "https://github.com/originjs"
+#     homepage: "https://orignjs.org"
+#   logo: "https://originjs.org/assets/img/logo.png"
 
 # Grid items size (optional)
 #
