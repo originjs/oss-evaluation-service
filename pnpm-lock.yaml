@@ -209,6 +209,9 @@ importers:
       echarts:
         specifier: ^5.5.0
         version: 5.5.0
+      vue-router:
+        specifier: ^4.3.0
+        version: 4.3.0(vue@3.4.21)
     devDependencies:
       '@element-plus/icons-vue':
         specifier: ^2.3.1

@@ -338,7 +338,7 @@ function renderDocBestPracticesChart() {
   chart.setOption(option);
 }
 
-const showBenchmarkCompare = ref(false);
+const showBenchmarkCompare = ref(true);
 
 const performanceModuleInfo = ref<PerformanceModuleInfo>({
   size: 0,

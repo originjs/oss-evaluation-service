@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { SearchSoftware } from '@orginjs/oss-evaluation-components';
 import { useWindowScroll } from '@vueuse/core';
+import { ElMessage } from 'element-plus';
 const { y } = useWindowScroll();
 const route = useRoute();
 const router = useRouter();
@@ -12,6 +13,14 @@ const onSearchSoftwareName = (repoName: string) => {
       repoName,
     },
   });
+};
+
+const onSelectMenu = (path: string) => {
+  if (path === 'tech-landscape') {
+    router.push({ path });
+  } else {
+    ElMessage.info('建议中，敬请期待');
+  }
 };
 </script>
 
@@ -26,9 +35,9 @@ const onSearchSoftwareName = (repoName: string) => {
       <div class="search-wrapper"><SearchSoftware @search-name="onSearchSoftwareName" /></div>
 
       <!--    todo 后端获取数据渲染菜单 -->
-      <el-menu class="menu" mode="horizontal" :ellipsis="false">
+      <el-menu class="menu" mode="horizontal" :ellipsis="false" @select="onSelectMenu">
         <el-menu-item index="1">评估模型</el-menu-item>
-        <el-menu-item index="2">Landscape</el-menu-item>
+        <el-menu-item index="tech-landscape">Landscape</el-menu-item>
         <el-menu-item index="3">趋势榜单</el-menu-item>
         <el-menu-item index="4">性能 Benchmark</el-menu-item>
         <el-menu-item index="5">动态</el-menu-item>

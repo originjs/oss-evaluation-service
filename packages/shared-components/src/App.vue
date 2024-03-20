@@ -1,9 +1,9 @@
-<script setup lang="ts">
-import { SearchSoftware } from './components';
-</script>
+<script setup lang="ts"></script>
 
 <template>
-  <SearchSoftware />
+  <div class="h-100vh">
+    <router-view />
+  </div>
 </template>
 
 <style scoped></style>
