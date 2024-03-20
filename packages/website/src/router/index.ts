@@ -9,6 +9,10 @@ const routes = [
     path: '/software-details',
     component: () => import('@views/SoftwareDetails.vue'),
   },
+  {
+    path: '/tech-landscape',
+    component: () => import('@views/TechLandscape.vue'),
+  },
 ];
 
 const router = createRouter({

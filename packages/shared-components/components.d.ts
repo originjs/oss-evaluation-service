@@ -15,6 +15,7 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SearchSoftware: typeof import('./src/components/SearchSoftware.vue')['default']
+    TechLandscape: typeof import('./src/components/TechLandscape.vue')['default']
   }
   export interface ComponentCustomProperties {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']

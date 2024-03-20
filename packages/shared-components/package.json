@@ -24,9 +24,9 @@
     "serve": "vue-tsc && vite build --watch"
   },
   "peerDependencies": {
-    "axios": "^1.6.7",
     "@element-plus/icons-vue": "^2.3.1",
     "@vueuse/core": "^10.9.0",
+    "axios": "^1.6.7",
     "echarts": "^5.5.0",
     "element-plus": "^2.5.6",
     "vue": "^3.4.19"
@@ -51,5 +51,8 @@
     "vite": "^5.1.4",
     "vite-plugin-dts": "^1.7.1",
     "vue": "^3.2.45"
+  },
+  "dependencies": {
+    "vue-router": "^4.3.0"
   }
 }
