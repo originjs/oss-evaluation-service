@@ -81,6 +81,12 @@ export async function getSoftwareOverview(repoName) {
     ],
   });
 
+  evaluation.functionScore = Math.round(evaluation.functionScore * 100) / 100;
+  evaluation.qualityScore = Math.round(evaluation.qualityScore * 100) / 100;
+  evaluation.performanceScore = Math.round(evaluation.performanceScore * 100) / 100;
+  evaluation.ecologyScore = Math.round(evaluation.ecologyScore * 100) / 100;
+  evaluation.innovationValue = Math.round(evaluation.innovationValue * 100) / 100;
+
   return {
     url: githubInfo.htmlUrl,
     logo: githubInfo.ownerAvatarUrl,

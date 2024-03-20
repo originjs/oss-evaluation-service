@@ -151,11 +151,11 @@ function renderSoftwareRadarChart() {
         data: [
           {
             value: [
-              baseInfo.evaluation.functionScore?.toFixed(2),
-              baseInfo.evaluation.qualityScore?.toFixed(2),
-              baseInfo.evaluation.ecologyScore?.toFixed(2),
-              baseInfo.evaluation.innovationValue?.toFixed(2),
-              baseInfo.evaluation.performanceScore?.toFixed(2),
+              baseInfo.evaluation.functionScore,
+              baseInfo.evaluation.qualityScore,
+              baseInfo.evaluation.ecologyScore,
+              baseInfo.evaluation.innovationValue,
+              baseInfo.evaluation.performanceScore,
             ],
             name: '分数',
           },
@@ -664,6 +664,7 @@ async function exportToExcel() {
       <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-custom:function mr-2 />
         <span>功能</span>
+        <span font-size-5 float-right>{{ baseInfo.evaluation.functionScore }}/10</span>
       </div>
       <el-card mb-6>
         <div font-size-5 font-bold>Github Star 趋势（演示数据）</div>
@@ -699,6 +700,7 @@ async function exportToExcel() {
       <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-custom:performance mr-2 />
         <span>性能</span>
+        <span font-size-5 float-right>{{ baseInfo.evaluation.performanceScore }}/10</span>
       </div>
       <el-card>
         <div>包大小</div>
@@ -759,6 +761,7 @@ async function exportToExcel() {
       <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-custom:quality mr-2 />
         <span>质量</span>
+        <span font-size-5 float-right>{{ baseInfo.evaluation.qualityScore }}/10</span>
       </div>
       <el-card mb-6>
         <div mb-4 font-size-5 font-bold>OpenSSF Scorecard</div>
@@ -849,6 +852,7 @@ async function exportToExcel() {
       <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-custom:ecology mr-2 />
         <span>生态</span>
+        <span font-size-5 float-right>{{ baseInfo.evaluation.ecologyScore }}/10</span>
       </div>
       <div flex flex-wrap justify-between content-between>
         <el-card w-full mb-6>
