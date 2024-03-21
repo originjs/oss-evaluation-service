@@ -138,13 +138,13 @@ export async function getPerformanceBenchmark(repoName) {
 
   const benchmarkQuery = `
   select if(benchmark.display_name = '',benchmark.project_name,benchmark.display_name) as displayName,
-       ifnull(index_name.display_name, benchmark.benchmark) as indexName,
+    if(index_name.display_name is null, benchmark.benchmark, index_name.display_name) as indexName,
        benchmark.raw_value as rawValue,
        unit
 from benchmark
-         join benchmark_index index_name
+       left join benchmark_index index_name
               on benchmark.tech_stack = index_name.tech_stack
-                  and benchmark.index_name = index_name.index_name
+                  and benchmark.benchmark = index_name.index_name
 where benchmark.project_id = :projectId
       and benchmark.patch_id = :patchId
 order by benchmark.display_name, index_name.order`;
