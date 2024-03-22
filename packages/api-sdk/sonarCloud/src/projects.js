@@ -1,6 +1,5 @@
 import { authorizationHeader } from '../../util.js';
 
-
 export function createProject(param, token) {
   let url = 'https://sonarcloud.io/api/projects/create?';
   for (const key in param) {

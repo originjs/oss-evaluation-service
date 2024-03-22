@@ -134,6 +134,7 @@ export async function createGitlabProject(req, res) {
       fullName: json.name_with_namespace,
       fullPath: json.path_with_namespace,
       name: json.name,
+      defaultBranch: json.default_branch,
       sshCloneUrl: json.ssh_url_to_repo,
       httpCloneUrl: json.http_url_to_repo,
       webUrl: json.web_url,
@@ -201,6 +202,40 @@ export async function createSonarProjectFromGitlab(req, res) {
     await SonarCloudProject.create(createResult);
   }
 
+  res.status(200);
+  res.send('{success}');
+}
+
+export async function updateGitlabDefaultBranch(req, res) {
+  //   query all gitlab project
+  const gitlabForks = await OssGitlabFork.findAll({
+    attributes: ['projectId'],
+  });
+  const gitlabSdk = new GitlabSdk();
+  for (const { projectId } of gitlabForks) {
+    // fetch project info
+    const response = await recordTime(
+      gitlabSdk.getProjectInfo,
+      `gitlab projectInfo of ${projectId}`,
+      projectId,
+    );
+    await sleep(Math.floor(Math.random() * 1000) + 1000);
+    if (!response.ok) {
+      continue;
+    }
+    const json = await response.json();
+    // update default branch
+    await OssGitlabFork.update(
+      {
+        defaultBranch: json.default_branch,
+      },
+      {
+        where: {
+          projectId: projectId,
+        },
+      },
+    );
+  }
   res.status(200);
   res.send('{success}');
 }

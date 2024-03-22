@@ -26,7 +26,12 @@ export default sequelize.define(
     name: {
       type: DataTypes.STRING(512),
     },
-    namespaceId:{
+    defaultBranch: {
+      type: DataTypes.STRING(128),
+      allowNull: false,
+      defaultValue: '',
+    },
+    namespaceId: {
       type: DataTypes.INTEGER,
     },
     namespaceName: {

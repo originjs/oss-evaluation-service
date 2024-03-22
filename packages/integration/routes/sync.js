@@ -30,6 +30,7 @@ import {
   collectSonarCloudData,
   createGitlabProject,
   createSonarProjectFromGitlab,
+  updateGitlabDefaultBranch,
 } from '../controllers/sonarCloud.js';
 
 const router = express.Router();
@@ -595,5 +596,16 @@ router.route('/gitlab/importProjectFromUrl').get(await createGitlabProject);
  *         description: success.
  */
 router.route('/sonarCloud/createSonarProjectFromGitlab').get(await createSonarProjectFromGitlab);
+
+/**
+ * @swagger
+ * /sync/gitlab/updateDefaultBranch:
+ *   get:
+ *     summary: update default branch info
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/gitlab/updateDefaultBranch').get(await updateGitlabDefaultBranch);
 
 export default router;

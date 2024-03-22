@@ -1,7 +1,7 @@
 import { authorizationHeader } from '../../util.js';
 
 export const importGithub = async (val, token) => {
-  let headers = authorizationHeader(token);
+  const headers = authorizationHeader(token);
   headers.append('Content-Type', 'application/json');
   const requestOptions = {
     method: 'POST',
@@ -14,7 +14,7 @@ export const importGithub = async (val, token) => {
 };
 
 export const importFromUrl = async (val, token) => {
-  let headers = authorizationHeader(token);
+  const headers = authorizationHeader(token);
   headers.append('Content-Type', 'application/json');
   const requestOptions = {
     method: 'POST',
@@ -23,4 +23,11 @@ export const importFromUrl = async (val, token) => {
     redirect: 'follow',
   };
   return fetch('https://gitlab.com/api/v4/projects/', requestOptions);
+};
+
+export const getProjectInfo = async (projectId, token) => {
+  return fetch(`https://gitlab.com/api/v4/projects/${projectId}`, {
+    method: 'GET',
+    headers: authorizationHeader(token),
+  });
 };

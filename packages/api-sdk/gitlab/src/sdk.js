@@ -1,4 +1,4 @@
-import { importFromUrl, importGithub } from './import.js';
+import { getProjectInfo, importFromUrl, importGithub } from './import.js';
 
 export class GitlabSdk {
   constructor(token) {
@@ -12,5 +12,9 @@ export class GitlabSdk {
 
   importFromUrl = val => {
     return importFromUrl(val, this.token);
+  };
+
+  getProjectInfo = projectId => {
+    return getProjectInfo(projectId, this.token);
   };
 }
