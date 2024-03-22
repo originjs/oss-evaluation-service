@@ -7,6 +7,18 @@ export class SonarCloudSdk {
     this.token = token;
   }
 
+  /**
+   * {
+   *  name: 'vite'
+   *  newCodeDefinitionValue: 30,
+   *  newCodeDefinitionType: 'days',
+   *  organization: 'vitejs',
+   *  visibility :'public',
+   *  project: 'vite'
+   * }
+   * @param param
+   * @return {Promise<Response>}
+   */
   createProject = param => {
     return createProject(param, this.token);
   };

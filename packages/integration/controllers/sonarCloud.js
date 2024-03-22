@@ -1,104 +1,14 @@
 import {
   GithubProjects,
-  OssGithubFork,
+  ProjectTechStack,
   SonarCloudProject,
 } from '@orginjs/oss-evaluation-data-model';
 import { Op } from 'sequelize';
-import GithubSdk from '@orginjs/github-sdk/src/index.js';
 import SonarCloudSdk from '@orginjs/sonarCloud-sdk/src/index.js';
 import sonarCloudProject from '@orginjs/oss-evaluation-data-model/models/SonarCloudProject.js';
-
-export async function createSonarCloudProject(req, res) {
-  const paramProjects = JSON.parse(req.query.projects);
-  //   query GitHub project
-  const projects = await GithubProjects.findAll({
-    where: {
-      fullName: {
-        [Op.in]: paramProjects,
-      },
-    },
-    attributes: ['fullName', 'ownerName', 'name'],
-    limit: 2,
-    order: [['id', 'desc']],
-  });
-
-  let githubSdk = new GithubSdk();
-  let sonarCloudSdk = new SonarCloudSdk();
-  //   need fork?
-  for (let project of projects) {
-    const { fullName, ownerName, name } = project;
-    let ossFork = await OssGithubFork.findOne({
-      where: {
-        upstreamName: fullName,
-      },
-    });
-    if (!ossFork) {
-      // create fork
-      const forkResponse = await recordTime(
-        githubSdk.createFork,
-        `fork repo ${fullName}`,
-        ownerName,
-        name,
-      );
-
-      if (!forkResponse.ok) {
-        console.error(forkResponse.text);
-        throw new Error(`repo:${project.fullName} fork err!!`);
-      }
-      const forkJson = await forkResponse.json();
-      const forkResult = {
-        upstreamName: fullName,
-        fullName: forkJson.full_name,
-        projectId: forkJson.id,
-      };
-
-      await OssGithubFork.upsert(forkResult);
-      ossFork = forkResult;
-    }
-
-    if (ossFork) {
-      let sonarProject = await SonarCloudProject.findOne({
-        where: {
-          githubFullName: ossFork.fullName,
-        },
-      });
-      //   need create sonarCloud project?
-      if (sonarProject) {
-        continue;
-      }
-      const sonarResponse = await recordTime(
-        sonarCloudSdk.createProjectInternalApi,
-        'create sonarCloud project',
-        {
-          projects: [
-            {
-              repoName: ossFork.fullName,
-              projectId: ossFork.projectId,
-            },
-          ],
-          newCodeDefinitionValue: 30,
-          newCodeDefinitionType: 'days',
-          organization: 'oss-integration',
-        },
-      );
-
-      if (!sonarResponse.ok) {
-        console.error(sonarResponse.text());
-        throw new Error(`repo:${sonarResponse.fullName} fork err!!`);
-      }
-      const sonarJson = await sonarResponse.json();
-      const sonarProjectKey = sonarJson.projects[0].projectKey;
-      await SonarCloudProject.upsert({
-        githubFullName: ossFork.fullName,
-        sonarProjectKey,
-      });
-
-      //   active auto scan
-      await sonarCloudSdk.activeAutoScanInternalApi(sonarProjectKey);
-    }
-  }
-  res.status(200);
-}
+import { sleep } from '../util/util.js';
+import { GitlabSdk } from '@orginjs/gitlab-sdk/src/sdk.js';
+import OssGitlabFork from '@orginjs/oss-evaluation-data-model/models/OssGitlabFork.js';
 
 /**
  * {
@@ -167,4 +77,130 @@ async function recordTime(func, name, ...args) {
   const end = new Date();
   console.log(`end ${name} ${end - start}ms`);
   return result;
+}
+
+export async function createGitlabProject(req, res) {
+  let techStack = await ProjectTechStack.findAll({
+    where: {
+      subcategory: {
+        [Op.in]: [req.query.techStack],
+      },
+    },
+    attributes: ['projectId'],
+  });
+  const projects = await GithubProjects.findAll({
+    where: {
+      id: {
+        [Op.in]: techStack.map(tech => tech.projectId),
+      },
+    },
+    attributes: ['fullName', 'ownerName', 'name', 'id', 'cloneUrl'],
+    order: [['id', 'desc']],
+  });
+
+  const gitlabSdk = new GitlabSdk();
+  const namespaceId = process.env.GITLAB_FORK_NAMESPACE_ID;
+  for (let project of projects) {
+    let projectId = project.id;
+    const val = {
+      name: project.name,
+      import_url: project.cloneUrl,
+      namespace_id: namespaceId,
+      visibility: 'public',
+    };
+    const gitlabFork = await OssGitlabFork.findOne({
+      where: {
+        githubProjectId: projectId,
+      },
+    });
+    if (gitlabFork) {
+      continue;
+    }
+    const response = await recordTime(
+      gitlabSdk.importFromUrl,
+      `create gitlab fork of ${project.fullName}`,
+      val,
+    );
+    await sleep(Math.floor(Math.random() * 5000) + 1000);
+    if (!response.ok) {
+      console.error(`${response.status}:${await response.text()}`);
+      continue;
+    }
+    let json = await response.json();
+    const forkResult = {
+      githubProjectId: projectId,
+      projectId: json.id,
+      githubFullName: project.fullName,
+      fullName: json.name_with_namespace,
+      fullPath: json.path_with_namespace,
+      name: json.name,
+      sshCloneUrl: json.ssh_url_to_repo,
+      httpCloneUrl: json.http_url_to_repo,
+      webUrl: json.web_url,
+      namespaceId: json.namespace?.id,
+      namespaceName: json.namespace?.name,
+      namespacePath: json.namespace?.path,
+    };
+    await OssGitlabFork.upsert(forkResult);
+  }
+  res.status(200);
+  res.send('{success}');
+}
+
+export async function createSonarProjectFromGitlab(req, res) {
+  //   query all gitlab project
+  const gitlabForks = await OssGitlabFork.findAll();
+  const sonarCloudSdk = new SonarCloudSdk();
+  for (const fork of gitlabForks) {
+    const {
+      githubProjectId,
+      githubFullName,
+      projectId: gitlabProjectId,
+      fullPath: gitlabFullName,
+      namespacePath,
+      name,
+    } = fork;
+    // need to create sonar cloud project?
+    const sonarProject = await SonarCloudProject.findOne({
+      where: {
+        githubProjectId,
+        gitlabProjectId,
+      },
+    });
+    if (sonarProject) {
+      continue;
+    }
+
+    const param = {
+      name,
+      newCodeDefinitionValue: 30,
+      newCodeDefinitionType: 'days',
+      organization: namespacePath,
+      visibility: 'public',
+      project: `${namespacePath}_${name}`,
+    };
+    // request for creating sonar project
+    const response = await recordTime(
+      sonarCloudSdk.createProject,
+      `create sonar project from gitlab:${gitlabFullName}`,
+      param,
+    );
+    await sleep(Math.floor(Math.random() * 5000) + 1000);
+    if (!response.ok) {
+      console.error(`${response.status}:${await response.text()}`);
+      continue;
+    }
+    const json = await response.json();
+    const createResult = {
+      githubProjectId,
+      gitlabProjectId,
+      githubFullName,
+      gitlabFullName,
+      sonarProjectKey: json.project.key,
+    };
+    await SonarCloudProject.create(createResult);
+  }
+
+  res.status(200);
+  res.send('{success}');
 }

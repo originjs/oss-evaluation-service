@@ -26,6 +26,15 @@ export default sequelize.define(
     name: {
       type: DataTypes.STRING(512),
     },
+    namespaceId:{
+      type: DataTypes.INTEGER,
+    },
+    namespaceName: {
+      type: DataTypes.STRING(512),
+    },
+    namespacePath: {
+      type: DataTypes.STRING(512),
+    },
     sshCloneUrl: {
       type: DataTypes.STRING(512),
     },
