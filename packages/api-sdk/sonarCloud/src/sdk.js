@@ -7,19 +7,19 @@ export class SonarCloudSdk {
     this.token = token;
   }
 
-  createProject(param) {
+  createProject = param => {
     return createProject(param, this.token);
-  }
+  };
 
-  createProjectInternalApi(param) {
+  createProjectInternalApi = param => {
     return createProjectInternalApi(param, this.token);
-  }
+  };
 
-  activeAutoScanInternalApi(projectKey) {
+  activeAutoScanInternalApi = projectKey => {
     return activeAutoScanInternalApi(projectKey, this.token);
-  }
+  };
 
-  listProjectBranches(projectKey) {
+  listProjectBranches = projectKey => {
     return listProjectBranches(projectKey, this.token);
-  }
+  };
 }

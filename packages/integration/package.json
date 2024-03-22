@@ -14,6 +14,8 @@
     "@orginjs/oss-evaluation-data-model": "workspace:^",
     "@orginjs/github-sdk": "workspace:^",
     "@orginjs/sonarCloud-sdk": "workspace:^",
+    "@orginjs/gitlab-sdk": "workspace:^",
+
     "async": "^3.2.5",
     "dayjs": "^1.11.10",
     "debug": "^4.3.4",
