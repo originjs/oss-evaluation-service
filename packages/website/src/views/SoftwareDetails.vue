@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import CompareFavorites from '../components/CompareFavorites.vue';
 import { Plus } from '@element-plus/icons-vue';
 import type { CellStyle } from 'element-plus';
 import { ElMessage } from 'element-plus';
@@ -23,7 +24,10 @@ import {
 import { saveAs } from 'file-saver';
 import { SearchSoftware } from '@orginjs/oss-evaluation-components';
 
+const compareFavoritesRef = ref<InstanceType<typeof CompareFavorites>>();
+
 const route = useRoute();
+const router = useRouter();
 
 function toKilo(num: number | undefined) {
   if (!num) {
@@ -589,6 +593,18 @@ async function exportToExcel() {
     ElMessage.error('导出失败');
   }
 }
+
+function addProjectToCompare() {
+  const { logo, url, description } = baseInfo;
+  compareFavoritesRef.value?.addProject([{ repoName, logo, url, description }]);
+}
+
+function compareProjects(projects) {
+  router.push({
+    path: 'compare-projects',
+    query: { repos: projects.map(project => project.repoName) },
+  });
+}
 </script>
 
 <template>
@@ -625,7 +641,9 @@ async function exportToExcel() {
                 <div max-w-900px>{{ repoName }}</div>
               </template>
             </el-tooltip>
-            <el-button type="primary" plain :icon="Plus">对比</el-button>
+            <el-button type="primary" plain :icon="Plus" @click="addProjectToCompare"
+              >对比</el-button
+            >
             <el-button type="primary" position-absolute right-0 @click="exportToExcel"
               >导出评估报告</el-button
             >
@@ -994,6 +1012,11 @@ async function exportToExcel() {
       </div>
     </div>
   </div>
+  <CompareFavorites
+    ref="compareFavoritesRef"
+    style="position: fixed; bottom: 0px"
+    @compare="compareProjects"
+  ></CompareFavorites>
 </template>
 
 <style scoped lang="less">

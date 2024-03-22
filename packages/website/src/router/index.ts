@@ -13,6 +13,10 @@ const routes = [
     path: '/tech-landscape',
     component: () => import('@views/TechLandscape.vue'),
   },
+  {
+    path: '/compare-projects',
+    component: () => import('@views/Compare.vue'),
+  },
 ];
 
 const router = createRouter({
