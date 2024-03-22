@@ -239,3 +239,98 @@ export async function updateGitlabDefaultBranch(req, res) {
   res.status(200);
   res.send('{success}');
 }
+
+export async function uploadSonarCiConfigToGitlab(req, res) {
+  //   query all gitlab project
+  const gitlabForks = await OssGitlabFork.findAll({
+    where: {
+      hasSonarPipeline: false,
+    },
+    attributes: ['projectId', 'defaultBranch'],
+  });
+  const ciFileContent = `variables:
+  SONAR_USER_HOME: "\${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
+  GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
+sonarcloud-check:
+  image:
+    name: sonarsource/sonar-scanner-cli:latest
+    entrypoint: [""]
+  cache:
+    key: "\${CI_JOB_NAME}"
+    paths:
+      - .sonar/cache
+  script:
+    - sonar-scanner
+  only:
+    - merge_requests
+    - master
+    - main
+`;
+  const gitlabSdk = new GitlabSdk();
+
+  for (const fork of gitlabForks) {
+    const sonarProject = await SonarCloudProject.findOne({
+      where: {
+        gitlabProjectId: fork.projectId,
+      },
+      attributes: ['sonarProjectKey'],
+    });
+    if (!sonarProject) {
+      continue;
+    }
+    const sonarPropertyFileContent = `sonar.projectKey=${sonarProject.sonarProjectKey}
+sonar.organization=oss-github-fork
+
+# This is the name and version displayed in the SonarCloud UI.
+#sonar.projectName=angular
+#sonar.projectVersion=1.0
+
+
+# Path is relative to the sonar-project.properties file. Replace "\\" by "/" on Windows.
+sonar.sources=.
+
+# Encoding of the source code. Default is default system encoding
+#sonar.sourceEncoding=UTF-8
+`;
+    const commitInfo = {
+      branch: fork.defaultBranch,
+      commit_message: 'ci: sonar scan',
+      actions: [
+        {
+          action: 'create',
+          file_path: '.gitlab-ci.yml',
+          content: ciFileContent,
+        },
+        {
+          action: 'create',
+          file_path: 'sonar-project.properties',
+          content: sonarPropertyFileContent,
+        },
+      ],
+    };
+
+    const response = await recordTime(
+      gitlabSdk.createCommit,
+      `add sonar ci for gitlab:${fork.projectId}`,
+      fork.projectId,
+      commitInfo,
+    );
+    if (!response.ok) {
+      console.error(`${response.status}:${await response.text()}`);
+      continue;
+    }
+    await OssGitlabFork.update(
+      {
+        hasSonarPipeline: true,
+      },
+      {
+        where: {
+          projectId: fork.projectId,
+        },
+      },
+    );
+    await sleep(Math.floor(Math.random() * 1000) + 1000);
+  }
+  res.status(200);
+  res.send('{success}');
+}
