@@ -1,19 +1,9 @@
 import { authorizationHeader } from '../../util.js';
 
-export class createParam {
-  constructor(name, newCodeDefinitionValue, newCodeDefinitionType, organization, visibility) {
-    this.name = name;
-    this.newCodeDefinitionValue = newCodeDefinitionValue;
-    this.newCodeDefinitionType = newCodeDefinitionType;
-    this.organization = organization;
-    this.visibility = visibility;
-  }
-}
-
 export function createProject(param, token) {
   let url = 'https://sonarcloud.io/api/projects/create?';
   for (const key in param) {
-    if (Object.prototype.hasOwnProperty.call(param, key) && createParam[key] === null) {
+    if (Object.prototype.hasOwnProperty.call(param, key) && param[key] !== null) {
       url = `${url}${encodeURI(key)}=${encodeURI(param[key])}&`;
     }
   }

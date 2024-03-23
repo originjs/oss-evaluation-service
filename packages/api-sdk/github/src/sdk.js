@@ -6,11 +6,11 @@ export class GithubSdk {
     this.token = token;
   }
 
-  createFork(owner, repo) {
+  createFork = (owner, repo) => {
     return createFork(owner, repo, this.token);
-  }
+  };
 
-  deleteFork(owner, repo) {
+  deleteFork = (owner, repo) => {
     return deleteFork(owner, repo, this.token);
-  }
+  };
 }

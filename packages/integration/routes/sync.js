@@ -26,7 +26,13 @@ import {
 import getDelayedMessage from '../controllers/common.js';
 import syncCNCFDocumentScore from '../controllers/documentScore.js';
 import { refreshMainPackage } from '../controllers/refreshMainPackage.js';
-import { collectSonarCloudData, createSonarCloudProject } from '../controllers/sonarCloud.js';
+import {
+  collectSonarCloudData,
+  createGitlabProject,
+  createSonarProjectFromGitlab,
+  updateSonarCloudDefaultBranch,
+  uploadSonarCiConfigToGitlab,
+} from '../controllers/sonarCloud.js';
 
 const router = express.Router();
 
@@ -552,26 +558,6 @@ router.route('/benchmark/updateScore').post(updateScore);
 
 /**
  * @swagger
- * /sync/sonarCloud/create:
- *   get:
- *     summary: create sonarCloud project
- *     parameters:
- *         - name: projects
- *           in: query
- *           description: projects parameter
- *           required: true
- *           type: array
- *           items:
- *             type: string
- *           example: ['vitejs/vite','vuejs/vue']
- *     responses:
- *       200:
- *         description: success.
- */
-router.route('/sonarCloud/create').get(createSonarCloudProject);
-
-/**
- * @swagger
  * /sync/sonarCloud/collect:
  *   get:
  *     summary: collect sonarCloud data
@@ -580,4 +566,64 @@ router.route('/sonarCloud/create').get(createSonarCloudProject);
  *         description: success.
  */
 router.route('/sonarCloud/collect').get(await collectSonarCloudData);
+
+/**
+ * @swagger
+ * /sync/gitlab/importProjectFromUrl:
+ *   get:
+ *     summary: create project data
+ *     parameters:
+ *        - name: techStack
+ *          in: query
+ *          description: techStack
+ *          required: true
+ *          type: string
+ *          items:
+ *            type: string
+ *          example: '构建工具'
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/gitlab/importProjectFromUrl').get(await createGitlabProject);
+
+/**
+ * @swagger
+ * /sync/sonarCloud/createSonarProjectFromGitlab:
+ *   get:
+ *     summary: create project data
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/sonarCloud/createSonarProjectFromGitlab').get(await createSonarProjectFromGitlab);
+
+/**
+ * @swagger
+ * tags:
+ *   name: gitlab
+ * /sync/gitlab/addSonarCheckPipeline:
+ *   tags: [gitlab]
+ *   get:
+ *     summary: add sonar pipeline
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/gitlab/addSonarCheckPipeline').get(await uploadSonarCiConfigToGitlab);
+
+/**
+ * @swagger
+ * tags:
+ *   name: sonarCloud
+ * /sync/sonarCloud/updateDefaultBranch:
+ *   tags: [sonarCloud]
+ *   get:
+ *     summary: update default branch
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/sonarCloud/updateDefaultBranch').get(await updateSonarCloudDefaultBranch);
+
 export default router;
