@@ -20,3 +20,7 @@ export { default as StackOverFlow } from './models/StackOverFlow.js';
 export { default as BenchmarkIndex } from './models/BenchmarkIndex.js';
 export { default as OssGithubFork } from './models/OssGithubFork.js';
 export { default as SonarCloudProject } from './models/SonarCloudProject.js';
+export { default as ProjectInfo } from './models/ProjectInfo.js';
+export { default as EvaluationMin } from './models/EvaluationMin.js';
+export { default as CncfDocumentScoreMin } from './models/CncfDocumentScoreMin.js';
+export { default as StateOfJsMin } from './models/StateOfJsMin.js';

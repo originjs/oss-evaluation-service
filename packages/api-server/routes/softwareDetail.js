@@ -4,6 +4,7 @@ import {
   getSoftwareFunction,
   getPerformance,
   getQuality,
+  getSoftwareInfo,
 } from '../service/softwareDetailService.js';
 import { ok } from '../model/result.js';
 
@@ -83,6 +84,25 @@ router.get('/performance/:repoName', async (req, res) => {
 router.get('/quality/:repoName', async (req, res) => {
   const { repoName } = req.params;
   res.json(ok(await getQuality(repoName)));
+});
+
+/**
+ * @swagger
+ * /softwareDetail/softwareInfo/{repoName}:
+ *   get:
+ *     summary: getSoftwareInfo
+ *     parameters:
+ *       - in: path
+ *         name: repoName
+ *         required: true
+ *         example: "vuejs/core"
+ *     responses:
+ *       '200':
+ *         description: Successful response
+ */
+router.get('/softwareInfo/:repoName', async (req, res) => {
+  const { repoName } = req.params;
+  res.json(ok(await getSoftwareInfo(repoName)));
 });
 
 export default router;
