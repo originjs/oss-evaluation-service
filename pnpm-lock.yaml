@@ -68,6 +68,8 @@ importers:
 
   packages/api-sdk/github: {}
 
+  packages/api-sdk/gitlab: {}
+
   packages/api-sdk/sonarCloud: {}
 
   packages/api-server:
@@ -139,6 +141,9 @@ importers:
       '@orginjs/github-sdk':
         specifier: workspace:^
         version: link:../api-sdk/github
+      '@orginjs/gitlab-sdk':
+        specifier: workspace:^
+        version: link:../api-sdk/gitlab
       '@orginjs/oss-evaluation-data-model':
         specifier: workspace:^
         version: link:../data-model
