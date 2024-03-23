@@ -46,15 +46,64 @@ export default sequelize.define(
       allowNull: false,
       defaultValue: 0,
     },
+    reliabilityRating: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: '',
+    },
     vulnerabilities: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
     },
+    securityRating: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: '',
+    },
+    securityHotspots: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: '',
+    },
+    securityHotspotsReviewed: {
+      type: DataTypes.STRING(128),
+      allowNull: false,
+      defaultValue: '',
+    },
+    securityReviewRating: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: '',
+    },
     codeSmells: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
+    },
+    coverageRating: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: '',
+    },
+    duplicatedLinesDensity: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: '',
+    },
+    codeLines: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: '',
+    },
+    maintainabilityRating: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: '',
+    },
+    allMeasures: {
+      type: DataTypes.JSON,
+      allowNull: true,
     },
   },
   {

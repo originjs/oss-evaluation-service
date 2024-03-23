@@ -19,6 +19,7 @@ export { default as ScorecardComplem } from './models/ScorecardComplem.js';
 export { default as StackOverFlow } from './models/StackOverFlow.js';
 export { default as BenchmarkIndex } from './models/BenchmarkIndex.js';
 export { default as OssGithubFork } from './models/OssGithubFork.js';
+export { default as OssGitlabFork } from './models/OssGitlabFork.js';
 export { default as SonarCloudProject } from './models/SonarCloudProject.js';
 export { default as ProjectInfo } from './models/ProjectInfo.js';
 export { default as EvaluationMin } from './models/EvaluationMin.js';

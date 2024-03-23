@@ -1,14 +1,28 @@
 import {
   GithubProjects,
+  OssGitlabFork,
   ProjectTechStack,
   SonarCloudProject,
 } from '@orginjs/oss-evaluation-data-model';
 import { Op } from 'sequelize';
 import SonarCloudSdk from '@orginjs/sonarCloud-sdk/src/index.js';
-import sonarCloudProject from '@orginjs/oss-evaluation-data-model/models/SonarCloudProject.js';
 import { sleep } from '../util/util.js';
 import { GitlabSdk } from '@orginjs/gitlab-sdk/src/sdk.js';
-import OssGitlabFork from '@orginjs/oss-evaluation-data-model/models/OssGitlabFork.js';
+
+const getRating = rating => {
+  switch (rating) {
+    case '1.0':
+      return 'A';
+    case '2.0':
+      return 'B';
+    case '3.0':
+      return 'C';
+    case '4.0':
+      return 'D';
+    case '5.0':
+      return 'E';
+  }
+};
 
 /**
  * {
@@ -37,27 +51,78 @@ import OssGitlabFork from '@orginjs/oss-evaluation-data-model/models/OssGitlabFo
  * @return {Promise<void>}
  */
 export async function collectSonarCloudData(req, res) {
-  const sonarCloudProjects = await sonarCloudProject.findAll();
+  const sonarCloudProjects = await SonarCloudProject.findAll({
+    attributes: ['sonarProjectKey', 'defaultBranch'],
+  });
   if (!sonarCloudProjects || !sonarCloudProjects.length) {
     console.warn('no sonarCloud project!!');
   }
-  let sonarCloudSdk = new SonarCloudSdk();
-  for (const { sonarProjectKey } of sonarCloudProjects) {
-    let response = await sonarCloudSdk.listProjectBranches(sonarProjectKey);
+  const sonarCloudSdk = new SonarCloudSdk();
+  const metricKeys =
+    // eslint-disable-next-line max-len
+    'accepted_issues,new_technical_debt,blocker_violations,bugs,classes,code_smells,cognitive_complexity,comment_lines,comment_lines_density,branch_coverage,new_branch_coverage,conditions_to_cover,new_conditions_to_cover,confirmed_issues,coverage,new_coverage,critical_violations,complexity,duplicated_blocks,new_duplicated_blocks,duplicated_files,duplicated_lines,duplicated_lines_density,new_duplicated_lines_density,new_duplicated_lines,effort_to_reach_maintainability_rating_a,false_positive_issues,files,functions,generated_lines,generated_ncloc,info_violations,violations,line_coverage,new_line_coverage,lines,ncloc,lines_to_cover,new_lines_to_cover,sqale_rating,new_maintainability_rating,major_violations,minor_violations,new_accepted_issues,new_blocker_violations,new_bugs,new_code_smells,new_critical_violations,new_info_violations,new_violations,new_lines,new_major_violations,new_minor_violations,new_security_hotspots,new_vulnerabilities,open_issues,projects,alert_status,reliability_rating,new_reliability_rating,reliability_remediation_effort,new_reliability_remediation_effort,reopened_issues,security_hotspots,security_hotspots_reviewed,new_security_hotspots_reviewed,security_rating,new_security_rating,security_remediation_effort,new_security_remediation_effort,security_review_rating,new_security_review_rating,skipped_tests,statements,sqale_index,sqale_debt_ratio,new_sqale_debt_ratio,uncovered_conditions,new_uncovered_conditions,uncovered_lines,new_uncovered_lines,test_execution_time,test_errors,test_failures,test_success_density,tests,vulnerabilities,wont_fix_issues';
+  for (const { sonarProjectKey, defaultBranch } of sonarCloudProjects) {
+    // get measures
+    const measuresResponse = await recordTime(
+      sonarCloudSdk.getMeasures,
+      `get measures of sonar project ${sonarProjectKey}`,
+      {
+        branch: defaultBranch,
+        component: sonarProjectKey,
+        metricKeys,
+      },
+    );
+    await sleep(Math.floor(Math.random() * 1000) + 1000);
+    if (!measuresResponse.ok) {
+      console.log(
+        `get measures of sonar project ${sonarProjectKey} error`,
+        await measuresResponse.text(),
+      );
+      continue;
+    }
+    const measuresJson = await measuresResponse.json();
+    const metrics = measuresJson?.component?.measures;
+    if (!metrics || !metrics.length) {
+      console.warn(`get empty metrics of sonar project ${sonarProjectKey}`);
+      continue;
+    }
+    const metricMap = new Map();
+    metrics.forEach(item => {
+      metricMap.set(item.metric, item.value);
+    });
+    const updateMetric = {
+      bugs: metricMap.get('bugs'),
+      reliabilityRating: getRating(metricMap.get('reliability_rating')),
+      vulnerabilities: metricMap.get('vulnerabilities'),
+      securityRating: getRating(metricMap.get('security_rating')),
+      securityHotspots: metricMap.get('security_hotspots'),
+      securityHotspotsReviewed: metricMap.get('security_hotspots_reviewed'),
+      securityReviewRating: getRating(metricMap.get('security_review_rating')),
+      codeSmells: metricMap.get('code_smells'),
+      maintainabilityRating: getRating(metricMap.get('sqale_rating')),
+      coverageRating: metricMap.get('coverage'),
+      duplicatedLinesDensity: metricMap.get('duplicated_lines_density'),
+      codeLines: metricMap.get('ncloc'),
+      allMeasures: metrics,
+    };
+    await SonarCloudProject.update(updateMetric, {
+      where: {
+        sonarProjectKey,
+      },
+    });
+    const response = await sonarCloudSdk.listProjectBranches(sonarProjectKey);
+    await sleep(Math.floor(Math.random() * 1000) + 1000);
     if (!response.ok) {
       console.log(await response.text());
       continue;
     }
-    let branches = (await response.json()).branches;
+    const branches = (await response.json()).branches;
     if (!branches || !branches.length) {
       continue;
     }
-    let mainBranch = branches.find(branch => branch?.isMain) || branches[0];
+    const mainBranch = branches.find(branch => branch?.isMain) || branches[0];
     const updateInfo = {
       analysisDate: mainBranch.analysisDate,
-      bugs: mainBranch.status.bugs,
-      vulnerabilities: mainBranch.status.vulnerabilities,
-      codeSmells: mainBranch.status.codeSmells,
     };
 
     await SonarCloudProject.update(updateInfo, {
@@ -301,7 +366,7 @@ sonar.sources=.
 }
 
 export async function updateSonarCloudDefaultBranch(req, res) {
-  const sonarProjects = await sonarCloudProject.findAll();
+  const sonarProjects = await SonarCloudProject.findAll();
   if (!sonarProjects || !sonarProjects.length) {
     res.status(200);
     res.json({ msg: 'empty' });
