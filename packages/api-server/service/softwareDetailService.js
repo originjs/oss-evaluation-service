@@ -8,9 +8,73 @@ import {
   EvaluationSummary,
   Benchmark,
   sequelize,
+  ProjectInfo,
+  EvaluationMin,
+  SonarCloudProject,
+  CncfDocumentScoreMin,
+  StateOfJsMin,
+  ProjectTechStack,
 } from '@orginjs/oss-evaluation-data-model';
 import ChartData from '../model/chartData.js';
 import { round } from '../util/math.js';
+
+ProjectInfo.hasOne(Scorecard, { foreignKey: 'project_id', as: 'scorecard' });
+ProjectInfo.hasOne(SonarCloudProject, { foreignKey: 'github_project_id', as: 'sonarCloudScan' });
+ProjectInfo.hasOne(EvaluationMin, { foreignKey: 'project_id', as: 'evaluation' });
+ProjectInfo.hasMany(StateOfJsMin, { foreignKey: 'project_id', as: 'satisfaction' });
+ProjectInfo.hasOne(CncfDocumentScoreMin, { foreignKey: 'project_id', as: 'document' });
+ProjectInfo.hasOne(ProjectTechStack, { foreignKey: 'project_id', as: 'techStack' });
+
+export async function getSoftwareInfo(repoName) {
+  const projectId = await getProjectIdByRepoName(repoName);
+  const softwareInfo = await ProjectInfo.findOne({
+    include: [
+      {
+        model: EvaluationMin,
+        as: 'evaluation',
+      },
+      {
+        model: Scorecard,
+        as: 'scorecard',
+      },
+      {
+        model: SonarCloudProject,
+        as: 'sonarCloudScan',
+      },
+      {
+        model: CncfDocumentScoreMin,
+        as: 'document',
+      },
+      {
+        model: StateOfJsMin,
+        as: 'satisfaction',
+      },
+      {
+        model: ProjectTechStack,
+        as: 'techStack',
+      },
+    ],
+    where: {
+      id: projectId,
+    },
+  });
+
+  const res = softwareInfo.toJSON();
+  res.repoName = repoName;
+  res.techStack = res.techStack.subcategory;
+
+  if (res.satisfaction?.length !== 0) {
+    let satisfaction = res.satisfaction.sort((a, b) => {
+      return b.year - a.year;
+    });
+    res.satisfaction = satisfaction?.slice(0, 3).map(item => ({
+      year: item.year,
+      val: item.satisfactionPercentage,
+    }));
+  }
+
+  return res;
+}
 
 export async function getSoftwareFunction(repoName) {
   const projectId = await getProjectIdByRepoName(repoName);
