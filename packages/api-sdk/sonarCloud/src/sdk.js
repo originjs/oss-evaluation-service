@@ -1,5 +1,5 @@
 import { activeAutoScanInternalApi, createProject, createProjectInternalApi } from './projects.js';
-import { listProjectBranches } from './projectBranches.js';
+import { deleteBranch, listProjectBranches, renameMainBranch } from './projectBranches.js';
 
 export class SonarCloudSdk {
   constructor(token) {
@@ -33,5 +33,12 @@ export class SonarCloudSdk {
 
   listProjectBranches = projectKey => {
     return listProjectBranches(projectKey, this.token);
+  };
+
+  deleteBranch = async (projectKey, branchName) => {
+    return deleteBranch(projectKey, branchName, this.token);
+  };
+  renameMainBranch = async (projectKey, newBranchName) => {
+    return renameMainBranch(projectKey, newBranchName, this.token);
   };
 }

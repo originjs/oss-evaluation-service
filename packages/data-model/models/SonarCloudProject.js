@@ -33,6 +33,11 @@ export default sequelize.define(
       allowNull: false,
       defaultValue: '',
     },
+    defaultBranch: {
+      type: DataTypes.STRING(512),
+      allowNull: false,
+      defaultValue: '',
+    },
     analysisDate: {
       type: DataTypes.DATE,
     },
@@ -41,7 +46,6 @@ export default sequelize.define(
       allowNull: false,
       defaultValue: 0,
     },
-
     vulnerabilities: {
       type: DataTypes.INTEGER,
       allowNull: false,

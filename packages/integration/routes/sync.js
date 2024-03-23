@@ -30,7 +30,7 @@ import {
   collectSonarCloudData,
   createGitlabProject,
   createSonarProjectFromGitlab,
-  updateGitlabDefaultBranch,
+  updateSonarCloudDefaultBranch,
   uploadSonarCiConfigToGitlab,
 } from '../controllers/sonarCloud.js';
 
@@ -600,17 +600,6 @@ router.route('/sonarCloud/createSonarProjectFromGitlab').get(await createSonarPr
 
 /**
  * @swagger
- * /sync/gitlab/updateDefaultBranch:
- *   get:
- *     summary: update default branch info
- *     responses:
- *       200:
- *         description: success.
- */
-router.route('/gitlab/updateDefaultBranch').get(await updateGitlabDefaultBranch);
-
-/**
- * @swagger
  * tags:
  *   name: gitlab
  * /sync/gitlab/addSonarCheckPipeline:
@@ -622,5 +611,19 @@ router.route('/gitlab/updateDefaultBranch').get(await updateGitlabDefaultBranch)
  *         description: success.
  */
 router.route('/gitlab/addSonarCheckPipeline').get(await uploadSonarCiConfigToGitlab);
+
+/**
+ * @swagger
+ * tags:
+ *   name: sonarCloud
+ * /sync/sonarCloud/updateDefaultBranch:
+ *   tags: [sonarCloud]
+ *   get:
+ *     summary: update default branch
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/sonarCloud/updateDefaultBranch').get(await updateSonarCloudDefaultBranch);
 
 export default router;
