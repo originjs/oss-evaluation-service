@@ -45,9 +45,9 @@ async function getProjectCodeSize(url) {
       if (head.length > 0 && head.indexOf('Code') > 0) {
         const index = head.indexOf('Code');
         const tfoot = $('#cloc-table > tfoot > tr').text();
-        codeSize = tfoot[index].replaceAll(' ', '').split('\n');
+        codeSize = tfoot.replaceAll(' ', '').split('\n')[index].rreplaceAll(',', '');
       }
-      log.info(`codeSize of ${request.loadedUrl} is '${codeSize}`);
+      log.info(`codeSize of ${request.loadedUrl} is ${codeSize}`);
     },
     maxRequestsPerCrawl: 20000,
     maxRequestRetries: 1,
