@@ -13,14 +13,19 @@ const router = express.Router();
  *       - in: path
  *         name: keyword
  *         required: true
- *         example: "vue"
+ *         example: "rsbuild"
+ *       - in: query
+ *         name: techStack
+ *         required: false
+ *         example: "构建工具"
  *     responses:
  *       '200':
  *         description: Successful response
  */
 router.get('/search/:keyword', async (req, res) => {
   const { keyword } = req.params;
-  const data = await search(keyword);
+  const { techStack } = req.query;
+  const data = await search(keyword, techStack);
   res.json(ok(data));
 });
 

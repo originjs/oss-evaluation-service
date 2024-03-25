@@ -1,13 +1,7 @@
-import { authorizationHeader } from '../../util.js';
+import { appendUrlParam, authorizationHeader } from '../../util.js';
 
 export function createProject(param, token) {
-  let url = 'https://sonarcloud.io/api/projects/create?';
-  for (const key in param) {
-    if (Object.prototype.hasOwnProperty.call(param, key) && param[key] !== null) {
-      url = `${url}${encodeURI(key)}=${encodeURI(param[key])}&`;
-    }
-  }
-  url = url.substring(0, url.length - 1);
+  const url = `https://sonarcloud.io/api/projects/create?${appendUrlParam(param)}`;
   return fetch(url, {
     method: 'POST',
     headers: authorizationHeader(token),

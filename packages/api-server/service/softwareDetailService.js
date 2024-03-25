@@ -17,6 +17,7 @@ import {
 } from '@orginjs/oss-evaluation-data-model';
 import ChartData from '../model/chartData.js';
 import { round } from '../util/math.js';
+import { Op } from 'sequelize';
 
 ProjectInfo.hasOne(Scorecard, { foreignKey: 'project_id', as: 'scorecard' });
 ProjectInfo.hasOne(SonarCloudProject, { foreignKey: 'github_project_id', as: 'sonarCloudScan' });
@@ -247,8 +248,26 @@ export async function getQuality(repoName) {
     order: [['updatedAt', 'desc']],
   });
   res.scorecard = scorecard || {};
-  // TODO sonarCloud
-  res.sonar = {};
+  const sonarCloud = await SonarCloudProject.findOne({
+    where: {
+      githubProjectId: projectId,
+      analysisDate: {
+        [Op.ne]: null,
+      },
+    },
+    attributes: [
+      'bugs',
+      'reliabilityRating',
+      'codeSmells',
+      'maintainabilityRating',
+      'securityRating',
+      'vulnerabilities',
+      'securityHotspots',
+      'securityHotspotsReviewed',
+      'securityReviewRating',
+    ],
+  });
+  res.sonar = sonarCloud || {};
   return res;
 }
 
