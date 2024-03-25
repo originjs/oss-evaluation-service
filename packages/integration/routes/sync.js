@@ -33,6 +33,7 @@ import {
   updateSonarCloudDefaultBranch,
   uploadSonarCiConfigToGitlab,
 } from '../controllers/sonarCloud.js';
+import syncProjectCodeSize from '../controllers/projectCodeSize.js';
 
 const router = express.Router();
 
@@ -625,5 +626,16 @@ router.route('/gitlab/addSonarCheckPipeline').get(await uploadSonarCiConfigToGit
  *         description: success.
  */
 router.route('/sonarCloud/updateDefaultBranch').get(await updateSonarCloudDefaultBranch);
+
+/**
+ * @swagger
+ * /sync/syncProjectCodeSize:
+ *   get:
+ *     summary: refresh main package of project
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/syncProjectCodeSize').get(syncProjectCodeSize);
 
 export default router;
