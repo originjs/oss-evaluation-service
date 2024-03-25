@@ -39,7 +39,7 @@ export default async function syncProjectCodeSize(req, res) {
 async function getProjectCodeSize(url) {
   let codeSize;
   const crawler = new CheerioCrawler({
-    async requestHandler({ request, $, enqueueLinks, log }) {
+    async requestHandler({ request, $, log }) {
       const thead = $('#cloc-table > thead > tr').text();
       const head = thead.replaceAll(' ', '').split('\n');
       if (head.length > 0 && head.indexOf('Code') > 0) {
