@@ -8,5 +8,9 @@ export type SoftwareInfo = {
 };
 
 export function getSoftwareNamesApi(keyword: string) {
-  return HttpRequest.get<SoftwareInfo[]>(`/home/search/${keyword}`);
+  return HttpRequest.get<SoftwareInfo[]>(`/home/search`, {
+    params: {
+      keyword,
+    },
+  });
 }
