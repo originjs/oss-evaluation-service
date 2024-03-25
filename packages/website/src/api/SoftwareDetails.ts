@@ -5,6 +5,7 @@ type BaseInfo = {
   url: string;
   description: string;
   tags: string;
+  techStack: string;
   star: number;
   fork: number;
   language: string;

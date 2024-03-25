@@ -174,7 +174,7 @@ function hideChooseBorder() {
       <div class="border param-name">技术栈</div>
       <div v-for="idx in 5" :key="idx" class="param-value border">
         <div v-if="projects[idx - 1]" class="value-div">
-          <el-link type="primary">前端框架</el-link>
+          <el-link type="primary">{{ projects[idx - 1].techStack }}</el-link>
         </div>
       </div>
     </div>
