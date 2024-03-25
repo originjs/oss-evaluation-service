@@ -6,11 +6,11 @@ const router = express.Router();
 
 /**
  * @swagger
- * /home/search/{keyword}:
+ * /home/search:
  *   get:
  *     summary: search
  *     parameters:
- *       - in: path
+ *       - in: query
  *         name: keyword
  *         required: true
  *         example: "rsbuild"
@@ -22,8 +22,8 @@ const router = express.Router();
  *       '200':
  *         description: Successful response
  */
-router.get('/search/:keyword', async (req, res) => {
-  const { keyword } = req.params;
+router.get('/search', async (req, res) => {
+  const { keyword } = req.query;
   const { techStack } = req.query;
   const data = await search(keyword, techStack);
   res.json(ok(data));
