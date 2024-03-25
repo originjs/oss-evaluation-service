@@ -51,7 +51,6 @@ async function getProjectCodeSize(url) {
     },
     maxRequestsPerCrawl: 20000,
     maxRequestRetries: 1,
-    statisticsOptions: { enabled: false },
   });
   await crawler.run([url]);
   return codeSize;
