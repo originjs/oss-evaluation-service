@@ -58,11 +58,18 @@ type TableRow = {
   value: string | number;
 };
 
-const baseInfo: BaseInfo = reactive({
+const baseInfo: Omit<BaseInfo, 'tags'> & { tags: string[] } = reactive({
   logo: '',
   description: '',
-  tags: [] as Array<string>,
+  tags: [],
   url: '',
+  techStack: '',
+  star: 0,
+  fork: 0,
+  language: '',
+  codeLines: 0,
+  firstCommit: '',
+  license: '',
   evaluation: {
     functionScore: 0,
     qualityScore: 0,
@@ -613,7 +620,9 @@ function addProjectToCompare() {
   compareFavoritesRef.value?.addProject([{ repoName, logo, url, description }]);
 }
 
-function compareProjects(projects) {
+function compareProjects(
+  projects: Array<{ repoName: string; logo: string; url: string; description: string }>,
+) {
   router.push({
     path: 'compare-projects',
     query: { repos: projects.map(project => project.repoName) },
@@ -779,7 +788,7 @@ function compareProjects(projects) {
           </el-link>
         </div>
         <div v-show="showBenchmarkCompare">
-          <SearchSoftware @search-name="addBenchmarkCompare">
+          <SearchSoftware :tech-stack="baseInfo.techStack" @search-name="addBenchmarkCompare">
             <button
               class="search-btn flex flex-items-center p-12px rd-8px h-40px bg-#f6f6f7 b-1 b-solid b-transparent color-black-75 hover:b-#3451b2 mt-10px mb-10px"
             >
