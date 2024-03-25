@@ -60,6 +60,17 @@ export function getPerformanceModuleInfo(repoName: string) {
 }
 
 type QualityModuleInfo = {
+  sonar: {
+    bugs: number,
+    codeSmells: number,
+    vulnerabilities: number,
+    securityHotspots: number,
+    securityHotspotsReviewed: string,
+    reliabilityRating: string,
+    maintainabilityRating: string,
+    securityRating: string,
+    securityReviewRating: string,
+  };
   scorecard: {
     score: number;
     maintained: number;
