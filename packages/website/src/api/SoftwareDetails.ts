@@ -1,6 +1,6 @@
 import HttpRequest from '@api/HttpRequest';
 
-type BaseInfo = {
+export type BaseInfo = {
   logo: string;
   url: string;
   description: string;

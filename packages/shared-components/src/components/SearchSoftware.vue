@@ -5,6 +5,10 @@ import { getSoftwareNamesApi } from '@/api/SearchSoftware';
 import type { PromisifyFn } from '@vueuse/core';
 import { useDebounceFn } from '@vueuse/core';
 
+const props = defineProps<{
+  techStack?: string;
+}>();
+
 const emit = defineEmits<{
   searchName: [name: string];
 }>();
@@ -22,7 +26,10 @@ const getSoftwareNames: PromisifyFn<(query: string) => Promise<void>> = useDebou
       return;
     }
     loadingSoftwareNames.value = true;
-    const res = await getSoftwareNamesApi(searchValue.value);
+    const res = await getSoftwareNamesApi({
+      keyword: searchValue.value,
+      techStack: props.techStack,
+    });
     if (res.code === 200) {
       softwareNames.value = res.data;
     }
