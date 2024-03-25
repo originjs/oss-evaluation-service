@@ -15,7 +15,7 @@ const routes = [
   },
   {
     path: '/compare-projects',
-    component: () => import('@views/Compare.vue'),
+    component: () => import('@views/CompareProject.vue'),
   },
 ];
 

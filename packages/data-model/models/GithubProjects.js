@@ -47,6 +47,9 @@ export default sequelize.define(
     size: {
       type: DataTypes.INTEGER,
     },
+    codeSize: {
+      type: DataTypes.INTEGER,
+    },
     stargazersCount: {
       type: DataTypes.INTEGER,
     },
