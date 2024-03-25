@@ -33,11 +33,11 @@ module.exports = {
     'vue/multi-word-component-names': [
       'error',
       {
-        ignores: ['Layout', 'Home'],
+        ignores: ['Layout', 'Home', 'Compare'],
       },
     ],
     '@typescript-eslint/no-explicit-any': ['off'],
-    'max-len': ['error', { code: 160 }],
+    'max-len': ['error', { code: 160, "ignorePattern": "^\\s*background-image: url\\s*\\(" }],
     'max-classes-per-file': ['error', 5],
     'linebreak-style': 'off',
     'import/extensions': 'off',
@@ -47,5 +47,6 @@ module.exports = {
     'no-continue': 'off',
     '@typescript-eslint/consistent-type-imports': 'error',
   },
+  noInlineConfig : false,
   globals: {},
 };
