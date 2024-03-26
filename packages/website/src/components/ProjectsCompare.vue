@@ -1,12 +1,7 @@
 <script setup lang="ts">
 import { Close, Switch, ArrowDown } from '@element-plus/icons-vue';
 import dayjs from 'dayjs';
-import {
-  getBaseInfo,
-  getQualityModuleInfo,
-  getFunctionModuleInfo,
-  getEcologyOverviewApi,
-} from '@api/SoftwareDetails';
+import { getSoftwareInfo, getEcologyOverviewApi } from '@api/SoftwareDetails';
 import { toKilo, changeBgColor } from '@api/utils';
 
 const prop = defineProps({
@@ -19,31 +14,10 @@ const prop = defineProps({
 const projects = reactive([]);
 prop.repositories.forEach(repoName => {
   const encodedRepoName = encodeURIComponent(repoName);
-  Promise.all([
-    getBaseInfo(encodedRepoName),
-    getQualityModuleInfo(encodedRepoName),
-    getFunctionModuleInfo(encodedRepoName),
-    getEcologyOverviewApi(encodedRepoName),
-  ])
+  Promise.all([getSoftwareInfo(encodedRepoName), getEcologyOverviewApi(encodedRepoName)])
     .then(results => {
       const project = results[0]['data'];
-      project['repoName'] = repoName;
-      project['scorecard'] = results[1].data.scorecard;
-      project['sonarCloudScan'] = results[1].data.sonar;
-
-      const satisfactionLabel = results[2].data.satisfaction?.xAxis || [];
-      const satisfaction = [];
-      for (let i = satisfactionLabel.length - 1; i >= 0 && i >= satisfactionLabel.length - 3; i--) {
-        satisfaction.push({
-          year: satisfactionLabel[i],
-          val: results[2].data.satisfaction.yAxis[i],
-        });
-      }
-
-      project['document'] = results[2].data.document;
-      project['satisfaction'] = satisfaction;
-      project['ecologyOverview'] = results[3].data;
-
+      project['ecologyOverview'] = results[1].data;
       projects.push(project);
     })
     .catch(error => {
@@ -300,10 +274,11 @@ function hideChooseBorder() {
       <div class="border param-name">代码量</div>
       <div v-for="idx in 5" :key="idx" class="param-value border">
         <div v-if="projects[idx - 1]" class="value-div">
-          <span> NA </span>
+          <span>{{ projects[idx - 1].codeLines }} (KL)</span>
         </div>
       </div>
     </div>
+
     <div
       class="row"
       @mouseover="showChooseBorder('首次提交', $event)"
@@ -962,7 +937,7 @@ function hideChooseBorder() {
       </div>
     </div>
 
-    <div
+<div
       class="row"
       @mouseover="showChooseBorder('影响力', $event)"
       @mouseout="hideChooseBorder($event)"
