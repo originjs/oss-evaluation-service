@@ -1,6 +1,6 @@
 import debug from 'debug';
 import { GithubProjects } from '@orginjs/oss-evaluation-data-model';
-import { CheerioCrawler } from 'crawlee';
+import { CheerioCrawler, Configuration } from 'crawlee';
 import { Cron } from 'croner';
 
 export default async function syncProjectCodeSize(req, res) {
@@ -17,9 +17,6 @@ export default async function syncProjectCodeSize(req, res) {
     count += 1;
     const url = `https://git-cloc.fly.dev/cloc/${project.ownerName}/${project.name}`;
     // 2. get project code size
-    if (project.codeSize > 0) {
-      continue;
-    }
     const codeSize = await getProjectCodeSize(url);
     if (codeSize == '') {
       continue;
@@ -39,6 +36,7 @@ export default async function syncProjectCodeSize(req, res) {
 
 async function getProjectCodeSize(url) {
   let codeSize;
+  const config = new Configuration({ persistStorage: false })
   const crawler = new CheerioCrawler({
     async requestHandler({ request, $, log }) {
       const thead = $('#cloc-table > thead > tr').text();
@@ -52,7 +50,7 @@ async function getProjectCodeSize(url) {
     },
     maxRequestsPerCrawl: 20000,
     maxRequestRetries: 1,
-  });
+  }, config);
   await crawler.run([url]);
   return codeSize;
 }
