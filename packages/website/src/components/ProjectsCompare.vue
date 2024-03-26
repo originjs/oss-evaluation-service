@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Close, Switch, ArrowDown } from '@element-plus/icons-vue';
+import dayjs from 'dayjs';
 import {
   getBaseInfo,
   getQualityModuleInfo,
@@ -319,7 +320,7 @@ function hideChooseBorder() {
       <div class="border param-name">首次提交</div>
       <div v-for="idx in 5" :key="idx" class="param-value border">
         <div v-if="projects[idx - 1]" class="value-div">
-          <span> {{ projects[idx - 1].firstCommit }} </span>
+          <span> {{ dayjs(projects[idx - 1].firstCommit).format('YYYY-MM-DD') }} </span>
         </div>
       </div>
     </div>
