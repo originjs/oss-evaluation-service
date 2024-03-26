@@ -1,5 +1,5 @@
 import express from 'express';
-import { githubTop } from '../service/trendService.js';
+import { githubTop } from '../../service/trendService.js';
 import Page from '../model/page.js';
 import { ok } from '../model/result.js';
 

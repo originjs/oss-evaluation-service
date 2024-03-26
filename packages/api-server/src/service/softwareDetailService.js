@@ -16,8 +16,8 @@ import {
   ProjectTechStack,
   SonarCloudProjectMin,
 } from '@orginjs/oss-evaluation-data-model';
-import ChartData from '../model/chartData.js';
-import { round } from '../util/math.js';
+import ChartData from '../src/model/chartData.js';
+import { round } from '../src/util/math.js';
 import { Op } from 'sequelize';
 import { getSoftwareEcologyOverview } from './softwareEcology.js';
 

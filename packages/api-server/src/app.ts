@@ -1,5 +1,5 @@
-import express, { json, urlencoded } from 'express';
-import cookieParser from 'cookie-parser';
+import debugLib from 'debug';
+import express from 'express';
 import logger from 'morgan';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
@@ -7,22 +7,21 @@ import cors from 'cors';
 import 'dotenv/config';
 import 'express-async-errors';
 
-import indexRouter from './routes/index.js';
 import ecologyRouter from './routes/softwareEcology.js';
 import detailRouter from './routes/softwareDetail.js';
 import trendPage from './routes/trendPage.js';
 import homePage from './routes/homePage.js';
 
+const debug = debugLib('oss-evaluation-service:server');
+const port = process.env.PORT || '3000';
 const app = express();
 
 // cors
 app.use(cors());
 app.use(logger('dev'));
-app.use(json());
-app.use(urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
-app.use('/', indexRouter);
 app.use('/softwareDetail', detailRouter);
 app.use('/trend', trendPage);
 app.use('/home', homePage);
@@ -65,4 +64,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-export default app;
+app.listen(port, () => {
+  debug(`server started at http://localhost:${port}`);
+});
