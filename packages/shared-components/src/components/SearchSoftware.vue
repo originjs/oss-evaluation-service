@@ -75,7 +75,7 @@ const onClickSoftware = (name: string) => {
           clearable
           @input="getSoftwareNames"
         />
-        <el-scrollbar v-loading="loadingSoftwareNames" class="h-full max-h-200px">
+        <el-scrollbar v-loading="loadingSoftwareNames" :max-height="400">
           <div class="text-center pt-10px line-height-50px">
             <span v-show="!softwareNames.length">暂无最近搜索记录...</span>
             <span v-show="loadingSoftwareNames">搜索中...</span>
