@@ -63,6 +63,7 @@ export async function getSoftwareInfo(repoName) {
   const res = softwareInfo.toJSON();
   res.repoName = repoName;
   res.techStack = res.techStack.subcategory;
+  res.codeLines = (res.codeLines / 1000).toFixed(2);
 
   if (res.satisfaction?.length !== 0) {
     let satisfaction = res.satisfaction.sort((a, b) => {
@@ -168,7 +169,7 @@ export async function getSoftwareOverview(repoName) {
     license: githubInfo.licenseName,
     description: githubInfo.description,
     tags: githubInfo.topics,
-    codeLines: Number.NaN,
+    codeLines: githubInfo.codeSize ? (githubInfo.codeSize / 1000).toFixed(2) : 0,
     techStack: techStack?.subcategory,
     evaluation,
   };

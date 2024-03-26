@@ -92,7 +92,7 @@ getBaseInfo(encodedRepoName.value)
       },
       {
         label: '代码量',
-        value: data.codeLines,
+        value: `${data.codeLines} (KL)`,
       },
       {
         label: '首次提交',
