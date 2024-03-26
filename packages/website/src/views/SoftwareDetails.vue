@@ -1025,7 +1025,7 @@ function compareProjects(
   </div>
   <CompareFavorites
     ref="compareFavoritesRef"
-    style="position: fixed; bottom: 0px"
+    style="position: fixed; bottom: 0px;z-index: 999"
     @compare="compareProjects"
   ></CompareFavorites>
 </template>
