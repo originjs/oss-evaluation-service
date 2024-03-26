@@ -792,12 +792,22 @@ function compareProjects(
             :max-height="400"
             :cell-style="computeColor"
           >
-            <el-table-column
-              v-for="column in benchmarkCompareColumns"
-              :key="column"
-              :prop="column"
-              :label="column === 'indexName' ? 'Name' : column"
-            />
+            <el-table-column v-for="column in benchmarkCompareColumns" :key="column" :prop="column">
+              <template #header>
+                <div class="inline-flex flex-items-center">
+                  <span>{{ column === 'indexName' ? 'Name' : column }}</span>
+                  <el-icon
+                    v-show="column !== 'indexName'"
+                    size="16"
+                    class="ml-6px cursor-pointer"
+                    color="#F56C6C"
+                    @click="benchmarkCompareColumns.delete(column)"
+                  >
+                    <RemoveFilled />
+                  </el-icon>
+                </div>
+              </template>
+            </el-table-column>
           </el-table>
         </div>
       </el-card>
