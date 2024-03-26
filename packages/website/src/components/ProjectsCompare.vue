@@ -7,7 +7,7 @@ import {
   getFunctionModuleInfo,
   getEcologyOverviewApi,
 } from '@api/SoftwareDetails';
-import { toKilo } from '@api/utils';
+import { toKilo, changeBgColor } from '@api/utils';
 
 const prop = defineProps({
   repositories: {
@@ -29,17 +29,7 @@ prop.repositories.forEach(repoName => {
       const project = results[0]['data'];
       project['repoName'] = repoName;
       project['scorecard'] = results[1].data.scorecard;
-      project['sonarCloudScan'] = {
-        bug: 1,
-        codeSmells: 494,
-        vulnerabilities: 0,
-        securityHotspots: 14,
-        reviewed: '0.0%',
-        reliabilityLevel: 'C',
-        maintainabilityLevel: 'A',
-        securityLevel: 'A',
-        securityReviewLevel: 'E',
-      };
+      project['sonarCloudScan'] = results[1].data.sonar;
 
       const satisfactionLabel = results[2].data.satisfaction?.xAxis || [];
       const satisfaction = [];
@@ -283,7 +273,7 @@ function hideChooseBorder() {
       <div v-for="idx in 5" :key="idx" class="param-value border">
         <div v-if="projects[idx - 1]" class="value-div">
           <span style="color: #409eff" :class="{ good: isStarTop(projects[idx - 1].star) }">{{
-            toKilo(projects[idx - 1].star)
+              toKilo(projects[idx - 1].star)
           }}</span>
         </div>
       </div>
@@ -804,12 +794,12 @@ function hideChooseBorder() {
           </div>
           <div v-for="idx in 5" :key="idx" class="param-value border">
             <div v-if="projects[idx - 1]" class="value-div">
-              <div class="w-30px h-30px border-rd-50% bg-blue text-center">
+              <div class="w-30px h-30px border-rd-50% text-center" :class="changeBgColor(projects[idx - 1].sonarCloudScan.reliabilityRating)">
                 <span vertical-middle color-white>{{
-                  projects[idx - 1].sonarCloudScan.reliabilityLevel
+                  toKilo(projects[idx - 1].sonarCloudScan.reliabilityRating)
                 }}</span>
               </div>
-              <span>{{ projects[idx - 1].sonarCloudScan.bug }} Bugs</span>
+              <span>{{ toKilo(projects[idx - 1].sonarCloudScan.bugs) }} Bugs</span>
             </div>
           </div>
         </div>
@@ -825,12 +815,12 @@ function hideChooseBorder() {
           </div>
           <div v-for="idx in 5" :key="idx" class="param-value border">
             <div v-if="projects[idx - 1]" class="value-div">
-              <div class="w-30px h-30px border-rd-50% bg-blue text-center">
+              <div class="w-30px h-30px border-rd-50% text-center" :class="changeBgColor(projects[idx - 1].sonarCloudScan.maintainabilityRating)">
                 <span vertical-middle color-white>{{
-                  projects[idx - 1].sonarCloudScan.maintainabilityLevel
+                  toKilo(projects[idx - 1].sonarCloudScan.maintainabilityRating)
                 }}</span>
               </div>
-              <span>{{ projects[idx - 1].sonarCloudScan.codeSmells }} Code Smells</span>
+              <span>{{ toKilo(projects[idx - 1].sonarCloudScan.codeSmells) }} Code Smells</span>
             </div>
           </div>
         </div>
@@ -846,12 +836,17 @@ function hideChooseBorder() {
           </div>
           <div v-for="idx in 5" :key="idx" class="param-value border">
             <div v-if="projects[idx - 1]" class="value-div">
-              <div class="w-30px h-30px border-rd-50% bg-blue text-center">
+              <div class="w-30px h-30px border-rd-50% text-center" :class="changeBgColor(projects[idx - 1].sonarCloudScan.securityRating)">
                 <span vertical-middle color-white>{{
-                  projects[idx - 1].sonarCloudScan.securityLevel
+                  toKilo(projects[idx - 1].sonarCloudScan.securityRating)
                 }}</span>
               </div>
-              <span>{{ projects[idx - 1].sonarCloudScan.vulnerabilities }} Vulnerabilities</span>
+              <span
+                >{{
+                  toKilo(projects[idx - 1].sonarCloudScan.vulnerabilities)
+                }}
+                Vulnerabilities</span
+              >
             </div>
           </div>
         </div>
@@ -867,13 +862,16 @@ function hideChooseBorder() {
           </div>
           <div v-for="idx in 5" :key="idx" class="param-value border">
             <div v-if="projects[idx - 1]" class="value-div">
-              <div class="w-30px h-30px border-rd-50% bg-blue text-center">
+              <div class="w-30px h-30px border-rd-50% text-center" :class="changeBgColor(projects[idx - 1].sonarCloudScan.securityReviewRating)">
                 <span vertical-middle color-white>{{
-                  projects[idx - 1].sonarCloudScan.securityReviewLevel
+                  toKilo(projects[idx - 1].sonarCloudScan.securityReviewRating)
                 }}</span>
               </div>
-              <span>{{ projects[idx - 1].sonarCloudScan.securityHotspots }} Security Hotspots</span>
-              <span>{{ projects[idx - 1].sonarCloudScan.reviewed }} Security Reviewed</span>
+              <span
+                >{{ toKilo(projects[idx - 1].sonarCloudScan.securityHotspots) }} Security
+                Hotspots</span
+              >
+
             </div>
           </div>
         </div>
