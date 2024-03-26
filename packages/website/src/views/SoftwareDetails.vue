@@ -22,6 +22,7 @@ import {
   getQualityModuleInfo,
   exportFileApi,
 } from '@api/SoftwareDetails';
+import { toKilo } from '@api/utils';
 import { saveAs } from 'file-saver';
 import { SearchSoftware } from '@orginjs/oss-evaluation-components';
 
@@ -29,19 +30,6 @@ const compareFavoritesRef = ref<InstanceType<typeof CompareFavorites>>();
 
 const route = useRoute();
 const router = useRouter();
-
-function toKilo(num: number | undefined) {
-  if (!num) {
-    return 'NaN';
-  }
-  if (num < 1000) {
-    return num.toString();
-  } else if (num < 100000) {
-    return (num / 1000).toFixed(1) + 'k';
-  } else {
-    return Math.round(num / 1000) + 'k';
-  }
-}
 
 const repoName = computed(() => String(route.query.repoName ?? ''));
 const encodedRepoName = computed(() => encodeURIComponent(repoName.value));
@@ -104,7 +92,7 @@ getBaseInfo(encodedRepoName.value)
       },
       {
         label: '代码量',
-        value: data.codeLines,
+        value: `${data.codeLines} (KL)`,
       },
       {
         label: '首次提交',
@@ -938,7 +926,7 @@ function compareProjects(
               <div i-custom:fork font-size-14 mr-4 />
               <div>
                 <div font-bold font-size-5>{{ toKilo(ecologyOverview?.forksCount) }}</div>
-                <div line-height-7>Fork数量（k）</div>
+                <div line-height-7>Fork数量</div>
               </div>
             </div>
             <div flex w-210px>

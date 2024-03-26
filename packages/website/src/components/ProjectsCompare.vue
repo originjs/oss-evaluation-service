@@ -6,6 +6,7 @@ import {
   getFunctionModuleInfo,
   getEcologyOverviewApi,
 } from '@api/SoftwareDetails';
+import { toKilo } from '@api/utils';
 
 const prop = defineProps({
   repositories: {
@@ -281,7 +282,7 @@ function hideChooseBorder() {
       <div v-for="idx in 5" :key="idx" class="param-value border">
         <div v-if="projects[idx - 1]" class="value-div">
           <span style="color: #409eff" :class="{ good: isStarTop(projects[idx - 1].star) }">{{
-            projects[idx - 1].star
+            toKilo(projects[idx - 1].star)
           }}</span>
         </div>
       </div>
@@ -903,11 +904,11 @@ function hideChooseBorder() {
             "
           >
             <span style="text-align: center; font-weight: bold">{{
-              projects[idx - 1].ecologyOverview.downloads
+              toKilo(projects[idx - 1].ecologyOverview.downloads)
             }}</span>
             <div style="display: inline-flex">
               <div i-custom:download font-size-6 mr-4 />
-              <div>npm周下载量(k)</div>
+              <div>npm周下载量</div>
             </div>
           </div>
 
@@ -921,11 +922,11 @@ function hideChooseBorder() {
             "
           >
             <span style="text-align: center; font-weight: bold">{{
-              projects[idx - 1].ecologyOverview.stargazersCount
+              toKilo(projects[idx - 1].ecologyOverview.stargazersCount)
             }}</span>
             <div style="display: inline-flex">
               <div i-custom:star font-size-6 mr-4 />
-              <div>Star数量(k)</div>
+              <div>Star数量</div>
             </div>
           </div>
 
@@ -939,11 +940,11 @@ function hideChooseBorder() {
             "
           >
             <span style="text-align: center; font-weight: bold">{{
-              projects[idx - 1].ecologyOverview.forksCount
+              toKilo(projects[idx - 1].ecologyOverview.forksCount)
             }}</span>
             <div style="display: inline-flex">
               <div i-custom:fork font-size-6 mr-4 />
-              <div>Fork数量(k)</div>
+              <div>Fork数量</div>
             </div>
           </div>
 
