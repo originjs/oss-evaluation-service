@@ -1,6 +1,8 @@
 import { request, gql } from 'graphql-request';
 import debug from 'debug';
 import { GithubProjects, CompassActivity } from '@orginjs/oss-evaluation-data-model';
+import { Cron } from 'croner';
+import { sleep } from '../util/util.js';
 
 const query = gql`
   query MetricActivity(
@@ -29,18 +31,42 @@ const compassUrl = 'https://oss-compass.org/api/graphql';
 
 export default syncCompassActivityMetric;
 
+const integrationTime = '@weekly';
+let start = 0;
+
+const job = new Cron(integrationTime, { timezone: 'Etc/UTC' }, async () => {
+  debug.log('compass integration start!', job.getPattern());
+  try {
+    await syncFullProjectCompassMetric(start);
+    debug.log('Synchronous compass successful!');
+  } catch (err) {
+    const { error, startIndex } = err;
+    start = startIndex;
+    debug.log(err);
+
+    if (error.response.status === 429) {
+      debug.log('The server returns 429 rate limit, try again after one hour.');
+      await sleep(3600000);
+      await job.trigger();
+    } else {
+      await sleep(10000);
+      debug.log('An error occurred, start trying again');
+      await job.trigger();
+    }
+  }
+});
+
+await job.trigger();
+
 /**
  * Synchronize single project compass activity metric to Database
  */
 export async function syncCompassActivityMetric(req, res) {
-  const { repoUrl, beginDate, incremental, startIndex, sliceNumber } = req.body;
-  if (beginDate === undefined || beginDate === null || beginDate === '') {
-    res.status(200).send('Synchronize date must be provided');
-  }
+  const { repoUrl, beginDate, startIndex } = req.body;
   const fullIntegration = repoUrl === undefined || repoUrl === null || repoUrl === '';
 
   if (fullIntegration) {
-    await syncFullProjectCompassMetric(beginDate, incremental, startIndex, sliceNumber);
+    await syncFullProjectCompassMetric(startIndex);
     res.status(200).send('Full-scale compass activity metrics integration success');
   } else {
     await syncSingleProjectCompassMetric({ repoUrl, beginDate });
@@ -48,54 +74,37 @@ export async function syncCompassActivityMetric(req, res) {
   }
 }
 
-async function syncFullProjectCompassMetric(beginDate, incremental, startIndex, sliceNumber) {
+/**
+ * Synchronize compass data for all GitHub projects
+ * @param startIndex Prevent intermediate failed checkpoints
+ */
+async function syncFullProjectCompassMetric(startIndex) {
   let projectList = await GithubProjects.findAll({
     attributes: ['id', 'htmlUrl'],
   });
-  const sumOfProject = projectList.length;
-  debug.log(`The Number of Project : ${sumOfProject}`);
+  const projectCount = projectList.length;
+  debug.log(`The Number of Project : ${projectCount}`);
 
-  projectList = projectList.slice(startIndex, startIndex + sliceNumber);
-  debug.log(`The round of Project : ${projectList.length}`);
-  let count = startIndex + 1;
+  projectList = projectList.slice(startIndex);
+  debug.log(`This round needs to synchronize the total number of projects: ${projectList.length}`);
+  let count = startIndex;
 
-  for (const projectListItem of projectList) {
-    debug.log('**Current Progress**: ', `${count}/${sumOfProject}`);
+  for (const project of projectList) {
+    debug.log('**Current Progress**: ', `${count + 1}/${projectCount}`);
     count += 1;
 
-    const project = projectListItem.dataValues;
-
-    // check if the project has saved in database
-    const databaseItem = await CompassActivity.findOne({
-      where: {
-        repoUrl: project.htmlUrl,
-      },
-    });
-    if (databaseItem != null) {
-      debug.log('Project have been saved in database');
-      if (!incremental) continue;
-      if (incremental && databaseItem.dataValues.hasCompassMetric === 0) continue;
-    }
-
     debug.log('Request compass metric');
-    // request compass metric
-    const data = await request(compassUrl, query, {
+    const compassData = await request(compassUrl, query, {
       label: project.htmlUrl,
-      beginDate,
     }).catch(error => {
       debug.log('Post to compass error : ', error.message);
+      throw { error, startIndex: count - 1 };
     });
 
-    const metrics = data.metricActivity;
+    const activityMetrics = compassData.metricActivity.slice(-8);
 
     // Compass metric does not exist
-    if (metrics.length === 0) {
-      await CompassActivity.create({
-        id: 0,
-        projectId: project.id,
-        repoUrl: project.htmlUrl,
-        hasCompassMetric: 0,
-      });
+    if (activityMetrics.length === 0) {
       debug.log('compass metric is empty, project: ', project.htmlUrl);
       continue;
     }
@@ -103,15 +112,21 @@ async function syncFullProjectCompassMetric(beginDate, incremental, startIndex, 
     const compassActivityList = await getIncrementalIntegrationArray(
       project.htmlUrl,
       project.id,
-      metrics,
+      activityMetrics,
     );
+
+    if (compassActivityList.length === 0) {
+      debug.log('There is no new compass data that needs to be inserted');
+      continue;
+    }
 
     await CompassActivity.bulkCreate(compassActivityList)
       .then(compass => {
-        debug.log('insert into database: ', compass.length);
+        debug.log(`Insert ${compass.length} Compass metrics`);
       })
       .catch(error => {
         debug.log('Batch insert error: ', error.message);
+        throw { error, startIndex: count - 1 };
       });
   }
 }
@@ -159,7 +174,7 @@ async function syncSingleProjectCompassMetric(repoUrl, beginDate) {
     });
 }
 
-async function getIncrementalIntegrationArray(repoUrl, projectId, metrics) {
+async function getIncrementalIntegrationArray(repoUrl, projectId, activityMetrics) {
   const existCompassDateList = await CompassActivity.findAll({
     attributes: ['grimoireCreationDate'],
     where: {
@@ -167,8 +182,8 @@ async function getIncrementalIntegrationArray(repoUrl, projectId, metrics) {
     },
   }).then(compass => compass.map(date => date.dataValues.grimoireCreationDate.getTime()));
 
-  const compassActivityList = [];
-  for (const activity of metrics) {
+  const compassMetricsList = [];
+  for (const activity of activityMetrics) {
     // incremental integration
     const activityDate = new Date(activity.grimoireCreationDate).getTime();
     if (!existCompassDateList.includes(activityDate)) {
@@ -176,8 +191,8 @@ async function getIncrementalIntegrationArray(repoUrl, projectId, metrics) {
       activity.hasCompassMetric = 1;
       activity.projectId = projectId;
       activity.repoUrl = activity.label;
-      compassActivityList.push(activity);
+      compassMetricsList.push(activity);
     }
   }
-  return compassActivityList;
+  return compassMetricsList;
 }
