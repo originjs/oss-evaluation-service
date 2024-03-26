@@ -1,6 +1,7 @@
 import debug from 'debug';
 import { GithubProjects } from '@orginjs/oss-evaluation-data-model';
 import { CheerioCrawler } from 'crawlee';
+import { Cron } from 'croner';
 
 export default async function syncProjectCodeSize(req, res) {
   debug.log('Sync Porject Code Size');
@@ -39,7 +40,7 @@ export default async function syncProjectCodeSize(req, res) {
 async function getProjectCodeSize(url) {
   let codeSize;
   const crawler = new CheerioCrawler({
-    async requestHandler({ request, $, enqueueLinks, log }) {
+    async requestHandler({ request, $, log }) {
       const thead = $('#cloc-table > thead > tr').text();
       const head = thead.replaceAll(' ', '').split('\n');
       if (head.length > 0 && head.indexOf('Code') > 0) {
@@ -55,3 +56,16 @@ async function getProjectCodeSize(url) {
   await crawler.run([url]);
   return codeSize;
 }
+
+const errorHandler = e => {
+  debug.log(e);
+};
+
+const syncProjectCodeSizeTimerTask = Cron(
+  '0 0 0 ? * WED',
+  { catch: errorHandler, timezone: 'Etc/UTC' },
+  async () => {
+    debug.log('syncProjectCodeSize start!', syncProjectCodeSizeTimerTask.getPattern());
+    await syncProjectCodeSize();
+    debug.log('syncProjectCodeSize end!', syncProjectCodeSizeTimerTask.getPattern());
+  })
