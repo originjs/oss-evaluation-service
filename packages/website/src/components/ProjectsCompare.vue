@@ -121,30 +121,32 @@ function hideChooseBorder() {
       <span class="menu selected">开源软件对比</span>
       <span class="menu">Benchmark</span>
     </div>
-    <div class="row">
-      <div class="border param-name"></div>
-      <div v-for="idx in 5" :key="idx" class="param-value border">
-        <div v-if="projects[idx - 1]" class="value-div" style="position: relative">
-          <el-image :src="projects[idx - 1]?.logo" fit="contain" class="w-64px h-64px mr-14px">
-            <template #error>
-              <div flex flex-justify-center flex-items-center w-full h-full bg-gray-100>
-                <el-icon font-size-7 color-gray-400>
-                  <Picture />
-                </el-icon>
-              </div>
-            </template>
-          </el-image>
-          <span>{{ projects[idx - 1]?.repoName }}</span>
-          <el-icon class="close-btn">
-            <Close />
-          </el-icon>
-          <el-button v-if="idx < projects.length" class="switch-btn" :icon="Switch" circle />
-        </div>
-        <div v-else class="none-project-div">
-          <el-select style="width: 80%" placeholder="选择开源软件"> </el-select>
+    <el-affix :offset="64">
+      <div class="row border-top">
+        <div class="border param-name"></div>
+        <div v-for="idx in 5" :key="idx" class="param-value border">
+          <div v-if="projects[idx - 1]" class="value-div" style="position: relative">
+            <el-image :src="projects[idx - 1]?.logo" fit="contain" class="w-64px h-64px mr-14px">
+              <template #error>
+                <div flex flex-justify-center flex-items-center w-full h-full bg-gray-100>
+                  <el-icon font-size-7 color-gray-400>
+                    <Picture />
+                  </el-icon>
+                </div>
+              </template>
+            </el-image>
+            <span>{{ projects[idx - 1]?.repoName }}</span>
+            <el-icon class="close-btn">
+              <Close />
+            </el-icon>
+            <el-button v-if="idx < projects.length" class="switch-btn" :icon="Switch" circle />
+          </div>
+          <div v-else class="none-project-div">
+            <el-select style="width: 80%" placeholder="选择开源软件"> </el-select>
+          </div>
         </div>
       </div>
-    </div>
+    </el-affix>
 
     <div class="row">
       <div class="border param-name">简介</div>
