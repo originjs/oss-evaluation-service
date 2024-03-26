@@ -39,6 +39,7 @@ export default sequelize.define(
     },
     license: {
       type: DataTypes.STRING(512),
+      field: 'license_name',
     },
     tags: {
       type: DataTypes.STRING(512),
