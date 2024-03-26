@@ -146,6 +146,12 @@ export async function getSoftwareOverview(repoName) {
     ],
   });
 
+  const techStack = await ProjectTechStack.findOne({
+    where: {
+      projectId,
+    },
+    attributes: ['subcategory'],
+  });
   evaluation.functionScore = Math.round(evaluation.functionScore * 100) / 100;
   evaluation.qualityScore = Math.round(evaluation.qualityScore * 100) / 100;
   evaluation.performanceScore = Math.round(evaluation.performanceScore * 100) / 100;
@@ -163,6 +169,7 @@ export async function getSoftwareOverview(repoName) {
     description: githubInfo.description,
     tags: githubInfo.topics,
     codeLines: Number.NaN,
+    techStack: techStack?.subcategory,
     evaluation,
   };
 }

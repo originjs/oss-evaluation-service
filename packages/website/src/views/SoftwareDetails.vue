@@ -6,6 +6,7 @@ import { ElMessage } from 'element-plus';
 import * as echarts from 'echarts';
 import dayjs from 'dayjs';
 import type {
+  BaseInfo,
   BenchmarkData,
   EcologyActivity,
   EcologyActivityCategory,
@@ -57,12 +58,18 @@ type TableRow = {
   value: string | number;
 };
 
-const baseInfo = reactive({
+const baseInfo: Omit<BaseInfo, 'tags'> & { tags: string[] } = reactive({
   logo: '',
   description: '',
-  tags: [] as Array<string>,
-  tableData: [] as Array<TableRow>,
+  tags: [],
   url: '',
+  techStack: '',
+  star: 0,
+  fork: 0,
+  language: '',
+  codeLines: 0,
+  firstCommit: '',
+  license: '',
   evaluation: {
     functionScore: 0,
     qualityScore: 0,
@@ -71,6 +78,7 @@ const baseInfo = reactive({
     innovationValue: 0,
   },
 });
+const baseInfoTable = ref<TableRow[]>([]);
 const overviewLoading = ref(true);
 
 getBaseInfo(encodedRepoName.value)
@@ -79,7 +87,9 @@ getBaseInfo(encodedRepoName.value)
     baseInfo.url = data.url;
     baseInfo.description = data.description;
     baseInfo.tags = data.tags ? data.tags.split('|') : [];
-    baseInfo.tableData = [
+    baseInfo.evaluation = data.evaluation;
+    baseInfo.techStack = data.techStack;
+    baseInfoTable.value = [
       {
         label: 'Stars',
         value: toKilo(data.star),
@@ -92,10 +102,10 @@ getBaseInfo(encodedRepoName.value)
         label: '开发语言',
         value: data.language,
       },
-      // {
-      //   label: '代码量',
-      //   value: data.codeLines,
-      // },
+      {
+        label: '代码量',
+        value: data.codeLines,
+      },
       {
         label: '首次提交',
         value: dayjs(data.firstCommit).format('YYYY-MM-DD'),
@@ -105,7 +115,6 @@ getBaseInfo(encodedRepoName.value)
         value: data.license,
       },
     ];
-    baseInfo.evaluation = data.evaluation;
   })
   .then(() => {
     renderSoftwareRadarChart();
@@ -513,6 +522,18 @@ getQualityModuleInfo(encodedRepoName.value).then(({ data }) => {
       },
     ],
   };
+  const sonar = data.sonar;
+  sonarCloudScan.value = {
+    bug: sonar.bugs,
+    codeSmells: sonar.codeSmells,
+    vulnerabilities: sonar.vulnerabilities,
+    securityHotspots: sonar.securityHotspots,
+    reviewed: sonar.securityHotspotsReviewed,
+    reliabilityLevel: sonar.reliabilityRating,
+    maintainabilityLevel: sonar.maintainabilityRating,
+    securityLevel: sonar.securityRating,
+    securityReviewLevel: sonar.securityReviewRating,
+  };
 });
 
 function scorecardProgressColor(score: number) {
@@ -540,14 +561,14 @@ function renderLineChart(container: string, data: EcologyActivity[]) {
     },
     xAxis: {
       type: 'category',
-      data: data.map(item => item.date),
+      data: data?.map(item => item.date),
     },
     yAxis: {
       type: 'value',
     },
     series: [
       {
-        data: data.map(item => item.value),
+        data: data?.map(item => item.value),
         type: 'line',
       },
     ],
@@ -599,7 +620,9 @@ function addProjectToCompare() {
   compareFavoritesRef.value?.addProject([{ repoName, logo, url, description }]);
 }
 
-function compareProjects(projects) {
+function compareProjects(
+  projects: Array<{ repoName: string; logo: string; url: string; description: string }>,
+) {
   router.push({
     path: 'compare-projects',
     query: { repos: projects.map(project => project.repoName) },
@@ -650,11 +673,11 @@ function compareProjects(projects) {
           </div>
           <el-tooltip effect="light" :teleported="false">
             <div mb-2 font-size-3.5 class="text-over">{{ baseInfo.description }}</div>
-
             <template #content>
               <div max-w-900px>{{ baseInfo.description }}</div>
             </template>
           </el-tooltip>
+          <el-tag mr-2 mb-2>{{ baseInfo.techStack }}</el-tag>
           <el-tag v-for="(label, idx) in baseInfo.tags" :key="idx" :type="tagType(idx)" mr-2 mb-2>{{
             label
           }}</el-tag>
@@ -662,7 +685,7 @@ function compareProjects(projects) {
         <div id="software-radar-chart" float-right w-328px h-303px pt-30px bg-coolgray-50 />
         <el-table
           class="base-info"
-          :data="baseInfo.tableData"
+          :data="baseInfoTable"
           stripe
           border
           :show-header="false"
@@ -765,7 +788,7 @@ function compareProjects(projects) {
           </el-link>
         </div>
         <div v-show="showBenchmarkCompare">
-          <SearchSoftware @search-name="addBenchmarkCompare">
+          <SearchSoftware :tech-stack="baseInfo.techStack" @search-name="addBenchmarkCompare">
             <button
               class="search-btn flex flex-items-center p-12px rd-8px h-40px bg-#f6f6f7 b-1 b-solid b-transparent color-black-75 hover:b-#3451b2 mt-10px mb-10px"
             >
@@ -818,7 +841,7 @@ function compareProjects(projects) {
         </div>
       </el-card>
       <el-card>
-        <div mb-4 font-size-5 font-bold>SonarCloud Scan（演示数据）</div>
+        <div mb-4 font-size-5 font-bold>SonarCloud Scan</div>
         <div h-207px flex flex-wrap justify-between content-between>
           <div position-relative pt-3 pd-3 pl-4 pr-4 w-607px h-92px bg-coolgray-50>
             <div mb-4 font-bold>
@@ -1036,12 +1059,11 @@ function compareProjects(projects) {
 
 :deep(.el-table.base-info) {
   float: left;
-  margin-top: 14px;
+  margin-top: 8px;
   width: 935px;
   height: 185px;
-
   .cell {
-    line-height: 20px;
+    line-height: 14px;
   }
 }
 

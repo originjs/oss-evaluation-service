@@ -1,10 +1,11 @@
 import HttpRequest from '@api/HttpRequest';
 
-type BaseInfo = {
+export type BaseInfo = {
   logo: string;
   url: string;
   description: string;
   tags: string;
+  techStack: string;
   star: number;
   fork: number;
   language: string;
@@ -60,6 +61,17 @@ export function getPerformanceModuleInfo(repoName: string) {
 }
 
 type QualityModuleInfo = {
+  sonar: {
+    bugs: number,
+    codeSmells: number,
+    vulnerabilities: number,
+    securityHotspots: number,
+    securityHotspotsReviewed: string,
+    reliabilityRating: string,
+    maintainabilityRating: string,
+    securityRating: string,
+    securityReviewRating: string,
+  };
   scorecard: {
     score: number;
     maintained: number;

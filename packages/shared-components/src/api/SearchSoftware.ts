@@ -7,6 +7,8 @@ export type SoftwareInfo = {
   stargazersCount: number;
 };
 
-export function getSoftwareNamesApi(keyword: string) {
-  return HttpRequest.get<SoftwareInfo[]>(`/home/search/${keyword}`);
+export function getSoftwareNamesApi(params: { keyword: string; techStack?: string }) {
+  return HttpRequest.get<SoftwareInfo[]>(`/home/search`, {
+    params,
+  });
 }
