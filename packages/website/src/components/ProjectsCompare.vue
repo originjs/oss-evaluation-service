@@ -400,7 +400,9 @@ function hideChooseBorder() {
     >
       <div class="border param-name" style="height: 60px; font-size: 14px">Benchmark Score</div>
       <div v-for="idx in 5" :key="idx" class="param-value border">
-        <div v-if="projects[idx - 1]" class="value-div">NA</div>
+        <div v-if="projects[idx - 1]" class="value-div">
+          <span>{{ projects[idx - 1].evaluation.performanceScore }}</span>
+        </div>
       </div>
     </div>
 
