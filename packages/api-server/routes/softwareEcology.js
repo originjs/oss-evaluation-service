@@ -79,6 +79,8 @@ router.post('/ecology/export/:repoName', async (req, res) => {
   if (benchmarkExcel) {
     //   merge scoreExcel and benchmarkExcel into one excel
     exportBuffer = appendSheet(scoreExcel, benchmarkExcel);
+  } else {
+    exportBuffer = scoreExcel;
   }
   res.setHeader('Content-disposition', 'attachment; filename=' + dayjs() + '.xlsx');
   res.setHeader(
