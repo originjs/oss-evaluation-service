@@ -14,17 +14,14 @@ export function toKilo(num: number | undefined | string) {
   }
 }
 
-export function changeBgColor(str: string) {
-  if (str == 'A') {
-    return 'bg-green-500';
-  } else if (str == 'B') {
-    return 'bg-green-200';
-  } else if (str == 'C') {
-    return 'bg-yellow-200';
-  } else if (str == 'D') {
-    return 'bg-amber-300';
-  } else if (str == 'E') {
-    return 'bg-red-300';
-  }
-  return 'bg-blue';
+export function getLevelColor(str: string) {
+  return (
+    {
+      A: '#21c45d',
+      B: '#bbf7d0',
+      C: '#fef08b',
+      D: '#fcd44f',
+      E: '#fca6a6',
+    }[str] || '#61a6fa'
+  );
 }

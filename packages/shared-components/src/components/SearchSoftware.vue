@@ -70,7 +70,7 @@ const onClickSoftware = (name: string) => {
       <div class="p-10px">
         <el-input
           ref="searchInputInstance"
-          v-model="searchValue"
+          v-model.trim="searchValue"
           class="w-full"
           placeholder="搜索开源项目"
           :prefix-icon="Search"
