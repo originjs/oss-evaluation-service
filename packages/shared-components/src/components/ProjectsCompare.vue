@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { Close, Switch, ArrowDown } from '@element-plus/icons-vue';
 import dayjs from 'dayjs';
-import { getSoftwareInfo, getEcologyOverviewApi, SoftwareInfo } from '@/api/SoftwareDetails';
-import { toKilo, changeBgColor } from '@/api/utils';
+import type { SoftwareInfo } from '@/api/SoftwareDetails';
+import { getSoftwareInfo, getEcologyOverviewApi } from '@/api/SoftwareDetails';
+import { toKilo, getLevelColor } from '@/api/utils';
 
 const prop = defineProps({
   repositories: {
@@ -60,14 +61,14 @@ function isGood(currValue: string, valuesKey: string) {
 }
 
 const findRow = (element: HTMLElement, className: string) => {
-  let parent = <HTMLElement>element.parentNode;
+  let parent = element.parentNode as HTMLElement;
 
   while (parent) {
     if (parent.classList?.contains(className)) {
       return parent;
     }
 
-    parent = <HTMLElement>parent.parentNode;
+    parent = parent.parentNode;
   }
 
   return null;
@@ -75,7 +76,7 @@ const findRow = (element: HTMLElement, className: string) => {
 
 const tipDiv = ref<HTMLElement | null>(null);
 function showChooseBorder(title: string, event: MouseEvent) {
-  const row = findRow(<HTMLElement>event.target, 'row');
+  const row = findRow(event.target, 'row');
   if (row) {
     row.appendChild(tipDiv.value as HTMLElement);
     tipDiv.value!.innerText = title;
@@ -604,7 +605,7 @@ function hideChooseBorder() {
           <div v-for="idx in 5" :key="idx" class="param-value border">
             <div v-if="projects[idx - 1]" class="value-div">
               <div class="w-30px h-30px border-rd-50% text-center"
-                :class="changeBgColor(projects[idx - 1].sonarCloudScan?.reliabilityRating)">
+                   :style="{ backgroundColor: getLevelColor(projects[idx - 1].sonarCloudScan?.reliabilityRating) }">
                 <span vertical-middle color-white>{{
       toKilo(projects[idx - 1].sonarCloudScan?.reliabilityRating)
     }}</span>
@@ -622,7 +623,7 @@ function hideChooseBorder() {
           <div v-for="idx in 5" :key="idx" class="param-value border">
             <div v-if="projects[idx - 1]" class="value-div">
               <div class="w-30px h-30px border-rd-50% text-center"
-                :class="changeBgColor(projects[idx - 1].sonarCloudScan?.maintainabilityRating)">
+                   :style="{ backgroundColor: getLevelColor(projects[idx - 1].sonarCloudScan?.maintainabilityRating) }">
                 <span vertical-middle color-white>{{
       toKilo(projects[idx - 1].sonarCloudScan?.maintainabilityRating)
     }}</span>
@@ -640,7 +641,7 @@ function hideChooseBorder() {
           <div v-for="idx in 5" :key="idx" class="param-value border">
             <div v-if="projects[idx - 1]" class="value-div">
               <div class="w-30px h-30px border-rd-50% text-center"
-                :class="changeBgColor(projects[idx - 1].sonarCloudScan?.securityRating)">
+                   :style="{ backgroundColor: getLevelColor(projects[idx - 1].sonarCloudScan?.securityRating) }">
                 <span vertical-middle color-white>{{
       toKilo(projects[idx - 1].sonarCloudScan?.securityRating)
     }}</span>
@@ -661,7 +662,7 @@ function hideChooseBorder() {
           <div v-for="idx in 5" :key="idx" class="param-value border">
             <div v-if="projects[idx - 1]" class="value-div">
               <div class="w-30px h-30px border-rd-50% text-center"
-                :class="changeBgColor(projects[idx - 1].sonarCloudScan?.securityReviewRating)">
+                   :style="{ backgroundColor: getLevelColor(projects[idx - 1].sonarCloudScan?.securityReviewRating) }">
                 <span vertical-middle color-white>{{
       toKilo(projects[idx - 1].sonarCloudScan?.securityReviewRating)
     }}</span>

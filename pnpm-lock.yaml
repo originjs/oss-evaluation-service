@@ -214,6 +214,9 @@ importers:
 
   packages/shared-components:
     dependencies:
+      dayjs:
+        specifier: ^1.11.10
+        version: 1.11.10
       echarts:
         specifier: ^5.5.0
         version: 5.5.0
