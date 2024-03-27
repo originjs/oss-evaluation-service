@@ -2,7 +2,7 @@
 import { Close, Switch, ArrowDown } from '@element-plus/icons-vue';
 import dayjs from 'dayjs';
 import { getSoftwareInfo, getEcologyOverviewApi } from '@api/SoftwareDetails';
-import { toKilo, changeBgColor } from '@api/utils';
+import { toKilo, changeBgColor, formatNumberToFixed, formatNumber } from '@api/utils';
 
 const prop = defineProps({
   repositories: {
@@ -162,7 +162,7 @@ function hideChooseBorder() {
             :class="{
               good: isGood(projects[idx - 1].evaluation.functionScore, 'evaluation.functionScore'),
             }"
-            >{{ projects[idx - 1].evaluation.functionScore }}/100</span
+            >{{ formatNumberToFixed(projects[idx - 1].evaluation.functionScore ) }}/100</span
           >
         </div>
       </div>
@@ -186,7 +186,7 @@ function hideChooseBorder() {
               ),
             }"
           >
-            {{ projects[idx - 1].evaluation.performanceScore }}/100
+            {{ formatNumberToFixed(projects[idx - 1].evaluation.performanceScore) }}/100
           </span>
         </div>
       </div>
@@ -207,7 +207,7 @@ function hideChooseBorder() {
               good: isGood(projects[idx - 1].evaluation.qualityScore, 'evaluation.qualityScore'),
             }"
           >
-            {{ projects[idx - 1].evaluation.qualityScore }}/100
+            {{ formatNumberToFixed(projects[idx - 1].evaluation.qualityScore) }}/100
           </span>
         </div>
       </div>
@@ -228,7 +228,7 @@ function hideChooseBorder() {
               good: isGood(projects[idx - 1].evaluation.ecologyScore, 'evaluation.ecologyScore'),
             }"
           >
-            {{ projects[idx - 1].evaluation.ecologyScore }}/100
+            {{ formatNumberToFixed(projects[idx - 1].evaluation.ecologyScore) }}/100
           </span>
         </div>
       </div>
@@ -250,7 +250,7 @@ function hideChooseBorder() {
         <div v-if="projects[idx - 1]" class="value-div">
           <span style="color: #409eff" :class="{ good: isStarTop(projects[idx - 1].star) }">{{
               toKilo(projects[idx - 1].star)
-          }}</span>
+          }} (k)</span>
         </div>
       </div>
     </div>
@@ -274,7 +274,7 @@ function hideChooseBorder() {
       <div class="border param-name">代码量</div>
       <div v-for="idx in 5" :key="idx" class="param-value border">
         <div v-if="projects[idx - 1]" class="value-div">
-          <span>{{ projects[idx - 1].codeLines }} (KL)</span>
+          <span>{{ toKilo(projects[idx - 1].codeLines) }} (kl)</span>
         </div>
       </div>
     </div>
@@ -336,7 +336,7 @@ function hideChooseBorder() {
         <div v-if="projects[idx - 1]" class="value-div">
           <div>
             <div style="text-align: center; margin-bottom: 8px">
-              {{ projects[idx - 1].document.documentScore }}%
+              {{ formatNumberToFixed(projects[idx - 1].document.documentScore) }}%
             </div>
             <div>
               <span
@@ -438,7 +438,7 @@ function hideChooseBorder() {
           <div v-for="idx in 5" :key="idx" class="param-value border">
             <div v-if="projects[idx - 1]" class="value-div">
               <span :class="{ good: isGood(projects[idx - 1].scorecard.score, 'scorecard.score') }">
-                {{ projects[idx - 1].scorecard.score }} / 10
+                {{ formatNumberToFixed(projects[idx - 1].scorecard.score) }} / 10
               </span>
             </div>
           </div>
@@ -775,10 +775,10 @@ function hideChooseBorder() {
             <div v-if="projects[idx - 1]" class="value-div">
               <div class="w-30px h-30px border-rd-50% text-center" :class="changeBgColor(projects[idx - 1].sonarCloudScan.reliabilityRating)">
                 <span vertical-middle color-white>{{
-                  toKilo(projects[idx - 1].sonarCloudScan.reliabilityRating)
+                  formatNumberToFixed(projects[idx - 1].sonarCloudScan.reliabilityRating)
                 }}</span>
               </div>
-              <span>{{ toKilo(projects[idx - 1].sonarCloudScan.bugs) }} Bugs</span>
+              <span>{{ projects[idx - 1].sonarCloudScan.bugs }} Bugs</span>
             </div>
           </div>
         </div>
@@ -796,10 +796,10 @@ function hideChooseBorder() {
             <div v-if="projects[idx - 1]" class="value-div">
               <div class="w-30px h-30px border-rd-50% text-center" :class="changeBgColor(projects[idx - 1].sonarCloudScan.maintainabilityRating)">
                 <span vertical-middle color-white>{{
-                  toKilo(projects[idx - 1].sonarCloudScan.maintainabilityRating)
+                  projects[idx - 1].sonarCloudScan.maintainabilityRating
                 }}</span>
               </div>
-              <span>{{ toKilo(projects[idx - 1].sonarCloudScan.codeSmells) }} Code Smells</span>
+              <span>{{ projects[idx - 1].sonarCloudScan.codeSmells }} Code Smells</span>
             </div>
           </div>
         </div>
@@ -817,12 +817,12 @@ function hideChooseBorder() {
             <div v-if="projects[idx - 1]" class="value-div">
               <div class="w-30px h-30px border-rd-50% text-center" :class="changeBgColor(projects[idx - 1].sonarCloudScan.securityRating)">
                 <span vertical-middle color-white>{{
-                  toKilo(projects[idx - 1].sonarCloudScan.securityRating)
+                  projects[idx - 1].sonarCloudScan.securityRating
                 }}</span>
               </div>
               <span
                 >{{
-                  toKilo(projects[idx - 1].sonarCloudScan.vulnerabilities)
+                  projects[idx - 1].sonarCloudScan.vulnerabilities
                 }}
                 Vulnerabilities</span
               >
@@ -843,11 +843,11 @@ function hideChooseBorder() {
             <div v-if="projects[idx - 1]" class="value-div">
               <div class="w-30px h-30px border-rd-50% text-center" :class="changeBgColor(projects[idx - 1].sonarCloudScan.securityReviewRating)">
                 <span vertical-middle color-white>{{
-                  toKilo(projects[idx - 1].sonarCloudScan.securityReviewRating)
+                  projects[idx - 1].sonarCloudScan.securityReviewRating
                 }}</span>
               </div>
               <span
-                >{{ toKilo(projects[idx - 1].sonarCloudScan.securityHotspots) }} Security
+                >{{ projects[idx - 1].sonarCloudScan.securityHotspots }} Security
                 Hotspots</span
               >
 
@@ -883,7 +883,7 @@ function hideChooseBorder() {
           >
             <span style="text-align: center; font-weight: bold">{{
               toKilo(projects[idx - 1].ecologyOverview.downloads)
-            }}</span>
+            }} (k)</span>
             <div style="display: inline-flex">
               <div i-custom:download font-size-6 mr-4 />
               <div>npm周下载量</div>
@@ -957,7 +957,7 @@ function hideChooseBorder() {
             "
           >
             <span style="text-align: center; font-weight: bold">{{
-              projects[idx - 1].ecologyOverview.openRank
+              formatNumberToFixed(projects[idx - 1].ecologyOverview.openRank)
             }}</span>
             <div style="display: inline-flex">
               <div i-custom:medal font-size-6 mr-4 />
@@ -975,7 +975,7 @@ function hideChooseBorder() {
             "
           >
             <span style="text-align: center; font-weight: bold">{{
-              projects[idx - 1].ecologyOverview.criticalityScore
+              formatNumberToFixed(projects[idx - 1].ecologyOverview.criticalityScore)
             }}</span>
             <div style="display: inline-flex">
               <div i-custom:trophy font-size-6 mr-4 />
@@ -993,7 +993,7 @@ function hideChooseBorder() {
             "
           >
             <span style="text-align: center; font-weight: bold">{{
-              projects[idx - 1].ecologyOverview.contributorCount
+              formatNumber(projects[idx - 1].ecologyOverview.contributorCount)
             }}</span>
             <div style="display: inline-flex">
               <div i-custom:contributor font-size-6 mr-4 />

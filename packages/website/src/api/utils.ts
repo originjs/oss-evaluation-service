@@ -1,18 +1,28 @@
-export function toKilo(num: number | undefined | string) {
-  if (num === undefined || num === '') {
-    return 'NaN';
+export function toKilo(value: number | undefined | string): string {
+  if (value === undefined || value === null || value === '') {
+    return '-';
   }
-  if (typeof num === 'string') {
-    return num;
+
+  const number = typeof value === 'string' ? parseFloat(value) : value;
+  return (number / 1000).toFixed(2);
+};
+
+export function formatNumberToFixed(value: number | undefined | string) {
+  if (value === undefined || value === null || value === '') {
+    return '-';
   }
-  if (num < 1000) {
-    return num.toString();
-  } else if (num < 100000) {
-    return (num / 1000).toFixed(1) + 'k';
-  } else {
-    return Math.round(num / 1000) + 'k';
-  }
+  const number = typeof value === 'string' ? parseFloat(value) : value;
+  return number.toFixed(2);
 }
+
+export function formatNumber(value: number | undefined | string) {
+  if (value === undefined || value === null || value === '') {
+    return '-';
+  }
+  const number = typeof value === 'string' ? parseFloat(value) : value;
+  return number;
+}
+
 
 export function changeBgColor(str: string) {
   if (str == 'A') {

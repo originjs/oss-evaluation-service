@@ -64,15 +64,6 @@ export async function getSoftwareInfo(repoName) {
   const res = softwareInfo.toJSON();
   res.repoName = repoName;
   res.techStack = res.techStack?.subcategory;
-  res.codeLines = (res.codeLines / 1000).toFixed(2);
-  res.evaluation.functionScore = res.evaluation.functionScore?.toFixed(2);
-  res.evaluation.qualityScore = res.evaluation.qualityScore?.toFixed(2);
-  res.evaluation.performanceScore = res.evaluation.performanceScore?.toFixed(2) || 0.0;
-  res.evaluation.ecologyScore = res.evaluation.ecologyScore?.toFixed(2);
-  res.evaluation.scorecardScore = res.evaluation.scorecardScore?.toFixed(2);
-  res.evaluation.criticalityScore = res.evaluation.criticalityScore?.toFixed(2);
-  res.evaluation.openrank = res.evaluation.openrank?.toFixed(2);
-  res.document.documentScore = res.document.documentScore?.toFixed(2);
 
   if (res.satisfaction?.length !== 0) {
     let satisfaction = res.satisfaction.sort((a, b) => {
