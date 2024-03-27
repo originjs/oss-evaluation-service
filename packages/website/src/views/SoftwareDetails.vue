@@ -22,7 +22,7 @@ import {
   getQualityModuleInfo,
   exportFileApi,
 } from '@api/SoftwareDetails';
-import { toKilo, changeBgColor} from '@api/utils';
+import { toKilo, changeBgColor, formatNumberToFixed, formatNumber } from '@api/utils';
 import { saveAs } from 'file-saver';
 import { SearchSoftware } from '@orginjs/oss-evaluation-components';
 
@@ -80,11 +80,11 @@ getBaseInfo(encodedRepoName.value)
     baseInfoTable.value = [
       {
         label: 'Stars',
-        value: toKilo(data.star),
+        value: `${toKilo(data.star)} (k)`,
       },
       {
         label: 'Fork',
-        value: toKilo(data.fork),
+        value: `${toKilo(data.fork)} (k)`,
       },
       {
         label: '开发语言',
@@ -92,7 +92,7 @@ getBaseInfo(encodedRepoName.value)
       },
       {
         label: '代码量',
-        value: `${data.codeLines} (KL)`,
+        value: `${data.codeLines} (kl)`,
       },
       {
         label: '首次提交',
