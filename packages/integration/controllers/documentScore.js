@@ -1,9 +1,11 @@
 import debug from 'debug';
 import { Octokit } from '@octokit/core';
 import { GithubProjects, CncfDocumentScore } from '@orginjs/oss-evaluation-data-model';
+import { Cron } from 'croner';
+import { sleep } from '../util/util.js';
 
 // cncf document checks item
-const cncfDocumentChecks = {
+const cncfDocumentChecksSet = {
   readme: {
     id: 'readme',
     weight: 10,
@@ -53,9 +55,84 @@ const cncfDocumentChecks = {
   },
 };
 
+let tokenIndex = 0;
+const basicApiUrl = 'GET /repos/{owner}/{repo}';
+
+function changeToken() {
+  const tokenArray = process.env.GITHUB_TOKEN.split(';');
+  tokenIndex += 1;
+  return tokenArray[tokenIndex % tokenArray.length];
+}
+
+/*
+  incremental integration: GitHub Metadata does not support updating yet
+ */
+export async function integratingCNCFDocumentScore(startIndex) {
+  debug.log('----- Integrate CNCF Document Score Start -------');
+  let projectList = await GithubProjects.findAll({
+    attributes: ['id', 'htmlUrl'],
+  });
+
+  const projectCount = projectList.length;
+  projectList = projectList.slice(startIndex);
+
+  const githubToken = await getValidGithubToken();
+  const octokit = new Octokit({
+    auth: githubToken,
+  });
+
+  for (const project of projectList) {
+    debug.log('Current document score Integration Progress: ', `${startIndex + 1}/${projectCount}`);
+    startIndex += 1;
+
+    const documentProject = await CncfDocumentScore.findOne({
+      where: { repoUrl: project.htmlUrl },
+    });
+    if (documentProject == null) {
+      const githubInfo = await getGithubMetadata(octokit, project.htmlUrl)
+        .then(data => data)
+        .catch(err => {
+          if (Object.prototype.hasOwnProperty.call(err, 'status') && err.status === 404) {
+            debug.log(err);
+          } else {
+            throw { err, startIndex };
+          }
+        });
+      if (githubInfo === undefined) {
+        continue;
+      }
+      const { readme, filename, website, release } = githubInfo;
+
+      runDocumentChecks(readme, filename, website, release);
+      const score = calculateCncfScore();
+      debug.log(`**** insert into database ****: ${project.htmlUrl}`);
+      await createDocumentScore(
+        project.id,
+        project.htmlUrl,
+        score,
+        readme,
+        website,
+        release,
+        filename,
+      );
+    } else {
+      /* only calculate document score */
+      runDocumentChecks(
+        documentProject.readme,
+        JSON.parse(documentProject.filename),
+        documentProject.website,
+        documentProject.release,
+      );
+      const score = calculateCncfScore();
+      await updateDocumentScore(project.id, score);
+    }
+    clearDocumentChecks();
+  }
+}
+
 export default async function syncCNCFDocumentScore(req, res) {
   debug.log('Sync CNCF Document Score');
-  // 1. get all github project
+  // 1. get all GitHub project
   const projectList = await GithubProjects.findAll({
     attributes: ['id', 'htmlUrl'],
   });
@@ -75,7 +152,13 @@ export default async function syncCNCFDocumentScore(req, res) {
       continue;
     }
 
-    const { readme, filename, website, release } = await integrateCncfDocumentInformation(
+    const githubToken = await getValidGithubToken();
+    const octokit = new Octokit({
+      auth: githubToken,
+    });
+
+    const { readme, filename, website, release } = await getGithubMetadata(
+      octokit,
       project.htmlUrl,
     );
     runDocumentChecks(readme, filename, website, release);
@@ -98,17 +181,53 @@ export default async function syncCNCFDocumentScore(req, res) {
   res.status(200).send('success');
 }
 
+async function createDocumentScore(projectId, repoUrl, score, readme, website, release, filename) {
+  await CncfDocumentScore.create({
+    id: 0,
+    projectId,
+    repoUrl,
+    readme,
+    filename: JSON.stringify(filename),
+    website,
+    release,
+    documentScore: score,
+    hasReadme: cncfDocumentChecksSet.readme.checked,
+    hasChangelog: cncfDocumentChecksSet.changelog.checked,
+    hasContributing: cncfDocumentChecksSet.contributing.checked,
+    hasWebsite: cncfDocumentChecksSet.website.checked,
+  });
+}
+async function updateDocumentScore(projectId, score) {
+  await CncfDocumentScore.update(
+    {
+      documentScore: score,
+      hasReadme: cncfDocumentChecksSet.readme.checked,
+      hasChangelog: cncfDocumentChecksSet.changelog.checked,
+      hasContributing: cncfDocumentChecksSet.contributing.checked,
+      hasWebsite: cncfDocumentChecksSet.website.checked,
+    },
+    {
+      where: {
+        projectId,
+      },
+    },
+  );
+}
+
 function runDocumentChecks(readme, filename, website, release) {
-  //  1. Check if there is a website
-  cncfDocumentChecks.website.checked = website != null && website !== '' && website !== undefined;
-  if (cncfDocumentChecks.website.checked) {
-    cncfDocumentChecks.website.path = website;
+  // Check if there is a website
+  cncfDocumentChecksSet.website.checked =
+    website != null && website !== '' && website !== undefined;
+  if (cncfDocumentChecksSet.website.checked) {
+    cncfDocumentChecksSet.website.path = website;
   }
 
-  // 2. Checks File in repo
-  for (const checksItem of Object.values(cncfDocumentChecks)) {
+  // Checks contributing/changelog/readme in repo
+  for (const checksItem of Object.values(cncfDocumentChecksSet).filter(
+    item => item.id !== 'website',
+  )) {
     for (const path of filename) {
-      if (checksItem.checked || checksItem.id === 'website') {
+      if (checksItem.checked) {
         break;
       }
       checksItem.checked = checksItem.repoPattern.test(path);
@@ -116,34 +235,32 @@ function runDocumentChecks(readme, filename, website, release) {
     }
   }
 
-  // 3. Check if change_log is in the most recent release
+  // Check if change_log is in the most recent release
   debug.log('Check if change_log is in the most recent release');
   if (release != null && release.length !== 0) {
-    cncfDocumentChecks.changelog.checked = cncfDocumentChecks.changelog.releasePattern.test(
+    cncfDocumentChecksSet.changelog.checked = cncfDocumentChecksSet.changelog.releasePattern.test(
       release.body,
     );
-    cncfDocumentChecks.changelog.path = 'release';
+    cncfDocumentChecksSet.changelog.path = 'release';
   }
-  // 4. Checks changelog/contributing in readme content
+  // Checks changelog/contributing in readme content
   debug.log('Checks File in readme content');
-  if (!cncfDocumentChecks.readme.checked) {
+  checkItemInReadme(cncfDocumentChecksSet.changelog.id);
+  checkItemInReadme(cncfDocumentChecksSet.contributing.id);
+  debug.log('Run document check success');
+}
+
+/*
+  Checks if the item is in the readme
+ */
+function checkItemInReadme(item, readme) {
+  if (cncfDocumentChecksSet[item].checked) {
     return;
   }
-
-  if (!cncfDocumentChecks.changelog.checked) {
-    cncfDocumentChecks.changelog.checked = cncfDocumentChecks.changelog.readmePattern.test(readme);
-    if (cncfDocumentChecks.changelog.checked) {
-      cncfDocumentChecks.changelog.path = cncfDocumentChecks.readme.path;
-    }
+  cncfDocumentChecksSet[item].checked = cncfDocumentChecksSet[item].readmePattern.test(readme);
+  if (cncfDocumentChecksSet[item].checked) {
+    cncfDocumentChecksSet[item].path = cncfDocumentChecksSet.readme.path;
   }
-  if (!cncfDocumentChecks.contributing.checked) {
-    cncfDocumentChecks.contributing.checked =
-      cncfDocumentChecks.contributing.readmePattern.test(readme);
-    if (cncfDocumentChecks.contributing.checked) {
-      cncfDocumentChecks.contributing.path = cncfDocumentChecks.readme.path;
-    }
-  }
-  debug.log('Run document check success');
 }
 
 async function getValidGithubToken() {
@@ -164,37 +281,32 @@ async function getValidGithubToken() {
   return null;
 }
 
-async function integrateCncfDocumentInformation(repoUrl) {
-  const githubToken = await getValidGithubToken();
-  const octokit = new Octokit({
-    auth: githubToken,
-  });
-
+async function getGithubMetadata(octokit, repoUrl) {
   const [owner, repo] = repoUrl.split('/').slice(-2);
   const website = await getWebsite(octokit, owner, repo);
   const filenameArray = await getRepoFileContent(octokit, owner, repo);
   const release = await getRelease(octokit, owner, repo);
 
-  // check if there readme file in repo before get readme
+  // check if readme file in repo before get readme
   let readme;
   // multi-language handle
   if (filenameArray.indexOf('README.md') > -1) {
-    cncfDocumentChecks.readme.path = 'README.md';
-    cncfDocumentChecks.readme.checked = true;
+    cncfDocumentChecksSet.readme.path = 'README.md';
+    cncfDocumentChecksSet.readme.checked = true;
   } else {
     for (const filename of filenameArray) {
-      if (cncfDocumentChecks.readme.repoPattern.test(filename) === true) {
-        cncfDocumentChecks.readme.checked = true;
-        cncfDocumentChecks.readme.path = filename;
+      if (cncfDocumentChecksSet.readme.repoPattern.test(filename) === true) {
+        cncfDocumentChecksSet.readme.checked = true;
+        cncfDocumentChecksSet.readme.path = filename;
         break;
       }
     }
   }
-  if (cncfDocumentChecks.readme.checked) {
-    readme = await getReadmeContent(octokit, cncfDocumentChecks.readme.path, owner, repo);
+  if (cncfDocumentChecksSet.readme.checked) {
+    readme = await getPathContent(octokit, cncfDocumentChecksSet.readme.path, owner, repo);
   }
 
-  // checks project in database
+  // github meta data
   return {
     readme,
     filename: filenameArray,
@@ -207,60 +319,42 @@ function calculateCncfScore() {
   let score = 0.0;
   let weight = 0;
 
-  Object.values(cncfDocumentChecks).forEach(item => {
-    weight += item.weight;
+  Object.values(cncfDocumentChecksSet).forEach(checkItem => {
+    weight += checkItem.weight;
   });
-  Object.values(cncfDocumentChecks)
-    .filter(item => item.checked)
+  Object.values(cncfDocumentChecksSet)
+    .filter(checkItem => checkItem.checked)
     .forEach(item => {
       score += (item.weight / weight) * 100.0;
     });
 
   debug.log(
-    '*** Passed item: ',
-    Object.values(cncfDocumentChecks)
+    '*** Checks Passed item: ',
+    Object.values(cncfDocumentChecksSet)
       .filter(item => item.checked)
       .map(item => `${item.id}: ${item.path}`),
-    `\n*** weight: ${weight}, score: ${score}`,
+    `\n*** Weight: ${weight}, Score: ${score}`,
   );
 
   return score;
 }
 
 function clearDocumentChecks() {
-  for (const checkItem of Object.values(cncfDocumentChecks)) {
+  for (const checkItem of Object.values(cncfDocumentChecksSet)) {
     checkItem.checked = false;
     checkItem.path = '';
   }
 }
 
-async function getReadmeContent(octokit, filename, owner, repo) {
-  const readme = await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
-    owner,
-    repo,
-    path: filename,
-    headers: {
-      'X-GitHub-Api-Version': '2022-11-28',
-      Accept: 'application/vnd.github.raw+json',
-    },
-  });
-  return readme.data;
-}
-
+/*
+  Returns the names of all files in the project root and first level directories
+ */
 async function getRepoFileContent(octokit, owner, repo) {
-  // Get the file names in the root directory and secondary directories
-  const repoContentsRoute = 'GET /repos/{owner}/{repo}/contents/{path}';
-  const content = await octokit.request(repoContentsRoute, {
-    owner,
-    repo,
-    headers: {
-      'X-GitHub-Api-Version': '2022-11-28',
-    },
-  });
+  const repoFilenames = await getRepoContent(octokit, owner, repo);
   // Get the file name and directory name in the project root directory
   const firstDirs = [];
   const firstFileName = [];
-  content.data.forEach(data => {
+  repoFilenames.forEach(data => {
     if (data.type === 'file') {
       firstFileName.push(data.name);
     }
@@ -268,45 +362,105 @@ async function getRepoFileContent(octokit, owner, repo) {
       firstDirs.push(data.name);
     }
   });
+
   // Get the file name in the secondary directory
   const secondDirFileName = [];
   for (const dir of firstDirs) {
-    const fileName = await octokit.request(repoContentsRoute, {
-      owner,
-      repo,
-      path: dir,
-      headers: {
-        'X-GitHub-Api-Version': '2022-11-28',
-      },
-    });
+    const fileName = await getPathContent(octokit, dir, owner, repo);
     secondDirFileName.push(
-      ...fileName.data.filter(file => file.type === 'file').map(file => `${dir}/${file.name}`),
+      ...fileName.filter(file => file.type === 'file').map(file => `${dir}/${file.name}`),
     );
   }
   firstFileName.push(...secondDirFileName);
   return firstFileName;
 }
+
+async function getRepoContent(octokit, owner, repo) {
+  const content = await octokit.request(`${basicApiUrl}/contents`, {
+    owner,
+    repo,
+    headers: {
+      'X-GitHub-Api-Version': '2022-11-28',
+      Accept: 'application/vnd.github.raw+json',
+    },
+  });
+  if (content.headers['x-ratelimit-remaining'] <= 0) {
+    octokit.auth = changeToken();
+  }
+  return content.data;
+}
+
+/*
+  Get the project root/path metadata, or 404 error if it doesn't exist.
+ */
+async function getPathContent(octokit, path, owner, repo) {
+  const content = await octokit.request(`${basicApiUrl}/contents/{path}`, {
+    owner,
+    repo,
+    path,
+    headers: {
+      'X-GitHub-Api-Version': '2022-11-28',
+      Accept: 'application/vnd.github.raw+json',
+    },
+  });
+  if (content.headers['x-ratelimit-remaining'] <= 0) {
+    octokit.auth = changeToken();
+  }
+  return content.data;
+}
+
+/*
+  Get the project website, or null if it doesn't exist.
+ */
 async function getWebsite(octokit, owner, repo) {
-  const repoContent = await octokit.request('GET /repos/{owner}/{repo}', {
+  const repoContent = await octokit.request(basicApiUrl, {
     owner,
     repo,
     headers: {
       'X-GitHub-Api-Version': '2022-11-28',
     },
   });
+  if (repoContent.headers['x-ratelimit-remaining'] <= 0) {
+    octokit.auth = changeToken();
+  }
   return repoContent.data.homepage;
 }
 
+/*
+  Get the latest release of the project, or null if it doesn't exist.
+ */
 async function getRelease(octokit, owner, repo) {
-  const release = await octokit.request('GET /repos/{owner}/{repo}/releases', {
+  debug.log('------------- release ------------');
+  const release = await octokit.request(`${basicApiUrl}/releases`, {
     owner,
     repo,
     headers: {
       'X-GitHub-Api-Version': '2022-11-28',
     },
   });
+  if (release.headers['x-ratelimit-remaining'] <= 0) {
+    octokit.auth = changeToken();
+  }
   if (release.data.length === 0) {
     return '';
   }
-  return release[0];
+  return release.data[0].body;
 }
+
+const integrationTime = '@weekly';
+let start = 0;
+
+const documentScoreIntegrateJob = new Cron(integrationTime, { timezone: 'Etc/UTC' }, async () => {
+  debug.log('compass integration start!', documentScoreIntegrateJob.getPattern());
+  try {
+    await integratingCNCFDocumentScore(start);
+    debug.log('Synchronous compass successful!');
+  } catch (err) {
+    const { error, startIndex } = err;
+    start = startIndex;
+    debug.log(err);
+    await sleep(10000);
+    debug.log('An error occurred, start trying again', error);
+    await documentScoreIntegrateJob.trigger();
+  }
+});
