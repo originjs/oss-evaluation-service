@@ -10,6 +10,10 @@ export default sequelize.define(
       allowNull: false,
       primaryKey: true,
     },
+    projectId: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+    },
     packageName: {
       type: DataTypes.STRING(200),
       allowNull: true,
