@@ -288,7 +288,7 @@ export async function getQuality(repoName) {
   return res;
 }
 
-async function getProjectIdByRepoName(repoName) {
+export async function getProjectIdByRepoName(repoName) {
   const data = await ProjectPackage.findOne({
     where: {
       projectName: repoName,
