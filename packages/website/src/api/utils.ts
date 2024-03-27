@@ -1,5 +1,5 @@
 export function toKilo(num: number | undefined | string) {
-  if (!num) {
+  if (num === undefined || num === '') {
     return 'NaN';
   }
   if (typeof num === 'string') {
