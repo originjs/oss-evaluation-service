@@ -18,6 +18,18 @@ export default sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    hasReadme: {
+      type: DataTypes.BOOLEAN,
+    },
+    hasChangelog: {
+      type: DataTypes.BOOLEAN,
+    },
+    hasWebsite: {
+      type: DataTypes.BOOLEAN,
+    },
+    hasContributing: {
+      type: DataTypes.BOOLEAN,
+    },
     readme: {
       type: DataTypes.TEXT,
     },
@@ -33,23 +45,11 @@ export default sequelize.define(
     documentScore: {
       type: DataTypes.DOUBLE,
     },
-    hasReadme: {
-      type: DataTypes.BOOLEAN,
-    },
-    hasChangelog: {
-      type: DataTypes.BOOLEAN,
-    },
-    hasWebsite: {
-      type: DataTypes.BOOLEAN,
-    },
-    hasContributing: {
-      type: DataTypes.BOOLEAN,
-    },
   },
   {
     tableName: 'cncf_document_score',
     underscored: true,
     createdAt: true,
-    updatedAt: false,
+    updatedAt: true,
   },
 );
