@@ -121,12 +121,13 @@ async function getNoneScopedPackageDownloadCount(startDate, endDate, startId, en
       type: sequelize.QueryTypes.SELECT,
     },
   );
+  const packageToProjectIdMap = needSyncPackage.reduce((map, obj) => map.set(obj.package, obj.projectId), new Map());
   const needSyncPackageNumList = chunk(needSyncPackage, PAGE_SIZE);
   for (const packageNameSlice of needSyncPackageNumList) {
     // Splicing batch query paths
     const packageNameStr = packageNameSlice.map(e => e.package).join(',');
     for (const weekOfYear of weekOfYearList) {
-      const downloadCountList = await dealMultiPackage(weekOfYear, packageNameStr);
+      const downloadCountList = await dealMultiPackage(weekOfYear, packageNameStr, packageToProjectIdMap);
       if (downloadCountList.length > 0) {
         for (const downloadCount of downloadCountList) {
           PackageDownloadCount.upsert(downloadCount).catch(err => {
@@ -155,18 +156,19 @@ async function getScopedPackageDownloadCount(startDate, endDate, startId, endId)
       (current += 1),
     );
     for (const weekOfYear of weekOfYearList) {
-      const hasError = await dealSinglePackage(weekOfYear, packageInfo.package);
+      const hasError = await dealSinglePackage(weekOfYear, packageInfo);
       if (hasError) {
         return;
       }
     }
   }
 }
-async function dealSinglePackage(week, packageName) {
+async function dealSinglePackage(week, packageInfo) {
   try {
-    const downloadCountJson = await sendRequestByPoint(week.start, week.end, packageName);
+    const downloadCountJson = await sendRequestByPoint(week.start, week.end, packageInfo.package);
     if (downloadCountJson.error === undefined) {
       PackageDownloadCount.upsert({
+        projectId: packageInfo.projectId,
         packageName: downloadCountJson.package,
         startDate: downloadCountJson.start,
         endDate: downloadCountJson.end,
@@ -177,14 +179,14 @@ async function dealSinglePackage(week, packageName) {
       });
     }
   } catch (e) {
-    debug.log(`${packageName} sendRequest error!!`);
+    debug.log(`${packageInfo.package} sendRequest error!!`);
     debug.log(e);
     return true;
   }
   return false;
 }
 
-async function dealMultiPackage(week, packageName) {
+async function dealMultiPackage(week, packageName, packageToProjectIdMap) {
   const downloadCountList = [];
   try {
     const downloadCountJson = await sendRequestByPoint(week.start, week.end, packageName);
@@ -192,6 +194,7 @@ async function dealMultiPackage(week, packageName) {
       Object.values(downloadCountJson).forEach(element => {
         if (element != null) {
           downloadCountList.push({
+            projectId: packageToProjectIdMap.get(element.package),
             packageName: element.package,
             startDate: element.start,
             endDate: element.end,
