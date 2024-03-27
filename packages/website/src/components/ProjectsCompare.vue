@@ -1044,6 +1044,7 @@ function hideChooseBorder() {
   .row {
     display: flex;
     position: relative;
+    background-color: #ffffff;
 
     &:hover {
       border: 1px solid #198ef6;
