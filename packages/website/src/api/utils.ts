@@ -13,15 +13,3 @@ export function toKilo(num: number | undefined | string) {
     return Math.round(num / 1000) + 'k';
   }
 }
-
-export function getLevelColor(str: string) {
-  return (
-    {
-      A: '#21c45d',
-      B: '#bbf7d0',
-      C: '#fef08b',
-      D: '#fcd44f',
-      E: '#fca6a6',
-    }[str] || '#61a6fa'
-  );
-}

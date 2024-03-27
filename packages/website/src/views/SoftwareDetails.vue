@@ -6,23 +6,21 @@ import { ElMessage } from 'element-plus';
 import * as echarts from 'echarts';
 import dayjs from 'dayjs';
 import type {
-  BaseInfo,
+  SoftwareInfo,
   BenchmarkData,
   EcologyActivity,
   EcologyActivityCategory,
-  EcologyOverview,
   PerformanceModuleInfo,
 } from '@api/SoftwareDetails';
 import {
-  getBaseInfo,
-  getEcologyActivityCategoryApi,
+  getSoftwareInfo,
   getEcologyOverviewApi,
-  getFunctionModuleInfo,
   getPerformanceModuleInfo,
-  getQualityModuleInfo,
+  getEcologyActivityCategoryApi,
   exportFileApi,
 } from '@api/SoftwareDetails';
-import { toKilo, getLevelColor } from '@api/utils';
+import { toKilo } from '@api/utils';
+import { getLevelColor, getTagType, scorecardProgressColor } from '@utils/color';
 import { saveAs } from 'file-saver';
 import { SearchSoftware } from '@orginjs/oss-evaluation-components';
 
@@ -46,37 +44,38 @@ type TableRow = {
   value: string | number;
 };
 
-const baseInfo: Omit<BaseInfo, 'tags'> & { tags: string[] } = reactive({
-  logo: '',
-  description: '',
-  tags: [],
-  url: '',
-  techStack: '',
-  star: 0,
-  fork: 0,
-  language: '',
-  codeLines: 0,
-  firstCommit: '',
-  license: '',
-  evaluation: {
-    functionScore: 0,
-    qualityScore: 0,
-    performanceScore: 0,
-    ecologyScore: 0,
-    innovationValue: 0,
-  },
-});
-const baseInfoTable = ref<TableRow[]>([]);
+const project = ref<SoftwareInfo>();
 const overviewLoading = ref(true);
+const baseInfoTable = ref<TableRow[]>([]);
+const tagList = ref<string[]>([]);
+const openSSFScordcard = ref<
+  Array<{
+    label: string;
+    tips: string;
+    value: number;
+  }>
+>([]);
+const documentInfo = ref<{
+  score: number;
+  items: Array<{
+    title: string;
+    content: string;
+    has: boolean;
+  }>;
+}>({
+  score: 0,
+  items: [],
+});
+const developerSatisfaction = ref({
+  xAxis: [] as Array<number>,
+  yAxis: [] as Array<number>,
+});
 
-getBaseInfo(encodedRepoName.value)
+getSoftwareInfo(encodedRepoName.value)
   .then(({ data }) => {
-    baseInfo.logo = data.logo;
-    baseInfo.url = data.url;
-    baseInfo.description = data.description;
-    baseInfo.tags = data.tags ? data.tags.split('|') : [];
-    baseInfo.evaluation = data.evaluation;
-    baseInfo.techStack = data.techStack;
+    project.value = data;
+    tagList.value = data.tags ? data.tags.split('|') : [];
+    // basic info
     baseInfoTable.value = [
       {
         label: 'Stars',
@@ -103,30 +102,123 @@ getBaseInfo(encodedRepoName.value)
         value: data.license,
       },
     ];
+
+    openSSFScordcard.value = [
+      {
+        label: 'Code-Review',
+        tips: 'Determines if the project requires human code review before pull requests (aka merge requests) are merged.',
+        value: data.scorecard?.codeReview,
+      },
+      {
+        label: 'Maintained',
+        tips: 'Determines if the project is "actively maintained".',
+        value: data.scorecard?.maintained,
+      },
+      {
+        label: 'CII-Best-Practices',
+        tips: 'Determines if the project has an OpenSSF (formerly CII) Best Practices Badge.',
+        value: data.scorecard?.ciiBestPractices,
+      },
+      {
+        label: 'License',
+        tips: 'Determines if the project has defined a license.',
+        value: data.scorecard?.license,
+      },
+      {
+        label: 'Security-Policy',
+        tips: 'Determines if the project has published a security policy.',
+        value: data.scorecard?.securityPolicy,
+      },
+      {
+        label: 'Dangerous-Workflow',
+        tips: "Determines if the project's GitHub Action workflows avoid dangerous patterns.",
+        value: data.scorecard?.dangerousWorkflow,
+      },
+      {
+        label: 'Branch-Protection',
+        tips: 'Does the project use Branch Protection ?',
+        value: data.scorecard?.branchProtection,
+      },
+      {
+        label: 'Token-Permissions',
+        tips: "Determines if the project's workflows follow the principle of least privilege.",
+        value: data.scorecard?.tokenPermissions,
+      },
+      {
+        label: 'Binary-Artifacts',
+        tips: 'Determines if the project has generated executable (binary) artifacts in the source repository.',
+        value: data.scorecard?.binaryArtifacts,
+      },
+      {
+        label: 'Fuzzing',
+        tips: 'Determines if the project uses fuzzing.',
+        value: data.scorecard?.fuzzing,
+      },
+      {
+        label: 'SAST',
+        tips: 'Determines if the project uses static code analysis.',
+        value: data.scorecard?.sast,
+      },
+      {
+        label: 'Vulnerabilities',
+        tips: 'Determines if the project has open, known unfixed vulnerabilities.',
+        value: data.scorecard?.vulnerabilities,
+      },
+      {
+        label: 'Pinned-Dependencies',
+        tips: 'Determines if the project has declared and pinned the dependencies of its build process.',
+        value: data.scorecard?.pinnedDependencies,
+      },
+    ];
+
+    documentInfo.value = {
+      score: data.document.documentScore,
+      items: [
+        {
+          title: 'Readme',
+          content:
+            'The readme file introduces and explains a project. It contains information that is commonly required to understand what the project is about.',
+          has: data.document?.hasReadme,
+        },
+        {
+          title: 'Website',
+          content: 'A url that users can visit to learn more about your project.',
+          has: data.document?.hasWebsite,
+        },
+        {
+          title: 'Changelog',
+          content: 'A curated, chronologically ordered list of notable changes for each version.',
+          has: data.document?.hasChangelog,
+        },
+        {
+          title: 'Governance',
+          content:
+            'Document that explains how the governance and committer process works in the repository.',
+          has: data.document?.hasContributing,
+        },
+      ],
+    };
+    if (data.satisfaction) {
+      developerSatisfaction.value = {
+        xAxis: data.satisfaction.map(item => item.year),
+        yAxis: data.satisfaction.map(item => item.val),
+      };
+    }
   })
   .then(() => {
     renderSoftwareRadarChart();
+    renderGithubStartChart();
+    renderDeveloperSatisfactionChart();
+    renderDocBestPracticesChart();
   })
   .finally(() => {
     overviewLoading.value = false;
   });
-
-function tagType(idx: number) {
-  const remainder = idx % 4;
-  switch (remainder) {
-    case 0:
-      return 'primary';
-    case 1:
-      return 'success';
-    case 2:
-      return 'warning';
-    case 3:
-      return 'danger';
-  }
-}
+getEcologyOverviewApi(encodedRepoName.value).then(({ data }) => {
+  project.value.ecologyOverview = data;
+});
 
 const softwareDetailsEl = ref();
-
 function renderSoftwareRadarChart() {
   const chartDom = softwareDetailsEl.value?.querySelector('#software-radar-chart');
   if (!chartDom) {
@@ -152,11 +244,11 @@ function renderSoftwareRadarChart() {
         data: [
           {
             value: [
-              baseInfo.evaluation.functionScore,
-              baseInfo.evaluation.qualityScore,
-              baseInfo.evaluation.ecologyScore,
-              baseInfo.evaluation.innovationValue,
-              baseInfo.evaluation.performanceScore,
+              project.value?.evaluation.functionScore,
+              project.value?.evaluation.qualityScore,
+              project.value?.evaluation.ecologyScore,
+              project.value?.evaluation.innovationValue,
+              project.value?.evaluation.performanceScore,
             ],
             name: '分数',
           },
@@ -170,59 +262,6 @@ function renderSoftwareRadarChart() {
   };
   chart.setOption(option);
 }
-
-const developerSatisfaction = ref({
-  xAxis: [] as Array<number>,
-  yAxis: [] as Array<number>,
-});
-const documentInfo = ref<{
-  score: number;
-  items: Array<{
-    title: string;
-    content: string;
-    has: boolean;
-  }>;
-}>({
-  score: 0,
-  items: [],
-});
-
-getFunctionModuleInfo(encodedRepoName.value)
-  .then(({ data }) => {
-    developerSatisfaction.value = data.satisfaction;
-    documentInfo.value = {
-      score: data.document.documentScore,
-      items: [
-        {
-          title: 'Readme',
-          content:
-            'The readme file introduces and explains a project. It contains information that is commonly required to understand what the project is about.',
-          has: data.document.hasReadme,
-        },
-        {
-          title: 'Website',
-          content: 'A url that users can visit to learn more about your project.',
-          has: data.document.hasWebsite,
-        },
-        {
-          title: 'Changelog',
-          content: 'A curated, chronologically ordered list of notable changes for each version.',
-          has: data.document.hasChangelog,
-        },
-        {
-          title: 'Governance',
-          content:
-            'Document that explains how the governance and committer process works in the repository.',
-          has: data.document.hasContributing,
-        },
-      ],
-    };
-  })
-  .then(() => {
-    renderGithubStartChart();
-    renderDeveloperSatisfactionChart();
-    renderDocBestPracticesChart();
-  });
 
 function renderGithubStartChart() {
   const chartDom = softwareDetailsEl.value.querySelector('#github-start-chart');
@@ -406,7 +445,7 @@ async function addBenchmarkCompare(name: string) {
   processBenchmarkData(benchmarkData);
 }
 
-const computeColor: CellStyle<BenchmarkCompareRow> = function ({ row, column }) {
+function computeColor({ row, column }): CellStyle<BenchmarkCompareRow> {
   const cellVal = row[column.property];
   if (column.property === 'indexName' || !cellVal) {
     return {};
@@ -426,114 +465,7 @@ const computeColor: CellStyle<BenchmarkCompareRow> = function ({ row, column }) 
     const b = (1.0 - a) * 132 + a * 108;
     return { backgroundColor: `rgb(${r.toFixed(0)}, ${g.toFixed(0)}, ${b.toFixed(0)})` };
   }
-};
-
-const openSSFScordcard = ref<{
-  score: number;
-  items: Array<{
-    label: string;
-    value: number;
-  }>;
-}>({
-  score: 0,
-  items: [],
-});
-
-const sonarCloudScan = ref({
-  bugs: 1,
-  codeSmells: 494,
-  vulnerabilities: 0,
-  securityHotspots: 14,
-  reliabilityRating: 'C',
-  maintainabilityRating: 'A',
-  securityRating: 'A',
-  securityReviewRating: 'E',
-});
-
-getQualityModuleInfo(encodedRepoName.value).then(({ data }) => {
-  const scorecard = data.scorecard;
-  openSSFScordcard.value = {
-    score: scorecard.score,
-    items: [
-      {
-        label: 'Code-Review',
-        value: scorecard.codeReview,
-      },
-      {
-        label: 'Maintained',
-        value: scorecard.maintained,
-      },
-      {
-        label: 'CII-Best-Practices',
-        value: scorecard.ciiBestPractices,
-      },
-      {
-        label: 'License',
-        value: scorecard.license,
-      },
-      {
-        label: 'Security-Policy',
-        value: scorecard.securityPolicy,
-      },
-      {
-        label: 'Dangerous-Workflow',
-        value: scorecard.dangerousWorkflow,
-      },
-      {
-        label: 'Branch-Protection',
-        value: scorecard.branchProtection,
-      },
-      {
-        label: 'Token-Permissions',
-        value: scorecard.tokenPermissions,
-      },
-      {
-        label: 'Binary-Artifacts',
-        value: scorecard.binaryArtifacts,
-      },
-      {
-        label: 'Fuzzing',
-        value: scorecard.fuzzing,
-      },
-      {
-        label: 'SAST',
-        value: scorecard.sast,
-      },
-      {
-        label: 'Vulnerabilities',
-        value: scorecard.vulnerabilities,
-      },
-      {
-        label: 'Pinned-Dependencies',
-        value: scorecard.pinnedDependencies,
-      },
-    ],
-  };
-  const sonar = data.sonar;
-  sonarCloudScan.value = {
-    bugs: sonar.bugs,
-    codeSmells: sonar.codeSmells,
-    vulnerabilities: sonar.vulnerabilities,
-    securityHotspots: sonar.securityHotspots,
-    reliabilityRating: sonar.reliabilityRating,
-    maintainabilityRating: sonar.maintainabilityRating,
-    securityRating: sonar.securityRating,
-    securityReviewRating: sonar.securityReviewRating,
-  };
-});
-
-function scorecardProgressColor(score: number) {
-  if (score < 2) {
-    return '#f43146';
-  } else if (score < 5) {
-    return '#ec6f1a';
-  } else if (score < 8) {
-    return '#eeba18';
-  } else {
-    return '#2da769';
-  }
 }
-
 function renderLineChart(container: string, data: EcologyActivity[]) {
   const chartDom = softwareDetailsEl.value.querySelector(container);
   if (!chartDom) {
@@ -568,11 +500,6 @@ function renderLineChart(container: string, data: EcologyActivity[]) {
   chart.setOption(option);
 }
 
-const ecologyOverview = ref<EcologyOverview>();
-getEcologyOverviewApi(encodedRepoName.value).then(({ data }) => {
-  ecologyOverview.value = data;
-});
-
 const ecologyActivityCategory = ref<EcologyActivityCategory>();
 
 getEcologyActivityCategoryApi(encodedRepoName.value)
@@ -602,7 +529,7 @@ async function exportToExcel() {
 }
 
 function addProjectToCompare() {
-  const { logo, url, description } = baseInfo;
+  const { logo, url, description } = project;
   compareFavoritesRef.value?.addProject([{ repoName, logo, url, description }]);
 }
 
@@ -620,7 +547,7 @@ function compareProjects(
   <div ref="softwareDetailsEl" pb-50px bg-coolgray-50>
     <div v-loading="overviewLoading" overflow-hidden p-20px bg-white shadow-md>
       <div w-1280px m-auto>
-        <el-image :src="baseInfo.logo" fit="contain" class="float-left w-96px h-96px mr-14px">
+        <el-image :src="project?.logo" fit="contain" class="float-left w-96px h-96px mr-14px">
           <template #error>
             <div flex flex-justify-center flex-items-center w-full h-full bg-gray-100>
               <el-icon font-size-7 color-gray-400>
@@ -641,7 +568,7 @@ function compareProjects(
                 line-height-normal
                 class="text-over"
               >
-                <a :href="baseInfo.url" target="_blank" rel="noreferrer">
+                <a :href="project?.url" target="_blank" rel="noreferrer">
                   {{ repoName }}
                 </a>
               </div>
@@ -658,13 +585,13 @@ function compareProjects(
             >
           </div>
           <el-tooltip effect="light" :teleported="false">
-            <div mb-2 font-size-3.5 class="text-over">{{ baseInfo.description }}</div>
+            <div mb-2 font-size-3.5 class="text-over">{{ project?.description }}</div>
             <template #content>
-              <div max-w-900px>{{ baseInfo.description }}</div>
+              <div max-w-900px>{{ project?.description }}</div>
             </template>
           </el-tooltip>
-          <el-tag mr-2 mb-2>{{ baseInfo.techStack }}</el-tag>
-          <el-tag v-for="(label, idx) in baseInfo.tags" :key="idx" :type="tagType(idx)" mr-2 mb-2>{{
+          <el-tag mr-2 mb-2>{{ project?.techStack }}</el-tag>
+          <el-tag v-for="(label, idx) in tagList" :key="idx" :type="getTagType(idx)" mr-2 mb-2>{{
             label
           }}</el-tag>
         </div>
@@ -691,7 +618,7 @@ function compareProjects(
       <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-custom:function mr-2 />
         <span>功能</span>
-        <span font-size-5 float-right>{{ baseInfo.evaluation.functionScore }}/100</span>
+        <span font-size-5 float-right>{{ project?.evaluation.functionScore }}/100</span>
       </div>
       <el-card mb-6>
         <div font-size-5 font-bold>Github Star 趋势（演示数据）</div>
@@ -703,7 +630,9 @@ function compareProjects(
           <el-tooltip
             content="数据来源于历年StateOfJS生态调查报告，更多结果可以查看 https://stateofjs.com/en-US"
           >
-            <el-icon size-5 color-gray-400> <InfoFilled /></el-icon>
+            <el-icon size-5 color-gray-400>
+              <InfoFilled />
+            </el-icon>
           </el-tooltip>
         </div>
         <div id="developer-satisfaction-chart" h-252px />
@@ -714,7 +643,9 @@ function compareProjects(
           <el-tooltip
             content="最佳实践评分基于Linux Foundation建议的Best Practices检查，每个检查项都有不同的权重"
           >
-            <el-icon size-5 color-gray-400> <InfoFilled /></el-icon>
+            <el-icon size-5 color-gray-400>
+              <InfoFilled />
+            </el-icon>
           </el-tooltip>
         </div>
         <div flex>
@@ -741,7 +672,7 @@ function compareProjects(
       <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-custom:performance mr-2 />
         <span>性能</span>
-        <span font-size-5 float-right>{{ baseInfo.evaluation.performanceScore }}/100</span>
+        <span font-size-5 float-right>{{ project?.evaluation.performanceScore }}/100</span>
       </div>
       <el-card>
         <div>包大小</div>
@@ -774,7 +705,7 @@ function compareProjects(
           </el-link>
         </div>
         <div v-show="showBenchmarkCompare">
-          <SearchSoftware :tech-stack="baseInfo.techStack" @search-name="addBenchmarkCompare">
+          <SearchSoftware :tech-stack="project?.techStack" @search-name="addBenchmarkCompare">
             <button
               class="search-btn flex flex-items-center p-12px rd-8px h-40px bg-#f6f6f7 b-1 b-solid b-transparent color-black-75 hover:b-#3451b2 mt-10px mb-10px"
             >
@@ -811,7 +742,7 @@ function compareProjects(
       <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-custom:quality mr-2 />
         <span>质量</span>
-        <span font-size-5 float-right>{{ baseInfo.evaluation.qualityScore }}/100</span>
+        <span font-size-5 float-right>{{ project?.evaluation.qualityScore }}/100</span>
       </div>
       <el-card mb-6>
         <div flex>
@@ -819,11 +750,13 @@ function compareProjects(
           <el-tooltip
             content="OpenSSF开源安全基金会是一个跨行业合作组织，旨在提高开源软件的安全性。Scorecard为开源项目提供安全健康指标。"
           >
-            <el-icon size-5 color-gray-400> <InfoFilled /></el-icon>
+            <el-icon size-5 color-gray-400>
+              <InfoFilled />
+            </el-icon>
           </el-tooltip>
         </div>
-        <div font-bold>{{ openSSFScordcard.score }} / 10</div>
-        <div v-for="item in openSSFScordcard.items" :key="item.label" flex flex-items-center h-30px>
+        <div font-bold>{{ project?.scorecard.score }} / 10</div>
+        <div v-for="item in openSSFScordcard" :key="item.label" flex flex-items-center h-30px>
           <span w-190px>{{ item.label }}</span>
           <el-progress
             :percentage="item.value * 10"
@@ -833,6 +766,11 @@ function compareProjects(
           >
             <span>{{ item.value }} / 10</span>
           </el-progress>
+          <el-tooltip :content="item.tips">
+            <el-icon size-5 color-gray-400>
+              <InfoFilled />
+            </el-icon>
+          </el-tooltip>
         </div>
       </el-card>
       <el-card>
@@ -844,19 +782,21 @@ function compareProjects(
               <span>Reliability</span>
             </div>
             <div>
-              <span font-bold font-size-6 mr-2>{{ toKilo(sonarCloudScan.bugs) }}</span>
+              <span font-bold font-size-6 mr-2>{{ toKilo(project?.sonarCloudScan.bugs) }}</span>
               <span font-light>Bugs</span>
-              <el-tooltip
-                content="编码错误会破坏您的代码并且需要立即修复。"
-              >
-              <el-icon size-5 color-gray-400><InfoFilled /></el-icon>
+              <el-tooltip content="编码错误会破坏您的代码并且需要立即修复。">
+                <el-icon size-5 color-gray-400>
+                  <InfoFilled />
+                </el-icon>
               </el-tooltip>
             </div>
             <div
               class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% text-center translate-y--50%"
-              :style="{ backgroundColor: getLevelColor(sonarCloudScan.reliabilityRating) }"
+              :style="{ backgroundColor: getLevelColor(project?.sonarCloudScan.reliabilityRating) }"
             >
-              <span vertical-middle color-white>{{ toKilo(sonarCloudScan.reliabilityRating) }}</span>
+              <span vertical-middle color-white>{{
+                toKilo(project?.sonarCloudScan.reliabilityRating)
+              }}</span>
             </div>
           </div>
           <div position-relative pt-3 pd-3 pl-4 pr-4 w-607px h-92px bg-coolgray-50>
@@ -865,20 +805,24 @@ function compareProjects(
               <span>Maintainability</span>
             </div>
             <div>
-              <span font-bold font-size-6 mr-2>{{ toKilo(sonarCloudScan.codeSmells) }}</span>
+              <span font-bold font-size-6 mr-2>{{
+                toKilo(project?.sonarCloudScan.codeSmells)
+              }}</span>
               <span font-light>Code Smells</span>
-              <el-tooltip
-                  content="代码混乱且难以维护。"
-              >
-                <el-icon size-5 color-gray-400><InfoFilled /></el-icon>
+              <el-tooltip content="代码混乱且难以维护。">
+                <el-icon size-5 color-gray-400>
+                  <InfoFilled />
+                </el-icon>
               </el-tooltip>
             </div>
             <div
-              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% text-center translate-y--50% "
-              :style="{ backgroundColor: getLevelColor(sonarCloudScan.maintainabilityRating) }"
+              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% text-center translate-y--50%"
+              :style="{
+                backgroundColor: getLevelColor(project?.sonarCloudScan.maintainabilityRating),
+              }"
             >
               <span vertical-middle color-white>{{
-                toKilo(sonarCloudScan.maintainabilityRating)
+                toKilo(project?.sonarCloudScan.maintainabilityRating)
               }}</span>
             </div>
           </div>
@@ -888,19 +832,23 @@ function compareProjects(
               <span>Security</span>
             </div>
             <div>
-              <span font-bold font-size-6 mr-2>{{ toKilo(sonarCloudScan.vulnerabilities) }}</span>
+              <span font-bold font-size-6 mr-2>{{
+                toKilo(project?.sonarCloudScan.vulnerabilities)
+              }}</span>
               <span font-light>Vulnerabilities</span>
-              <el-tooltip
-                  content="可以被黑客利用的代码。"
-              >
-                <el-icon size-5 color-gray-400><InfoFilled /></el-icon>
+              <el-tooltip content="可以被黑客利用的代码。">
+                <el-icon size-5 color-gray-400>
+                  <InfoFilled />
+                </el-icon>
               </el-tooltip>
             </div>
             <div
               class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% text-center translate-y--50%"
-              :style="{ backgroundColor: getLevelColor(sonarCloudScan.securityRating) }"
+              :style="{ backgroundColor: getLevelColor(project?.sonarCloudScan.securityRating) }"
             >
-              <span vertical-middle color-white>{{ toKilo(sonarCloudScan.securityRating) }}</span>
+              <span vertical-middle color-white>{{
+                toKilo(project?.sonarCloudScan.securityRating)
+              }}</span>
             </div>
           </div>
           <div position-relative pt-3 pd-3 pl-4 pr-4 w-607px h-92px bg-coolgray-50>
@@ -909,20 +857,24 @@ function compareProjects(
               <span>Security Review</span>
             </div>
             <div>
-              <span font-bold font-size-6 mr-2>{{ toKilo(sonarCloudScan.securityHotspots) }}</span>
+              <span font-bold font-size-6 mr-2>{{
+                toKilo(project?.sonarCloudScan.securityHotspots)
+              }}</span>
               <span font-light mr-1>Security Hotspots</span>
-              <el-tooltip
-                  content="需要手动检查以评估是否存在漏洞的安全敏感代码。"
-              >
-                <el-icon size-5 color-gray-400><InfoFilled /></el-icon>
+              <el-tooltip content="需要手动检查以评估是否存在漏洞的安全敏感代码。">
+                <el-icon size-5 color-gray-400>
+                  <InfoFilled />
+                </el-icon>
               </el-tooltip>
             </div>
             <div
               class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% text-center translate-y--50%"
-              :style="{ backgroundColor: getLevelColor(sonarCloudScan.securityReviewRating) }"
+              :style="{
+                backgroundColor: getLevelColor(project?.sonarCloudScan.securityReviewRating),
+              }"
             >
               <span vertical-middle color-white>{{
-                toKilo(sonarCloudScan.securityReviewRating)
+                toKilo(project?.sonarCloudScan.securityReviewRating)
               }}</span>
             </div>
           </div>
@@ -931,7 +883,7 @@ function compareProjects(
       <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-custom:ecology mr-2 />
         <span>生态</span>
-        <span font-size-5 float-right>{{ baseInfo.evaluation.ecologyScore }}/100</span>
+        <span font-size-5 float-right>{{ project?.evaluation.ecologyScore }}/100</span>
       </div>
       <div flex flex-wrap justify-between content-between>
         <el-card w-full mb-6>
@@ -940,34 +892,38 @@ function compareProjects(
             <div flex w-210px>
               <div i-custom:download font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ toKilo(ecologyOverview?.downloads) }}</div>
+                <div font-bold font-size-5>{{ toKilo(project?.ecologyOverview?.downloads) }}</div>
                 <div line-height-7>npm周下载量</div>
               </div>
             </div>
             <div flex w-210px>
               <div i-custom:star font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ toKilo(ecologyOverview?.stargazersCount) }}</div>
+                <div font-bold font-size-5>
+                  {{ toKilo(project?.ecologyOverview?.stargazersCount) }}
+                </div>
                 <div line-height-7>Star数量</div>
               </div>
             </div>
             <div flex w-210px>
               <div i-custom:fork font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ toKilo(ecologyOverview?.forksCount) }}</div>
+                <div font-bold font-size-5>{{ toKilo(project?.ecologyOverview?.forksCount) }}</div>
                 <div line-height-7>Fork数量</div>
               </div>
             </div>
             <div flex w-210px>
               <div i-custom:bus font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ ecologyOverview?.busFactor }}</div>
+                <div font-bold font-size-5>{{ project?.ecologyOverview?.busFactor }}</div>
                 <div flex>
                   <div line-height-7>巴士系数</div>
                   <el-tooltip
                     content="一个项目失去多少贡献者参与（“被巴士撞了”）即导致项目停滞的成员数量"
                   >
-                    <el-icon size-5 color-gray-400> <InfoFilled /></el-icon>
+                    <el-icon size-5 color-gray-400>
+                      <InfoFilled />
+                    </el-icon>
                   </el-tooltip>
                 </div>
               </div>
@@ -979,11 +935,13 @@ function compareProjects(
             <div flex w-210px>
               <div i-custom:medal font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ ecologyOverview?.openRank }}</div>
+                <div font-bold font-size-5>{{ project?.ecologyOverview?.openRank }}</div>
                 <div flex>
                   <div line-height-7>OpenRank得分</div>
                   <el-tooltip content="X-lab提出的一种基于全域开发者协作网络的项目影响力评估方法">
-                    <el-icon size-5 color-gray-400> <InfoFilled /></el-icon>
+                    <el-icon size-5 color-gray-400>
+                      <InfoFilled />
+                    </el-icon>
                   </el-tooltip>
                 </div>
               </div>
@@ -991,13 +949,15 @@ function compareProjects(
             <div flex w-210px>
               <div i-custom:trophy font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ ecologyOverview?.criticalityScore }}</div>
+                <div font-bold font-size-5>{{ project?.ecologyOverview?.criticalityScore }}</div>
                 <div flex>
                   <div line-height-7>Criticality得分</div>
                   <el-tooltip
                     content="OpenSSF提供的开源项目关键度得分，定义了项目的影响力和重要性。它是一个介于0(最不关键)和1(最关键)之间的数字"
                   >
-                    <el-icon size-5 color-gray-400> <InfoFilled /></el-icon>
+                    <el-icon size-5 color-gray-400>
+                      <InfoFilled />
+                    </el-icon>
                   </el-tooltip>
                 </div>
               </div>
@@ -1005,14 +965,14 @@ function compareProjects(
             <div flex w-210px>
               <div i-custom:contributor font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ ecologyOverview?.contributorCount }}</div>
+                <div font-bold font-size-5>{{ project?.ecologyOverview?.contributorCount }}</div>
                 <div line-height-7>贡献者数量</div>
               </div>
             </div>
             <div flex w-210px>
               <div i-custom:link font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ ecologyOverview?.dependentCount }}</div>
+                <div font-bold font-size-5>{{ project?.ecologyOverview?.dependentCount }}</div>
                 <div line-height-7>被依赖数量</div>
               </div>
             </div>
@@ -1054,7 +1014,7 @@ function compareProjects(
   </div>
   <CompareFavorites
     ref="compareFavoritesRef"
-    style="position: fixed; bottom: 0px;z-index: 999"
+    style="position: fixed; bottom: 0px; z-index: 999"
     @compare="compareProjects"
   ></CompareFavorites>
 </template>
@@ -1079,6 +1039,7 @@ function compareProjects(
   margin-top: 8px;
   width: 935px;
   height: 185px;
+
   .cell {
     line-height: 14px;
   }

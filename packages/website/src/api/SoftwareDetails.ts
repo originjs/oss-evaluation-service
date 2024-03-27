@@ -1,6 +1,6 @@
 import HttpRequest from '@api/HttpRequest';
 
-export type SoftwareInfo = {
+export interface SoftwareInfo {
   name: string;
   url: string;
   logo: string;
