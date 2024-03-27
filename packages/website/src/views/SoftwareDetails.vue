@@ -22,7 +22,7 @@ import {
   getQualityModuleInfo,
   exportFileApi,
 } from '@api/SoftwareDetails';
-import { toKilo, changeBgColor } from '@api/utils';
+import { toKilo, getLevelColor } from '@api/utils';
 import { saveAs } from 'file-saver';
 import { SearchSoftware } from '@orginjs/oss-evaluation-components';
 
@@ -854,7 +854,7 @@ function compareProjects(
             </div>
             <div
               class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% text-center translate-y--50%"
-              :class="changeBgColor(sonarCloudScan.reliabilityRating)"
+              :style="{ backgroundColor: getLevelColor(sonarCloudScan.reliabilityRating) }"
             >
               <span vertical-middle color-white>{{ toKilo(sonarCloudScan.reliabilityRating) }}</span>
             </div>
@@ -875,7 +875,7 @@ function compareProjects(
             </div>
             <div
               class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% text-center translate-y--50% "
-              :class="changeBgColor(sonarCloudScan.maintainabilityRating)"
+              :style="{ backgroundColor: getLevelColor(sonarCloudScan.maintainabilityRating) }"
             >
               <span vertical-middle color-white>{{
                 toKilo(sonarCloudScan.maintainabilityRating)
@@ -898,7 +898,7 @@ function compareProjects(
             </div>
             <div
               class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% text-center translate-y--50%"
-              :class="changeBgColor(sonarCloudScan.securityRating)"
+              :style="{ backgroundColor: getLevelColor(sonarCloudScan.securityRating) }"
             >
               <span vertical-middle color-white>{{ toKilo(sonarCloudScan.securityRating) }}</span>
             </div>
@@ -919,7 +919,7 @@ function compareProjects(
             </div>
             <div
               class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% text-center translate-y--50%"
-              :class="changeBgColor(sonarCloudScan.securityReviewRating)"
+              :style="{ backgroundColor: getLevelColor(sonarCloudScan.securityReviewRating) }"
             >
               <span vertical-middle color-white>{{
                 toKilo(sonarCloudScan.securityReviewRating)
