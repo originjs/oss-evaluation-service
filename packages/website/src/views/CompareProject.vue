@@ -6,6 +6,9 @@ const repositories = (() => {
   if (!repos) {
     return [];
   }
+  if (typeof repos === 'string') {
+    return [repos];
+  }
   return repos;
 })();
 </script>

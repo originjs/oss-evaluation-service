@@ -8,6 +8,4 @@ import Layout from '@components/Layout.vue';
   </Layout>
 </template>
 
-<style lang="less">
-@import '@orginjs/oss-evaluation-components/dist/index.css';
-</style>
+<style lang="less"></style>

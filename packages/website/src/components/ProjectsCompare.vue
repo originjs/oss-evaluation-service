@@ -1,12 +1,8 @@
 <script setup lang="ts">
 import { Close, Switch, ArrowDown } from '@element-plus/icons-vue';
-import {
-  getBaseInfo,
-  getQualityModuleInfo,
-  getFunctionModuleInfo,
-  getEcologyOverviewApi,
-} from '@api/SoftwareDetails';
-import { toKilo } from '@api/utils';
+import dayjs from 'dayjs';
+import { getSoftwareInfo, getEcologyOverviewApi } from '@api/SoftwareDetails';
+import { toKilo, changeBgColor } from '@api/utils';
 
 const prop = defineProps({
   repositories: {
@@ -18,41 +14,10 @@ const prop = defineProps({
 const projects = reactive([]);
 prop.repositories.forEach(repoName => {
   const encodedRepoName = encodeURIComponent(repoName);
-  Promise.all([
-    getBaseInfo(encodedRepoName),
-    getQualityModuleInfo(encodedRepoName),
-    getFunctionModuleInfo(encodedRepoName),
-    getEcologyOverviewApi(encodedRepoName),
-  ])
+  Promise.all([getSoftwareInfo(encodedRepoName), getEcologyOverviewApi(encodedRepoName)])
     .then(results => {
       const project = results[0]['data'];
-      project['repoName'] = repoName;
-      project['scorecard'] = results[1].data.scorecard;
-      project['sonarCloudScan'] = {
-        bug: 1,
-        codeSmells: 494,
-        vulnerabilities: 0,
-        securityHotspots: 14,
-        reviewed: '0.0%',
-        reliabilityLevel: 'C',
-        maintainabilityLevel: 'A',
-        securityLevel: 'A',
-        securityReviewLevel: 'E',
-      };
-
-      const satisfactionLabel = results[2].data.satisfaction?.xAxis || [];
-      const satisfaction = [];
-      for (let i = satisfactionLabel.length - 1; i >= 0 && i >= satisfactionLabel.length - 3; i--) {
-        satisfaction.push({
-          year: satisfactionLabel[i],
-          val: results[2].data.satisfaction.yAxis[i],
-        });
-      }
-
-      project['document'] = results[2].data.document;
-      project['satisfaction'] = satisfaction;
-      project['ecologyOverview'] = results[3].data;
-
+      project['ecologyOverview'] = results[1].data;
       projects.push(project);
     })
     .catch(error => {
@@ -130,30 +95,32 @@ function hideChooseBorder() {
       <span class="menu selected">开源软件对比</span>
       <span class="menu">Benchmark</span>
     </div>
-    <div class="row">
-      <div class="border param-name"></div>
-      <div v-for="idx in 5" :key="idx" class="param-value border">
-        <div v-if="projects[idx - 1]" class="value-div" style="position: relative">
-          <el-image :src="projects[idx - 1]?.logo" fit="contain" class="w-64px h-64px mr-14px">
-            <template #error>
-              <div flex flex-justify-center flex-items-center w-full h-full bg-gray-100>
-                <el-icon font-size-7 color-gray-400>
-                  <Picture />
-                </el-icon>
-              </div>
-            </template>
-          </el-image>
-          <span>{{ projects[idx - 1]?.repoName }}</span>
-          <el-icon class="close-btn">
-            <Close />
-          </el-icon>
-          <el-button v-if="idx < projects.length" class="switch-btn" :icon="Switch" circle />
-        </div>
-        <div v-else class="none-project-div">
-          <el-select style="width: 80%" placeholder="选择开源软件"> </el-select>
+    <el-affix :offset="64">
+      <div class="row border-top">
+        <div class="border param-name"></div>
+        <div v-for="idx in 5" :key="idx" class="param-value border">
+          <div v-if="projects[idx - 1]" class="value-div" style="position: relative">
+            <el-image :src="projects[idx - 1]?.logo" fit="contain" class="w-64px h-64px mr-14px">
+              <template #error>
+                <div flex flex-justify-center flex-items-center w-full h-full bg-gray-100>
+                  <el-icon font-size-7 color-gray-400>
+                    <Picture />
+                  </el-icon>
+                </div>
+              </template>
+            </el-image>
+            <span>{{ projects[idx - 1]?.repoName }}</span>
+            <el-icon class="close-btn">
+              <Close />
+            </el-icon>
+            <el-button v-if="idx < projects.length" class="switch-btn" :icon="Switch" circle />
+          </div>
+          <div v-else class="none-project-div">
+            <el-select style="width: 80%" placeholder="选择开源软件"> </el-select>
+          </div>
         </div>
       </div>
-    </div>
+    </el-affix>
 
     <div class="row">
       <div class="border param-name">简介</div>
@@ -282,7 +249,7 @@ function hideChooseBorder() {
       <div v-for="idx in 5" :key="idx" class="param-value border">
         <div v-if="projects[idx - 1]" class="value-div">
           <span style="color: #409eff" :class="{ good: isStarTop(projects[idx - 1].star) }">{{
-            toKilo(projects[idx - 1].star)
+              toKilo(projects[idx - 1].star)
           }}</span>
         </div>
       </div>
@@ -307,10 +274,11 @@ function hideChooseBorder() {
       <div class="border param-name">代码量</div>
       <div v-for="idx in 5" :key="idx" class="param-value border">
         <div v-if="projects[idx - 1]" class="value-div">
-          <span> NA </span>
+          <span>{{ projects[idx - 1].codeLines }} (KL)</span>
         </div>
       </div>
     </div>
+
     <div
       class="row"
       @mouseover="showChooseBorder('首次提交', $event)"
@@ -319,7 +287,7 @@ function hideChooseBorder() {
       <div class="border param-name">首次提交</div>
       <div v-for="idx in 5" :key="idx" class="param-value border">
         <div v-if="projects[idx - 1]" class="value-div">
-          <span> {{ projects[idx - 1].firstCommit }} </span>
+          <span> {{ dayjs(projects[idx - 1].firstCommit).format('YYYY-MM-DD') }} </span>
         </div>
       </div>
     </div>
@@ -803,12 +771,12 @@ function hideChooseBorder() {
           </div>
           <div v-for="idx in 5" :key="idx" class="param-value border">
             <div v-if="projects[idx - 1]" class="value-div">
-              <div class="w-30px h-30px border-rd-50% bg-blue text-center">
+              <div class="w-30px h-30px border-rd-50% text-center" :class="changeBgColor(projects[idx - 1].sonarCloudScan.reliabilityRating)">
                 <span vertical-middle color-white>{{
-                  projects[idx - 1].sonarCloudScan.reliabilityLevel
+                  toKilo(projects[idx - 1].sonarCloudScan.reliabilityRating)
                 }}</span>
               </div>
-              <span>{{ projects[idx - 1].sonarCloudScan.bug }} Bugs</span>
+              <span>{{ toKilo(projects[idx - 1].sonarCloudScan.bugs) }} Bugs</span>
             </div>
           </div>
         </div>
@@ -824,12 +792,12 @@ function hideChooseBorder() {
           </div>
           <div v-for="idx in 5" :key="idx" class="param-value border">
             <div v-if="projects[idx - 1]" class="value-div">
-              <div class="w-30px h-30px border-rd-50% bg-blue text-center">
+              <div class="w-30px h-30px border-rd-50% text-center" :class="changeBgColor(projects[idx - 1].sonarCloudScan.maintainabilityRating)">
                 <span vertical-middle color-white>{{
-                  projects[idx - 1].sonarCloudScan.maintainabilityLevel
+                  toKilo(projects[idx - 1].sonarCloudScan.maintainabilityRating)
                 }}</span>
               </div>
-              <span>{{ projects[idx - 1].sonarCloudScan.codeSmells }} Code Smells</span>
+              <span>{{ toKilo(projects[idx - 1].sonarCloudScan.codeSmells) }} Code Smells</span>
             </div>
           </div>
         </div>
@@ -845,12 +813,17 @@ function hideChooseBorder() {
           </div>
           <div v-for="idx in 5" :key="idx" class="param-value border">
             <div v-if="projects[idx - 1]" class="value-div">
-              <div class="w-30px h-30px border-rd-50% bg-blue text-center">
+              <div class="w-30px h-30px border-rd-50% text-center" :class="changeBgColor(projects[idx - 1].sonarCloudScan.securityRating)">
                 <span vertical-middle color-white>{{
-                  projects[idx - 1].sonarCloudScan.securityLevel
+                  toKilo(projects[idx - 1].sonarCloudScan.securityRating)
                 }}</span>
               </div>
-              <span>{{ projects[idx - 1].sonarCloudScan.vulnerabilities }} Vulnerabilities</span>
+              <span
+                >{{
+                  toKilo(projects[idx - 1].sonarCloudScan.vulnerabilities)
+                }}
+                Vulnerabilities</span
+              >
             </div>
           </div>
         </div>
@@ -866,13 +839,16 @@ function hideChooseBorder() {
           </div>
           <div v-for="idx in 5" :key="idx" class="param-value border">
             <div v-if="projects[idx - 1]" class="value-div">
-              <div class="w-30px h-30px border-rd-50% bg-blue text-center">
+              <div class="w-30px h-30px border-rd-50% text-center" :class="changeBgColor(projects[idx - 1].sonarCloudScan.securityReviewRating)">
                 <span vertical-middle color-white>{{
-                  projects[idx - 1].sonarCloudScan.securityReviewLevel
+                  toKilo(projects[idx - 1].sonarCloudScan.securityReviewRating)
                 }}</span>
               </div>
-              <span>{{ projects[idx - 1].sonarCloudScan.securityHotspots }} Security Hotspots</span>
-              <span>{{ projects[idx - 1].sonarCloudScan.reviewed }} Security Reviewed</span>
+              <span
+                >{{ toKilo(projects[idx - 1].sonarCloudScan.securityHotspots) }} Security
+                Hotspots</span
+              >
+
             </div>
           </div>
         </div>
@@ -961,7 +937,7 @@ function hideChooseBorder() {
       </div>
     </div>
 
-    <div
+<div
       class="row"
       @mouseover="showChooseBorder('影响力', $event)"
       @mouseout="hideChooseBorder($event)"
@@ -1068,6 +1044,7 @@ function hideChooseBorder() {
   .row {
     display: flex;
     position: relative;
+    background-color: #ffffff;
 
     &:hover {
       border: 1px solid #198ef6;

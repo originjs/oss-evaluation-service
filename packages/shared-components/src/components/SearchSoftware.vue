@@ -61,8 +61,10 @@ const onClickSoftware = (name: string) => {
 
     <el-dialog
       v-model="showSearchBox"
+      class="search-open-source-software-dialog"
       width="500"
       :show-close="false"
+      append-to-body
       @opened="searchInputInstance.focus()"
     >
       <div class="p-10px">
@@ -75,7 +77,7 @@ const onClickSoftware = (name: string) => {
           clearable
           @input="getSoftwareNames"
         />
-        <el-scrollbar v-loading="loadingSoftwareNames" class="h-full max-h-200px">
+        <el-scrollbar v-loading="loadingSoftwareNames" :max-height="400">
           <div class="text-center pt-10px line-height-50px">
             <span v-show="!softwareNames.length">暂无最近搜索记录...</span>
             <span v-show="loadingSoftwareNames">搜索中...</span>
@@ -96,16 +98,16 @@ const onClickSoftware = (name: string) => {
   </div>
 </template>
 
-<style scoped lang="less">
-:deep(.el-dialog) {
+<style lang="less">
+.search-open-source-software-dialog {
   border-radius: 6px;
-}
 
-:deep(.el-dialog__header) {
-  padding: 0;
-}
+  .el-dialog__header {
+    padding: 0;
+  }
 
-:deep(.el-menu) {
-  border-right: none;
+  .el-menu {
+    border-right: none;
+  }
 }
 </style>

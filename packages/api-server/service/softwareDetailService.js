@@ -14,13 +14,14 @@ import {
   CncfDocumentScoreMin,
   StateOfJsMin,
   ProjectTechStack,
+  SonarCloudProjectMin,
 } from '@orginjs/oss-evaluation-data-model';
 import ChartData from '../model/chartData.js';
 import { round } from '../util/math.js';
 import { Op } from 'sequelize';
 
 ProjectInfo.hasOne(Scorecard, { foreignKey: 'project_id', as: 'scorecard' });
-ProjectInfo.hasOne(SonarCloudProject, { foreignKey: 'github_project_id', as: 'sonarCloudScan' });
+ProjectInfo.hasOne(SonarCloudProjectMin, { foreignKey: 'github_project_id', as: 'sonarCloudScan' });
 ProjectInfo.hasOne(EvaluationMin, { foreignKey: 'project_id', as: 'evaluation' });
 ProjectInfo.hasMany(StateOfJsMin, { foreignKey: 'project_id', as: 'satisfaction' });
 ProjectInfo.hasOne(CncfDocumentScoreMin, { foreignKey: 'project_id', as: 'document' });
@@ -39,7 +40,7 @@ export async function getSoftwareInfo(repoName) {
         as: 'scorecard',
       },
       {
-        model: SonarCloudProject,
+        model: SonarCloudProjectMin,
         as: 'sonarCloudScan',
       },
       {
@@ -62,8 +63,16 @@ export async function getSoftwareInfo(repoName) {
 
   const res = softwareInfo.toJSON();
   res.repoName = repoName;
-  res.techStack = res.techStack.subcategory;
+  res.techStack = res.techStack?.subcategory;
   res.codeLines = (res.codeLines / 1000).toFixed(2);
+  res.evaluation.functionScore = res.evaluation.functionScore?.toFixed(2);
+  res.evaluation.qualityScore = res.evaluation.qualityScore?.toFixed(2);
+  res.evaluation.performanceScore = res.evaluation.performanceScore?.toFixed(2);
+  res.evaluation.ecologyScore = res.evaluation.ecologyScore?.toFixed(2);
+  res.evaluation.scorecardScore = res.evaluation.scorecardScore?.toFixed(2);
+  res.evaluation.criticalityScore = res.evaluation.criticalityScore?.toFixed(2);
+  res.evaluation.openrank = res.evaluation.openrank?.toFixed(2);
+  res.document.documentScore = res.document.documentScore?.toFixed(2);
 
   if (res.satisfaction?.length !== 0) {
     let satisfaction = res.satisfaction.sort((a, b) => {

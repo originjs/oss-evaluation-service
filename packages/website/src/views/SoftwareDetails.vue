@@ -22,7 +22,7 @@ import {
   getQualityModuleInfo,
   exportFileApi,
 } from '@api/SoftwareDetails';
-import { toKilo } from '@api/utils';
+import { toKilo, changeBgColor} from '@api/utils';
 import { saveAs } from 'file-saver';
 import { SearchSoftware } from '@orginjs/oss-evaluation-components';
 
@@ -440,15 +440,14 @@ const openSSFScordcard = ref<{
 });
 
 const sonarCloudScan = ref({
-  bug: 1,
+  bugs: 1,
   codeSmells: 494,
   vulnerabilities: 0,
   securityHotspots: 14,
-  reviewed: '0.0%',
-  reliabilityLevel: 'C',
-  maintainabilityLevel: 'A',
-  securityLevel: 'A',
-  securityReviewLevel: 'E',
+  reliabilityRating: 'C',
+  maintainabilityRating: 'A',
+  securityRating: 'A',
+  securityReviewRating: 'E',
 });
 
 getQualityModuleInfo(encodedRepoName.value).then(({ data }) => {
@@ -512,15 +511,14 @@ getQualityModuleInfo(encodedRepoName.value).then(({ data }) => {
   };
   const sonar = data.sonar;
   sonarCloudScan.value = {
-    bug: sonar.bugs,
+    bugs: sonar.bugs,
     codeSmells: sonar.codeSmells,
     vulnerabilities: sonar.vulnerabilities,
     securityHotspots: sonar.securityHotspots,
-    reviewed: sonar.securityHotspotsReviewed,
-    reliabilityLevel: sonar.reliabilityRating,
-    maintainabilityLevel: sonar.maintainabilityRating,
-    securityLevel: sonar.securityRating,
-    securityReviewLevel: sonar.securityReviewRating,
+    reliabilityRating: sonar.reliabilityRating,
+    maintainabilityRating: sonar.maintainabilityRating,
+    securityRating: sonar.securityRating,
+    securityReviewRating: sonar.securityReviewRating,
   };
 });
 
@@ -792,12 +790,22 @@ function compareProjects(
             :max-height="400"
             :cell-style="computeColor"
           >
-            <el-table-column
-              v-for="column in benchmarkCompareColumns"
-              :key="column"
-              :prop="column"
-              :label="column === 'indexName' ? 'Name' : column"
-            />
+            <el-table-column v-for="column in benchmarkCompareColumns" :key="column" :prop="column">
+              <template #header>
+                <div class="inline-flex flex-items-center">
+                  <span>{{ column === 'indexName' ? 'Name' : column }}</span>
+                  <el-icon
+                    v-show="column !== 'indexName'"
+                    size="16"
+                    class="ml-6px cursor-pointer"
+                    color="#F56C6C"
+                    @click="benchmarkCompareColumns.delete(column)"
+                  >
+                    <RemoveFilled />
+                  </el-icon>
+                </div>
+              </template>
+            </el-table-column>
           </el-table>
         </div>
       </el-card>
@@ -837,14 +845,19 @@ function compareProjects(
               <span>Reliability</span>
             </div>
             <div>
-              <span font-bold font-size-6 mr-2>{{ sonarCloudScan.bug }}</span>
+              <span font-bold font-size-6 mr-2>{{ toKilo(sonarCloudScan.bugs) }}</span>
               <span font-light>Bugs</span>
-              <span i-ph-question-duotone font-size-5 ml-1 mb-2px></span>
+              <el-tooltip
+                content="编码错误会破坏您的代码并且需要立即修复。"
+              >
+              <el-icon size-5 color-gray-400><InfoFilled /></el-icon>
+              </el-tooltip>
             </div>
             <div
-              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% bg-blue text-center translate-y--50%"
+              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% text-center translate-y--50%"
+              :class="changeBgColor(sonarCloudScan.reliabilityRating)"
             >
-              <span vertical-middle color-white>{{ sonarCloudScan.reliabilityLevel }}</span>
+              <span vertical-middle color-white>{{ toKilo(sonarCloudScan.reliabilityRating) }}</span>
             </div>
           </div>
           <div position-relative pt-3 pd-3 pl-4 pr-4 w-607px h-92px bg-coolgray-50>
@@ -853,14 +866,21 @@ function compareProjects(
               <span>Maintainability</span>
             </div>
             <div>
-              <span font-bold font-size-6 mr-2>{{ sonarCloudScan.codeSmells }}</span>
+              <span font-bold font-size-6 mr-2>{{ toKilo(sonarCloudScan.codeSmells) }}</span>
               <span font-light>Code Smells</span>
-              <span i-ph-question-duotone font-size-5 ml-1 mb-2px></span>
+              <el-tooltip
+                  content="代码混乱且难以维护。"
+              >
+                <el-icon size-5 color-gray-400><InfoFilled /></el-icon>
+              </el-tooltip>
             </div>
             <div
-              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% bg-blue text-center translate-y--50%"
+              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% text-center translate-y--50% "
+              :class="changeBgColor(sonarCloudScan.maintainabilityRating)"
             >
-              <span vertical-middle color-white>{{ sonarCloudScan.maintainabilityLevel }}</span>
+              <span vertical-middle color-white>{{
+                toKilo(sonarCloudScan.maintainabilityRating)
+              }}</span>
             </div>
           </div>
           <div position-relative pt-3 pd-3 pl-4 pr-4 w-607px h-92px bg-coolgray-50>
@@ -869,14 +889,19 @@ function compareProjects(
               <span>Security</span>
             </div>
             <div>
-              <span font-bold font-size-6 mr-2>{{ sonarCloudScan.vulnerabilities }}</span>
+              <span font-bold font-size-6 mr-2>{{ toKilo(sonarCloudScan.vulnerabilities) }}</span>
               <span font-light>Vulnerabilities</span>
-              <span i-ph-question-duotone font-size-5 ml-1 mb-2px></span>
+              <el-tooltip
+                  content="可以被黑客利用的代码。"
+              >
+                <el-icon size-5 color-gray-400><InfoFilled /></el-icon>
+              </el-tooltip>
             </div>
             <div
-              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% bg-blue text-center translate-y--50%"
+              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% text-center translate-y--50%"
+              :class="changeBgColor(sonarCloudScan.securityRating)"
             >
-              <span vertical-middle color-white>{{ sonarCloudScan.securityLevel }}</span>
+              <span vertical-middle color-white>{{ toKilo(sonarCloudScan.securityRating) }}</span>
             </div>
           </div>
           <div position-relative pt-3 pd-3 pl-4 pr-4 w-607px h-92px bg-coolgray-50>
@@ -885,16 +910,21 @@ function compareProjects(
               <span>Security Review</span>
             </div>
             <div>
-              <span font-bold font-size-6 mr-2>{{ sonarCloudScan.securityHotspots }}</span>
+              <span font-bold font-size-6 mr-2>{{ toKilo(sonarCloudScan.securityHotspots) }}</span>
               <span font-light mr-1>Security Hotspots</span>
-              <span i-ph-question-duotone font-size-5 mr-4 mb-2px></span>
-              <span i-ph-circle-bold color-rose-800 mr-1 mb-2px font-size-5 />
-              <span font-light>{{ sonarCloudScan.reviewed }} Reviewed</span>
+              <el-tooltip
+                  content="需要手动检查以评估是否存在漏洞的安全敏感代码。"
+              >
+                <el-icon size-5 color-gray-400><InfoFilled /></el-icon>
+              </el-tooltip>
             </div>
             <div
-              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% bg-blue text-center translate-y--50%"
+              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% text-center translate-y--50%"
+              :class="changeBgColor(sonarCloudScan.securityReviewRating)"
             >
-              <span vertical-middle color-white>{{ sonarCloudScan.securityReviewLevel }}</span>
+              <span vertical-middle color-white>{{
+                toKilo(sonarCloudScan.securityReviewRating)
+              }}</span>
             </div>
           </div>
         </div>
@@ -1025,7 +1055,7 @@ function compareProjects(
   </div>
   <CompareFavorites
     ref="compareFavoritesRef"
-    style="position: fixed; bottom: 0px"
+    style="position: fixed; bottom: 0px;z-index: 999"
     @compare="compareProjects"
   ></CompareFavorites>
 </template>

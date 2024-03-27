@@ -1,5 +1,93 @@
 import HttpRequest from '@api/HttpRequest';
 
+export type SoftwareInfo = {
+  name: string;
+  url: string;
+  logo: string;
+  star: number;
+  fork: number;
+  language: string;
+  firstCommit: string;
+  license: string;
+  description: string;
+  tags: string;
+  codeLines: number;
+  techStack: string;
+  evaluation: {
+    functionScore: number;
+    qualityScore: number;
+    performanceScore: number;
+    ecologyScore: number;
+    innovationValue: number;
+  };
+  scorecard: {
+    projectId: number;
+    repoName: string;
+    collectionDate: string;
+    score: number;
+    commit: string;
+    codeReview: number;
+    maintained: number;
+    ciiBestPractices: number;
+    license: number;
+    signedReleases: number;
+    packaging: number;
+    tokenPermissions: number;
+    dangerousWorkflow: number;
+    pinnedDependencies: number;
+    branchProtection: number;
+    binaryArtifacts: number;
+    fuzzing: number;
+    securityPolicy: number;
+    sast: number;
+    vulnerabilities: number;
+  };
+  sonarCloudScan: {
+    bugs: number;
+    codeSmells: number;
+    vulnerabilities: number;
+    securityHotspots: number;
+    reviewed: string;
+    reliabilityLevel: string;
+    maintainabilityLevel: string;
+    securityLevel: string;
+    securityReviewLevel: string;
+  };
+  document: {
+    documentScore: number;
+    hasReadme: boolean;
+    hasChangelog: boolean;
+    hasWebsite: boolean;
+    hasContributing: boolean;
+  };
+  satisfaction: [
+    {
+      year: number;
+      val: number;
+    },
+    {
+      year: number;
+      val: number;
+    },
+    {
+      year: number;
+      val: number;
+    },
+  ];
+  ecologyOverview: {
+    name: string;
+    fullName: string;
+    downloads: number;
+    stargazersCount: number;
+    busFactor: number;
+    openRank: number;
+    criticalityScore: number;
+    contributorCount: number;
+    dependentCount: number;
+    forksCount: number;
+  };
+};
+
 export type BaseInfo = {
   logo: string;
   url: string;
@@ -20,6 +108,10 @@ export type BaseInfo = {
     innovationValue: number;
   };
 };
+
+export function getSoftwareInfo(repoName: string) {
+  return HttpRequest.get<SoftwareInfo>(`/softwareDetail/softwareInfo/${repoName}`);
+}
 
 export function getBaseInfo(repoName: string) {
   return HttpRequest.get<BaseInfo>(`/softwareDetail/overview/${repoName}`);
