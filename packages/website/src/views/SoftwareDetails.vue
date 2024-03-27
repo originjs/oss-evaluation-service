@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import CompareFavorites from '../components/CompareFavorites.vue';
-import { Plus } from '@element-plus/icons-vue';
+import { Delete, Plus } from '@element-plus/icons-vue';
 import type { CellStyle } from 'element-plus';
 import { ElMessage } from 'element-plus';
 import * as echarts from 'echarts';
@@ -22,7 +22,7 @@ import {
   getQualityModuleInfo,
   exportFileApi,
 } from '@api/SoftwareDetails';
-import { toKilo, changeBgColor} from '@api/utils';
+import { toKilo, changeBgColor } from '@api/utils';
 import { saveAs } from 'file-saver';
 import { SearchSoftware } from '@orginjs/oss-evaluation-components';
 
@@ -797,11 +797,10 @@ function compareProjects(
                   <el-icon
                     v-show="column !== 'indexName'"
                     size="16"
-                    class="ml-6px cursor-pointer"
-                    color="#F56C6C"
+                    class="ml-6px cursor-pointer hover-color-#F56C6C"
                     @click="benchmarkCompareColumns.delete(column)"
                   >
-                    <RemoveFilled />
+                    <Delete />
                   </el-icon>
                 </div>
               </template>

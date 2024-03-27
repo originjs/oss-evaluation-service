@@ -136,7 +136,7 @@ defineExpose({ addProject });
           </div>
           <div class="divider"></div>
 
-          <Delete class="remove-btn" @click="removeProject(project)"></Delete>
+          <Delete class="remove-btn hover-color-#F56C6C" @click="removeProject(project)"></Delete>
         </div>
 
         <div v-for="idx in 5 - projects.length" :key="idx" class="project">
