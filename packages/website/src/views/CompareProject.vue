@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ProjectsCompare from '../components/ProjectsCompare.vue';
+import { ProjectsCompare } from '@orginjs/oss-evaluation-components';
 const route = useRoute();
 const repositories = (() => {
   const repos = route.query.repos as string;

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import CompareFavorites from '../components/CompareFavorites.vue';
-import { Delete, Plus } from '@element-plus/icons-vue';
+import { CompareFavorites } from '@orginjs/oss-evaluation-components';
+import { Plus } from '@element-plus/icons-vue';
 import type { CellStyle } from 'element-plus';
 import { ElMessage } from 'element-plus';
 import * as echarts from 'echarts';
