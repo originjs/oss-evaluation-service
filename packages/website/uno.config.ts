@@ -18,4 +18,5 @@ export default defineConfig({
       },
     }),
   ],
+  safelist:['bg-green-500','bg-green-200','bg-yellow-200','bg-amber-300','bg-red-300','bg-blue'],
 });
