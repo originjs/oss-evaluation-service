@@ -2,6 +2,7 @@ import { request, gql } from 'graphql-request';
 import debug from 'debug';
 import { GithubProjects, CompassActivity } from '@orginjs/oss-evaluation-data-model';
 import { Cron } from 'croner';
+
 import { sleep } from '../util/util.js';
 
 const query = gql`
@@ -34,29 +35,33 @@ export default syncCompassActivityMetric;
 const integrationTime = '@weekly';
 let start = 0;
 
-const job = new Cron(integrationTime, { timezone: 'Etc/UTC' }, async () => {
-  debug.log('compass integration start!', job.getPattern());
+const compassIntegrateJob = new Cron(integrationTime, { timezone: 'Etc/UTC' }, async () => {
+  debug.log('compass integration start!', compassIntegrateJob.getPattern());
   try {
     await syncFullProjectCompassMetric(start);
     debug.log('Synchronous compass successful!');
   } catch (err) {
-    const { error, startIndex } = err;
-    start = startIndex;
-    debug.log(err);
-
-    if (error.response.status === 429) {
-      debug.log('The server returns 429 rate limit, try again after one hour.');
-      await sleep(3600000);
-      await job.trigger();
+    if (err.name === 'SequelizeConnectionError') {
+      debug.log('An Sequelize error occurred');
     } else {
-      await sleep(10000);
-      debug.log('An error occurred, start trying again');
-      await job.trigger();
+      const { error, startIndex } = err;
+      start = startIndex;
+      debug.log(error);
+      if (
+        Object.prototype.hasOwnProperty.call(error, 'response') &&
+        error.response.status === 429
+      ) {
+        debug.log('The server returns 429 rate limit, try again after one hour.');
+        await sleep(3600000);
+        await compassIntegrateJob.trigger();
+      } else {
+        debug.log('An error occurred, start trying again');
+        await sleep(10000);
+        await compassIntegrateJob.trigger();
+      }
     }
   }
 });
-
-await job.trigger();
 
 /**
  * Synchronize single project compass activity metric to Database
