@@ -136,7 +136,7 @@ getSoftwareInfo(encodedRepoName.value)
       },
       {
         label: 'Branch-Protection',
-        tips: 'Does the project use Branch Protection ?',
+        tips: "Determines if the default and release branches are protected with GitHub's branch protection settings.",
         value: data.scorecard?.branchProtection,
       },
       {
@@ -757,7 +757,15 @@ function compareProjects(
         </div>
         <div font-bold>{{ project?.scorecard.score }} / 10</div>
         <div v-for="item in openSSFScordcard" :key="item.label" flex flex-items-center h-30px>
-          <span w-190px>{{ item.label }}</span>
+          <div w-190px>
+            <span>{{ item.label }}</span>
+            <el-tooltip :content="item.tips">
+              <el-icon size-5 color-gray-400>
+                <InfoFilled />
+              </el-icon>
+            </el-tooltip>
+          </div>
+
           <el-progress
             :percentage="item.value * 10"
             :stroke-width="10"
@@ -766,11 +774,6 @@ function compareProjects(
           >
             <span>{{ item.value }} / 10</span>
           </el-progress>
-          <el-tooltip :content="item.tips">
-            <el-icon size-5 color-gray-400>
-              <InfoFilled />
-            </el-icon>
-          </el-tooltip>
         </div>
       </el-card>
       <el-card>
