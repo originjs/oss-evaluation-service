@@ -78,11 +78,11 @@ getSoftwareInfo(encodedRepoName.value)
     baseInfoTable.value = [
       {
         label: 'Stars',
-        value: `${toKilo(data.star)} (k)`,
+        value: `${toKilo(data.star)} k`,
       },
       {
         label: 'Fork',
-        value: `${toKilo(data.fork)} (k)`,
+        value: `${toKilo(data.fork)} k`,
       },
       {
         label: '开发语言',
@@ -90,7 +90,7 @@ getSoftwareInfo(encodedRepoName.value)
       },
       {
         label: '代码量',
-        value: `${toKilo(data.codeLines)} (kl)`,
+        value: `${toKilo(data.codeLines)} kl`,
       },
       {
         label: '首次提交',
@@ -891,7 +891,7 @@ function compareProjects(
       <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-custom:ecology mr-2 />
         <span>生态</span>
-        <span font-size-5 float-right>{{ project?.evaluation?.ecologyScore }}/100</span>
+        <span font-size-5 float-right>{{ formatFloat(project?.evaluation?.ecologyScore) }}/100</span>
       </div>
       <div flex flex-wrap justify-between content-between>
         <el-card w-full mb-6>
@@ -900,7 +900,7 @@ function compareProjects(
             <div flex w-210px>
               <div i-custom:download font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ toKilo(project?.ecologyOverview?.downloads) }} (k)</div>
+                <div font-bold font-size-5>{{ toKilo(project?.ecologyOverview?.downloads).split('.')[0] }} k</div>
                 <div line-height-7>npm周下载量</div>
               </div>
             </div>
@@ -908,7 +908,7 @@ function compareProjects(
               <div i-custom:star font-size-14 mr-4 />
               <div>
                 <div font-bold font-size-5>
-                  {{ toKilo(project?.ecologyOverview?.stargazersCount) }} (k)
+                  {{ toKilo(project?.ecologyOverview?.stargazersCount) }} k
                 </div>
                 <div line-height-7>Star数量</div>
               </div>
@@ -916,7 +916,7 @@ function compareProjects(
             <div flex w-210px>
               <div i-custom:fork font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ toKilo(project?.ecologyOverview?.forksCount) }} (k)</div>
+                <div font-bold font-size-5>{{ toKilo(project?.ecologyOverview?.forksCount) }} k</div>
                 <div line-height-7>Fork数量</div>
               </div>
             </div>
