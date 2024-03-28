@@ -30,40 +30,42 @@ ProjectInfo.hasOne(ProjectTechStack, { foreignKey: 'project_id', as: 'techStack'
 
 export async function getSoftwareInfo(repoName) {
   const projectId = await getProjectIdByRepoName(repoName);
-  const softwareInfo = await ProjectInfo.findOne({
-    include: [
-      {
-        model: EvaluationMin,
-        as: 'evaluation',
+  const [softwareInfo, ecologyOverview] = await Promise.all([
+    ProjectInfo.findOne({
+      include: [
+        {
+          model: EvaluationMin,
+          as: 'evaluation',
+        },
+        {
+          model: Scorecard,
+          as: 'scorecard',
+        },
+        {
+          model: SonarCloudProjectMin,
+          as: 'sonarCloudScan',
+        },
+        {
+          model: CncfDocumentScoreMin,
+          as: 'document',
+        },
+        {
+          model: StateOfJsMin,
+          as: 'satisfaction',
+        },
+        {
+          model: ProjectTechStack,
+          as: 'techStack',
+        },
+      ],
+      where: {
+        id: projectId,
       },
-      {
-        model: Scorecard,
-        as: 'scorecard',
-      },
-      {
-        model: SonarCloudProjectMin,
-        as: 'sonarCloudScan',
-      },
-      {
-        model: CncfDocumentScoreMin,
-        as: 'document',
-      },
-      {
-        model: StateOfJsMin,
-        as: 'satisfaction',
-      },
-      {
-        model: ProjectTechStack,
-        as: 'techStack',
-      },
-    ],
-    where: {
-      id: projectId,
-    },
-  });
+    }),
+    getSoftwareEcologyOverview(repoName),
+  ]);
 
   const res = softwareInfo.toJSON();
-  const ecologyOverview = await getSoftwareEcologyOverview(repoName);
   res.repoName = repoName;
   res.ecologyOverview = ecologyOverview;
   res.techStack = res.techStack?.subcategory;

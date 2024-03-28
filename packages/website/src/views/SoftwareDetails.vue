@@ -14,7 +14,6 @@ import type {
 } from '@api/SoftwareDetails';
 import {
   getSoftwareInfo,
-  getEcologyOverviewApi,
   getPerformanceModuleInfo,
   getEcologyActivityCategoryApi,
   exportFileApi,
@@ -214,9 +213,6 @@ getSoftwareInfo(encodedRepoName.value)
   .finally(() => {
     overviewLoading.value = false;
   });
-getEcologyOverviewApi(encodedRepoName.value).then(({ data }) => {
-  project.value.ecologyOverview = data;
-});
 
 const softwareDetailsEl = ref();
 function renderSoftwareRadarChart() {
@@ -624,7 +620,7 @@ function compareProjects(
         <div font-size-5 font-bold>Github Star 趋势（演示数据）</div>
         <div id="github-start-chart" h-252px />
       </el-card>
-      <el-card v-if="developerSatisfaction" mb-6>
+      <el-card v-if="developerSatisfaction.xAxis.length > 0" mb-6>
         <div flex>
           <div font-size-5 font-bold>开发者满意度</div>
           <el-tooltip
@@ -786,7 +782,7 @@ function compareProjects(
               <span>Reliability</span>
             </div>
             <div>
-              <span font-bold font-size-6 mr-2>{{ toKilo(project?.sonarCloudScan.bugs) }}</span>
+              <span font-bold font-size-6 mr-2>{{ toKilo(project?.sonarCloudScan?.bugs) }}</span>
               <span font-light>Bugs</span>
               <el-tooltip content="编码错误会破坏您的代码并且需要立即修复。">
                 <el-icon size-5 color-gray-400>
@@ -796,10 +792,10 @@ function compareProjects(
             </div>
             <div
               class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% text-center translate-y--50%"
-              :style="{ backgroundColor: getLevelColor(project?.sonarCloudScan.reliabilityRating) }"
+              :style="{ backgroundColor: getLevelColor(project?.sonarCloudScan?.reliabilityRating) }"
             >
               <span vertical-middle color-white>{{
-                toKilo(project?.sonarCloudScan.reliabilityRating)
+                toKilo(project?.sonarCloudScan?.reliabilityRating)
               }}</span>
             </div>
           </div>
@@ -810,7 +806,7 @@ function compareProjects(
             </div>
             <div>
               <span font-bold font-size-6 mr-2>{{
-                toKilo(project?.sonarCloudScan.codeSmells)
+                toKilo(project?.sonarCloudScan?.codeSmells)
               }}</span>
               <span font-light>Code Smells</span>
               <el-tooltip content="代码混乱且难以维护。">
@@ -822,11 +818,11 @@ function compareProjects(
             <div
               class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% text-center translate-y--50%"
               :style="{
-                backgroundColor: getLevelColor(project?.sonarCloudScan.maintainabilityRating),
+                backgroundColor: getLevelColor(project?.sonarCloudScan?.maintainabilityRating),
               }"
             >
               <span vertical-middle color-white>{{
-                toKilo(project?.sonarCloudScan.maintainabilityRating)
+                toKilo(project?.sonarCloudScan?.maintainabilityRating)
               }}</span>
             </div>
           </div>
@@ -837,7 +833,7 @@ function compareProjects(
             </div>
             <div>
               <span font-bold font-size-6 mr-2>{{
-                toKilo(project?.sonarCloudScan.vulnerabilities)
+                toKilo(project?.sonarCloudScan?.vulnerabilities)
               }}</span>
               <span font-light>Vulnerabilities</span>
               <el-tooltip content="可以被黑客利用的代码。">
@@ -848,10 +844,10 @@ function compareProjects(
             </div>
             <div
               class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% text-center translate-y--50%"
-              :style="{ backgroundColor: getLevelColor(project?.sonarCloudScan.securityRating) }"
+              :style="{ backgroundColor: getLevelColor(project?.sonarCloudScan?.securityRating) }"
             >
               <span vertical-middle color-white>{{
-                toKilo(project?.sonarCloudScan.securityRating)
+                toKilo(project?.sonarCloudScan?.securityRating)
               }}</span>
             </div>
           </div>
@@ -862,7 +858,7 @@ function compareProjects(
             </div>
             <div>
               <span font-bold font-size-6 mr-2>{{
-                toKilo(project?.sonarCloudScan.securityHotspots)
+                toKilo(project?.sonarCloudScan?.securityHotspots)
               }}</span>
               <span font-light mr-1>Security Hotspots</span>
               <el-tooltip content="需要手动检查以评估是否存在漏洞的安全敏感代码。">
@@ -874,11 +870,11 @@ function compareProjects(
             <div
               class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% text-center translate-y--50%"
               :style="{
-                backgroundColor: getLevelColor(project?.sonarCloudScan.securityReviewRating),
+                backgroundColor: getLevelColor(project?.sonarCloudScan?.securityReviewRating),
               }"
             >
               <span vertical-middle color-white>{{
-                toKilo(project?.sonarCloudScan.securityReviewRating)
+                toKilo(project?.sonarCloudScan?.securityReviewRating)
               }}</span>
             </div>
           </div>
