@@ -1,10 +1,10 @@
 import HttpRequest from './HttpRequest';
 
 export type SoftwareInfo = {
-  fullName: string;
-  htmlUrl: string;
+  name: string;
+  url: string;
   description: string;
-  stargazersCount: number;
+  star: number;
 };
 
 export function getSoftwareNamesApi(params: { keyword: string; techStack?: string }) {

@@ -1,25 +1,29 @@
 {
   "name": "@orginjs/oss-evaluation-api-server",
   "version": "1.0.0",
-  "type": "module",
   "private": false,
+  "main": "index.js",
+  "type": "module",
   "scripts": {
-    "build": "tsc",
+    "dev": "concurrently \"nodemon\" \"nodemon -x tsoa spec-and-routes\"",
+    "build": "tsoa spec-and-routes && tsc",
     "start": "node ./dist/app.js",
-    "dev": "set DEBUG=* & nodemon"
+    "swagger": "tsoa spec-and-routes",
+    "lint": "eslint --ext .ts src",
+    "lint:fix": "eslint --ext .ts src --fix"
   },
   "nodemonConfig": {
     "watch": [
       "src"
     ],
     "ext": "ts",
-    "exec": "tsc && node ./dist/app.js"
+    "exec": "ts-node src/app.ts"
   },
   "dependencies": {
     "@orginjs/oss-evaluation-data-model": "workspace:^",
+    "@tsoa/runtime": "^6.2.0",
     "cors": "^2.8.5",
     "dayjs": "^1.11.10",
-    "debug": "^2.6.9",
     "dotenv": "^16.4.1",
     "ejsexcel": "^4.2.2",
     "express": "^4.16.1",
@@ -27,14 +31,20 @@
     "morgan": "^1.9.1",
     "sequelize": "^6.37.1",
     "swagger-ui-express": "^5.0.0",
+    "tsoa": "^6.2.0",
+    "winston": "^3.13.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
+    "@types/morgan": "^1.9.9",
     "@types/node": "^18.11.12",
     "@types/swagger-ui-express": "^4.1.6",
+    "concurrently": "^8.2.2",
+    "eslint": "^8.56.0",
     "nodemon": "^3.0.3",
+    "ts-node": "^10.9.2",
     "typescript": "~4.7.4"
   }
 }

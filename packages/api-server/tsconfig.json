@@ -1,14 +1,25 @@
 {
   "compilerOptions": {
+    /* Basic Options */
+    "incremental": true,
     "target": "ES2020",
-    "module": "commonjs",
+    "module": "ESNext",
+    "outDir": "dist",
     "lib": ["ES2020"],
-    "strict": true,
+
+    /* Strict Type-Checking Options */
+    "strict": false,
     "skipLibCheck": true,
+
+    /* Module Resolution Options */
+    "baseUrl": ".",
     "esModuleInterop": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+
+    /* Experimental Options */
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "outDir": "dist"
+    //  "emitDecoratorMetadata": true,
   },
   "exclude": ["node_modules"],
   "include": ["src/**/*"]

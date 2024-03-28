@@ -84,12 +84,12 @@ const onClickSoftware = (name: string) => {
           </div>
           <el-menu>
             <el-menu-item
-              v-for="({ fullName }, i) in softwareNames"
-              :key="fullName"
+              v-for="({ name }, i) in softwareNames"
+              :key="name"
               :index="String(i)"
-              @click="onClickSoftware(fullName)"
+              @click="onClickSoftware(name)"
             >
-              <span>{{ fullName }}</span>
+              <span>{{ name }}</span>
             </el-menu-item>
           </el-menu>
         </el-scrollbar>
