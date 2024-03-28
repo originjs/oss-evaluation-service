@@ -3,7 +3,8 @@ import { Close, Switch, ArrowDown } from '@element-plus/icons-vue';
 import dayjs from 'dayjs';
 import type { SoftwareInfo } from '@/api/SoftwareDetails';
 import { getSoftwareInfo } from '@/api/SoftwareDetails';
-import { toKilo, getLevelColor } from '@/api/utils';
+import { toKilo } from '@utils/number';
+import { getLevelColor } from '@utils/color';
 
 const prop = defineProps({
   repositories: {
@@ -65,7 +66,7 @@ const findRow = (element: HTMLElement, className: string) => {
       return parent;
     }
 
-    parent = parent.parentNode;
+    parent = parent.parentNode as HTMLElement;
   }
 
   return null;
@@ -73,7 +74,7 @@ const findRow = (element: HTMLElement, className: string) => {
 
 const tipDiv = ref<HTMLElement | null>(null);
 function showChooseBorder(title: string, event: MouseEvent) {
-  const row = findRow(event.target, 'row');
+  const row = findRow(event.target as HTMLElement, 'row');
   if (row) {
     row.appendChild(tipDiv.value as HTMLElement);
     tipDiv.value!.innerText = title;
@@ -216,8 +217,8 @@ function hideChooseBorder() {
       <div v-for="idx in 5" :key="idx" class="param-value border">
         <div v-if="projects[idx - 1]" class="value-div">
           <span style="color: #409eff" :class="{ good: isStarTop(projects[idx - 1].star) }">{{
-      toKilo(projects[idx - 1].star)
-    }}</span>
+            toKilo(projects[idx - 1].star)
+          }}</span>
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import * as VueRouter from 'vue-router';
-import { SearchSoftware } from '@/components';
+import { SearchSoftware, SoftwareDetails } from '@/components';
 import { TechLandscape } from '@/components';
 
 const routes = [
@@ -14,6 +14,10 @@ const routes = [
   {
     path: '/TechLandscape',
     component: TechLandscape,
+  },
+  {
+    path: '/SoftwareDetails',
+    component: SoftwareDetails,
   },
 ];
 

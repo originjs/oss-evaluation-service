@@ -52,6 +52,10 @@ export type SoftwareInfo = {
     maintainabilityLevel: string;
     securityLevel: string;
     securityReviewLevel: string;
+    reliabilityRating: string;
+    maintainabilityRating: string;
+    securityRating: string;
+    securityReviewRating: string;
   };
   document: {
     documentScore: number;
