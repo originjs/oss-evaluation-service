@@ -197,8 +197,8 @@ export async function getPerformance(repoName) {
   // benchmark
   let benchmarkData = await getPerformanceBenchmark(repoName);
   return {
-    size: packageSize.size,
-    gzipSize: packageSize.gzipSize,
+    size: packageSize?.size,
+    gzipSize: packageSize?.gzipSize,
     //   TODO benchmark score
     benchmarkScore: 0,
     benchmarkData,
