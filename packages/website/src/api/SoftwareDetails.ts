@@ -86,7 +86,7 @@ export interface SoftwareInfo {
     dependentCount: number;
     forksCount: number;
   };
-};
+}
 
 export type BaseInfo = {
   logo: string;
@@ -136,13 +136,17 @@ export function getFunctionModuleInfo(repoName: string) {
 }
 
 export type BenchmarkData = {
-  displayName: string;
-  indexName: string;
-  rawValue: null | string;
-}[][];
+  base: { indexName: string; bestVal: number }[];
+  data: {
+    displayName: string;
+    indexName: string;
+    rawValue: null | string;
+  }[][];
+};
 
 export type PerformanceModuleInfo = {
   size: number;
+  packageName: string;
   gzipSize: number;
   benchmarkScore: number;
   benchmarkData: BenchmarkData;
@@ -154,15 +158,15 @@ export function getPerformanceModuleInfo(repoName: string) {
 
 type QualityModuleInfo = {
   sonar: {
-    bugs: number,
-    codeSmells: number,
-    vulnerabilities: number,
-    securityHotspots: number,
-    securityHotspotsReviewed: string,
-    reliabilityRating: string,
-    maintainabilityRating: string,
-    securityRating: string,
-    securityReviewRating: string,
+    bugs: number;
+    codeSmells: number;
+    vulnerabilities: number;
+    securityHotspots: number;
+    securityHotspotsReviewed: string;
+    reliabilityRating: string;
+    maintainabilityRating: string;
+    securityRating: string;
+    securityReviewRating: string;
   };
   scorecard: {
     score: number;

@@ -379,8 +379,9 @@ const showBenchmarkCompare = ref(true);
 const performanceModuleInfo = ref<PerformanceModuleInfo>({
   size: 0,
   gzipSize: 0,
+  packageName: '',
   benchmarkScore: 0,
-  benchmarkData: [],
+  benchmarkData: { data: [], base: [] },
 });
 
 getPerformanceModuleInfo(encodedRepoName.value).then(({ data }) => {
@@ -402,10 +403,11 @@ const benchmarkCompareTable = computed(() => Object.values(benchmarkCompareRows.
 const minRowValue = ref<MinRowValue>({});
 
 // Extract table row, min row value and column name from object array data
-function processBenchmarkData(benchmarkData: BenchmarkData) {
+function processBenchmarkData(benchmark: BenchmarkData) {
   const rows: BenchmarkCompareData = { ...benchmarkCompareRows.value };
   const minRowV: MinRowValue = { ...minRowValue.value };
   const columns: Set<string> = new Set([...benchmarkCompareColumns.value]);
+  const benchmarkData = benchmark?.data;
   for (let i = 0; i < benchmarkData.length; i++) {
     for (let j = 0; j < benchmarkData[i].length; j++) {
       const indexName = benchmarkData[i][j].indexName;
@@ -672,7 +674,11 @@ function compareProjects(
         <span font-size-5 float-right>{{ project?.evaluation.performanceScore }}/100</span>
       </div>
       <el-card>
-        <div>包大小</div>
+        <div>
+          包大小{{
+            performanceModuleInfo.packageName ? ` : ${performanceModuleInfo.packageName}` : ''
+          }}
+        </div>
         <div flex flex-items-center h-86px>
           <div mr-200px>
             <div mb-2 font-bold>{{ (performanceModuleInfo.size / 1024).toFixed(1) }} kB</div>
@@ -792,7 +798,9 @@ function compareProjects(
             </div>
             <div
               class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% text-center translate-y--50%"
-              :style="{ backgroundColor: getLevelColor(project?.sonarCloudScan?.reliabilityRating) }"
+              :style="{
+                backgroundColor: getLevelColor(project?.sonarCloudScan?.reliabilityRating),
+              }"
             >
               <span vertical-middle color-white>{{
                 toKilo(project?.sonarCloudScan?.reliabilityRating)
