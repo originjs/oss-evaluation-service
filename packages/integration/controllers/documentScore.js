@@ -237,11 +237,12 @@ function runDocumentChecks(readme, filename, website, release) {
 
   // Check if change_log is in the most recent release
   debug.log('Check if change_log is in the most recent release');
-  if (release != null && release.length !== 0) {
-    cncfDocumentChecksSet.changelog.checked = cncfDocumentChecksSet.changelog.releasePattern.test(
-      release.body,
-    );
-    cncfDocumentChecksSet.changelog.path = 'release';
+  if (!cncfDocumentChecksSet.changelog.checked) {
+    if (release != null && release.length !== 0) {
+      cncfDocumentChecksSet.changelog.checked =
+        cncfDocumentChecksSet.changelog.releasePattern.test(release);
+      cncfDocumentChecksSet.changelog.path = 'release';
+    }
   }
   // Checks changelog/contributing in readme content
   debug.log('Checks File in readme content');
