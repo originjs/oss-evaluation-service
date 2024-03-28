@@ -190,9 +190,9 @@ getSoftwareInfo(encodedRepoName.value)
           has: data.document?.hasChangelog,
         },
         {
-          title: 'Governance',
+          title: 'Contributing',
           content:
-            'Document that explains how the governance and committer process works in the repository.',
+            'A contributing file in your repository provides potential project contributors with a short guide to how they can help with your project.',
           has: data.document?.hasContributing,
         },
       ],
