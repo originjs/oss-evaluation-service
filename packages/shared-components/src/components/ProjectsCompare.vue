@@ -217,7 +217,7 @@ function hideChooseBorder() {
         <div v-if="projects[idx - 1]" class="value-div">
           <span style="color: #409eff" :class="{ good: isStarTop(projects[idx - 1].star) }">{{
       toKilo(projects[idx - 1].star)
-    }} (k)</span>
+    }} k</span>
         </div>
       </div>
     </div>
@@ -233,7 +233,7 @@ function hideChooseBorder() {
       <div class="border param-name">代码量</div>
       <div v-for="idx in 5" :key="idx" class="param-value border">
         <div v-if="projects[idx - 1]" class="value-div">
-          <span>{{ toKilo(projects[idx - 1].codeLines) }} (kl)</span>
+          <span>{{ toKilo(projects[idx - 1].codeLines) }} kl</span>
         </div>
       </div>
     </div>
@@ -695,8 +695,8 @@ function hideChooseBorder() {
               margin-bottom: 10px;
             ">
             <span style="text-align: center; font-weight: bold">{{
-              formatNumber(projects[idx - 1].ecologyOverview.downloads)
-            }} (k)</span>
+        toKilo(projects[idx - 1].ecologyOverview.downloads).split('.')[0]
+            }} k</span>
             <div style="display: inline-flex">
               <div i-custom:download font-size-6 mr-4 />
               <div>npm周下载量</div>
@@ -712,7 +712,7 @@ function hideChooseBorder() {
             ">
             <span style="text-align: center; font-weight: bold">{{
         toKilo(projects[idx - 1].ecologyOverview.stargazersCount)
-      }}</span>
+      }} k</span>
             <div style="display: inline-flex">
               <div i-custom:star font-size-6 mr-4 />
               <div>Star数量</div>
@@ -728,7 +728,7 @@ function hideChooseBorder() {
             ">
             <span style="text-align: center; font-weight: bold">{{
         toKilo(projects[idx - 1].ecologyOverview.forksCount)
-      }}</span>
+      }} k</span>
             <div style="display: inline-flex">
               <div i-custom:fork font-size-6 mr-4 />
               <div>Fork数量</div>
