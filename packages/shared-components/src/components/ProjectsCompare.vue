@@ -2,7 +2,7 @@
 import { Close, Switch, ArrowDown } from '@element-plus/icons-vue';
 import dayjs from 'dayjs';
 import type { SoftwareInfo } from '@/api/SoftwareDetails';
-import { getSoftwareInfo, getEcologyOverviewApi } from '@/api/SoftwareDetails';
+import { getSoftwareInfo } from '@/api/SoftwareDetails';
 import { toKilo, getLevelColor } from '@/api/utils';
 
 const prop = defineProps({
@@ -15,15 +15,12 @@ const prop = defineProps({
 const projects = reactive<Array<SoftwareInfo>>([]);
 prop.repositories.forEach(repoName => {
   const encodedRepoName = encodeURIComponent(repoName);
-  Promise.all([getSoftwareInfo(encodedRepoName), getEcologyOverviewApi(encodedRepoName)])
-    .then(results => {
-      const project = results[0]['data'];
-      project['ecologyOverview'] = results[1].data;
-      projects.push(project);
-    })
-    .catch(error => {
-      console.error('Failed to get data, try again later.', error);
-    });
+  getSoftwareInfo(encodedRepoName)
+    .then((data: { [x: string]: any }) => {
+    projects.push(data['data']);
+  }).catch((error: any) => {
+    console.error('Failed to get data, try again later.', error);
+  });
 });
 
 function isStarTop(currStar: number) {
