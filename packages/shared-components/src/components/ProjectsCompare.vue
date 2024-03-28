@@ -3,8 +3,7 @@ import { Close, Switch, ArrowDown } from '@element-plus/icons-vue';
 import dayjs from 'dayjs';
 import type { SoftwareInfo } from '@/api/SoftwareDetails';
 import { getSoftwareInfo } from '@/api/SoftwareDetails';
-import { toKilo } from '@utils/number';
-import { getLevelColor } from '@utils/color';
+import { toKilo, formatNumber, formatFloat, formatString} from '@/utils/number';
 
 const prop = defineProps({
   repositories: {
@@ -152,7 +151,7 @@ function hideChooseBorder() {
         <div v-if="projects[idx - 1]" class="value-div">
           <span :class="{
       good: isGood(projects[idx - 1].evaluation.functionScore, 'evaluation.functionScore'),
-    }">{{ projects[idx - 1].evaluation.functionScore }}/100</span>
+    }">{{ formatFloat(projects[idx - 1].evaluation.functionScore ) }}/100</span>
         </div>
       </div>
     </div>
@@ -170,7 +169,7 @@ function hideChooseBorder() {
         'evaluation.performanceScore',
       ),
     }">
-            {{ projects[idx - 1].evaluation.performanceScore }}/100
+            {{ formatFloat(projects[idx - 1].evaluation.performanceScore) }}/100
           </span>
         </div>
       </div>
@@ -185,7 +184,7 @@ function hideChooseBorder() {
           <span :class="{
       good: isGood(projects[idx - 1].evaluation.qualityScore, 'evaluation.qualityScore'),
     }">
-            {{ projects[idx - 1].evaluation.qualityScore }}/100
+            {{ formatFloat(projects[idx - 1].evaluation.qualityScore) }}/100
           </span>
         </div>
       </div>
@@ -200,7 +199,7 @@ function hideChooseBorder() {
           <span :class="{
       good: isGood(projects[idx - 1].evaluation.ecologyScore, 'evaluation.ecologyScore'),
     }">
-            {{ projects[idx - 1].evaluation.ecologyScore }}/100
+            {{ formatFloat(projects[idx - 1].evaluation.ecologyScore) }}/100
           </span>
         </div>
       </div>
@@ -218,7 +217,7 @@ function hideChooseBorder() {
         <div v-if="projects[idx - 1]" class="value-div">
           <span style="color: #409eff" :class="{ good: isStarTop(projects[idx - 1].star) }">{{
             toKilo(projects[idx - 1].star)
-          }}</span>
+          }} (k)</span>
         </div>
       </div>
     </div>
@@ -234,7 +233,7 @@ function hideChooseBorder() {
       <div class="border param-name">代码量</div>
       <div v-for="idx in 5" :key="idx" class="param-value border">
         <div v-if="projects[idx - 1]" class="value-div">
-          <span>{{ projects[idx - 1].codeLines }} (KL)</span>
+          <span>{{ toKilo(projects[idx - 1].codeLines) }} (kl)</span>
         </div>
       </div>
     </div>
@@ -280,7 +279,7 @@ function hideChooseBorder() {
         <div v-if="projects[idx - 1]" class="value-div">
           <div>
             <div style="text-align: center; margin-bottom: 8px">
-              {{ projects[idx - 1].document.documentScore }}%
+              {{ formatFloat(projects[idx - 1].document.documentScore) }}%
             </div>
             <div>
               <span v-if="projects[idx - 1].document.hasReadme" i-ph-check-circle mr-1 font-size-5 color-green-300 />
@@ -317,7 +316,9 @@ function hideChooseBorder() {
     <div class="row" @mouseover="showChooseBorder('Benchmark Score', $event)" @mouseout="hideChooseBorder($event)">
       <div class="border param-name" style="height: 60px; font-size: 14px">Benchmark Score</div>
       <div v-for="idx in 5" :key="idx" class="param-value border">
-        <div v-if="projects[idx - 1]" class="value-div">NA</div>
+        <div v-if="projects[idx - 1]" class="value-div">
+          <span>{{ formatFloat(projects[idx - 1].evaluation.performanceScore) }}</span>
+        </div>
       </div>
     </div>
 
@@ -346,7 +347,7 @@ function hideChooseBorder() {
           <div v-for="idx in 5" :key="idx" class="param-value border">
             <div v-if="projects[idx - 1]" class="value-div">
               <span :class="{ good: isGood(projects[idx - 1].scorecard.score, 'scorecard.score') }">
-                {{ projects[idx - 1].scorecard.score }} / 10
+                {{ formatFloat(projects[idx - 1].scorecard.score) }} / 10
               </span>
             </div>
           </div>
@@ -362,7 +363,7 @@ function hideChooseBorder() {
               <span :class="{
       good: isGood(projects[idx - 1].scorecard.codeReview, 'scorecard.codeReview'),
     }">
-                {{ projects[idx - 1].scorecard.codeReview }} / 10
+                {{ formatFloat(projects[idx - 1].scorecard.codeReview) }} / 10
               </span>
             </div>
           </div>
@@ -378,7 +379,7 @@ function hideChooseBorder() {
               <span :class="{
       good: isGood(projects[idx - 1].scorecard.maintained, 'scorecard.maintained'),
     }">
-                {{ projects[idx - 1].scorecard.maintained }} / 10
+                {{ formatFloat(projects[idx - 1].scorecard.maintained) }} / 10
               </span>
             </div>
           </div>
@@ -398,7 +399,7 @@ function hideChooseBorder() {
         'scorecard.ciiBestPractices',
       ),
     }">
-                {{ projects[idx - 1].scorecard.ciiBestPractices }} / 10
+                {{ formatFloat(projects[idx - 1].scorecard.ciiBestPractices) }} / 10
               </span>
             </div>
           </div>
@@ -412,7 +413,7 @@ function hideChooseBorder() {
           <div v-for="idx in 5" :key="idx" class="param-value border">
             <div v-if="projects[idx - 1]" class="value-div">
               <span :class="{ good: isGood(projects[idx - 1].scorecard.license, 'scorecard.license') }">
-                {{ projects[idx - 1].scorecard.license }} / 10
+                {{ formatFloat(projects[idx - 1].scorecard.license) }} / 10
               </span>
             </div>
           </div>
@@ -431,7 +432,7 @@ function hideChooseBorder() {
         'scorecard.securityPolicy',
       ),
     }">
-                {{ projects[idx - 1].scorecard.securityPolicy }} / 10
+                {{ formatFloat(projects[idx - 1].scorecard.securityPolicy) }} / 10
               </span>
             </div>
           </div>
@@ -451,7 +452,7 @@ function hideChooseBorder() {
         'scorecard.dangerousWorkflow',
       ),
     }">
-                {{ projects[idx - 1].scorecard.dangerousWorkflow }} / 10
+                {{ formatFloat(projects[idx - 1].scorecard.dangerousWorkflow) }} / 10
               </span>
             </div>
           </div>
@@ -471,7 +472,7 @@ function hideChooseBorder() {
         'scorecard.branchProtection',
       ),
     }">
-                {{ projects[idx - 1].scorecard.branchProtection }} / 10
+                {{ formatFloat(projects[idx - 1].scorecard.branchProtection) }} / 10
               </span>
             </div>
           </div>
@@ -491,7 +492,7 @@ function hideChooseBorder() {
         'scorecard.tokenPermissions',
       ),
     }">
-                {{ projects[idx - 1].scorecard.tokenPermissions }} / 10
+                {{ formatFloat(projects[idx - 1].scorecard.tokenPermissions) }} / 10
               </span>
             </div>
           </div>
@@ -510,7 +511,7 @@ function hideChooseBorder() {
         'scorecard.binaryArtifacts',
       ),
     }">
-                {{ projects[idx - 1].scorecard.binaryArtifacts }} / 10
+                {{ formatFloat(projects[idx - 1].scorecard.binaryArtifacts) }} / 10
               </span>
             </div>
           </div>
@@ -524,7 +525,7 @@ function hideChooseBorder() {
           <div v-for="idx in 5" :key="idx" class="param-value border">
             <div v-if="projects[idx - 1]" class="value-div">
               <span :class="{ good: isGood(projects[idx - 1].scorecard.fuzzing, 'scorecard.fuzzing') }">
-                {{ projects[idx - 1].scorecard.fuzzing }} / 10
+                {{ formatFloat(projects[idx - 1].scorecard.fuzzing) }} / 10
               </span>
             </div>
           </div>
@@ -538,7 +539,7 @@ function hideChooseBorder() {
           <div v-for="idx in 5" :key="idx" class="param-value border">
             <div v-if="projects[idx - 1]" class="value-div">
               <span :class="{ good: isGood(projects[idx - 1].scorecard.sast, 'scorecard.sast') }">
-                {{ projects[idx - 1].scorecard.sast }} / 10
+                {{ formatFloat(projects[idx - 1].scorecard.sast) }} / 10
               </span>
             </div>
           </div>
@@ -557,7 +558,7 @@ function hideChooseBorder() {
         'scorecard.vulnerabilities',
       ),
     }">
-                {{ projects[idx - 1].scorecard.vulnerabilities }} / 10
+                {{ formatFloat(projects[idx - 1].scorecard.vulnerabilities) }} / 10
               </span>
             </div>
           </div>
@@ -577,7 +578,7 @@ function hideChooseBorder() {
         'scorecard.pinnedDependencies',
       ),
     }">
-                {{ projects[idx - 1].scorecard.pinnedDependencies }} / 10
+                {{ formatFloat(projects[idx - 1].scorecard.pinnedDependencies) }} / 10
               </span>
             </div>
           </div>
@@ -606,10 +607,10 @@ function hideChooseBorder() {
               <div class="w-30px h-30px border-rd-50% text-center"
                    :style="{ backgroundColor: getLevelColor(projects[idx - 1].sonarCloudScan?.reliabilityRating) }">
                 <span vertical-middle color-white>{{
-      toKilo(projects[idx - 1].sonarCloudScan?.reliabilityRating)
-    }}</span>
+                  formatString(projects[idx - 1].sonarCloudScan.reliabilityRating)
+                }}</span>
               </div>
-              <span>{{ toKilo(projects[idx - 1].sonarCloudScan?.bugs) }} Bugs</span>
+              <span>{{ formatNumber(projects[idx - 1].sonarCloudScan.bugs) }} Bugs</span>
             </div>
           </div>
         </div>
@@ -624,10 +625,10 @@ function hideChooseBorder() {
               <div class="w-30px h-30px border-rd-50% text-center"
                    :style="{ backgroundColor: getLevelColor(projects[idx - 1].sonarCloudScan?.maintainabilityRating) }">
                 <span vertical-middle color-white>{{
-      toKilo(projects[idx - 1].sonarCloudScan?.maintainabilityRating)
+                  formatString(projects[idx - 1].sonarCloudScan?.maintainabilityRating)
     }}</span>
               </div>
-              <span>{{ toKilo(projects[idx - 1].sonarCloudScan?.codeSmells) }} Code Smells</span>
+              <span>{{ formatNumber(projects[idx - 1].sonarCloudScan?.codeSmells) }} Code Smells</span>
             </div>
           </div>
         </div>
@@ -642,11 +643,11 @@ function hideChooseBorder() {
               <div class="w-30px h-30px border-rd-50% text-center"
                    :style="{ backgroundColor: getLevelColor(projects[idx - 1].sonarCloudScan?.securityRating) }">
                 <span vertical-middle color-white>{{
-      toKilo(projects[idx - 1].sonarCloudScan?.securityRating)
+                  formatString(projects[idx - 1].sonarCloudScan?.securityRating)
     }}</span>
               </div>
               <span>{{
-        toKilo(projects[idx - 1].sonarCloudScan?.vulnerabilities)
+        formatNumber(projects[idx - 1].sonarCloudScan?.vulnerabilities)
       }}
                 Vulnerabilities</span>
             </div>
@@ -663,10 +664,10 @@ function hideChooseBorder() {
               <div class="w-30px h-30px border-rd-50% text-center"
                    :style="{ backgroundColor: getLevelColor(projects[idx - 1].sonarCloudScan?.securityReviewRating) }">
                 <span vertical-middle color-white>{{
-      toKilo(projects[idx - 1].sonarCloudScan?.securityReviewRating)
+                  formatString(projects[idx - 1].sonarCloudScan?.securityReviewRating)
     }}</span>
               </div>
-              <span>{{ toKilo(projects[idx - 1].sonarCloudScan?.securityHotspots) }} Security
+              <span>{{ formatNumber(projects[idx - 1].sonarCloudScan?.securityHotspots) }} Security
                 Hotspots</span>
 
             </div>
@@ -694,8 +695,8 @@ function hideChooseBorder() {
               margin-bottom: 10px;
             ">
             <span style="text-align: center; font-weight: bold">{{
-      toKilo(projects[idx - 1].ecologyOverview.downloads)
-    }}</span>
+              formatNumber(projects[idx - 1].ecologyOverview.downloads)
+            }} (k)</span>
             <div style="display: inline-flex">
               <div i-custom:download font-size-6 mr-4 />
               <div>npm周下载量</div>
@@ -736,8 +737,8 @@ function hideChooseBorder() {
 
           <div style="width: 160px; display: flex; flex-direction: column; justify-content: center">
             <span style="text-align: center; font-weight: bold">{{
-        projects[idx - 1].ecologyOverview.busFactor
-      }}</span>
+              formatFloat(projects[idx - 1].ecologyOverview.busFactor)
+            }}</span>
             <div style="display: inline-flex">
               <div i-custom:bus font-size-6 mr-4 />
               <div>巴士系数</div>
@@ -759,8 +760,8 @@ function hideChooseBorder() {
               margin-bottom: 10px;
             ">
             <span style="text-align: center; font-weight: bold">{{
-      projects[idx - 1].ecologyOverview.openRank
-    }}</span>
+              formatFloat(projects[idx - 1].ecologyOverview.openRank)
+            }}</span>
             <div style="display: inline-flex">
               <div i-custom:medal font-size-6 mr-4 />
               <div>OpenRank得分</div>
@@ -775,8 +776,8 @@ function hideChooseBorder() {
               margin-bottom: 10px;
             ">
             <span style="text-align: center; font-weight: bold">{{
-        projects[idx - 1].ecologyOverview.criticalityScore
-      }}</span>
+              formatFloat(projects[idx - 1].ecologyOverview.criticalityScore)
+            }}</span>
             <div style="display: inline-flex">
               <div i-custom:trophy font-size-6 mr-4 />
               <div>Criticality得分</div>
@@ -791,8 +792,8 @@ function hideChooseBorder() {
               margin-bottom: 10px;
             ">
             <span style="text-align: center; font-weight: bold">{{
-        projects[idx - 1].ecologyOverview.contributorCount
-      }}</span>
+              formatNumber(projects[idx - 1].ecologyOverview.contributorCount)
+            }}</span>
             <div style="display: inline-flex">
               <div i-custom:contributor font-size-6 mr-4 />
               <div>贡献者数量</div>
@@ -801,7 +802,7 @@ function hideChooseBorder() {
 
           <div style="width: 160px; display: flex; flex-direction: column; justify-content: center">
             <span style="text-align: center; font-weight: bold">{{
-        projects[idx - 1].ecologyOverview.dependentCount
+        formatNumber(projects[idx - 1].ecologyOverview.dependentCount)
       }}</span>
             <div style="display: inline-flex">
               <div i-custom:link font-size-6 mr-4 />

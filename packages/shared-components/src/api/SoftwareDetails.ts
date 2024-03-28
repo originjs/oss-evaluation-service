@@ -140,13 +140,17 @@ export function getFunctionModuleInfo(repoName: string) {
 }
 
 export type BenchmarkData = {
-  displayName: string;
-  indexName: string;
-  rawValue: null | string;
-}[][];
+  base: { indexName: string; bestVal: number }[];
+  data: {
+    displayName: string;
+    indexName: string;
+    rawValue: null | string;
+  }[][];
+};
 
 export type PerformanceModuleInfo = {
   size: number;
+  packageName: string;
   gzipSize: number;
   benchmarkScore: number;
   benchmarkData: BenchmarkData;

@@ -69,15 +69,6 @@ export async function getSoftwareInfo(repoName) {
   res.repoName = repoName;
   res.ecologyOverview = ecologyOverview;
   res.techStack = res.techStack?.subcategory;
-  res.codeLines = (res.codeLines / 1000).toFixed(2);
-  res.evaluation.functionScore = res.evaluation.functionScore?.toFixed(2);
-  res.evaluation.qualityScore = res.evaluation.qualityScore?.toFixed(2);
-  res.evaluation.performanceScore = res.evaluation.performanceScore?.toFixed(2);
-  res.evaluation.ecologyScore = res.evaluation.ecologyScore?.toFixed(2);
-  res.evaluation.scorecardScore = res.evaluation.scorecardScore?.toFixed(2);
-  res.evaluation.criticalityScore = res.evaluation.criticalityScore?.toFixed(2);
-  res.evaluation.openrank = res.evaluation.openrank?.toFixed(2);
-  res.document.documentScore = res.document.documentScore?.toFixed(2);
 
   if (res.satisfaction?.length !== 0) {
     let satisfaction = res.satisfaction.sort((a, b) => {
@@ -203,6 +194,7 @@ export async function getPerformance(repoName) {
   let benchmarkData = await getPerformanceBenchmark(repoName);
   return {
     size: packageSize?.size,
+    packageName,
     gzipSize: packageSize?.gzipSize,
     //   TODO benchmark score
     benchmarkScore: 0,
@@ -257,7 +249,26 @@ order by benchmark.display_name, index_name.order`;
     const data = map.get(displayName);
     data.push({ displayName, indexName, rawValue });
   });
-  return [...map.values()];
+  const queryBase = `
+  select if(index_name.display_name is null, benchmark.benchmark, index_name.display_name) as indexName,
+       min(benchmark.raw_value)                                                          as bestVal
+from benchmark
+         left join benchmark_index index_name
+                   on benchmark.tech_stack = index_name.tech_stack
+                       and benchmark.benchmark = index_name.index_name
+where benchmark.patch_id = :patchId
+  and benchmark.raw_value > 0
+group by if(index_name.display_name is null, benchmark.benchmark, index_name.display_name)`;
+  const bestVal = await sequelize.query(queryBase, {
+    type: sequelize.QueryTypes.SELECT,
+    replacements: {
+      patchId: maxPatchIdData.patchId,
+    },
+  });
+  return {
+    data: [...map.values()],
+    base: bestVal,
+  };
 }
 
 export async function getQuality(repoName) {
@@ -293,7 +304,7 @@ export async function getQuality(repoName) {
   return res;
 }
 
-async function getProjectIdByRepoName(repoName) {
+export async function getProjectIdByRepoName(repoName) {
   const data = await ProjectPackage.findOne({
     where: {
       projectName: repoName,

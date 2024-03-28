@@ -365,8 +365,9 @@ function removeUnit(str: string) {
 const performanceModuleInfo = ref<PerformanceModuleInfo>({
   size: 0,
   gzipSize: 0,
+  packageName: '',
   benchmarkScore: 0,
-  benchmarkData: [],
+  benchmarkData: { data: [], base: [] },
 });
 
 type BenchmarkCompareRow = Record<string, string | null>;
@@ -391,11 +392,12 @@ function processBenchmarkData(benchmarkData: BenchmarkData, needRetain?: boolean
   const columns: Set<string> = needRetain
     ? new Set([...benchmarkCompareColumns.value])
     : new Set(['indexName']);
-  for (let i = 0; i < benchmarkData.length; i++) {
-    for (let j = 0; j < benchmarkData[i].length; j++) {
-      const indexName = benchmarkData[i][j].indexName;
-      const displayName = benchmarkData[i][j].displayName;
-      const rawValue = benchmarkData[i][j].rawValue;
+  const data = benchmarkData.data
+  for (let i = 0; i < data.length; i++) {
+    for (let j = 0; j < data[i].length; j++) {
+      const indexName = data[i][j].indexName;
+      const displayName = data[i][j].displayName;
+      const rawValue = data[i][j].rawValue;
       if (indexName && displayName) {
         // get row
         let row = rows[indexName] || { indexName };
@@ -650,7 +652,11 @@ const emits = defineEmits<{
         <span font-size-5 float-right>{{ project?.evaluation.performanceScore }}/100</span>
       </div>
       <el-card>
-        <div>包大小</div>
+        <div>
+          包大小{{
+            performanceModuleInfo.packageName ? ` : ${performanceModuleInfo.packageName}` : ''
+          }}
+        </div>
         <div flex flex-items-center h-86px>
           <div mr-200px>
             <div mb-2 font-bold>{{ (performanceModuleInfo.size / 1024).toFixed(1) }} kB</div>

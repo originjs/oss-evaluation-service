@@ -3,7 +3,7 @@ import ejsExcel from 'ejsexcel';
 import debug from 'debug';
 import EvaluationSummary from '@orginjs/oss-evaluation-data-model/models/EvaluationSummary.js';
 import { PackageDownloadCount } from '@orginjs/oss-evaluation-data-model';
-import { getMainPackageByRepoName, getPerformanceBenchmark } from './softwareDetailService.js';
+import { getPerformanceBenchmark, getProjectIdByRepoName } from './softwareDetailService.js';
 import { readFileSync } from 'node:fs';
 import XLSX from 'xlsx';
 import { fixedRound } from '../util/math.js';
@@ -26,21 +26,21 @@ export async function getSoftwareEcologyOverview(repoName) {
                score as criticality_score,
                max(contributor_count) as contributor_count
         from github_projects project
-           inner join opendigger_info digeer on project.id = digeer.project_id
-           inner join criticality_score criticality on project.id = criticality.project_id
-           inner join compass_activity_detail compass on project.id = compass.project_id
-        where full_name = :packageName
+           left join opendigger_info digeer on project.id = digeer.project_id
+           left join criticality_score criticality on project.id = criticality.project_id
+           left join compass_activity_detail compass on project.id = compass.project_id
+        where project.id = :projectId
         group by project.id;
   `;
 
-  const packageName = await getMainPackageByRepoName(repoName);
+  const projectId = await getProjectIdByRepoName(repoName);
   const softwareEcologyOverview = await sequelize.query(sql, {
-    replacements: { packageName: repoName },
+    replacements: { projectId: projectId },
     type: sequelize.QueryTypes.SELECT,
   });
   const downloadData = await PackageDownloadCount.findOne({
     where: {
-      packageName,
+      projectId,
     },
     attributes: ['downloads'],
     order: [['week', 'desc']],
@@ -158,18 +158,19 @@ export async function exportScoreExcel(packageName) {
 }
 
 export async function exportBenchmarkExcel(repoName) {
-  let benchmarkData = await getPerformanceBenchmark(repoName);
-  if (!benchmarkData) {
+  const benchmarkDataAndBase = await getPerformanceBenchmark(repoName);
+  const data = benchmarkDataAndBase?.data;
+  if (!data) {
     return;
   }
   const headers = [];
   // empty first cell
   headers.push('');
-  benchmarkData.forEach(item => {
+  data.forEach(item => {
     headers.push(item[0].displayName);
   });
   const map = new Map();
-  benchmarkData.flat().forEach(({ indexName, rawValue }) => {
+  data.flat().forEach(({ indexName, rawValue }) => {
     if (!map.has(indexName)) {
       map.set(indexName, []);
     }
