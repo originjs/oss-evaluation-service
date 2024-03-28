@@ -158,18 +158,19 @@ export async function exportScoreExcel(packageName) {
 }
 
 export async function exportBenchmarkExcel(repoName) {
-  let benchmarkData = await getPerformanceBenchmark(repoName);
-  if (!benchmarkData) {
+  const benchmarkDataAndBase = await getPerformanceBenchmark(repoName);
+  const data = benchmarkDataAndBase?.data;
+  if (!data) {
     return;
   }
   const headers = [];
   // empty first cell
   headers.push('');
-  benchmarkData.forEach(item => {
+  data.forEach(item => {
     headers.push(item[0].displayName);
   });
   const map = new Map();
-  benchmarkData.flat().forEach(({ indexName, rawValue }) => {
+  data.flat().forEach(({ indexName, rawValue }) => {
     if (!map.has(indexName)) {
       map.set(indexName, []);
     }
