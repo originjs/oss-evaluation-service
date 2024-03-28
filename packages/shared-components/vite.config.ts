@@ -14,6 +14,12 @@ export default defineConfig({
     alias: {
       vue: 'vue/dist/vue.esm-bundler.js',
       '@': pathSrc,
+      '@api': resolve(__dirname, './src/api'),
+      '@assets': resolve(__dirname, './src/assets'),
+      '@components': resolve(__dirname, './src/components'),
+      '@router': resolve(__dirname, './src/router'),
+      '@utils': resolve(__dirname, './src/utils'),
+      '@views': resolve(__dirname, './src/views'),
     },
   },
   plugins: [
@@ -51,11 +57,25 @@ export default defineConfig({
       fileName: 'index',
     },
     rollupOptions: {
-      external: ['vue'],
+      external: [
+        'vue',
+        'element-plus',
+        'echarts',
+        'axios',
+        '@vueuse/core',
+        '@orginjs/oss-evaluation-components',
+        '@element-plus/icons-vue',
+      ],
       output: {
         exports: 'named',
         globals: {
           vue: 'Vue',
+          'element-plus': 'ElementPlus',
+          echarts: 'Echarts',
+          axios: 'Axios',
+          '@vueuse/core': 'VueUseCore',
+          '@orginjs/oss-evaluation-components': 'OssEvaluationComponents',
+          '@element-plus/icons-vue': 'ElementPlusIconsVue',
         },
       },
     },

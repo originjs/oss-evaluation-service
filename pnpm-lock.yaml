@@ -214,12 +214,18 @@ importers:
 
   packages/shared-components:
     dependencies:
+      '@orginjs/oss-evaluation-components':
+        specifier: workspace:*
+        version: 'link:'
       dayjs:
         specifier: ^1.11.10
         version: 1.11.10
       echarts:
         specifier: ^5.5.0
         version: 5.5.0
+      file-saver:
+        specifier: ^2.0.5
+        version: 2.0.5
       vue-router:
         specifier: ^4.3.0
         version: 4.3.0(vue@3.4.21)
@@ -233,6 +239,9 @@ importers:
       '@iconify/utils':
         specifier: ^2.1.22
         version: 2.1.22
+      '@types/file-saver':
+        specifier: ^2.0.7
+        version: 2.0.7
       '@types/node':
         specifier: ^18.11.12
         version: 18.19.21

@@ -1,4 +1,7 @@
-export function getLevelColor(str: string) {
+export function getLevelColor(str?: string) {
+  if (!str) {
+    return '';
+  }
   return (
     {
       A: '#21c45d',
