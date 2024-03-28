@@ -19,6 +19,7 @@ import {
 import ChartData from '../model/chartData.js';
 import { round } from '../util/math.js';
 import { Op } from 'sequelize';
+import { getSoftwareEcologyOverview } from './softwareEcology.js';
 
 ProjectInfo.hasOne(Scorecard, { foreignKey: 'project_id', as: 'scorecard' });
 ProjectInfo.hasOne(SonarCloudProjectMin, { foreignKey: 'github_project_id', as: 'sonarCloudScan' });
@@ -62,7 +63,9 @@ export async function getSoftwareInfo(repoName) {
   });
 
   const res = softwareInfo.toJSON();
+  const ecologyOverview = await getSoftwareEcologyOverview(repoName);
   res.repoName = repoName;
+  res.ecologyOverview = ecologyOverview;
   res.techStack = res.techStack?.subcategory;
   res.codeLines = (res.codeLines / 1000).toFixed(2);
   res.evaluation.functionScore = res.evaluation.functionScore?.toFixed(2);
