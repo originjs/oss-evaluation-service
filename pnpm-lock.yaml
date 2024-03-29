@@ -26,9 +26,6 @@ importers:
       '@vue/eslint-config-typescript':
         specifier: ^13.0.0
         version: 13.0.0(eslint-plugin-vue@9.23.0)(eslint@8.56.0)(typescript@4.7.4)
-      '@vue/shared':
-        specifier: ^3.4.21
-        version: 3.4.21
       '@vue/typescript':
         specifier: ^1.8.20
         version: 1.8.20(typescript@4.7.4)

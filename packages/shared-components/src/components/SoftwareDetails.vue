@@ -189,6 +189,7 @@ watchEffect(async () => {
       yAxis: data.satisfaction.map(item => item.val),
     };
   }
+  await nextTick();
   renderSoftwareRadarChart();
   renderGithubStartChart();
   renderDeveloperSatisfactionChart();
@@ -387,13 +388,13 @@ watchEffect(async () => {
 });
 
 // Extract table row, min row value and column name from object array data
-function processBenchmarkData(benchmarkData: BenchmarkData, needRetain?: boolean) {
+function processBenchmarkData(benchmarkData?: BenchmarkData, needRetain?: boolean) {
   const rows: BenchmarkCompareData = needRetain ? { ...benchmarkCompareRows.value } : {};
   const minRowV: MinRowValue = needRetain ? { ...minRowValue.value } : {};
   const columns: Set<string> = needRetain
     ? new Set([...benchmarkCompareColumns.value])
     : new Set(['indexName']);
-  const data = benchmarkData.data;
+  const data = benchmarkData?.data || [];
   for (let i = 0; i < data.length; i++) {
     for (let j = 0; j < data[i].length; j++) {
       const indexName = data[i][j].indexName;

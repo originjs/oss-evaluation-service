@@ -110,5 +110,5 @@ export interface PerformanceInfo {
   packageName: string;
   gzipSize: number;
   benchmarkScore: number;
-  benchmarkData: BenchmarkData;
+  benchmarkData?: BenchmarkData;
 }
