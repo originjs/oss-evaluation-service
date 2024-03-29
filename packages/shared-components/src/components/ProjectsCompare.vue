@@ -5,6 +5,11 @@ import type { SoftwareInfo } from '@/api/SoftwareDetails';
 import { getSoftwareInfo } from '@/api/SoftwareDetails';
 import { toKilo, formatNumber, formatFloat, formatString} from '@/utils/number';
 import { getLevelColor } from '@utils/color';
+import { ElMessage } from 'element-plus';
+
+const emit = defineEmits<{
+  removeRepo: [repoName: string];
+}>();
 
 const prop = defineProps({
   repositories: {
@@ -87,6 +92,15 @@ function showChooseBorder(title: string, event: MouseEvent) {
 function hideChooseBorder() {
   tipDiv.value!.style.display = 'none';
 }
+
+const removeSoftware = (index: number) => {
+  if (projects.length <= 1) {
+    ElMessage.warning('至少需要保留一个软件');
+    return;
+  }
+  const project = projects.splice(index - 1, 1);
+  emit('removeRepo', project[0].repoName);
+};
 </script>
 
 <template>
@@ -110,7 +124,7 @@ function hideChooseBorder() {
               </template>
             </el-image>
             <span>{{ projects[idx - 1]?.repoName }}</span>
-            <el-icon class="close-btn">
+            <el-icon class="close-btn cursor-pointer hover-color-#F56C6C" @click="removeSoftware(idx)">
               <Close />
             </el-icon>
             <el-button v-if="idx < projects.length" class="switch-btn" :icon="Switch" circle />
