@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Search } from '@element-plus/icons-vue';
-import type { SoftwareInfo } from '@/api/SearchSoftware';
+import type { SoftwareBaseInfo } from '@/api/SearchSoftware';
 import { getSoftwareNamesApi } from '@/api/SearchSoftware';
 import type { PromisifyFn } from '@vueuse/core';
 import { useDebounceFn } from '@vueuse/core';
@@ -16,7 +16,7 @@ const emit = defineEmits<{
 const searchInputInstance = ref();
 const showSearchBox = ref(false);
 const searchValue = ref('');
-const softwareNames = ref<SoftwareInfo[]>([]);
+const softwareNames = ref<SoftwareBaseInfo[]>([]);
 const loadingSoftwareNames = ref(false);
 
 const getSoftwareNames: PromisifyFn<(query: string) => Promise<void>> = useDebounceFn(

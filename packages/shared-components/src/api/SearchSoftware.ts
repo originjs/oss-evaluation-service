@@ -1,14 +1,10 @@
 import HttpRequest from './HttpRequest';
 
-export type SoftwareInfo = {
-  name: string;
-  url: string;
-  description: string;
-  star: number;
-};
+import type { SoftwareBaseInfo } from '@orginjs/oss-evaluation-api-server';
+export { SoftwareBaseInfo };
 
 export function getSoftwareNamesApi(params: { keyword: string; techStack?: string }) {
-  return HttpRequest.get<SoftwareInfo[]>(`/home/search`, {
+  return HttpRequest.get<SoftwareBaseInfo[]>(`/home/search`, {
     params,
   });
 }

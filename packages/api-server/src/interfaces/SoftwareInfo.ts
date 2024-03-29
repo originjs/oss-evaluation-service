@@ -1,8 +1,9 @@
 export interface SoftwareBaseInfo {
-  name: string;
+  repoName: string;
   url: string;
   description: string;
-  star: number;
+  logo: string;
+  star?: number;
 }
 
 export interface EcologyOverview {
@@ -19,7 +20,6 @@ export interface EcologyOverview {
 }
 
 export interface SoftwareInfo extends SoftwareBaseInfo {
-  logo: string;
   fork: number;
   language: string;
   firstCommit: string;
@@ -62,10 +62,10 @@ export interface SoftwareInfo extends SoftwareBaseInfo {
     vulnerabilities: number;
     securityHotspots: number;
     reviewed: string;
-    reliabilityLevel: string;
-    maintainabilityLevel: string;
-    securityLevel: string;
-    securityReviewLevel: string;
+    reliabilityRating: string;
+    maintainabilityRating: string;
+    securityRating: string;
+    securityReviewRating: string;
   };
   document: {
     documentScore: number;

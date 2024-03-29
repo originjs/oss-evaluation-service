@@ -1,4 +1,21 @@
 import HttpRequest from '@api/HttpRequest';
+import type {
+  SoftwareInfo,
+  SoftwareBaseInfo,
+  PerformanceInfo,
+  BenchmarkData,
+  EcologyActivityCategory,
+  EcologyActivity,
+} from '@orginjs/oss-evaluation-api-server';
+
+export {
+  SoftwareInfo,
+  SoftwareBaseInfo,
+  PerformanceInfo,
+  BenchmarkData,
+  EcologyActivity,
+  EcologyActivityCategory,
+};
 
 export function getSoftwareInfo(repoName: string) {
   return HttpRequest.get<SoftwareInfo>(`/project/${repoName}`);
