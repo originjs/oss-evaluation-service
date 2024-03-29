@@ -52,6 +52,10 @@ export type SoftwareInfo = {
     maintainabilityLevel: string;
     securityLevel: string;
     securityReviewLevel: string;
+    reliabilityRating: string;
+    maintainabilityRating: string;
+    securityRating: string;
+    securityReviewRating: string;
   };
   document: {
     documentScore: number;
@@ -136,13 +140,17 @@ export function getFunctionModuleInfo(repoName: string) {
 }
 
 export type BenchmarkData = {
-  displayName: string;
-  indexName: string;
-  rawValue: null | string;
-}[][];
+  base: { indexName: string; bestVal: number }[];
+  data: {
+    displayName: string;
+    indexName: string;
+    rawValue: null | string;
+  }[][];
+};
 
 export type PerformanceModuleInfo = {
   size: number;
+  packageName: string;
   gzipSize: number;
   benchmarkScore: number;
   benchmarkData: BenchmarkData;

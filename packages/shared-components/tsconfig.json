@@ -8,6 +8,7 @@
       "@assets/*": ["src/assets/*"],
       "@components/*": ["src/components/*"],
       "@router/*": ["src/router/*"],
+      "@utils/*": ["src/utils/*"],
       "@views/*": ["src/views/*"]
     }
   },

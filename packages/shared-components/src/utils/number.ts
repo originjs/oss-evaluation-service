@@ -7,18 +7,6 @@ export function toKilo(value: number | undefined | string): string {
   return (number / 1000).toFixed(2);
 };
 
-export function getLevelColor(str: string) {
-  return (
-    {
-      A: '#21c45d',
-      B: '#bbf7d0',
-      C: '#fef08b',
-      D: '#fcd44f',
-      E: '#fca6a6',
-    }[str] || '#61a6fa'
-  );
-}
-
 export function formatFloat(value: number | undefined | string) {
   if (value === undefined || value === null || value === '') {
     return '-';

@@ -25,6 +25,7 @@
   },
   "peerDependencies": {
     "@element-plus/icons-vue": "^2.3.1",
+    "@orginjs/oss-evaluation-components": "workspace:*",
     "@vueuse/core": "^10.9.0",
     "axios": "^1.6.7",
     "echarts": "^5.5.0",
@@ -35,6 +36,7 @@
     "@element-plus/icons-vue": "^2.3.1",
     "@iconify/json": "^2.2.190",
     "@iconify/utils": "^2.1.22",
+    "@types/file-saver": "^2.0.7",
     "@types/node": "^18.11.12",
     "@unocss/preset-icons": "^0.58.5",
     "@vitejs/plugin-vue": "^4.0.0",
@@ -53,7 +55,8 @@
     "vue": "^3.2.45"
   },
   "dependencies": {
-    "vue-router": "^4.3.0",
-    "dayjs": "^1.11.10"
+    "dayjs": "^1.11.10",
+    "file-saver": "^2.0.5",
+    "vue-router": "^4.3.0"
   }
 }
