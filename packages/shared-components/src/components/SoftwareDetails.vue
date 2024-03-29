@@ -20,7 +20,7 @@ import {
 import { getLevelColor, getTagType, scorecardProgressColor } from '@utils/color';
 import { saveAs } from 'file-saver';
 import { SearchSoftware } from '@orginjs/oss-evaluation-components';
-import { toKilo } from '@utils/number';
+import { toKilo, formatFloat, formatNumber, formatString } from '@utils/number';
 
 const props = defineProps<{ repoName: string }>();
 
@@ -392,7 +392,7 @@ function processBenchmarkData(benchmarkData: BenchmarkData, needRetain?: boolean
   const columns: Set<string> = needRetain
     ? new Set([...benchmarkCompareColumns.value])
     : new Set(['indexName']);
-  const data = benchmarkData.data
+  const data = benchmarkData.data;
   for (let i = 0; i < data.length; i++) {
     for (let j = 0; j < data[i].length; j++) {
       const indexName = data[i][j].indexName;
@@ -428,7 +428,7 @@ async function addBenchmarkCompare(name: string) {
   processBenchmarkData(benchmarkData, true);
 }
 
-function computeColor({ row, column }): CellStyle<BenchmarkCompareRow> {
+const computeColor: CellStyle<BenchmarkCompareRow> = function ({ row, column }) {
   const cellVal = row[column.property];
   if (column.property === 'indexName' || !cellVal) {
     return {};
@@ -448,7 +448,7 @@ function computeColor({ row, column }): CellStyle<BenchmarkCompareRow> {
     const b = (1.0 - a) * 132 + a * 108;
     return { backgroundColor: `rgb(${r.toFixed(0)}, ${g.toFixed(0)}, ${b.toFixed(0)})` };
   }
-}
+};
 function renderLineChart(container: string, data: EcologyActivity[]) {
   const chartDom = softwareDetailsEl.value.querySelector(container);
   if (!chartDom) {
@@ -594,7 +594,9 @@ const emits = defineEmits<{
       <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-custom:function mr-2 />
         <span>功能</span>
-        <span font-size-5 float-right>{{ project?.evaluation.functionScore }}/100</span>
+        <span font-size-5 float-right
+          >{{ formatFloat(project?.evaluation?.functionScore) }}/100</span
+        >
       </div>
       <el-card mb-6>
         <div font-size-5 font-bold>Github Star 趋势（演示数据）</div>
@@ -649,7 +651,9 @@ const emits = defineEmits<{
         <span i-custom:performance mr-2 />
         <span>性能</span>
         <span i-custom:profession mr-2 />
-        <span font-size-5 float-right>{{ project?.evaluation.performanceScore }}/100</span>
+        <span font-size-5 float-right
+          >{{ formatFloat(project?.evaluation?.performanceScore) }}/100</span
+        >
       </div>
       <el-card>
         <div>
@@ -723,7 +727,9 @@ const emits = defineEmits<{
       <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-custom:quality mr-2 />
         <span>质量</span>
-        <span font-size-5 float-right>{{ project?.evaluation.qualityScore }}/100</span>
+        <span font-size-5 float-right
+          >{{ formatFloat(project?.evaluation?.qualityScore) }}/100</span
+        >
       </div>
       <el-card mb-6>
         <div flex>
@@ -736,7 +742,7 @@ const emits = defineEmits<{
             </el-icon>
           </el-tooltip>
         </div>
-        <div font-bold>{{ project?.scorecard.score }} / 10</div>
+        <div font-bold>{{ formatFloat(project?.scorecard?.score) }} / 10</div>
         <div v-for="item in openSSFScorecard" :key="item.label" flex flex-items-center h-30px>
           <div w-190px>
             <span>{{ item.label }}</span>
@@ -766,7 +772,9 @@ const emits = defineEmits<{
               <span>Reliability</span>
             </div>
             <div>
-              <span font-bold font-size-6 mr-2>{{ toKilo(project?.sonarCloudScan?.bugs) }}</span>
+              <span font-bold font-size-6 mr-2>{{
+                formatNumber(project?.sonarCloudScan?.bugs)
+              }}</span>
               <span font-light>Bugs</span>
               <el-tooltip content="编码错误会破坏您的代码并且需要立即修复。">
                 <el-icon size-5 color-gray-400>
@@ -781,7 +789,7 @@ const emits = defineEmits<{
               }"
             >
               <span vertical-middle color-white>{{
-                toKilo(project?.sonarCloudScan?.reliabilityRating)
+                formatString(project?.sonarCloudScan?.reliabilityRating)
               }}</span>
             </div>
           </div>
@@ -792,7 +800,7 @@ const emits = defineEmits<{
             </div>
             <div>
               <span font-bold font-size-6 mr-2>{{
-                toKilo(project?.sonarCloudScan?.codeSmells)
+                formatNumber(project?.sonarCloudScan?.codeSmells)
               }}</span>
               <span font-light>Code Smells</span>
               <el-tooltip content="代码混乱且难以维护。">
@@ -808,7 +816,7 @@ const emits = defineEmits<{
               }"
             >
               <span vertical-middle color-white>{{
-                toKilo(project?.sonarCloudScan?.maintainabilityRating)
+                formatString(project?.sonarCloudScan?.maintainabilityRating)
               }}</span>
             </div>
           </div>
@@ -819,7 +827,7 @@ const emits = defineEmits<{
             </div>
             <div>
               <span font-bold font-size-6 mr-2>{{
-                toKilo(project?.sonarCloudScan?.vulnerabilities)
+                formatNumber(project?.sonarCloudScan?.vulnerabilities)
               }}</span>
               <span font-light>Vulnerabilities</span>
               <el-tooltip content="可以被黑客利用的代码。">
@@ -833,7 +841,7 @@ const emits = defineEmits<{
               :style="{ backgroundColor: getLevelColor(project?.sonarCloudScan?.securityRating) }"
             >
               <span vertical-middle color-white>{{
-                toKilo(project?.sonarCloudScan?.securityRating)
+                formatString(project?.sonarCloudScan?.securityRating)
               }}</span>
             </div>
           </div>
@@ -844,7 +852,7 @@ const emits = defineEmits<{
             </div>
             <div>
               <span font-bold font-size-6 mr-2>{{
-                toKilo(project?.sonarCloudScan?.securityHotspots)
+                formatNumber(project?.sonarCloudScan?.securityHotspots)
               }}</span>
               <span font-light mr-1>Security Hotspots</span>
               <el-tooltip content="需要手动检查以评估是否存在漏洞的安全敏感代码。">
@@ -860,7 +868,7 @@ const emits = defineEmits<{
               }"
             >
               <span vertical-middle color-white>{{
-                toKilo(project?.sonarCloudScan?.securityReviewRating)
+                formatString(project?.sonarCloudScan?.securityReviewRating)
               }}</span>
             </div>
           </div>
@@ -869,7 +877,7 @@ const emits = defineEmits<{
       <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-custom:ecology mr-2 />
         <span>生态</span>
-        <span font-size-5 float-right>{{ project?.evaluation.ecologyScore }}/100</span>
+        <span font-size-5 float-right>{{ project?.evaluation?.ecologyScore }}/100</span>
       </div>
       <div v-loading="loadingEcology" flex flex-wrap justify-between content-between>
         <el-card w-full mb-6>
@@ -878,7 +886,9 @@ const emits = defineEmits<{
             <div flex w-210px>
               <div i-custom:download font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ toKilo(project?.ecologyOverview?.downloads) }}</div>
+                <div font-bold font-size-5>
+                  {{ toKilo(project?.ecologyOverview?.downloads) }} (k)
+                </div>
                 <div line-height-7>npm周下载量</div>
               </div>
             </div>
@@ -886,7 +896,7 @@ const emits = defineEmits<{
               <div i-custom:star font-size-14 mr-4 />
               <div>
                 <div font-bold font-size-5>
-                  {{ toKilo(project?.ecologyOverview?.stargazersCount) }}
+                  {{ toKilo(project?.ecologyOverview?.stargazersCount) }} (k)
                 </div>
                 <div line-height-7>Star数量</div>
               </div>
@@ -894,7 +904,9 @@ const emits = defineEmits<{
             <div flex w-210px>
               <div i-custom:fork font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ toKilo(project?.ecologyOverview?.forksCount) }}</div>
+                <div font-bold font-size-5>
+                  {{ toKilo(project?.ecologyOverview?.forksCount) }} (k)
+                </div>
                 <div line-height-7>Fork数量</div>
               </div>
             </div>

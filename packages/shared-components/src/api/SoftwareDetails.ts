@@ -1,6 +1,7 @@
 import HttpRequest from '@/api/HttpRequest';
 
 export type SoftwareInfo = {
+  repoName: string;
   name: string;
   url: string;
   logo: string;
