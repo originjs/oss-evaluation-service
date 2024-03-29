@@ -154,7 +154,7 @@ export type PerformanceModuleInfo = {
   packageName: string;
   gzipSize: number;
   benchmarkScore: number;
-  benchmarkData: BenchmarkData;
+  benchmarkData?: BenchmarkData;
 };
 
 export function getPerformanceModuleInfo(repoName: string) {
