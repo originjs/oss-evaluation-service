@@ -121,13 +121,20 @@ async function getNoneScopedPackageDownloadCount(startDate, endDate, startId, en
       type: sequelize.QueryTypes.SELECT,
     },
   );
-  const packageToProjectIdMap = needSyncPackage.reduce((map, obj) => map.set(obj.package, obj.projectId), new Map());
+  const packageToProjectIdMap = needSyncPackage.reduce(
+    (map, obj) => map.set(obj.package, obj.projectId),
+    new Map(),
+  );
   const needSyncPackageNumList = chunk(needSyncPackage, PAGE_SIZE);
   for (const packageNameSlice of needSyncPackageNumList) {
     // Splicing batch query paths
     const packageNameStr = packageNameSlice.map(e => e.package).join(',');
     for (const weekOfYear of weekOfYearList) {
-      const downloadCountList = await dealMultiPackage(weekOfYear, packageNameStr, packageToProjectIdMap);
+      const downloadCountList = await dealMultiPackage(
+        weekOfYear,
+        packageNameStr,
+        packageToProjectIdMap,
+      );
       if (downloadCountList.length > 0) {
         for (const downloadCount of downloadCountList) {
           PackageDownloadCount.upsert(downloadCount).catch(err => {

@@ -1,12 +1,12 @@
 import { sequelize } from '@orginjs/oss-evaluation-data-model';
 import { QueryTypes } from 'sequelize';
 
-export async function search(keyword, techStack) {
+export async function searchProject(keyword: string, techStack: string) {
   const searchSql = `
-    select distinct projects.full_name as fullName,
-           projects.html_url as htmlName,
+    select distinct projects.full_name as name,
+           projects.html_url as url,
            projects.description ,
-           projects.stargazers_count as stargazersCount
+           projects.stargazers_count as star
         from github_projects projects
     join project_packages packages
     on projects.id = packages.project_id

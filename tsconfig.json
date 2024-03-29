@@ -1,21 +1,31 @@
 {
   "compilerOptions": {
+    /* Basic Options */
+    "incremental": true,
     "target": "ES2020",
     "useDefineForClassFields": true,
     "module": "ESNext",
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
+
+    /* Strict Type-Checking Options */
+    "strict": true,
     "skipLibCheck": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowSyntheticDefaultImports": true,
+
+    /* Module Resolution Options */
+    "baseUrl": ".",
+    "esModuleInterop": true,
     "moduleResolution": "Node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "preserve",
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "allowSyntheticDefaultImports": true,
-    "types": []
+
+    /* Experimental Options */
+    "experimentalDecorators": true
   },
   "include": ["packages/**/*"],
   "exclude": ["node_modules"]

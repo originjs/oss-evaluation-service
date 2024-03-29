@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { CompareFavorites } from '@orginjs/oss-evaluation-components'; // todo 确认这些内部组件会不会被打包进去
 import { Plus } from '@element-plus/icons-vue';
 import type { CellStyle } from 'element-plus';
 import { ElMessage } from 'element-plus';
 import * as echarts from 'echarts';
+import { saveAs } from 'file-saver';
 import dayjs from 'dayjs';
 import type {
   SoftwareInfo,
-  BenchmarkData,
+  SoftwareBaseInfo,
+  PerformanceInfo,
   EcologyActivity,
-  PerformanceModuleInfo,
+  BenchmarkData,
 } from '@api/SoftwareDetails';
 import {
   getSoftwareInfo,
@@ -17,9 +18,9 @@ import {
   getEcologyActivityCategoryApi,
   exportFileApi,
 } from '@api/SoftwareDetails';
+import { default as CompareFavorites } from './CompareFavorites.vue';
+import { default as SearchSoftware } from './SearchSoftware.vue';
 import { getLevelColor, getTagType, scorecardProgressColor } from '@utils/color';
-import { saveAs } from 'file-saver';
-import { SearchSoftware } from '@orginjs/oss-evaluation-components';
 import { toKilo, formatFloat, formatNumber, formatString } from '@utils/number';
 
 const props = defineProps<{ repoName: string }>();
@@ -363,7 +364,7 @@ function removeUnit(str: string) {
   return Number(str.split(' ')[0]);
 }
 
-const performanceModuleInfo = ref<PerformanceModuleInfo>({
+const performanceModuleInfo = ref<PerformanceInfo>({
   size: 0,
   gzipSize: 0,
   packageName: '',
@@ -514,9 +515,7 @@ function addProjectToCompare() {
 }
 
 const emits = defineEmits<{
-  compareProjects: [
-    projects: Array<{ repoName: string; logo: string; url: string; description: string }>,
-  ];
+  compareProjects: [projects: Array<SoftwareBaseInfo>];
 }>();
 </script>
 
@@ -878,7 +877,7 @@ const emits = defineEmits<{
       <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-custom:ecology mr-2 />
         <span>生态</span>
-        <span font-size-5 float-right >
+        <span font-size-5 float-right>
           {{ formatFloat(project?.evaluation?.ecologyScore) }}/100
         </span>
       </div>

@@ -25,7 +25,6 @@
   },
   "peerDependencies": {
     "@element-plus/icons-vue": "^2.3.1",
-    "@orginjs/oss-evaluation-components": "workspace:*",
     "@vueuse/core": "^10.9.0",
     "axios": "^1.6.7",
     "echarts": "^5.5.0",
@@ -33,6 +32,7 @@
     "vue": "^3.4.19"
   },
   "devDependencies": {
+    "@orginjs/oss-evaluation-api-server": "workspace:^",
     "@element-plus/icons-vue": "^2.3.1",
     "@iconify/json": "^2.2.190",
     "@iconify/utils": "^2.1.22",
