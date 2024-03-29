@@ -65,11 +65,11 @@ watchEffect(async () => {
   baseInfoTable.value = [
     {
       label: 'Stars',
-      value: toKilo(data.star),
+      value: `${toKilo(data.star)} k`,
     },
     {
       label: 'Fork',
-      value: toKilo(data.fork),
+      value: `${toKilo(data.fork)} k`,
     },
     {
       label: '开发语言',
@@ -77,7 +77,7 @@ watchEffect(async () => {
     },
     {
       label: '代码量',
-      value: `${data.codeLines} (KL)`,
+      value: `${toKilo(data.codeLines)} kl`,
     },
     {
       label: '首次提交',
@@ -877,7 +877,9 @@ const emits = defineEmits<{
       <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-custom:ecology mr-2 />
         <span>生态</span>
-        <span font-size-5 float-right>{{ project?.evaluation?.ecologyScore }}/100</span>
+        <span font-size-5 float-right >
+          {{ formatFloat(project?.evaluation?.ecologyScore) }}/100
+        </span>
       </div>
       <div v-loading="loadingEcology" flex flex-wrap justify-between content-between>
         <el-card w-full mb-6>
@@ -887,7 +889,7 @@ const emits = defineEmits<{
               <div i-custom:download font-size-14 mr-4 />
               <div>
                 <div font-bold font-size-5>
-                  {{ toKilo(project?.ecologyOverview?.downloads) }} (k)
+                  {{ toKilo(project?.ecologyOverview?.downloads).split('.')[0] }} k
                 </div>
                 <div line-height-7>npm周下载量</div>
               </div>
@@ -896,7 +898,7 @@ const emits = defineEmits<{
               <div i-custom:star font-size-14 mr-4 />
               <div>
                 <div font-bold font-size-5>
-                  {{ toKilo(project?.ecologyOverview?.stargazersCount) }} (k)
+                  {{ toKilo(project?.ecologyOverview?.stargazersCount) }} k
                 </div>
                 <div line-height-7>Star数量</div>
               </div>
@@ -905,7 +907,7 @@ const emits = defineEmits<{
               <div i-custom:fork font-size-14 mr-4 />
               <div>
                 <div font-bold font-size-5>
-                  {{ toKilo(project?.ecologyOverview?.forksCount) }} (k)
+                  {{ toKilo(project?.ecologyOverview?.forksCount) }} k
                 </div>
                 <div line-height-7>Fork数量</div>
               </div>
