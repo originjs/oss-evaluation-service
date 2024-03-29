@@ -4,6 +4,7 @@ import dayjs from 'dayjs';
 import type { SoftwareInfo } from '@/api/SoftwareDetails';
 import { getSoftwareInfo } from '@/api/SoftwareDetails';
 import { toKilo, formatNumber, formatFloat, formatString} from '@/utils/number';
+import { getLevelColor } from '@utils/color';
 
 const prop = defineProps({
   repositories: {
@@ -607,10 +608,10 @@ function hideChooseBorder() {
               <div class="w-30px h-30px border-rd-50% text-center"
                    :style="{ backgroundColor: getLevelColor(projects[idx - 1].sonarCloudScan?.reliabilityRating) }">
                 <span vertical-middle color-white>{{
-                  formatString(projects[idx - 1].sonarCloudScan.reliabilityRating)
+                  formatString(projects[idx - 1].sonarCloudScan?.reliabilityRating)
                 }}</span>
               </div>
-              <span>{{ formatNumber(projects[idx - 1].sonarCloudScan.bugs) }} Bugs</span>
+              <span>{{ formatNumber(projects[idx - 1].sonarCloudScan?.bugs) }} Bugs</span>
             </div>
           </div>
         </div>
