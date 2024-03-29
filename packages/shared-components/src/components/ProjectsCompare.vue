@@ -98,8 +98,12 @@ const removeSoftware = (index: number) => {
     ElMessage.warning('至少需要保留一个软件');
     return;
   }
-  const project = projects.splice(index - 1, 1);
+  const project = projects.splice(index, 1);
   emit('removeRepo', project[0].repoName);
+};
+
+const switchOrder = (index: number) => {
+  [projects[index], projects[index + 1]] = [projects[index + 1], projects[index]];
 };
 </script>
 
@@ -124,10 +128,10 @@ const removeSoftware = (index: number) => {
               </template>
             </el-image>
             <span>{{ projects[idx - 1]?.repoName }}</span>
-            <el-icon class="close-btn cursor-pointer hover-color-#F56C6C" @click="removeSoftware(idx)">
+            <el-icon class="close-btn cursor-pointer hover-color-#F56C6C" @click="removeSoftware(idx - 1)">
               <Close />
             </el-icon>
-            <el-button v-if="idx < projects.length" class="switch-btn" :icon="Switch" circle />
+            <el-button v-if="idx < projects.length" class="switch-btn" :icon="Switch" circle @click="switchOrder(idx - 1)" />
           </div>
           <div v-else class="none-project-div">
             <el-select style="width: 80%" placeholder="选择开源软件"> </el-select>
