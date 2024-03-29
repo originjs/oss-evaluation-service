@@ -45,11 +45,11 @@ const onClickSoftware = (name: string) => {
 </script>
 
 <template>
-  <div>
-    <div class="inline-block" @click="showSearchBox = true">
+  <div class="inline-block">
+    <div class="w-full" @click="showSearchBox = true">
       <slot>
         <button
-          class="search-btn flex flex-items-center p-12px rd-8px h-40px bg-#f6f6f7 b-1 b-solid b-transparent color-black-75 hover:b-#3451b2"
+          class="w-full flex flex-items-center p-12px rd-8px h-40px bg-#f6f6f7 b-1 b-solid b-transparent color-black-75 hover:b-#3451b2"
         >
           <span class="flex flex-items-center">
             <span i-ph-magnifying-glass-bold />
