@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"nodemon\" \"nodemon -x tsoa spec-and-routes\"",
+    "dev": "npm run build & nodemon",
     "build": "tsoa spec-and-routes && tsc",
     "start": "node ./dist/app.js",
     "swagger": "tsoa spec-and-routes"
@@ -15,7 +15,7 @@
       "src"
     ],
     "ext": "ts",
-    "exec": "ts-node src/app.ts"
+    "exec": "tsc && node ./dist/app.js"
   },
   "dependencies": {
     "@orginjs/oss-evaluation-data-model": "workspace:^",
