@@ -8,7 +8,8 @@
     "dev": "npm run build & nodemon",
     "build": "tsoa spec-and-routes && tsc",
     "start": "node ./dist/app.js",
-    "swagger": "tsoa spec-and-routes"
+    "swagger": "tsoa spec-and-routes",
+    "test": "vitest run"
   },
   "nodemonConfig": {
     "watch": [
