@@ -423,10 +423,10 @@ function processBenchmarkData(benchmarkData?: BenchmarkData, needRetain?: boolea
   benchmarkCompareColumns.value = columns;
 }
 
-async function addBenchmarkCompare(name: string) {
+async function addBenchmarkCompare(info: SoftwareBaseInfo) {
   const {
     data: { benchmarkData },
-  } = await getPerformanceModuleInfo(encodeURIComponent(name));
+  } = await getPerformanceModuleInfo(info.repoName);
   processBenchmarkData(benchmarkData, true);
 }
 
@@ -690,13 +690,17 @@ const emits = defineEmits<{
           </el-link>
         </div>
         <div v-show="showBenchmarkCompare">
-          <SearchSoftware :tech-stack="project?.techStack" @search-name="addBenchmarkCompare">
+          <SearchSoftware
+            class="w-280px"
+            :tech-stack="project?.techStack"
+            @change="addBenchmarkCompare"
+          >
             <button
-              class="search-btn flex flex-items-center p-12px rd-8px h-40px bg-#f6f6f7 b-1 b-solid b-transparent color-black-75 hover:b-#3451b2 mt-10px mb-10px"
+              class="w-full flex flex-items-center p-12px rd-8px h-40px bg-#f6f6f7 b-1 b-solid b-transparent color-black-75 hover:b-#3451b2 mt-10px mb-10px"
             >
               <span class="flex flex-items-center">
                 <span i-ph-magnifying-glass-bold />
-                <span class="ml-6px">添加软件对比</span>
+                <span class="ml-6px">添加软件性能对比</span>
               </span>
             </button>
           </SearchSoftware>
@@ -1043,9 +1047,5 @@ const emits = defineEmits<{
   .cell {
     line-height: 14px;
   }
-}
-
-:deep(.search-btn) {
-  width: 280px;
 }
 </style>

@@ -354,6 +354,9 @@ importers:
       '@iconify/utils':
         specifier: ^2.1.22
         version: 2.1.22
+      '@orginjs/oss-evaluation-api-server':
+        specifier: workspace:^
+        version: link:../api-server
       '@types/file-saver':
         specifier: ^2.0.7
         version: 2.0.7

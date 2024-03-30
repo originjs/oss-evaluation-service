@@ -5,6 +5,11 @@ import type { SoftwareInfo } from '@/api/SoftwareDetails';
 import { getSoftwareInfo } from '@/api/SoftwareDetails';
 import { toKilo, formatNumber, formatFloat, formatString } from '@/utils/number';
 import { getLevelColor } from '@utils/color';
+import { ElMessage } from 'element-plus';
+
+const emit = defineEmits<{
+  removeRepo: [repoName: string];
+}>();
 
 const prop = defineProps({
   repositories: {
@@ -88,6 +93,19 @@ function showChooseBorder(title: string, event: MouseEvent) {
 function hideChooseBorder() {
   tipDiv.value!.style.display = 'none';
 }
+
+const removeSoftware = (index: number) => {
+  if (projects.length <= 1) {
+    ElMessage.warning('至少需要保留一个软件');
+    return;
+  }
+  const project = projects.splice(index, 1);
+  emit('removeRepo', project[0].repoName);
+};
+
+const switchOrder = (index: number) => {
+  [projects[index], projects[index + 1]] = [projects[index + 1], projects[index]];
+};
 </script>
 
 <template>
@@ -110,11 +128,10 @@ function hideChooseBorder() {
                 </div>
               </template>
             </el-image>
-            <span>{{ projects[idx - 1]?.repoName }}</span>
-            <el-icon class="close-btn">
+            <el-icon class="close-btn cursor-pointer hover-color-#F56C6C" @click="removeSoftware(idx - 1)">
               <Close />
             </el-icon>
-            <el-button v-if="idx < projects.length" class="switch-btn" :icon="Switch" circle />
+              <el-button v-if="idx < projects.length" class="switch-btn" :icon="Switch" circle @click="switchOrder(idx - 1)" />
           </div>
           <div v-else class="none-project-div">
             <el-select style="width: 80%" placeholder="选择开源软件"> </el-select>
