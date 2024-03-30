@@ -9,8 +9,8 @@ export class HomeController extends Controller {
   public async search(
     @Query() keyword: string,
     @Query() techStack?: string,
-  ): Promise<Result<SoftwareBaseInfo>> {
-    const data = await searchProject(keyword, techStack);
+  ): Promise<Result<SoftwareBaseInfo[]>> {
+    const data = await searchProject(keyword, techStack!);
     return Result.ok(data);
   }
 }

@@ -1,3 +1,4 @@
+import type { NextFunction, Request, Response } from 'express';
 import express from 'express';
 import morgan from 'morgan';
 import swaggerUi from 'swagger-ui-express';
@@ -17,7 +18,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 RegisterRoutes(app);
 // swagger
-app.use('/api-docs', swaggerUi.serve, async (_req, res) => {
+app.use('/api-docs', swaggerUi.serve, async (req: Request, res: Response) => {
   return res.send(swaggerUi.generateHTML(swaggerConfig));
 });
 
@@ -29,14 +30,13 @@ app.use((req, res) => {
   });
 });
 
-app.use((err, req, res, next) => {
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   let { statusCode } = res;
   // Even in error cases, status code is 200 by default
   if (!statusCode || statusCode === 200) {
     statusCode = 500;
   }
   res.status(statusCode).json({
-    error: err.status,
     message: err.message,
     stack: err.stack,
   });

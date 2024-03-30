@@ -94,7 +94,9 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
  * @param repoName repoName
  * @returns softwareEcologyOverview
  */
-export async function getSoftwareEcologyOverview(repoName: string): Promise<EcologyOverview> {
+export async function getSoftwareEcologyOverview(
+  repoName: string,
+): Promise<EcologyOverview | null> {
   const sql = `
         select project.id,
                name,
@@ -164,7 +166,7 @@ export async function getPerformance(repoName: string): Promise<PerformanceInfo>
   };
 }
 
-export async function getPerformanceBenchmark(repoName): Promise<BenchmarkData> {
+export async function getPerformanceBenchmark(repoName: string): Promise<BenchmarkData | null> {
   const projectId = await getProjectIdByRepoName(repoName);
   const maxPatchIdData = await Benchmark.findOne({
     where: {
@@ -174,7 +176,7 @@ export async function getPerformanceBenchmark(repoName): Promise<BenchmarkData> 
     order: [['patchId', 'desc']],
   });
   if (!maxPatchIdData) {
-    return;
+    return null;
   }
 
   const benchmarkQuery = `
@@ -198,7 +200,7 @@ order by benchmark.display_name, index_name.order`;
     },
   });
   if (!benchmarkData || !benchmarkData.length) {
-    return;
+    return null;
   }
   const map = new Map();
   benchmarkData.forEach(item => {
@@ -233,7 +235,7 @@ group by if(index_name.display_name is null, benchmark.benchmark, index_name.dis
   };
 }
 
-export async function getProjectIdByRepoName(repoName) {
+export async function getProjectIdByRepoName(repoName: string) {
   const data = await ProjectPackage.findOne({
     where: {
       projectName: repoName,
@@ -253,7 +255,7 @@ export async function getProjectIdByRepoName(repoName) {
  * @param repoName projectName
  * @return {Promise<string>} packageName
  */
-export async function getMainPackageByRepoName(repoName) {
+export async function getMainPackageByRepoName(repoName: string) {
   const data = await ProjectPackage.findOne({
     where: {
       mainPackage: true,
@@ -275,7 +277,7 @@ export async function getMainPackageByRepoName(repoName) {
  * @param repoName repoName
  * @returns softwareCompassActivity
  */
-export async function getSoftwareActivity(repoName): Promise<EcologyActivityCategory> {
+export async function getSoftwareActivity(repoName: string): Promise<EcologyActivityCategory> {
   const sql = `
         select project_id,
                name,
@@ -344,7 +346,7 @@ export async function getSoftwareActivity(repoName): Promise<EcologyActivityCate
   };
 }
 
-export async function exportScoreExcel(packageName) {
+export async function exportScoreExcel(packageName: string) {
   const excelTemplate = readFileSync('./assets/evaluation-template.xlsx');
   const data = await EvaluationSummary.findOne({
     where: {
@@ -361,7 +363,7 @@ export async function exportScoreExcel(packageName) {
   }
 }
 
-export async function exportBenchmarkExcel(repoName) {
+export async function exportBenchmarkExcel(repoName: string) {
   const benchmarkDataAndBase = await getPerformanceBenchmark(repoName);
   const data = benchmarkDataAndBase?.data;
   if (!data) {

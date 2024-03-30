@@ -4,24 +4,24 @@ export class ChartData {
   xAxis: [];
   yAxis: [];
 
-  constructor(x, y) {
+  constructor(x: [], y: []) {
     this.xAxis = x;
     this.yAxis = y;
   }
 }
 
 export class Page {
-  pageSize = 10;
-  pageNo = 0;
-  data = [];
+  pageSize: number;
+  pageNo: number;
+  data: any[];
 
-  constructor(pageNo, pageSize, data?) {
+  constructor(pageNo: number, pageSize: number, data?: any[]) {
     this.pageSize = pageSize;
     this.pageNo = pageNo;
-    this.data = data;
+    this.data = data!;
   }
 
-  static clone(page) {
+  static clone(page: Page) {
     return new Page(page.pageNo, page.pageSize, page.data);
   }
 
@@ -38,7 +38,7 @@ typeMap.set('star', 'stargazersCount');
 typeMap.set('fork', 'forksCount');
 // typeMap.set("contributors" , "stargazers_count");
 
-export async function githubTop(page, type) {
+export async function githubTop(page: Page, type: string) {
   if (!typeMap.has(type)) {
     throw new Error(`unknown trend page top type:{${type}}`);
   }
