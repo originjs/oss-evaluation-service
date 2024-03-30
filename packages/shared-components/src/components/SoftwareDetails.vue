@@ -21,6 +21,7 @@ import { getLevelColor, getTagType, scorecardProgressColor } from '@utils/color'
 import { saveAs } from 'file-saver';
 import { SearchSoftware } from '@orginjs/oss-evaluation-components';
 import { toKilo, formatFloat, formatNumber, formatString } from '@utils/number';
+import type { SoftwareInfo as TSoftwareInfo } from '@/api/SearchSoftware';
 
 const props = defineProps<{ repoName: string }>();
 
@@ -421,10 +422,10 @@ function processBenchmarkData(benchmarkData: BenchmarkData, needRetain?: boolean
   benchmarkCompareColumns.value = columns;
 }
 
-async function addBenchmarkCompare(name: string) {
+async function addBenchmarkCompare(software: TSoftwareInfo) {
   const {
     data: { benchmarkData },
-  } = await getPerformanceModuleInfo(encodeURIComponent(name));
+  } = await getPerformanceModuleInfo(encodeURIComponent(software.fullName));
   processBenchmarkData(benchmarkData, true);
 }
 
@@ -693,7 +694,7 @@ const emits = defineEmits<{
           <SearchSoftware
             class="w-280px"
             :tech-stack="project?.techStack"
-            @search-name="addBenchmarkCompare"
+            @search-software="addBenchmarkCompare"
           >
             <button
               class="w-full flex flex-items-center p-12px rd-8px h-40px bg-#f6f6f7 b-1 b-solid b-transparent color-black-75 hover:b-#3451b2 mt-10px mb-10px"

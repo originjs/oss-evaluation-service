@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Search } from '@element-plus/icons-vue';
 import type { SoftwareInfo } from '@/api/SearchSoftware';
-import { getSoftwareNamesApi } from '@/api/SearchSoftware';
+import { getSoftwareInfoListApi } from '@/api/SearchSoftware';
 import type { PromisifyFn } from '@vueuse/core';
 import { useDebounceFn } from '@vueuse/core';
 
@@ -10,36 +10,36 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  searchName: [name: string];
+  searchSoftware: [name: SoftwareInfo];
 }>();
 
 const searchInputInstance = ref();
 const showSearchBox = ref(false);
 const searchValue = ref('');
-const softwareNames = ref<SoftwareInfo[]>([]);
-const loadingSoftwareNames = ref(false);
+const softwareInfo = ref<SoftwareInfo[]>([]);
+const loadingSoftwareInfoList = ref(false);
 
-const getSoftwareNames: PromisifyFn<(query: string) => Promise<void>> = useDebounceFn(
+const getSoftwareInfoList: PromisifyFn<(query: string) => Promise<void>> = useDebounceFn(
   async (query: string) => {
     if (!query) {
-      softwareNames.value = [];
+      softwareInfo.value = [];
       return;
     }
-    loadingSoftwareNames.value = true;
-    const res = await getSoftwareNamesApi({
+    loadingSoftwareInfoList.value = true;
+    const res = await getSoftwareInfoListApi({
       keyword: searchValue.value,
       techStack: props.techStack,
     });
     if (res.code === 200) {
-      softwareNames.value = res.data;
+      softwareInfo.value = res.data;
     }
-    loadingSoftwareNames.value = false;
+    loadingSoftwareInfoList.value = false;
   },
   500,
 );
 
-const onClickSoftware = (name: string) => {
-  emit('searchName', name);
+const onClickSoftware = (software: SoftwareInfo) => {
+  emit('searchSoftware', software);
   showSearchBox.value = false;
 };
 </script>
@@ -75,21 +75,21 @@ const onClickSoftware = (name: string) => {
           placeholder="搜索开源项目"
           :prefix-icon="Search"
           clearable
-          @input="getSoftwareNames"
+          @input="getSoftwareInfoList"
         />
-        <el-scrollbar v-loading="loadingSoftwareNames" :max-height="400">
+        <el-scrollbar v-loading="loadingSoftwareInfoList" :max-height="400">
           <div class="text-center pt-10px line-height-50px">
-            <span v-show="!softwareNames.length">暂无最近搜索记录...</span>
-            <span v-show="loadingSoftwareNames">搜索中...</span>
+            <span v-show="!softwareInfo.length">暂无最近搜索记录...</span>
+            <span v-show="loadingSoftwareInfoList">搜索中...</span>
           </div>
           <el-menu>
             <el-menu-item
-              v-for="({ fullName }, i) in softwareNames"
-              :key="fullName"
+              v-for="(item, i) in softwareInfo"
+              :key="item.fullName"
               :index="String(i)"
-              @click="onClickSoftware(fullName)"
+              @click="onClickSoftware(item)"
             >
-              <span>{{ fullName }}</span>
+              <span>{{ item.fullName }}</span>
             </el-menu-item>
           </el-menu>
         </el-scrollbar>

@@ -2,7 +2,7 @@
 import { ArrowDown, ArrowUp, Picture, Delete } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import { defineExpose } from 'vue';
-import { getSoftwareInfo } from '@api/SoftwareDetails';
+import type { SoftwareInfo } from '@api/SearchSoftware';
 
 enum PanelState {
   hide = 0,
@@ -72,9 +72,10 @@ function addProject(
   expandPanel();
 }
 
-const onClickProject = async (name: string) => {
-  const { data } = await getSoftwareInfo(encodeURIComponent(name));
-  addProject([data]);
+const onClickProject = async (software: SoftwareInfo) => {
+  console.log(software);
+  // todo 接口不一样，和最新代码确认，是不要再发请求
+  // addProject([{repoName: string; logo: string; url: string; description: string}]);
 };
 
 function collapsePanel() {
@@ -146,7 +147,7 @@ defineExpose({ addProject });
         </div>
 
         <div v-for="idx in 5 - projects.length" :key="idx" class="project" style="width: 200px">
-          <SearchSoftware class="w-full pr-10px" @search-name="onClickProject">
+          <SearchSoftware class="w-full pr-10px" @search-software="onClickProject">
             <button
               class="w-full flex flex-items-center p-12px rd-8px h-40px bg-#f6f6f7 b-1 b-solid b-transparent color-black-75 hover:b-#3451b2"
             >

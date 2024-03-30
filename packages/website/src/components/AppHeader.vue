@@ -2,15 +2,16 @@
 import { SearchSoftware } from '@orginjs/oss-evaluation-components';
 import { useWindowScroll } from '@vueuse/core';
 import { ElMessage } from 'element-plus';
+import type { SoftwareInfo } from '@orginjs/oss-evaluation-components/src/api/SearchSoftware';
 const { y } = useWindowScroll();
 const route = useRoute();
 const router = useRouter();
 
-const onSearchSoftwareName = (repoName: string) => {
+const onSearchSoftware = (software: SoftwareInfo) => {
   router.push({
     path: 'software-details',
     query: {
-      repoName,
+      repoName: software.fullName,
     },
   });
 };
@@ -32,7 +33,7 @@ const onSelectMenu = (path: string) => {
         <span class="desc">前端先进性评估</span>
       </div>
 
-      <div class="search-wrapper"><SearchSoftware @search-name="onSearchSoftwareName" /></div>
+      <div class="search-wrapper"><SearchSoftware @search-software="onSearchSoftware" /></div>
 
       <!--    todo 后端获取数据渲染菜单 -->
       <el-menu class="menu" mode="horizontal" :ellipsis="false" @select="onSelectMenu">

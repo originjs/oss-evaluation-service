@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { SearchSoftware } from '@orginjs/oss-evaluation-components';
+import type { SoftwareInfo } from '@orginjs/oss-evaluation-components/src/api/SearchSoftware';
 
 const router = useRouter();
 
@@ -21,11 +22,11 @@ const features = ref([
   },
 ]);
 
-const onSearchSoftwareName = (repoName: string) => {
+const onSearchSoftware = (software: SoftwareInfo) => {
   router.push({
     path: 'software-details',
     query: {
-      repoName,
+      repoName: software.fullName,
     },
   });
 };
@@ -40,7 +41,7 @@ const onSearchSoftwareName = (repoName: string) => {
           <p class="text">前端先进性评估</p>
           <p class="tagline">前端先进性评估</p>
           <div class="actions">
-            <SearchSoftware class="w-280px" @search-name="onSearchSoftwareName" />
+            <SearchSoftware class="w-280px" @search-software="onSearchSoftware" />
           </div>
         </div>
         <div class="image">
