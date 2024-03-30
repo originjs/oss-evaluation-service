@@ -3,9 +3,10 @@ import { QueryTypes } from 'sequelize';
 
 export async function searchProject(keyword: string, techStack: string) {
   const searchSql = `
-    select distinct projects.full_name as name,
+    select distinct projects.full_name as repoName,
            projects.html_url as url,
-           projects.description ,
+           projects.description,
+           projects.owner_avatar_url as logo,
            projects.stargazers_count as star
         from github_projects projects
     join project_packages packages
