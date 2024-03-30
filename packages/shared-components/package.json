@@ -21,7 +21,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc && vite build",
-    "serve": "vue-tsc && vite build --watch"
+    "serve": "vue-tsc && vite build --watch",
+    "test": "vitest run"
   },
   "peerDependencies": {
     "@element-plus/icons-vue": "^2.3.1",

@@ -1,16 +1,12 @@
-export function getLevelColor(str?: string) {
-  if (!str) {
-    return '';
-  }
-  return (
-    {
-      A: '#21c45d',
-      B: '#bbf7d0',
-      C: '#fef08b',
-      D: '#fcd44f',
-      E: '#fca6a6',
-    }[str] || '#61a6fa'
-  );
+export function getLevelColor(level?: string) {
+  const levelColorMap = {
+    A: '#21c45d',
+    B: '#bbf7d0',
+    C: '#fef08b',
+    D: '#fcd44f',
+    E: '#fca6a6',
+  };
+  return levelColorMap[level] || '#61a6fa';
 }
 
 export function getTagType(idx: number) {
