@@ -337,10 +337,10 @@ const switchOrder = (index: number) => {
       <div class="border param-name">开发者满意度</div>
       <div v-for="idx in 5" :key="idx" class="param-value border">
         <div v-if="projects[idx - 1]" class="value-div" style="">
-          <span v-for="value in projects[idx - 1].satisfaction" :key="value.year">
+          <span v-for="value in projects[idx - 1].satisfaction?.slice(-3)" :key="value.year">
             {{ value.year }} : {{ value.val }}%
           </span>
-          <span v-if="!projects[idx - 1].satisfaction.length">NA</span>
+          <span v-if="!projects[idx - 1].satisfaction.length">-</span>
         </div>
       </div>
     </div>

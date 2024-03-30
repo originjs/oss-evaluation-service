@@ -77,9 +77,9 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
 
   if (res.satisfaction?.length !== 0) {
     const satisfaction = res.satisfaction.sort((a, b) => {
-      return b.year - a.year;
+      return a.year - b.year;
     });
-    res.satisfaction = satisfaction?.slice(0, 3).map(item => ({
+    res.satisfaction = satisfaction?.map(item => ({
       year: item.year,
       val: item.satisfactionPercentage,
     }));
