@@ -11,6 +11,7 @@ declare module 'vue' {
     ElAffix: typeof import('element-plus/es')['ElAffix']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElCard: typeof import('element-plus/es')['ElCard']
+    ElCol: typeof import('element-plus/es')['ElCol']
     ElDialog: typeof import('element-plus/es')['ElDialog']
     ElDivider: typeof import('element-plus/es')['ElDivider']
     ElIcon: typeof import('element-plus/es')['ElIcon']
@@ -20,6 +21,7 @@ declare module 'vue' {
     ElMenu: typeof import('element-plus/es')['ElMenu']
     ElMenuItem: typeof import('element-plus/es')['ElMenuItem']
     ElProgress: typeof import('element-plus/es')['ElProgress']
+    ElRow: typeof import('element-plus/es')['ElRow']
     ElScrollbar: typeof import('element-plus/es')['ElScrollbar']
     ElSelect: typeof import('element-plus/es')['ElSelect']
     ElTable: typeof import('element-plus/es')['ElTable']
@@ -32,6 +34,7 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     SearchSoftware: typeof import('./src/components/SearchSoftware.vue')['default']
     SoftwareDetails: typeof import('./src/components/SoftwareDetails.vue')['default']
+    SoftwareRank: typeof import('./src/components/SoftwareRank.vue')['default']
     TechLandscape: typeof import('./src/components/TechLandscape.vue')['default']
   }
   export interface ComponentCustomProperties {
