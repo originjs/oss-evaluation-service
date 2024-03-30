@@ -144,8 +144,42 @@ async function recordTime(func, name, ...args) {
   return result;
 }
 
+export async function updateDefaultBranchAfterImport(req, res) {
+  const gitlabForks = await OssGitlabFork.findAll();
+  if (!gitlabForks || !gitlabForks.length) {
+    res.status(200);
+  }
+  const gitlabSdk = new GitlabSdk();
+  for (const gitlabFork of gitlabForks) {
+    const projectId = gitlabFork.projectId;
+    recordTime(
+      gitlabSdk.getProjectInfo,
+      `update gitlab defaultBranch of ${gitlabFork.fullPath}`,
+      projectId,
+    );
+    const response = await gitlabSdk.getProjectInfo(projectId);
+    await sleep(Math.floor(Math.random() * 2000) + 1000);
+    if (!response.ok) {
+      continue;
+    }
+    const projectInfo = await response.json();
+    await OssGitlabFork.update(
+      {
+        defaultBranch: projectInfo?.default_branch,
+      },
+      {
+        where: {
+          projectId,
+        },
+      },
+    );
+  }
+  res.status(200);
+  res.send('success');
+}
+
 export async function createGitlabProject(req, res) {
-  let techStack = await ProjectTechStack.findAll({
+  const techStack = await ProjectTechStack.findAll({
     where: {
       subcategory: {
         [Op.in]: [req.query.techStack],
@@ -165,14 +199,8 @@ export async function createGitlabProject(req, res) {
 
   const gitlabSdk = new GitlabSdk();
   const namespaceId = process.env.GITLAB_FORK_NAMESPACE_ID;
-  for (let project of projects) {
-    let projectId = project.id;
-    const val = {
-      name: project.name,
-      import_url: project.cloneUrl,
-      namespace_id: namespaceId,
-      visibility: 'public',
-    };
+  for (const project of projects) {
+    const projectId = project.id;
     const gitlabFork = await OssGitlabFork.findOne({
       where: {
         githubProjectId: projectId,
@@ -181,6 +209,12 @@ export async function createGitlabProject(req, res) {
     if (gitlabFork) {
       continue;
     }
+    const val = {
+      name: project.name,
+      import_url: project.cloneUrl,
+      namespace_id: namespaceId,
+      visibility: 'public',
+    };
     const response = await recordTime(
       gitlabSdk.importFromUrl,
       `create gitlab fork of ${project.fullName}`,
@@ -277,7 +311,7 @@ export async function uploadSonarCiConfigToGitlab(req, res) {
     where: {
       hasSonarPipeline: false,
     },
-    attributes: ['projectId', 'defaultBranch'],
+    attributes: ['projectId', 'defaultBranch', 'namespacePath'],
   });
   const gitlabSdk = new GitlabSdk();
 
@@ -309,7 +343,7 @@ sonarcloud-check:
     - ${fork.defaultBranch}
 `;
     const sonarPropertyFileContent = `sonar.projectKey=${sonarProject.sonarProjectKey}
-sonar.organization=oss-github-fork
+sonar.organization=${fork.namespacePath}
 
 # This is the name and version displayed in the SonarCloud UI.
 #sonar.projectName=angular
