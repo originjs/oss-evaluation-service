@@ -296,16 +296,13 @@ export async function getSoftwareActivity(repoName): Promise<EcologyActivityCate
     replacements: { repoName },
     type: sequelize.QueryTypes.SELECT,
   });
-  if (softwareActivity.length === 0) {
-    return null;
-  }
   const commitFrequency = [];
   const commentFrequency = [];
   const updatedIssuesCount = [];
   const closedIssuesCount = [];
   const orgCount = [];
   const contributorCount = [];
-  for (const activity of softwareActivity) {
+  for (const activity of softwareActivity || []) {
     commitFrequency.push({
       projectId: activity.project_id,
       value: fixedRound(activity.commit_frequency, 2),
