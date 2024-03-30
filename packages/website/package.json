@@ -21,6 +21,7 @@
     "vue-router": "^4.3.0"
   },
   "devDependencies": {
+    "@orginjs/oss-evaluation-api-server": "workspace:^",
     "@iconify/json": "^2.2.190",
     "@iconify/utils": "^2.1.22",
     "@types/file-saver": "^2.0.7",

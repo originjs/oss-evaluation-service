@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Search } from '@element-plus/icons-vue';
 import type { SoftwareBaseInfo } from '@/api/SearchSoftware';
-import { getSoftwareNamesApi } from '@/api/SearchSoftware';
+import { getSoftwareBaseInfoApi } from '@/api/SearchSoftware';
 import type { PromisifyFn } from '@vueuse/core';
 import { useDebounceFn } from '@vueuse/core';
 
@@ -10,46 +10,46 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  searchName: [name: string];
+  change: [baseInfo: SoftwareBaseInfo];
 }>();
 
 const searchInputInstance = ref();
 const showSearchBox = ref(false);
 const searchValue = ref('');
-const softwareNames = ref<SoftwareBaseInfo[]>([]);
-const loadingSoftwareNames = ref(false);
+const softwareBaseInfoList = ref<SoftwareBaseInfo[]>([]);
+const loadingInfo = ref(false);
 
-const getSoftwareNames: PromisifyFn<(query: string) => Promise<void>> = useDebounceFn(
+const getSoftwareBaseInfoList: PromisifyFn<(query: string) => Promise<void>> = useDebounceFn(
   async (query: string) => {
     if (!query) {
-      softwareNames.value = [];
+      softwareBaseInfoList.value = [];
       return;
     }
-    loadingSoftwareNames.value = true;
-    const res = await getSoftwareNamesApi({
+    loadingInfo.value = true;
+    const res = await getSoftwareBaseInfoApi({
       keyword: searchValue.value,
       techStack: props.techStack,
     });
     if (res.code === 200) {
-      softwareNames.value = res.data;
+      softwareBaseInfoList.value = res.data;
     }
-    loadingSoftwareNames.value = false;
+    loadingInfo.value = false;
   },
   500,
 );
 
-const onClickSoftware = (name: string) => {
-  emit('searchName', name);
+const onClickSoftware = (info: SoftwareBaseInfo) => {
+  emit('change', info);
   showSearchBox.value = false;
 };
 </script>
 
 <template>
-  <div>
-    <div class="inline-block" @click="showSearchBox = true">
+  <div class="inline-block">
+    <div class="w-full" @click="showSearchBox = true">
       <slot>
         <button
-          class="search-btn flex flex-items-center p-12px rd-8px h-40px bg-#f6f6f7 b-1 b-solid b-transparent color-black-75 hover:b-#3451b2"
+          class="w-full flex flex-items-center p-12px rd-8px h-40px bg-#f6f6f7 b-1 b-solid b-transparent color-black-75 hover:b-#3451b2"
         >
           <span class="flex flex-items-center">
             <span i-ph-magnifying-glass-bold />
@@ -75,21 +75,21 @@ const onClickSoftware = (name: string) => {
           placeholder="搜索开源项目"
           :prefix-icon="Search"
           clearable
-          @input="getSoftwareNames"
+          @input="getSoftwareBaseInfoList"
         />
-        <el-scrollbar v-loading="loadingSoftwareNames" :max-height="400">
+        <el-scrollbar v-loading="loadingInfo" :max-height="400">
           <div class="text-center pt-10px line-height-50px">
-            <span v-show="!softwareNames.length">暂无最近搜索记录...</span>
-            <span v-show="loadingSoftwareNames">搜索中...</span>
+            <span v-show="!softwareBaseInfoList.length">暂无最近搜索记录...</span>
+            <span v-show="loadingInfo">搜索中...</span>
           </div>
           <el-menu>
             <el-menu-item
-              v-for="({ name }, i) in softwareNames"
-              :key="name"
+              v-for="(item, i) in softwareBaseInfoList"
+              :key="item.repoName"
               :index="String(i)"
-              @click="onClickSoftware(name)"
+              @click="onClickSoftware(item)"
             >
-              <span>{{ name }}</span>
+              <span>{{ item.repoName }}</span>
             </el-menu-item>
           </el-menu>
         </el-scrollbar>

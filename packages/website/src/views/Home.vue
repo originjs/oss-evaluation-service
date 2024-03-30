@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { SearchSoftware } from '@orginjs/oss-evaluation-components';
+import type { SoftwareBaseInfo } from '@orginjs/oss-evaluation-api-server';
 
 const router = useRouter();
 
@@ -21,7 +22,7 @@ const features = ref([
   },
 ]);
 
-const onSearchSoftwareName = (repoName: string) => {
+const goSoftwareDetails = ({ repoName }: SoftwareBaseInfo) => {
   router.push({
     path: 'software-details',
     query: {
@@ -39,7 +40,9 @@ const onSearchSoftwareName = (repoName: string) => {
           <h1 class="name"><span class="clip">OSS Evaluation</span></h1>
           <p class="text">前端先进性评估</p>
           <p class="tagline">前端先进性评估</p>
-          <div class="actions"><SearchSoftware @search-name="onSearchSoftwareName" /></div>
+          <div class="actions">
+            <SearchSoftware class="w-280px" @change="goSoftwareDetails" />
+          </div>
         </div>
         <div class="image">
           <div class="image-wrapper">
@@ -90,10 +93,6 @@ const onSearchSoftwareName = (repoName: string) => {
     .tagline,
     .actions {
       width: 100%;
-
-      :deep(.search-btn) {
-        width: 280px;
-      }
     }
 
     .clip {
