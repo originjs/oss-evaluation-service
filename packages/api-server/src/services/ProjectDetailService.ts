@@ -205,7 +205,12 @@ order by benchmark.display_name, index_name.order`;
   const map = new Map();
   benchmarkData.forEach(item => {
     // fill unit(ms,kb..)
-    item.rawValue = !item.rawValue || item.rawValue === -1 ? null : `${item.rawValue} ${item.unit}`;
+    item.rawValue =
+      !item.rawValue || item.rawValue === -1
+        ? null
+        : item.unit
+          ? `${item.rawValue} ${item.unit}`
+          : `${item.rawValue}`;
     const { displayName, indexName, rawValue } = item;
     if (!map.has(displayName)) {
       map.set(displayName, []);
