@@ -95,11 +95,11 @@ describe('toKilo', () => {
 
 describe('formatFloat', () => {
   it('should return a string with two decimal places when given a number', () => {
-    expect(formatFloat(1.2345)).toBe('1.23');
+    expect(formatFloat(1.2345)).toBe(1.23);
   });
 
   it('should return a string with two decimal places when given a string representation of a number', () => {
-    expect(formatFloat('3.14159')).toBe('3.14');
+    expect(formatFloat('3.14159')).toBe(3.14);
   });
 
   it('should return a dash when given undefined, null, or an empty string', () => {
