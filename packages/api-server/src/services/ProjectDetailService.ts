@@ -25,6 +25,7 @@ import type {
 } from '../interfaces/SoftwareInfo.js';
 import { fixedRound } from '../utils/math.js';
 import Logger from '../utils/logger.js';
+import { Op } from 'sequelize';
 
 ProjectInfo.hasOne(Scorecard, { foreignKey: 'project_id', as: 'scorecard' });
 ProjectInfo.hasOne(SonarCloudProjectMin, { foreignKey: 'github_project_id', as: 'sonarCloudScan' });
@@ -49,6 +50,12 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
         {
           model: SonarCloudProjectMin,
           as: 'sonarCloudScan',
+          required: false,
+          where: {
+            analysisDate: {
+              [Op.ne]: null,
+            },
+          },
         },
         {
           model: CncfDocumentScoreMin,
@@ -205,7 +212,12 @@ order by benchmark.display_name, index_name.order`;
   const map = new Map();
   benchmarkData.forEach(item => {
     // fill unit(ms,kb..)
-    item.rawValue = !item.rawValue || item.rawValue === -1 ? null : `${item.rawValue} ${item.unit}`;
+    item.rawValue =
+      !item.rawValue || item.rawValue === -1
+        ? null
+        : item.unit
+          ? `${item.rawValue} ${item.unit}`
+          : `${item.rawValue}`;
     const { displayName, indexName, rawValue } = item;
     if (!map.has(displayName)) {
       map.set(displayName, []);
