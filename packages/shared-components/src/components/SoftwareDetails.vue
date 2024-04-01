@@ -426,7 +426,7 @@ function processBenchmarkData(benchmarkData?: BenchmarkData, needRetain?: boolea
 async function addBenchmarkCompare(info: SoftwareBaseInfo) {
   const {
     data: { benchmarkData },
-  } = await getPerformanceModuleInfo(info.repoName);
+  } = await getPerformanceModuleInfo(encodeURIComponent(info.repoName));
   processBenchmarkData(benchmarkData, true);
 }
 
