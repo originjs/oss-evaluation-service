@@ -15,7 +15,7 @@ groups:
       - CSS框架
   - name: Library
     subcategories:
-      - U解析器
+      - 解析器
       - 网络压缩
       - 加解密
       - 压缩
