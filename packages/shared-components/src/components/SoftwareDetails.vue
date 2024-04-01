@@ -39,11 +39,11 @@ const openSSFScorecard = ref<
   Array<{
     label: string;
     tips: string;
-    value: number;
+    value: string | number;
   }>
 >([]);
 const documentInfo = ref<{
-  score: number;
+  score: string | number;
   items: Array<{
     title: string;
     content: string;
@@ -93,71 +93,71 @@ watchEffect(async () => {
     {
       label: 'Code-Review',
       tips: 'Determines if the project requires human code review before pull requests (aka merge requests) are merged.',
-      value: data.scorecard?.codeReview,
+      value: formatFloat(data.scorecard?.codeReview),
     },
     {
       label: 'Maintained',
       tips: 'Determines if the project is "actively maintained".',
-      value: data.scorecard?.maintained,
+      value: formatFloat(data.scorecard?.maintained),
     },
     {
       label: 'CII-Best-Practices',
       tips: 'Determines if the project has an OpenSSF (formerly CII) Best Practices Badge.',
-      value: data.scorecard?.ciiBestPractices,
+      value: formatFloat(data.scorecard?.ciiBestPractices),
     },
     {
       label: 'License',
       tips: 'Determines if the project has defined a license.',
-      value: data.scorecard?.license,
+      value: formatFloat(data.scorecard?.license),
     },
     {
       label: 'Security-Policy',
       tips: 'Determines if the project has published a security policy.',
-      value: data.scorecard?.securityPolicy,
+      value: formatFloat(data.scorecard?.securityPolicy),
     },
     {
       label: 'Dangerous-Workflow',
       tips: "Determines if the project's GitHub Action workflows avoid dangerous patterns.",
-      value: data.scorecard?.dangerousWorkflow,
+      value: formatFloat(data.scorecard?.dangerousWorkflow),
     },
     {
       label: 'Branch-Protection',
       tips: "Determines if the default and release branches are protected with GitHub's branch protection settings.",
-      value: data.scorecard?.branchProtection,
+      value: formatFloat(data.scorecard?.branchProtection),
     },
     {
       label: 'Token-Permissions',
       tips: "Determines if the project's workflows follow the principle of least privilege.",
-      value: data.scorecard?.tokenPermissions,
+      value: formatFloat(data.scorecard?.tokenPermissions),
     },
     {
       label: 'Binary-Artifacts',
       tips: 'Determines if the project has generated executable (binary) artifacts in the source repository.',
-      value: data.scorecard?.binaryArtifacts,
+      value: formatFloat(data.scorecard?.binaryArtifacts),
     },
     {
       label: 'Fuzzing',
       tips: 'Determines if the project uses fuzzing.',
-      value: data.scorecard?.fuzzing,
+      value: formatFloat(data.scorecard?.fuzzing),
     },
     {
       label: 'SAST',
       tips: 'Determines if the project uses static code analysis.',
-      value: data.scorecard?.sast,
+      value: formatFloat(data.scorecard?.sast),
     },
     {
       label: 'Vulnerabilities',
       tips: 'Determines if the project has open, known unfixed vulnerabilities.',
-      value: data.scorecard?.vulnerabilities,
+      value: formatFloat(data.scorecard?.vulnerabilities),
     },
     {
       label: 'Pinned-Dependencies',
       tips: 'Determines if the project has declared and pinned the dependencies of its build process.',
-      value: data.scorecard?.pinnedDependencies,
+      value: formatFloat(data.scorecard?.pinnedDependencies),
     },
   ];
   documentInfo.value = {
-    score: data.document.documentScore,
+    score: formatFloat(data.document?.documentScore),
     items: [
       {
         title: 'Readme',
@@ -223,11 +223,11 @@ function renderSoftwareRadarChart() {
         data: [
           {
             value: [
-              project.value?.evaluation.functionScore,
-              project.value?.evaluation.qualityScore,
-              project.value?.evaluation.ecologyScore,
-              project.value?.evaluation.innovationValue,
-              project.value?.evaluation.performanceScore,
+              formatFloat(project.value?.evaluation.functionScore),
+              formatFloat(project.value?.evaluation.qualityScore),
+              formatFloat(project.value?.evaluation.ecologyScore),
+              formatFloat(project.value?.evaluation.innovationValue),
+              formatFloat(project.value?.evaluation.performanceScore)
             ],
             name: '分数',
           },
@@ -348,7 +348,7 @@ function renderDocBestPracticesChart() {
         },
         data: [
           {
-            value: documentInfo.value.score || 0,
+            value: formatFloat(documentInfo.value.score) || 0,
           },
         ],
       },

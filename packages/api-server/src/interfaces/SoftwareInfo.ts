@@ -28,17 +28,17 @@ export interface SoftwareInfo extends SoftwareBaseInfo {
   codeLines: number;
   techStack: string;
   evaluation: {
-    functionScore: number;
-    qualityScore: number;
-    performanceScore: number;
-    ecologyScore: number;
-    innovationValue: number;
+    functionScore: string | number;
+    qualityScore: string | number;
+    performanceScore: string | number;
+    ecologyScore: string | number;
+    innovationValue: string | number;
   };
   scorecard: {
     projectId: number;
     repoName: string;
     collectionDate: string;
-    score: number;
+    score: string | number;
     commit: string;
     codeReview: number;
     maintained: number;

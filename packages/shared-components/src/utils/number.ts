@@ -12,7 +12,7 @@ export function formatFloat(value: number | undefined | string) {
     return '-';
   }
   const number = typeof value === 'string' ? parseFloat(value) : value;
-  return number.toFixed(2);
+  return parseFloat(number.toFixed(2));
 }
 
 export function formatNumber(value: number | undefined | string) {
