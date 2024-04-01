@@ -52,7 +52,9 @@ function cleanCompareFavorites() {
 function addProject(newProjects: Array<SoftwareBaseInfo>) {
   for (let project of newProjects) {
     let exists = projects.some(p => p.url === project.url);
-    if (!exists) {
+    if (exists) {
+      ElMessage.success(`${project.repoName} 已添加`);
+    } else {
       if (projects.length >= 5) {
         ElMessage.error('抱歉，最多只支持5款软件进行对比');
         break;

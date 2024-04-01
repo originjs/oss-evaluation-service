@@ -115,6 +115,10 @@ const showQuality = ref(true);
 const showEcology = ref(true);
 
 const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
+  if (projects.some(item => item.repoName === repoName)) {
+    ElMessage.success(`${repoName} 已添加`);
+    return;
+  }
   emit('addRepo', repoName);
   const { data } = await getSoftwareInfo(encodeURIComponent(repoName));
   projects.push(data);
