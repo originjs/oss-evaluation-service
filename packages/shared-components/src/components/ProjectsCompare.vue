@@ -449,7 +449,7 @@ const switchOrder = (index: number) => {
           @mouseover="showChooseBorder('Score', $event)"
           @mouseout="hideChooseBorder($event)"
         >
-          <div class="border param-name" style="width: 57px">
+          <div class="border param-name" style="width: 97px">
             <el-tooltip content="Score" placement="top-start">
               <el-text size="small" line-clamp="3">Score</el-text>
             </el-tooltip>
@@ -467,7 +467,7 @@ const switchOrder = (index: number) => {
           @mouseover="showChooseBorder('Code-Review', $event)"
           @mouseout="hideChooseBorder($event)"
         >
-          <div class="border param-name" style="width: 57px">
+          <div class="border param-name" style="width: 97px">
             <el-tooltip content="Code-Review" placement="top-start">
               <el-text size="small" line-clamp="3">Code-Review</el-text>
             </el-tooltip>
@@ -489,7 +489,7 @@ const switchOrder = (index: number) => {
           @mouseover="showChooseBorder('Maintained', $event)"
           @mouseout="hideChooseBorder($event)"
         >
-          <div class="border param-name" style="width: 57px">
+          <div class="border param-name" style="width: 97px">
             <el-tooltip content="Maintained" placement="top-start">
               <el-text size="small" line-clamp="3">Maintained</el-text>
             </el-tooltip>
@@ -511,7 +511,7 @@ const switchOrder = (index: number) => {
           @mouseover="showChooseBorder('CII-Best-Practices', $event)"
           @mouseout="hideChooseBorder($event)"
         >
-          <div class="border param-name" style="width: 57px">
+          <div class="border param-name" style="width: 97px">
             <el-tooltip content="CII-Best-Practices" placement="top-start">
               <el-text size="small" line-clamp="3">CII-Best-Practices</el-text>
             </el-tooltip>
@@ -536,7 +536,7 @@ const switchOrder = (index: number) => {
           @mouseover="showChooseBorder('License', $event)"
           @mouseout="hideChooseBorder($event)"
         >
-          <div class="border param-name" style="width: 57px">
+          <div class="border param-name" style="width: 97px">
             <el-tooltip content="License" placement="top-start">
               <el-text size="small" line-clamp="3">License</el-text>
             </el-tooltip>
@@ -556,7 +556,7 @@ const switchOrder = (index: number) => {
           @mouseover="showChooseBorder('Security-Policy', $event)"
           @mouseout="hideChooseBorder($event)"
         >
-          <div class="border param-name" style="width: 57px">
+          <div class="border param-name" style="width: 97px">
             <el-tooltip content="Security-Policy" placement="top-start">
               <el-text size="small" line-clamp="3">Security-Policy</el-text>
             </el-tooltip>
@@ -581,7 +581,7 @@ const switchOrder = (index: number) => {
           @mouseover="showChooseBorder('Dangerous-Workflow', $event)"
           @mouseout="hideChooseBorder($event)"
         >
-          <div class="border param-name" style="width: 57px">
+          <div class="border param-name" style="width: 97px">
             <el-tooltip content="Dangerous-Workflow" placement="top-start">
               <el-text size="small" line-clamp="3">Dangerous-Workflow</el-text>
             </el-tooltip>
@@ -606,7 +606,7 @@ const switchOrder = (index: number) => {
           @mouseover="showChooseBorder('Branch-Protection', $event)"
           @mouseout="hideChooseBorder($event)"
         >
-          <div class="border param-name" style="width: 57px">
+          <div class="border param-name" style="width: 97px">
             <el-tooltip content="Branch-Protection" placement="top-start">
               <el-text size="small" line-clamp="3">Branch-Protection</el-text>
             </el-tooltip>
@@ -631,7 +631,7 @@ const switchOrder = (index: number) => {
           @mouseover="showChooseBorder('Token-Permissions', $event)"
           @mouseout="hideChooseBorder($event)"
         >
-          <div class="border param-name" style="width: 57px">
+          <div class="border param-name" style="width: 97px">
             <el-tooltip content="Token-Permissions" placement="top-start">
               <el-text size="small" line-clamp="3">Token-Permissions</el-text>
             </el-tooltip>
@@ -656,7 +656,7 @@ const switchOrder = (index: number) => {
           @mouseover="showChooseBorder('Binary-Artifacts', $event)"
           @mouseout="hideChooseBorder($event)"
         >
-          <div class="border param-name" style="width: 57px">
+          <div class="border param-name" style="width: 97px">
             <el-tooltip content="Binary-Artifacts" placement="top-start">
               <el-text size="small" line-clamp="3">Binary-Artifacts</el-text>
             </el-tooltip>
@@ -681,7 +681,7 @@ const switchOrder = (index: number) => {
           @mouseover="showChooseBorder('Fuzzing', $event)"
           @mouseout="hideChooseBorder($event)"
         >
-          <div class="border param-name" style="width: 57px">
+          <div class="border param-name" style="width: 97px">
             <el-tooltip content="Fuzzing" placement="top-start">
               <el-text size="small" line-clamp="3">Fuzzing</el-text>
             </el-tooltip>
@@ -701,7 +701,7 @@ const switchOrder = (index: number) => {
           @mouseover="showChooseBorder('SAST', $event)"
           @mouseout="hideChooseBorder($event)"
         >
-          <div class="border param-name" style="width: 57px">
+          <div class="border param-name" style="width: 97px">
             <el-tooltip content="SAST" placement="top-start">
               <el-text size="small" line-clamp="3">SAST</el-text>
             </el-tooltip>
@@ -719,7 +719,7 @@ const switchOrder = (index: number) => {
           @mouseover="showChooseBorder('Vulnerabilities', $event)"
           @mouseout="hideChooseBorder($event)"
         >
-          <div class="border param-name" style="width: 57px">
+          <div class="border param-name" style="width: 97px">
             <el-tooltip content="Vulnerabilities" placement="top-start">
               <el-text size="small" line-clamp="3">Vulnerabilities</el-text>
             </el-tooltip>
@@ -744,7 +744,7 @@ const switchOrder = (index: number) => {
           @mouseover="showChooseBorder('Pinned-Dependencies', $event)"
           @mouseout="hideChooseBorder($event)"
         >
-          <div class="border param-name" style="width: 57px">
+          <div class="border param-name" style="width: 97px">
             <el-tooltip content="Pinned-Dependencies" placement="top-start">
               <el-text size="small" line-clamp="3">Pinned-Dependencies</el-text>
             </el-tooltip>
@@ -785,7 +785,7 @@ const switchOrder = (index: number) => {
           @mouseover="showChooseBorder('Reliability', $event)"
           @mouseout="hideChooseBorder($event)"
         >
-          <div class="border param-name" style="width: 57px">
+          <div class="border param-name" style="width: 97px">
             <el-tooltip content="Reliability" placement="top-start">
               <el-text size="small" line-clamp="3">Reliability</el-text>
             </el-tooltip>
@@ -813,7 +813,7 @@ const switchOrder = (index: number) => {
           @mouseover="showChooseBorder('Maintainability', $event)"
           @mouseout="hideChooseBorder($event)"
         >
-          <div class="border param-name" style="width: 57px">
+          <div class="border param-name" style="width: 97px">
             <el-tooltip content="Maintainability" placement="top-start">
               <el-text size="small" line-clamp="2">Maintainability</el-text>
             </el-tooltip>
@@ -843,7 +843,7 @@ const switchOrder = (index: number) => {
           @mouseover="showChooseBorder('Security', $event)"
           @mouseout="hideChooseBorder($event)"
         >
-          <div class="border param-name" style="width: 57px">
+          <div class="border param-name" style="width: 97px">
             <el-tooltip content="Security" placement="top-start">
               <el-text size="small" line-clamp="3">Security</el-text>
             </el-tooltip>
@@ -874,7 +874,7 @@ const switchOrder = (index: number) => {
           @mouseover="showChooseBorder('Security Review', $event)"
           @mouseout="hideChooseBorder($event)"
         >
-          <div class="border param-name" style="width: 57px">
+          <div class="border param-name" style="width: 97px">
             <el-tooltip content="Security Review" placement="top-start">
               <el-text size="small" line-clamp="3">Security Review</el-text>
             </el-tooltip>
@@ -1099,7 +1099,7 @@ const switchOrder = (index: number) => {
     }
 
     .param-name {
-      width: 80px;
+      width: 119px;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -1107,7 +1107,7 @@ const switchOrder = (index: number) => {
     }
 
     .param-value {
-      width: 240px;
+      width: 230px;
       padding: 10px 10px;
 
       .value-div {
