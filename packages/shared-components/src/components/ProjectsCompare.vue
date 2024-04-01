@@ -106,6 +106,12 @@ const removeSoftware = (index: number) => {
 const switchOrder = (index: number) => {
   [projects[index], projects[index + 1]] = [projects[index + 1], projects[index]];
 };
+
+const showBasic = ref(true);
+const showFunction = ref(true);
+const showPerformance = ref(true);
+const showQuality = ref(true);
+const showEcology = ref(true);
 </script>
 
 <template>
@@ -253,13 +259,17 @@ const switchOrder = (index: number) => {
       </div>
     </div>
 
-    <div class="border categar">
+    <div class="border categar" @click="showBasic = !showBasic">
       <el-icon style="color: cornflowerblue; margin: 0px 6px">
-        <ArrowDown />
+        <ArrowDown v-show="showBasic" />
+        <ArrowRight v-show="!showBasic" />
       </el-icon>
       基本信息
     </div>
+    <TransitionGroup name="list" tag="div" class="overflow-hidden">
     <div
+      v-show="showBasic"
+      key="1"
       class="row"
       @mouseover="showChooseBorder('Stars', $event)"
       @mouseout="hideChooseBorder($event)"
@@ -274,6 +284,8 @@ const switchOrder = (index: number) => {
       </div>
     </div>
     <div
+      v-show="showBasic"
+      key="2"
       class="row"
       @mouseover="showChooseBorder('开发语言', $event)"
       @mouseout="hideChooseBorder($event)"
@@ -286,6 +298,8 @@ const switchOrder = (index: number) => {
       </div>
     </div>
     <div
+      v-show="showBasic"
+      key="3"
       class="row"
       @mouseover="showChooseBorder('代码量', $event)"
       @mouseout="hideChooseBorder($event)"
@@ -299,6 +313,8 @@ const switchOrder = (index: number) => {
     </div>
 
     <div
+      v-show="showBasic"
+      key="4"
       class="row"
       @mouseover="showChooseBorder('首次提交', $event)"
       @mouseout="hideChooseBorder($event)"
@@ -311,6 +327,8 @@ const switchOrder = (index: number) => {
       </div>
     </div>
     <div
+      v-show="showBasic"
+      key="5"
       class="row"
       @mouseover="showChooseBorder('License', $event)"
       @mouseout="hideChooseBorder($event)"
@@ -322,14 +340,19 @@ const switchOrder = (index: number) => {
         </div>
       </div>
     </div>
+    </TransitionGroup>
 
-    <div class="border categar">
+    <div class="border categar" @click="showFunction = !showFunction">
       <el-icon style="color: cornflowerblue; margin: 0px 6px">
-        <ArrowDown />
+        <ArrowDown v-show="showFunction" />
+        <ArrowRight v-show="!showFunction" />
       </el-icon>
       功能
     </div>
+    <TransitionGroup name="list" tag="div" class="overflow-hidden">
     <div
+      v-show="showFunction"
+      key="1"
       class="row"
       @mouseover="showChooseBorder('开发者满意度', $event)"
       @mouseout="hideChooseBorder($event)"
@@ -346,6 +369,8 @@ const switchOrder = (index: number) => {
     </div>
 
     <div
+      v-show="showFunction"
+      key="2"
       class="row"
       @mouseover="showChooseBorder('文档最佳实践', $event)"
       @mouseout="hideChooseBorder($event)"
@@ -405,14 +430,19 @@ const switchOrder = (index: number) => {
         </div>
       </div>
     </div>
+    </TransitionGroup>
 
-    <div class="border categar">
+    <div class="border categar" @click="showPerformance = !showPerformance">
       <el-icon style="color: cornflowerblue; margin: 0px 6px">
-        <ArrowDown />
+        <ArrowDown v-show="showPerformance" />
+        <ArrowRight v-show="!showPerformance" />
       </el-icon>
       性能
     </div>
+    <TransitionGroup name="list" tag="div" class="overflow-hidden">
     <div
+      v-show="showPerformance"
+      key="1"
       class="row"
       @mouseover="showChooseBorder('Benchmark Score', $event)"
       @mouseout="hideChooseBorder($event)"
@@ -424,14 +454,17 @@ const switchOrder = (index: number) => {
         </div>
       </div>
     </div>
+    </TransitionGroup>
 
-    <div class="border categar">
+    <div class="border categar" @click="showQuality = !showQuality">
       <el-icon style="color: cornflowerblue; margin: 0px 6px">
-        <ArrowDown />
+        <ArrowDown v-show="showQuality" />
+        <ArrowRight v-show="!showQuality" />
       </el-icon>
       质量
     </div>
-    <div style="display: flex">
+    <TransitionGroup name="list" tag="div" class="overflow-hidden">
+    <div v-show="showQuality" key="1" style="display: flex">
       <div
         class="border-left border-top"
         style="
@@ -767,7 +800,7 @@ const switchOrder = (index: number) => {
       </div>
     </div>
 
-    <div style="display: flex">
+    <div v-show="showQuality" key="2" style="display: flex">
       <div
         class="border-left border-top"
         style="
@@ -902,15 +935,20 @@ const switchOrder = (index: number) => {
         </div>
       </div>
     </div>
+    </TransitionGroup>
 
-    <div class="border categar">
+    <div class="border categar" @click="showEcology = !showEcology">
       <el-icon style="color: cornflowerblue; margin: 0px 6px">
-        <ArrowDown />
+        <ArrowDown v-show="showEcology" />
+        <ArrowRight v-show="!showEcology" />
       </el-icon>
       生态
     </div>
 
+    <TransitionGroup name="list" tag="div" class="overflow-hidden">
     <div
+      v-show="showEcology"
+      key="1"
       class="row"
       @mouseover="showChooseBorder('成熟度', $event)"
       @mouseout="hideChooseBorder($event)"
@@ -986,6 +1024,8 @@ const switchOrder = (index: number) => {
     </div>
 
     <div
+      v-show="showEcology"
+      key="2"
       class="row"
       @mouseover="showChooseBorder('影响力', $event)"
       @mouseout="hideChooseBorder($event)"
@@ -1059,6 +1099,7 @@ const switchOrder = (index: number) => {
         </div>
       </div>
     </div>
+    </TransitionGroup>
 
     <div ref="tipDiv" style="background-color: lightblue; position: absolute; display: none"></div>
   </div>
@@ -1191,5 +1232,19 @@ const switchOrder = (index: number) => {
     flex-direction: column;
     margin-bottom: 20px;
   }
+}
+
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.5s ease;
+}
+.list-enter-to {
+  opacity: 1;
+  transform: translateY(0);
+}
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateY(-486px);
 }
 </style>
