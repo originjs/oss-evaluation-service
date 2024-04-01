@@ -348,7 +348,9 @@ sonar.organization=${fork.namespacePath}
 # This is the name and version displayed in the SonarCloud UI.
 #sonar.projectName=angular
 #sonar.projectVersion=1.0
-
+sonar.c.file.suffixes=-
+sonar.cpp.file.suffixes=-
+sonar.objc.file.suffixes=-
 
 # Path is relative to the sonar-project.properties file. Replace "\\" by "/" on Windows.
 sonar.sources=.
