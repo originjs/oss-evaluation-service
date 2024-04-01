@@ -25,10 +25,20 @@ const removeRepo = (repoName: string) => {
     query: { repos },
   });
 };
+
+const addRepo = (repoName: string) => {
+  let repos = route.query.repos;
+  if (!repos) return;
+  repos = typeof repos === 'string' ? [repos] : repos;
+  router.push({
+    path: route.path,
+    query: { repos: [...repos, repoName] },
+  });
+};
 </script>
 
 <template>
-  <ProjectsCompare :repositories="repositories" @remove-repo="removeRepo" />
+  <ProjectsCompare :repositories="repositories" @remove-repo="removeRepo" @add-repo="addRepo" />
 </template>
 
 <style scoped lang="less"></style>

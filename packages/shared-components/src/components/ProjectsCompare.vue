@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Close, Switch, ArrowDown } from '@element-plus/icons-vue';
 import dayjs from 'dayjs';
-import type { SoftwareInfo } from '@/api/SoftwareDetails';
+import type { SoftwareBaseInfo, SoftwareInfo } from '@/api/SoftwareDetails';
 import { getSoftwareInfo } from '@/api/SoftwareDetails';
 import { toKilo, formatNumber, formatFloat, formatString } from '@/utils/number';
 import { getLevelColor } from '@utils/color';
@@ -9,6 +9,7 @@ import { ElMessage } from 'element-plus';
 
 const emit = defineEmits<{
   removeRepo: [repoName: string];
+  addRepo: [repoName: string];
 }>();
 
 const prop = defineProps({
@@ -112,6 +113,12 @@ const showFunction = ref(true);
 const showPerformance = ref(true);
 const showQuality = ref(true);
 const showEcology = ref(true);
+
+const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
+  emit('addRepo', repoName);
+  const { data } = await getSoftwareInfo(encodeURIComponent(repoName));
+  projects.push(data);
+};
 </script>
 
 <template>
@@ -140,7 +147,16 @@ const showEcology = ref(true);
               <el-button v-if="idx < projects.length" class="switch-btn" :icon="Switch" circle @click="switchOrder(idx - 1)" />
           </div>
           <div v-else class="none-project-div">
-            <el-select style="width: 80%" placeholder="选择开源软件"> </el-select>
+            <SearchSoftware class="w-full pr-10px" @change="onClickProject">
+              <button
+                class="w-full flex flex-items-center p-12px rd-8px h-40px bg-#f6f6f7 b-1 b-solid b-transparent color-black-75 hover:b-#3451b2"
+              >
+              <span class="flex flex-items-center">
+                <span i-ph-magnifying-glass-bold />
+                <span class="ml-6px">添加软件对比</span>
+              </span>
+              </button>
+            </SearchSoftware>
           </div>
         </div>
       </div>
