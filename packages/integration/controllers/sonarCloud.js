@@ -356,7 +356,7 @@ sonar.objc.file.suffixes=-
 sonar.sources=.
 
 # Encoding of the source code. Default is default system encoding
-#sonar.sourceEncoding=UTF-8
+sonar.sourceEncoding=UTF-8
 `;
     const commitInfo = {
       branch: fork.defaultBranch,
