@@ -501,7 +501,7 @@ watchEffect(async () => {
 async function exportToExcel() {
   try {
     const data = await exportFileApi(encodedRepoName.value);
-    saveAs(data, `${props.repoName}` + `_${dayjs().format()}` + `.xlsx`);
+    saveAs(data, `${props.repoName}.xlsx`);
     ElMessage.success('导出成功');
   } catch (e) {
     ElMessage.error('导出失败');

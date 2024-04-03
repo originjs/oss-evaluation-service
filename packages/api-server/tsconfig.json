@@ -3,6 +3,7 @@
   "compilerOptions": {
     "outDir": "dist",
     "noEmit": false,
+    "sourceMap": true,
     /* Strict Type-Checking Options */
     "strict": false,
     "noUnusedParameters": false,

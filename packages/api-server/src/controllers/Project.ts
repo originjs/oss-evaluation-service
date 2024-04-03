@@ -1,4 +1,4 @@
-import { Controller, Path, Route, Get } from 'tsoa';
+import { Controller, Path, Route, Get, Post } from 'tsoa';
 import {
   getProjectDetailInfo,
   getSoftwareActivity,
@@ -13,7 +13,7 @@ import type {
 } from '../interfaces/SoftwareInfo.js';
 import { appendSheet } from '../utils/excel.js';
 import { Result } from '../utils/result.js';
-import type { Readable } from 'stream';
+import { Readable } from 'stream';
 
 @Route('project')
 export class ProjectController extends Controller {
@@ -35,7 +35,7 @@ export class ProjectController extends Controller {
     return Result.ok(data);
   }
 
-  @Get('export/{repoName}')
+  @Post('export/{repoName}')
   public async exportReport(@Path() repoName: string): Promise<Readable> {
     const scoreExcel = await exportScoreExcel(repoName);
     const benchmarkExcel = await exportBenchmarkExcel(repoName);
@@ -58,6 +58,6 @@ export class ProjectController extends Controller {
       'Content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     );
-    return exportBuffer;
+    return Readable.from(exportBuffer);
   }
 }
