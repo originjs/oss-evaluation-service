@@ -36,7 +36,7 @@ function isStarTop(currStar: number) {
   return !projects.some(item => Number(item.star) > Number(currStar));
 }
 
-function isGood(currValue: string, valuesKey: string) {
+function isGood(currValue: string | number, valuesKey: string) {
   if (Number(currValue) === 0) {
     return false;
   }
@@ -1069,7 +1069,14 @@ const getShowRow = (path: string) => {
                 margin-bottom: 10px;
               "
             >
-              <span style="text-align: center; font-weight: bold"
+              <span
+                style="text-align: center; font-weight: bold"
+                :class="{
+                  good: isGood(
+                    projects[idx - 1].ecologyOverview.downloads,
+                    'ecologyOverview.downloads',
+                  ),
+                }"
                 >{{ toKilo(projects[idx - 1].ecologyOverview.downloads).split('.')[0] }} k</span
               >
               <div style="display: inline-flex">
@@ -1088,7 +1095,14 @@ const getShowRow = (path: string) => {
                 margin-bottom: 10px;
               "
             >
-              <span style="text-align: center; font-weight: bold"
+              <span
+                style="text-align: center; font-weight: bold"
+                :class="{
+                  good: isGood(
+                    projects[idx - 1].ecologyOverview.stargazersCount,
+                    'ecologyOverview.stargazersCount',
+                  ),
+                }"
                 >{{ toKilo(projects[idx - 1].ecologyOverview.stargazersCount) }} k</span
               >
               <div style="display: inline-flex">
@@ -1107,7 +1121,14 @@ const getShowRow = (path: string) => {
                 margin-bottom: 10px;
               "
             >
-              <span style="text-align: center; font-weight: bold"
+              <span
+                style="text-align: center; font-weight: bold"
+                :class="{
+                  good: isGood(
+                    projects[idx - 1].ecologyOverview.forksCount,
+                    'ecologyOverview.forksCount',
+                  ),
+                }"
                 >{{ toKilo(projects[idx - 1].ecologyOverview.forksCount) }} k</span
               >
               <div style="display: inline-flex">
@@ -1120,9 +1141,16 @@ const getShowRow = (path: string) => {
               v-show="getShowRow('ecologyOverview.busFactor')"
               style="width: 160px; display: flex; flex-direction: column; justify-content: center"
             >
-              <span style="text-align: center; font-weight: bold">{{
-                formatFloat(projects[idx - 1].ecologyOverview.busFactor)
-              }}</span>
+              <span
+                style="text-align: center; font-weight: bold"
+                :class="{
+                  good: isGood(
+                    projects[idx - 1].ecologyOverview.busFactor,
+                    'ecologyOverview.busFactor',
+                  ),
+                }"
+                >{{ formatFloat(projects[idx - 1].ecologyOverview.busFactor) }}</span
+              >
               <div style="display: inline-flex">
                 <div i-custom:bus font-size-6 mr-4 />
                 <div>巴士系数</div>
@@ -1152,9 +1180,16 @@ const getShowRow = (path: string) => {
                 margin-bottom: 10px;
               "
             >
-              <span style="text-align: center; font-weight: bold">{{
-                formatFloat(projects[idx - 1].ecologyOverview.openRank)
-              }}</span>
+              <span
+                style="text-align: center; font-weight: bold"
+                :class="{
+                  good: isGood(
+                    projects[idx - 1].ecologyOverview.openRank,
+                    'ecologyOverview.openRank',
+                  ),
+                }"
+                >{{ formatFloat(projects[idx - 1].ecologyOverview.openRank) }}</span
+              >
               <div style="display: inline-flex">
                 <div i-custom:medal font-size-6 mr-4 />
                 <div>OpenRank得分</div>
@@ -1171,9 +1206,16 @@ const getShowRow = (path: string) => {
                 margin-bottom: 10px;
               "
             >
-              <span style="text-align: center; font-weight: bold">{{
-                formatFloat(projects[idx - 1].ecologyOverview.criticalityScore)
-              }}</span>
+              <span
+                style="text-align: center; font-weight: bold"
+                :class="{
+                  good: isGood(
+                    projects[idx - 1].ecologyOverview.criticalityScore,
+                    'ecologyOverview.criticalityScore',
+                  ),
+                }"
+                >{{ formatFloat(projects[idx - 1].ecologyOverview.criticalityScore) }}</span
+              >
               <div style="display: inline-flex">
                 <div i-custom:trophy font-size-6 mr-4 />
                 <div>Criticality得分</div>
@@ -1190,9 +1232,16 @@ const getShowRow = (path: string) => {
                 margin-bottom: 10px;
               "
             >
-              <span style="text-align: center; font-weight: bold">{{
-                formatNumber(projects[idx - 1].ecologyOverview.contributorCount)
-              }}</span>
+              <span
+                style="text-align: center; font-weight: bold"
+                :class="{
+                  good: isGood(
+                    projects[idx - 1].ecologyOverview.contributorCount,
+                    'ecologyOverview.contributorCount',
+                  ),
+                }"
+                >{{ formatNumber(projects[idx - 1].ecologyOverview.contributorCount) }}</span
+              >
               <div style="display: inline-flex">
                 <div i-custom:contributor font-size-6 mr-4 />
                 <div>贡献者数量</div>
@@ -1203,9 +1252,16 @@ const getShowRow = (path: string) => {
               v-show="getShowRow('ecologyOverview.dependentCount')"
               style="width: 160px; display: flex; flex-direction: column; justify-content: center"
             >
-              <span style="text-align: center; font-weight: bold">{{
-                formatNumber(projects[idx - 1].ecologyOverview.dependentCount)
-              }}</span>
+              <span
+                style="text-align: center; font-weight: bold"
+                :class="{
+                  good: isGood(
+                    projects[idx - 1].ecologyOverview.dependentCount,
+                    'ecologyOverview.dependentCount',
+                  ),
+                }"
+                >{{ formatNumber(projects[idx - 1].ecologyOverview.dependentCount) }}</span
+              >
               <div style="display: inline-flex">
                 <div i-custom:link font-size-6 mr-4 />
                 <div>被依赖数量</div>
