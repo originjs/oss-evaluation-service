@@ -6,6 +6,7 @@ import { getSoftwareInfo } from '@/api/SoftwareDetails';
 import { toKilo, formatNumber, formatFloat, formatString } from '@/utils/number';
 import { getLevelColor } from '@utils/color';
 import { ElMessage } from 'element-plus';
+import { get as _get } from 'lodash-es';
 
 const emit = defineEmits<{
   removeRepo: [repoName: string];
@@ -123,13 +124,54 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
   const { data } = await getSoftwareInfo(encodeURIComponent(repoName));
   projects.push(data);
 };
+
+const isShowDiff = ref(false);
+const getShowRow = (path: string) => {
+  if (!isShowDiff.value) {
+    return true;
+  }
+
+  if (path === 'satisfaction') {
+    const res = new Set(
+      projects.map(item => {
+        const arr = _get(item, path, []).slice(-3);
+        return arr.map(val => `${val.year}${val.val}`).join(',');
+      }),
+    );
+    return res.size > 1;
+  }
+
+  if (path === 'document.documentScore') {
+    const paths = [
+      path,
+      'document.hasReadme',
+      'document.hasWebsite',
+      'document.hasChangelog',
+      'document.hasContributing',
+    ];
+    let count = 0;
+    paths.forEach(p => (count += new Set(projects.map(item => _get(item, p))).size));
+    return count > 5;
+  }
+
+  const res = new Set(projects.map(item => _get(item, path)));
+  return res.size > 1;
+};
 </script>
 
 <template>
   <div class="main">
-    <div class="page-title">
-      <span class="menu selected">开源软件对比</span>
-      <span class="menu">Benchmark</span>
+    <div class="page-title flex justify-between items-center">
+      <div>
+        <span class="menu selected">开源软件对比</span>
+        <span class="menu">Benchmark</span>
+      </div>
+      <div>
+        <div class="mr-12px flex items-center">
+          <el-switch v-model="isShowDiff" style="--el-switch-on-color: #13ce66" />
+          <span class="pl-6px">显示{{ isShowDiff ? '差异' : '全部' }}</span>
+        </div>
+      </div>
     </div>
     <el-affix :offset="64">
       <div class="row border-top">
@@ -179,6 +221,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
       </div>
     </div>
     <div
+      v-show="getShowRow('techStack')"
       class="row"
       @mouseover="showChooseBorder('技术栈', $event)"
       @mouseout="hideChooseBorder($event)"
@@ -192,6 +235,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
     </div>
 
     <div
+      v-show="getShowRow('evaluation.functionScore')"
       class="row"
       @mouseover="showChooseBorder('功能', $event)"
       @mouseout="hideChooseBorder($event)"
@@ -212,6 +256,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
       </div>
     </div>
     <div
+      v-show="getShowRow('evaluation.performanceScore')"
       class="row"
       @mouseover="showChooseBorder('性能', $event)"
       @mouseout="hideChooseBorder($event)"
@@ -237,6 +282,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
       </div>
     </div>
     <div
+      v-show="getShowRow('evaluation.qualityScore')"
       class="row"
       @mouseover="showChooseBorder('质量', $event)"
       @mouseout="hideChooseBorder($event)"
@@ -258,6 +304,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
       </div>
     </div>
     <div
+      v-show="getShowRow('evaluation.ecologyScore')"
       class="row"
       @mouseover="showChooseBorder('生态', $event)"
       @mouseout="hideChooseBorder($event)"
@@ -288,7 +335,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
     </div>
     <TransitionGroup name="list" tag="div" class="overflow-hidden">
     <div
-      v-show="showBasic"
+      v-show="showBasic && getShowRow('star')"
       key="1"
       class="row"
       @mouseover="showChooseBorder('Stars', $event)"
@@ -304,7 +351,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
       </div>
     </div>
     <div
-      v-show="showBasic"
+      v-show="showBasic && getShowRow('language')"
       key="2"
       class="row"
       @mouseover="showChooseBorder('开发语言', $event)"
@@ -318,7 +365,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
       </div>
     </div>
     <div
-      v-show="showBasic"
+      v-show="showBasic && getShowRow('language')"
       key="3"
       class="row"
       @mouseover="showChooseBorder('代码量', $event)"
@@ -333,7 +380,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
     </div>
 
     <div
-      v-show="showBasic"
+      v-show="showBasic && getShowRow('firstCommit')"
       key="4"
       class="row"
       @mouseover="showChooseBorder('首次提交', $event)"
@@ -347,7 +394,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
       </div>
     </div>
     <div
-      v-show="showBasic"
+      v-show="showBasic && getShowRow('license')"
       key="5"
       class="row"
       @mouseover="showChooseBorder('License', $event)"
@@ -371,7 +418,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
     </div>
     <TransitionGroup name="list" tag="div" class="overflow-hidden">
     <div
-      v-show="showFunction"
+      v-show="showFunction && getShowRow('satisfaction')"
       key="1"
       class="row"
       @mouseover="showChooseBorder('开发者满意度', $event)"
@@ -389,7 +436,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
     </div>
 
     <div
-      v-show="showFunction"
+      v-show="showFunction && getShowRow('document.documentScore')"
       key="2"
       class="row"
       @mouseover="showChooseBorder('文档最佳实践', $event)"
@@ -461,7 +508,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
     </div>
     <TransitionGroup name="list" tag="div" class="overflow-hidden">
     <div
-      v-show="showPerformance"
+      v-show="showPerformance && getShowRow('evaluation.performanceScore')"
       key="1"
       class="row"
       @mouseover="showChooseBorder('Benchmark Score', $event)"
@@ -498,6 +545,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
       </div>
       <div style="flex: 1">
         <div
+          v-show="getShowRow('scorecard.score')"
           class="row"
           @mouseover="showChooseBorder('Score', $event)"
           @mouseout="hideChooseBorder($event)"
@@ -516,6 +564,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
           </div>
         </div>
         <div
+          v-show="getShowRow('scorecard.codeReview')"
           class="row"
           @mouseover="showChooseBorder('Code-Review', $event)"
           @mouseout="hideChooseBorder($event)"
@@ -538,6 +587,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
           </div>
         </div>
         <div
+          v-show="getShowRow('scorecard.maintained')"
           class="row"
           @mouseover="showChooseBorder('Maintained', $event)"
           @mouseout="hideChooseBorder($event)"
@@ -560,6 +610,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
           </div>
         </div>
         <div
+          v-show="getShowRow('scorecard.ciiBestPractices')"
           class="row"
           @mouseover="showChooseBorder('CII-Best-Practices', $event)"
           @mouseout="hideChooseBorder($event)"
@@ -585,6 +636,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
           </div>
         </div>
         <div
+          v-show="getShowRow('scorecard.license')"
           class="row"
           @mouseover="showChooseBorder('License', $event)"
           @mouseout="hideChooseBorder($event)"
@@ -605,6 +657,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
           </div>
         </div>
         <div
+          v-show="getShowRow('scorecard.securityPolicy')"
           class="row"
           @mouseover="showChooseBorder('Security-Policy', $event)"
           @mouseout="hideChooseBorder($event)"
@@ -630,6 +683,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
           </div>
         </div>
         <div
+          v-show="getShowRow('scorecard.dangerousWorkflow')"
           class="row"
           @mouseover="showChooseBorder('Dangerous-Workflow', $event)"
           @mouseout="hideChooseBorder($event)"
@@ -655,6 +709,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
           </div>
         </div>
         <div
+          v-show="getShowRow('scorecard.branchProtection')"
           class="row"
           @mouseover="showChooseBorder('Branch-Protection', $event)"
           @mouseout="hideChooseBorder($event)"
@@ -680,6 +735,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
           </div>
         </div>
         <div
+          v-show="getShowRow('scorecard.tokenPermissions')"
           class="row"
           @mouseover="showChooseBorder('Token-Permissions', $event)"
           @mouseout="hideChooseBorder($event)"
@@ -705,6 +761,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
           </div>
         </div>
         <div
+          v-show="getShowRow('scorecard.binaryArtifacts')"
           class="row"
           @mouseover="showChooseBorder('Binary-Artifacts', $event)"
           @mouseout="hideChooseBorder($event)"
@@ -730,6 +787,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
           </div>
         </div>
         <div
+          v-show="getShowRow('scorecard.fuzzing')"
           class="row"
           @mouseover="showChooseBorder('Fuzzing', $event)"
           @mouseout="hideChooseBorder($event)"
@@ -750,6 +808,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
           </div>
         </div>
         <div
+          v-show="getShowRow('scorecard.sast')"
           class="row"
           @mouseover="showChooseBorder('SAST', $event)"
           @mouseout="hideChooseBorder($event)"
@@ -768,6 +827,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
           </div>
         </div>
         <div
+          v-show="getShowRow('scorecard.vulnerabilities')"
           class="row"
           @mouseover="showChooseBorder('Vulnerabilities', $event)"
           @mouseout="hideChooseBorder($event)"
@@ -793,6 +853,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
           </div>
         </div>
         <div
+          v-show="getShowRow('scorecard.pinnedDependencies')"
           class="row"
           @mouseover="showChooseBorder('Pinned-Dependencies', $event)"
           @mouseout="hideChooseBorder($event)"
@@ -834,6 +895,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
       </div>
       <div style="flex: 1">
         <div
+          v-show="getShowRow('sonarCloudScan.reliabilityRating')"
           class="row"
           @mouseover="showChooseBorder('Reliability', $event)"
           @mouseout="hideChooseBorder($event)"
@@ -862,6 +924,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
           </div>
         </div>
         <div
+          v-show="getShowRow('sonarCloudScan.maintainabilityRating')"
           class="row"
           @mouseover="showChooseBorder('Maintainability', $event)"
           @mouseout="hideChooseBorder($event)"
@@ -892,6 +955,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
           </div>
         </div>
         <div
+          v-show="getShowRow('sonarCloudScan.securityRating')"
           class="row"
           @mouseover="showChooseBorder('Security', $event)"
           @mouseout="hideChooseBorder($event)"
@@ -923,6 +987,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
           </div>
         </div>
         <div
+          v-show="getShowRow('sonarCloudScan.securityReviewRating')"
           class="row"
           @mouseover="showChooseBorder('Security Review', $event)"
           @mouseout="hideChooseBorder($event)"
@@ -977,6 +1042,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
       <div v-for="idx in 5" :key="idx" class="param-value border">
         <div v-if="projects[idx - 1]" class="value-div">
           <div
+            v-show="getShowRow('ecologyOverview.downloads')"
             style="
               width: 160px;
               display: flex;
@@ -995,6 +1061,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
           </div>
 
           <div
+            v-show="getShowRow('ecologyOverview.stargazersCount')"
             style="
               width: 160px;
               display: flex;
@@ -1013,6 +1080,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
           </div>
 
           <div
+            v-show="getShowRow('ecologyOverview.forksCount')"
             style="
               width: 160px;
               display: flex;
@@ -1030,7 +1098,10 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
             </div>
           </div>
 
-          <div style="width: 160px; display: flex; flex-direction: column; justify-content: center">
+          <div
+            v-show="getShowRow('ecologyOverview.busFactor')"
+            style="width: 160px; display: flex; flex-direction: column; justify-content: center"
+          >
             <span style="text-align: center; font-weight: bold">{{
               formatFloat(projects[idx - 1].ecologyOverview.busFactor)
             }}</span>
@@ -1054,6 +1125,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
       <div v-for="idx in 5" :key="idx" class="param-value border">
         <div v-if="projects[idx - 1]" class="value-div">
           <div
+            v-show="getShowRow('ecologyOverview.openRank')"
             style="
               width: 160px;
               display: flex;
@@ -1072,6 +1144,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
           </div>
 
           <div
+            v-show="getShowRow('ecologyOverview.criticalityScore')"
             style="
               width: 160px;
               display: flex;
@@ -1090,6 +1163,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
           </div>
 
           <div
+            v-show="getShowRow('ecologyOverview.contributorCount')"
             style="
               width: 160px;
               display: flex;
@@ -1107,7 +1181,10 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
             </div>
           </div>
 
-          <div style="width: 160px; display: flex; flex-direction: column; justify-content: center">
+          <div
+            v-show="getShowRow('ecologyOverview.dependentCount')"
+            style="width: 160px; display: flex; flex-direction: column; justify-content: center"
+          >
             <span style="text-align: center; font-weight: bold">{{
               formatNumber(projects[idx - 1].ecologyOverview.dependentCount)
             }}</span>
@@ -1168,7 +1245,7 @@ const onClickProject = async ({ repoName }: SoftwareBaseInfo) => {
     }
 
     .param-value {
-      width: 230px;
+      width: 232px;
       padding: 10px 10px;
 
       .value-div {
