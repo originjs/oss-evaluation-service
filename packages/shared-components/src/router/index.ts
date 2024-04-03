@@ -3,7 +3,6 @@ import { SearchSoftware, SoftwareDetails } from '@/components';
 import { TechLandscape } from '@/components';
 import { ProjectsCompare } from '@/components';
 
-
 const routes = [
   {
     path: '/',
@@ -30,10 +29,10 @@ const routes = [
         </div>
       `,
       components: {
-        ProjectsCompare
-      }
-    }
-  }
+        ProjectsCompare,
+      },
+    },
+  },
 ];
 
 const router = VueRouter.createRouter({
