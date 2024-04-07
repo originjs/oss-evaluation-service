@@ -52,8 +52,13 @@ const getRating = rating => {
 export async function collectSonarCloudData(req, res) {
   const sonarCloudProjects = await SonarCloudProject.findAll({
     attributes: ['sonarProjectKey', 'defaultBranch'],
+    where: {
+      analysisDate: {
+        [Op.eq]: null,
+      },
+    },
   });
-  if (!sonarCloudProjects || !sonarCloudProjects.length) {
+  if (!sonarCloudProjects?.length) {
     console.warn('no sonarCloud project!!');
   }
   const sonarCloudSdk = new SonarCloudSdk();
@@ -144,8 +149,12 @@ async function recordTime(func, name, ...args) {
 }
 
 export async function updateDefaultBranchAfterImport(req, res) {
-  const gitlabForks = await OssGitlabFork.findAll();
-  if (!gitlabForks || !gitlabForks.length) {
+  const gitlabForks = await OssGitlabFork.findAll({
+    where: {
+      updatedPrimaryBranch: false,
+    },
+  });
+  if (!gitlabForks?.length) {
     res.status(200);
   }
   const gitlabSdk = new GitlabSdk();
@@ -153,7 +162,7 @@ export async function updateDefaultBranchAfterImport(req, res) {
     const projectId = gitlabFork.projectId;
     recordTime(
       gitlabSdk.getProjectInfo,
-      `update gitlab defaultBranch of ${gitlabFork.fullPath}`,
+      `update gitlab defaultBranch of ${gitlabFork.fullPath}:${gitlabFork.projectId}`,
       projectId,
     );
     const response = await gitlabSdk.getProjectInfo(projectId);
@@ -165,6 +174,7 @@ export async function updateDefaultBranchAfterImport(req, res) {
     await OssGitlabFork.update(
       {
         defaultBranch: projectInfo?.default_branch,
+        updatedPrimaryBranch: true,
       },
       {
         where: {

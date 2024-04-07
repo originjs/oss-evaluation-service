@@ -54,6 +54,11 @@ export default sequelize.define(
     webUrl: {
       type: DataTypes.STRING(512),
     },
+    updatedPrimaryBranch: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
   },
   {
     tableName: 'oss_gitlab_fork',
