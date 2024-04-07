@@ -227,7 +227,7 @@ function renderSoftwareRadarChart() {
               formatFloat(project.value?.evaluation.qualityScore),
               formatFloat(project.value?.evaluation.ecologyScore),
               formatFloat(project.value?.evaluation.innovationValue),
-              formatFloat(project.value?.evaluation.performanceScore)
+              formatFloat(project.value?.evaluation.performanceScore),
             ],
             name: '分数',
           },
@@ -708,7 +708,7 @@ const emits = defineEmits<{
           >
             <el-table-column v-for="column in benchmarkCompareColumns" :key="column" :prop="column">
               <template #header>
-                <div class="inline-flex flex-items-center">
+                <div class="flex items-center justify-center">
                   <span>{{ column === 'indexName' ? 'Name' : column }}</span>
                   <el-icon
                     v-show="column !== 'indexName'"
@@ -718,6 +718,14 @@ const emits = defineEmits<{
                   >
                     <Delete />
                   </el-icon>
+                </div>
+              </template>
+              <template #default="{ row }">
+                <div v-if="row[column]" class="flex flex-col items-center justify-center">
+                  <span>{{ row[column] }}</span>
+                  <span v-if="column !== 'indexName'"
+                    >({{ (removeUnit(row[column]) / minRowValue[row.indexName]).toFixed(2) }})</span
+                  >
                 </div>
               </template>
             </el-table-column>
