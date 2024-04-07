@@ -21,7 +21,7 @@ const onSelectMenu = (path: string) => {
   if (path === 'tech-landscape') {
     router.push({ path });
   } else {
-    ElMessage.info('建议中，敬请期待');
+    ElMessage.info('建设中，敬请期待');
   }
 };
 </script>
