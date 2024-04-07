@@ -29,7 +29,8 @@ import { refreshMainPackage } from '../controllers/refreshMainPackage.js';
 import {
   collectSonarCloudData,
   createGitlabProject,
-  createSonarProjectFromGitlab, updateDefaultBranchAfterImport,
+  createSonarProjectFromGitlab,
+  updateDefaultBranchAfterImport,
   updateSonarCloudDefaultBranch,
   uploadSonarCiConfigToGitlab,
 } from '../controllers/sonarCloud.js';
@@ -565,22 +566,21 @@ router.route('/sonarCloud/collect').get(await collectSonarCloudData);
 /**
  * @swagger
  * /sync/gitlab/importProjectFromUrl:
- *   get:
- *     summary: create project data
- *     parameters:
- *        - name: techStack
- *          in: query
- *          description: techStack
- *          required: true
- *          type: string
- *          items:
- *            type: string
- *          example: '构建工具'
+ *  post:
+ *     summary: import Github projects for github
+ *     tags: [Gitlab]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *       example: [48296,298375]
  *     responses:
  *       200:
  *         description: success.
  */
-router.route('/gitlab/importProjectFromUrl').get(await createGitlabProject);
+router.route('/gitlab/importProjectFromUrl').post(await createGitlabProject);
 
 /**
  * @swagger

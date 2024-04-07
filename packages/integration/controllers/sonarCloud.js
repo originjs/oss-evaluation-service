@@ -1,7 +1,6 @@
 import {
   GithubProjects,
   OssGitlabFork,
-  ProjectTechStack,
   SonarCloudProject,
 } from '@orginjs/oss-evaluation-data-model';
 import { Op } from 'sequelize';
@@ -179,27 +178,27 @@ export async function updateDefaultBranchAfterImport(req, res) {
 }
 
 export async function createGitlabProject(req, res) {
-  const techStack = await ProjectTechStack.findAll({
-    where: {
-      subcategory: {
-        [Op.in]: [req.query.techStack],
-      },
-    },
-    attributes: ['projectId'],
-  });
-  const projects = await GithubProjects.findAll({
+  const paramProjectIds = req.body;
+  const githubProjects = await GithubProjects.findAll({
     where: {
       id: {
-        [Op.in]: techStack.map(tech => tech.projectId),
+        [Op.in]: paramProjectIds,
       },
     },
     attributes: ['fullName', 'ownerName', 'name', 'id', 'cloneUrl'],
     order: [['id', 'desc']],
   });
 
+  if (!githubProjects?.length) {
+    res.status(200);
+    res.send('no projects');
+    return;
+  }
+
   const gitlabSdk = new GitlabSdk();
   const namespaceId = process.env.GITLAB_FORK_NAMESPACE_ID;
-  for (const project of projects) {
+  let count = 0;
+  for (const project of githubProjects) {
     const projectId = project.id;
     const gitlabFork = await OssGitlabFork.findOne({
       where: {
@@ -207,6 +206,7 @@ export async function createGitlabProject(req, res) {
       },
     });
     if (gitlabFork) {
+      count++;
       continue;
     }
     const val = {
@@ -242,9 +242,10 @@ export async function createGitlabProject(req, res) {
       namespacePath: json.namespace?.path,
     };
     await OssGitlabFork.upsert(forkResult);
+    count++;
   }
   res.status(200);
-  res.send('{success}');
+  res.send(`success ${count}/${paramProjectIds.length} projects`);
 }
 
 export async function createSonarProjectFromGitlab(req, res) {
