@@ -1,5 +1,5 @@
 import * as VueRouter from 'vue-router';
-import { SearchSoftware, SoftwareDetails } from '@/components';
+import { SearchSoftware, SoftwareDetails ,SoftwareRank} from '@/components';
 import { TechLandscape } from '@/components';
 import { ProjectsCompare } from '@/components';
 
@@ -32,6 +32,10 @@ const routes = [
         ProjectsCompare,
       },
     },
+  },
+  {
+    path: '/SoftwareRank',
+    component: SoftwareRank,
   },
 ];
 

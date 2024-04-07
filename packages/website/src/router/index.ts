@@ -25,6 +25,10 @@ const routes: RouteRecordRaw[] = [
     path: '/compare-projects',
     component: () => import('@views/CompareProject.vue'),
   },
+  {
+    path: '/software-rank',
+    component: () => import('@views/SoftwareRank.vue'),
+  },
 ];
 
 const router = createRouter({

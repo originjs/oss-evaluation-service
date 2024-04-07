@@ -50,6 +50,7 @@ export async function githubTop(page: Page, type: string) {
   const resData = data.map(item => {
     const { htmlUrl } = item;
     return {
+      name: item.name,
       htmlUrl,
       starCount: item.stargazersCount,
       forkCount: item.forksCount,

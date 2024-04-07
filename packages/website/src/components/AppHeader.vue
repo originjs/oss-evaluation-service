@@ -18,7 +18,7 @@ const goSoftwareDetails = ({ repoName }: SoftwareBaseInfo) => {
 };
 
 const onSelectMenu = (path: string) => {
-  if (path === 'tech-landscape') {
+  if (path === 'tech-landscape' || path === 'software-rank') {
     router.push({ path });
   } else {
     ElMessage.info('建设中，敬请期待');
@@ -40,7 +40,7 @@ const onSelectMenu = (path: string) => {
       <el-menu class="menu" mode="horizontal" :ellipsis="false" @select="onSelectMenu">
         <el-menu-item index="1">评估模型</el-menu-item>
         <el-menu-item index="tech-landscape">Landscape</el-menu-item>
-        <el-menu-item index="3">趋势榜单</el-menu-item>
+        <el-menu-item index="software-rank">趋势榜单</el-menu-item>
         <el-menu-item index="4">性能 Benchmark</el-menu-item>
         <el-menu-item index="5">动态</el-menu-item>
       </el-menu>

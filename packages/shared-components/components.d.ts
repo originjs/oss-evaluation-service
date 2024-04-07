@@ -32,6 +32,7 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     SearchSoftware: typeof import('./src/components/SearchSoftware.vue')['default']
     SoftwareDetails: typeof import('./src/components/SoftwareDetails.vue')['default']
+    SoftwareRank: typeof import('./src/components/SoftwareRank.vue')['default']
     TechLandscape: typeof import('./src/components/TechLandscape.vue')['default']
   }
   export interface ComponentCustomProperties {
