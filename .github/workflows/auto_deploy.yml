@@ -41,6 +41,7 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.ALIYUN_SSH_PRIVATE_KEY }}
           ARGS: "-avz --delete"
           SOURCE: "./"  # 更改为你要部署的文件夹
+          EXCLUDE: "/node_modules/"
           REMOTE_HOST: ${{ secrets.ALIYUN_HOST }}
           REMOTE_USER: ${{ secrets.ALIYUN_USER }}
           REMOTE_PORT: ${{ secrets.ALIYUN_PORT }}  # 如果不是默认的22端口，需要更改
@@ -48,4 +49,3 @@ jobs:
             export DATABASE_URL=${{ secrets.DATABASE_URL }}
             export VITE_BACKEND_SERVICE_URL=${{ secrets.BACKEND_SERVICE_URL }}
             nginx -s reload
-            nohup pnpm run serve-api-server &
