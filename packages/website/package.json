@@ -11,7 +11,6 @@
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
     "@orginjs/oss-evaluation-components": "workspace:^",
-    "@orginjs/oss-evaluation-data-model": "workspace:^",
     "@vueuse/core": "^10.9.0",
     "axios": "^1.6.7",
     "dayjs": "^1.11.10",
@@ -22,6 +21,7 @@
     "vue-router": "^4.3.0"
   },
   "devDependencies": {
+    "@orginjs/oss-evaluation-api-server": "workspace:^",
     "@iconify/json": "^2.2.190",
     "@iconify/utils": "^2.1.22",
     "@types/file-saver": "^2.0.7",

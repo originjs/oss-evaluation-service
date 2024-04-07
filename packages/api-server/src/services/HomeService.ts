@@ -1,12 +1,14 @@
 import { sequelize } from '@orginjs/oss-evaluation-data-model';
 import { QueryTypes } from 'sequelize';
+import type { SoftwareBaseInfo } from '../interfaces/SoftwareInfo';
 
-export async function search(keyword, techStack) {
+export async function searchProject(keyword: string, techStack: string): Promise<SoftwareBaseInfo[]> {
   const searchSql = `
-    select distinct projects.full_name as fullName,
-           projects.html_url as htmlName,
-           projects.description ,
-           projects.stargazers_count as stargazersCount
+    select distinct projects.full_name as repoName,
+           projects.html_url as url,
+           projects.description,
+           projects.owner_avatar_url as logo,
+           projects.stargazers_count as star
         from github_projects projects
     join project_packages packages
     on projects.id = packages.project_id
@@ -14,7 +16,7 @@ export async function search(keyword, techStack) {
     ${techStack ? 'and projects.id in (select distinct project_id from project_tech_stack where subcategory = :techStack)' : ''}
     order by stargazers_count desc
     limit 10`;
-  return sequelize.query(searchSql, {
+  return sequelize.query<SoftwareBaseInfo>(searchSql, {
     type: QueryTypes.SELECT,
     replacements: { keyword, techStack },
   });

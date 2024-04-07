@@ -29,7 +29,7 @@ import { refreshMainPackage } from '../controllers/refreshMainPackage.js';
 import {
   collectSonarCloudData,
   createGitlabProject,
-  createSonarProjectFromGitlab,
+  createSonarProjectFromGitlab, updateDefaultBranchAfterImport,
   updateSonarCloudDefaultBranch,
   uploadSonarCiConfigToGitlab,
 } from '../controllers/sonarCloud.js';
@@ -581,6 +581,17 @@ router.route('/sonarCloud/collect').get(await collectSonarCloudData);
  *         description: success.
  */
 router.route('/gitlab/importProjectFromUrl').get(await createGitlabProject);
+
+/**
+ * @swagger
+ * /sync/gitlab/updateDefaultBranchAfterImport:
+ *   get:
+ *     summary: update gitlab default branch
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/gitlab/updateDefaultBranchAfterImport').get(await updateDefaultBranchAfterImport);
 
 /**
  * @swagger

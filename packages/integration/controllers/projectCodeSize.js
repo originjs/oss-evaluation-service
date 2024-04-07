@@ -36,21 +36,24 @@ export default async function syncProjectCodeSize(req, res) {
 
 async function getProjectCodeSize(url) {
   let codeSize;
-  const config = new Configuration({ persistStorage: false })
-  const crawler = new CheerioCrawler({
-    async requestHandler({ request, $, log }) {
-      const thead = $('#cloc-table > thead > tr').text();
-      const head = thead.replaceAll(' ', '').split('\n');
-      if (head.length > 0 && head.indexOf('Code') > 0) {
-        const index = head.indexOf('Code');
-        const tfoot = $('#cloc-table > tfoot > tr').text();
-        codeSize = tfoot.replaceAll(' ', '').split('\n')[index].rreplaceAll(',', '');
-      }
-      log.info(`codeSize of ${request.loadedUrl} is ${codeSize}`);
+  const config = new Configuration({ persistStorage: false });
+  const crawler = new CheerioCrawler(
+    {
+      async requestHandler({ request, $, log }) {
+        const thead = $('#cloc-table > thead > tr').text();
+        const head = thead.replaceAll(' ', '').split('\n');
+        if (head.length > 0 && head.indexOf('Code') > 0) {
+          const index = head.indexOf('Code');
+          const tfoot = $('#cloc-table > tfoot > tr').text();
+          codeSize = tfoot.replaceAll(' ', '').split('\n')[index].rreplaceAll(',', '');
+        }
+        log.info(`codeSize of ${request.loadedUrl} is ${codeSize}`);
+      },
+      maxRequestsPerCrawl: 20000,
+      maxRequestRetries: 1,
     },
-    maxRequestsPerCrawl: 20000,
-    maxRequestRetries: 1,
-  }, config);
+    config,
+  );
   await crawler.run([url]);
   return codeSize;
 }
@@ -66,4 +69,5 @@ const syncProjectCodeSizeTimerTask = Cron(
     debug.log('syncProjectCodeSize start!', syncProjectCodeSizeTimerTask.getPattern());
     await syncProjectCodeSize();
     debug.log('syncProjectCodeSize end!', syncProjectCodeSizeTimerTask.getPattern());
-  })
+  },
+);

@@ -1,6 +1,7 @@
 import * as VueRouter from 'vue-router';
 import { SearchSoftware, SoftwareDetails ,SoftwareRank} from '@/components';
 import { TechLandscape } from '@/components';
+import { ProjectsCompare } from '@/components';
 
 const routes = [
   {
@@ -18,6 +19,19 @@ const routes = [
   {
     path: '/SoftwareDetails',
     component: SoftwareDetails,
+  },
+  {
+    path: '/ProjectsCompare',
+    component: {
+      template: `
+        <div>
+          <ProjectsCompare :repositories="['apache/echarts','vuejs/vue','vitejs/vite']"/>
+        </div>
+      `,
+      components: {
+        ProjectsCompare,
+      },
+    },
   },
   {
     path: '/SoftwareRank',

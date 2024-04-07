@@ -64,7 +64,7 @@ export default sequelize.define(
     securityHotspots: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: '',
+      defaultValue: 0,
     },
     securityHotspotsReviewed: {
       type: DataTypes.STRING(128),
@@ -94,7 +94,7 @@ export default sequelize.define(
     codeLines: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: '',
+      defaultValue: 0,
     },
     maintainabilityRating: {
       type: DataTypes.STRING,

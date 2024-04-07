@@ -2,6 +2,7 @@
 import { ArrowDown, ArrowUp, Picture, Delete } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import { defineExpose } from 'vue';
+import type { SoftwareBaseInfo } from '@/api/SearchSoftware';
 
 enum PanelState {
   hide = 0,
@@ -10,16 +11,15 @@ enum PanelState {
 }
 const emit = defineEmits(['compare']);
 
-let projects: Array<{ repoName: string; logo: string; url: string; description: string }> =
-  reactive(
-    (() => {
-      const projectsString = localStorage.getItem('oss-evaluation-compare-projects');
-      if (projectsString) {
-        return JSON.parse(projectsString);
-      }
-      return [];
-    })(),
-  );
+const projects: Array<SoftwareBaseInfo> = reactive(
+  (() => {
+    const projectsString = localStorage.getItem('oss-evaluation-compare-projects');
+    if (projectsString) {
+      return JSON.parse(projectsString);
+    }
+    return [];
+  })(),
+);
 
 const getPanelState = () => {
   if (!projects.length) {
@@ -38,12 +38,7 @@ const calcPanelState = () => {
   panelState.value = getPanelState();
 };
 
-function removeProject(project: {
-  repoName: string;
-  logo: string;
-  url: string;
-  description: string;
-}) {
+function removeProject(project: SoftwareBaseInfo) {
   let index = projects.findIndex(item => item.url === project.url);
   projects.splice(index, 1);
   localStorage.setItem('oss-evaluation-compare-projects', JSON.stringify(projects));
@@ -54,12 +49,12 @@ function cleanCompareFavorites() {
   localStorage.setItem('oss-evaluation-compare-projects', '[]');
 }
 
-function addProject(
-  newProjects: Array<{ repoName: string; logo: string; url: string; description: string }>,
-) {
+function addProject(newProjects: Array<SoftwareBaseInfo>) {
   for (let project of newProjects) {
     let exists = projects.some(p => p.url === project.url);
-    if (!exists) {
+    if (exists) {
+      ElMessage.success(`${project.repoName} 已添加`);
+    } else {
       if (projects.length >= 5) {
         ElMessage.error('抱歉，最多只支持5款软件进行对比');
         break;
@@ -70,6 +65,10 @@ function addProject(
   localStorage.setItem('oss-evaluation-compare-projects', JSON.stringify(projects));
   expandPanel();
 }
+
+const onClickProject = async (software: SoftwareBaseInfo) => {
+  addProject([software]);
+};
 
 function collapsePanel() {
   panelState.value = PanelState.collapse;
@@ -136,11 +135,20 @@ defineExpose({ addProject });
           </div>
           <div class="divider"></div>
 
-          <Delete class="remove-btn  hover-color-#F56C6C" @click="removeProject(project)"></Delete>
+          <Delete class="remove-btn hover-color-#F56C6C" @click="removeProject(project)"></Delete>
         </div>
 
-        <div v-for="idx in 5 - projects.length" :key="idx" class="project">
-          <el-select style="width: 80%; margin-right: 10px" placeholder="选择开源软件"> </el-select>
+        <div v-for="idx in 5 - projects.length" :key="idx" class="project" style="width: 200px">
+          <SearchSoftware class="w-full pr-10px" @change="onClickProject">
+            <button
+              class="w-full flex flex-items-center p-12px rd-8px h-40px bg-#f6f6f7 b-1 b-solid b-transparent color-black-75 hover:b-#3451b2"
+            >
+              <span class="flex flex-items-center">
+                <span i-ph-magnifying-glass-bold />
+                <span class="ml-6px">添加软件对比</span>
+              </span>
+            </button>
+          </SearchSoftware>
           <div class="divider"></div>
         </div>
       </div>

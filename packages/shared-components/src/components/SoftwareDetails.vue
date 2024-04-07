@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { CompareFavorites } from '@orginjs/oss-evaluation-components'; // todo 确认这些内部组件会不会被打包进去
 import { Plus } from '@element-plus/icons-vue';
 import type { CellStyle } from 'element-plus';
 import { ElMessage } from 'element-plus';
 import * as echarts from 'echarts';
+import { saveAs } from 'file-saver';
 import dayjs from 'dayjs';
 import type {
   SoftwareInfo,
-  BenchmarkData,
+  SoftwareBaseInfo,
+  PerformanceInfo,
   EcologyActivity,
-  PerformanceModuleInfo,
+  BenchmarkData,
 } from '@api/SoftwareDetails';
 import {
   getSoftwareInfo,
@@ -17,10 +18,10 @@ import {
   getEcologyActivityCategoryApi,
   exportFileApi,
 } from '@api/SoftwareDetails';
+import { default as CompareFavorites } from './CompareFavorites.vue';
+import { default as SearchSoftware } from './SearchSoftware.vue';
 import { getLevelColor, getTagType, scorecardProgressColor } from '@utils/color';
-import { saveAs } from 'file-saver';
-import { SearchSoftware } from '@orginjs/oss-evaluation-components';
-import { toKilo } from '@utils/number';
+import { toKilo, formatFloat, formatNumber, formatString } from '@utils/number';
 
 const props = defineProps<{ repoName: string }>();
 
@@ -38,11 +39,11 @@ const openSSFScorecard = ref<
   Array<{
     label: string;
     tips: string;
-    value: number;
+    value: string | number;
   }>
 >([]);
 const documentInfo = ref<{
-  score: number;
+  score: string | number;
   items: Array<{
     title: string;
     content: string;
@@ -65,11 +66,11 @@ watchEffect(async () => {
   baseInfoTable.value = [
     {
       label: 'Stars',
-      value: toKilo(data.star),
+      value: `${toKilo(data.star)} k`,
     },
     {
       label: 'Fork',
-      value: toKilo(data.fork),
+      value: `${toKilo(data.fork)} k`,
     },
     {
       label: '开发语言',
@@ -77,7 +78,7 @@ watchEffect(async () => {
     },
     {
       label: '代码量',
-      value: `${data.codeLines} (KL)`,
+      value: `${toKilo(data.codeLines)} kl`,
     },
     {
       label: '首次提交',
@@ -92,71 +93,71 @@ watchEffect(async () => {
     {
       label: 'Code-Review',
       tips: 'Determines if the project requires human code review before pull requests (aka merge requests) are merged.',
-      value: data.scorecard?.codeReview,
+      value: formatFloat(data.scorecard?.codeReview),
     },
     {
       label: 'Maintained',
       tips: 'Determines if the project is "actively maintained".',
-      value: data.scorecard?.maintained,
+      value: formatFloat(data.scorecard?.maintained),
     },
     {
       label: 'CII-Best-Practices',
       tips: 'Determines if the project has an OpenSSF (formerly CII) Best Practices Badge.',
-      value: data.scorecard?.ciiBestPractices,
+      value: formatFloat(data.scorecard?.ciiBestPractices),
     },
     {
       label: 'License',
       tips: 'Determines if the project has defined a license.',
-      value: data.scorecard?.license,
+      value: formatFloat(data.scorecard?.license),
     },
     {
       label: 'Security-Policy',
       tips: 'Determines if the project has published a security policy.',
-      value: data.scorecard?.securityPolicy,
+      value: formatFloat(data.scorecard?.securityPolicy),
     },
     {
       label: 'Dangerous-Workflow',
       tips: "Determines if the project's GitHub Action workflows avoid dangerous patterns.",
-      value: data.scorecard?.dangerousWorkflow,
+      value: formatFloat(data.scorecard?.dangerousWorkflow),
     },
     {
       label: 'Branch-Protection',
       tips: "Determines if the default and release branches are protected with GitHub's branch protection settings.",
-      value: data.scorecard?.branchProtection,
+      value: formatFloat(data.scorecard?.branchProtection),
     },
     {
       label: 'Token-Permissions',
       tips: "Determines if the project's workflows follow the principle of least privilege.",
-      value: data.scorecard?.tokenPermissions,
+      value: formatFloat(data.scorecard?.tokenPermissions),
     },
     {
       label: 'Binary-Artifacts',
       tips: 'Determines if the project has generated executable (binary) artifacts in the source repository.',
-      value: data.scorecard?.binaryArtifacts,
+      value: formatFloat(data.scorecard?.binaryArtifacts),
     },
     {
       label: 'Fuzzing',
       tips: 'Determines if the project uses fuzzing.',
-      value: data.scorecard?.fuzzing,
+      value: formatFloat(data.scorecard?.fuzzing),
     },
     {
       label: 'SAST',
       tips: 'Determines if the project uses static code analysis.',
-      value: data.scorecard?.sast,
+      value: formatFloat(data.scorecard?.sast),
     },
     {
       label: 'Vulnerabilities',
       tips: 'Determines if the project has open, known unfixed vulnerabilities.',
-      value: data.scorecard?.vulnerabilities,
+      value: formatFloat(data.scorecard?.vulnerabilities),
     },
     {
       label: 'Pinned-Dependencies',
       tips: 'Determines if the project has declared and pinned the dependencies of its build process.',
-      value: data.scorecard?.pinnedDependencies,
+      value: formatFloat(data.scorecard?.pinnedDependencies),
     },
   ];
   documentInfo.value = {
-    score: data.document.documentScore,
+    score: formatFloat(data.document?.documentScore),
     items: [
       {
         title: 'Readme',
@@ -188,6 +189,7 @@ watchEffect(async () => {
       yAxis: data.satisfaction.map(item => item.val),
     };
   }
+  await nextTick();
   renderSoftwareRadarChart();
   renderGithubStartChart();
   renderDeveloperSatisfactionChart();
@@ -221,11 +223,11 @@ function renderSoftwareRadarChart() {
         data: [
           {
             value: [
-              project.value?.evaluation.functionScore,
-              project.value?.evaluation.qualityScore,
-              project.value?.evaluation.ecologyScore,
-              project.value?.evaluation.innovationValue,
-              project.value?.evaluation.performanceScore,
+              formatFloat(project.value?.evaluation.functionScore),
+              formatFloat(project.value?.evaluation.qualityScore),
+              formatFloat(project.value?.evaluation.ecologyScore),
+              formatFloat(project.value?.evaluation.innovationValue),
+              formatFloat(project.value?.evaluation.performanceScore)
             ],
             name: '分数',
           },
@@ -346,7 +348,7 @@ function renderDocBestPracticesChart() {
         },
         data: [
           {
-            value: documentInfo.value.score || 0,
+            value: formatFloat(documentInfo.value.score) || 0,
           },
         ],
       },
@@ -362,7 +364,7 @@ function removeUnit(str: string) {
   return Number(str.split(' ')[0]);
 }
 
-const performanceModuleInfo = ref<PerformanceModuleInfo>({
+const performanceModuleInfo = ref<PerformanceInfo>({
   size: 0,
   gzipSize: 0,
   packageName: '',
@@ -386,13 +388,12 @@ watchEffect(async () => {
 });
 
 // Extract table row, min row value and column name from object array data
-function processBenchmarkData(benchmarkData: BenchmarkData, needRetain?: boolean) {
+function processBenchmarkData(benchmarkData?: BenchmarkData, needRetain?: boolean) {
   const rows: BenchmarkCompareData = needRetain ? { ...benchmarkCompareRows.value } : {};
-  const minRowV: MinRowValue = needRetain ? { ...minRowValue.value } : {};
   const columns: Set<string> = needRetain
     ? new Set([...benchmarkCompareColumns.value])
     : new Set(['indexName']);
-  const data = benchmarkData.data
+  const data = benchmarkData?.data || [];
   for (let i = 0; i < data.length; i++) {
     for (let j = 0; j < data[i].length; j++) {
       const indexName = data[i][j].indexName;
@@ -404,31 +405,28 @@ function processBenchmarkData(benchmarkData: BenchmarkData, needRetain?: boolean
         row = { ...row, [displayName]: rawValue };
         rows[indexName] = row;
 
-        // get min row value
-        if (rawValue && rawValue.includes(' ')) {
-          const num = removeUnit(rawValue);
-          const min = minRowV[indexName] || Infinity;
-          minRowV[indexName] = Math.min(min, num);
-        }
-
         // get column
         columns.add(displayName);
       }
     }
   }
   benchmarkCompareRows.value = rows;
-  minRowValue.value = minRowV;
   benchmarkCompareColumns.value = columns;
+
+  // get min row value
+  const minRowV: MinRowValue = needRetain ? { ...minRowValue.value } : {};
+  (benchmarkData?.base || []).forEach(item => (minRowV[item.indexName] = item.bestVal));
+  minRowValue.value = minRowV;
 }
 
-async function addBenchmarkCompare(name: string) {
+async function addBenchmarkCompare(info: SoftwareBaseInfo) {
   const {
     data: { benchmarkData },
-  } = await getPerformanceModuleInfo(encodeURIComponent(name));
+  } = await getPerformanceModuleInfo(encodeURIComponent(info.repoName));
   processBenchmarkData(benchmarkData, true);
 }
 
-function computeColor({ row, column }): CellStyle<BenchmarkCompareRow> {
+const computeColor: CellStyle<BenchmarkCompareRow> = function ({ row, column }) {
   const cellVal = row[column.property];
   if (column.property === 'indexName' || !cellVal) {
     return {};
@@ -448,7 +446,7 @@ function computeColor({ row, column }): CellStyle<BenchmarkCompareRow> {
     const b = (1.0 - a) * 132 + a * 108;
     return { backgroundColor: `rgb(${r.toFixed(0)}, ${g.toFixed(0)}, ${b.toFixed(0)})` };
   }
-}
+};
 function renderLineChart(container: string, data: EcologyActivity[]) {
   const chartDom = softwareDetailsEl.value.querySelector(container);
   if (!chartDom) {
@@ -499,7 +497,7 @@ watchEffect(async () => {
 async function exportToExcel() {
   try {
     const data = await exportFileApi(encodedRepoName.value);
-    saveAs(data, `${props.repoName}` + `_${dayjs().format()}` + `.xlsx`);
+    saveAs(data, `${props.repoName}.xlsx`);
     ElMessage.success('导出成功');
   } catch (e) {
     ElMessage.error('导出失败');
@@ -513,9 +511,7 @@ function addProjectToCompare() {
 }
 
 const emits = defineEmits<{
-  compareProjects: [
-    projects: Array<{ repoName: string; logo: string; url: string; description: string }>,
-  ];
+  compareProjects: [projects: Array<SoftwareBaseInfo>];
 }>();
 </script>
 
@@ -594,7 +590,9 @@ const emits = defineEmits<{
       <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-custom:function mr-2 />
         <span>功能</span>
-        <span font-size-5 float-right>{{ project?.evaluation.functionScore }}/100</span>
+        <span font-size-5 float-right
+          >{{ formatFloat(project?.evaluation?.functionScore) }}/100</span
+        >
       </div>
       <el-card mb-6>
         <div font-size-5 font-bold>Github Star 趋势（演示数据）</div>
@@ -649,7 +647,9 @@ const emits = defineEmits<{
         <span i-custom:performance mr-2 />
         <span>性能</span>
         <span i-custom:profession mr-2 />
-        <span font-size-5 float-right>{{ project?.evaluation.performanceScore }}/100</span>
+        <span font-size-5 float-right
+          >{{ formatFloat(project?.evaluation?.performanceScore) }}/100</span
+        >
       </div>
       <el-card>
         <div>
@@ -686,13 +686,17 @@ const emits = defineEmits<{
           </el-link>
         </div>
         <div v-show="showBenchmarkCompare">
-          <SearchSoftware :tech-stack="project?.techStack" @search-name="addBenchmarkCompare">
+          <SearchSoftware
+            class="w-280px"
+            :tech-stack="project?.techStack"
+            @change="addBenchmarkCompare"
+          >
             <button
-              class="search-btn flex flex-items-center p-12px rd-8px h-40px bg-#f6f6f7 b-1 b-solid b-transparent color-black-75 hover:b-#3451b2 mt-10px mb-10px"
+              class="w-full flex flex-items-center p-12px rd-8px h-40px bg-#f6f6f7 b-1 b-solid b-transparent color-black-75 hover:b-#3451b2 mt-10px mb-10px"
             >
               <span class="flex flex-items-center">
                 <span i-ph-magnifying-glass-bold />
-                <span class="ml-6px">添加软件对比</span>
+                <span class="ml-6px">添加软件性能对比</span>
               </span>
             </button>
           </SearchSoftware>
@@ -723,7 +727,9 @@ const emits = defineEmits<{
       <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-custom:quality mr-2 />
         <span>质量</span>
-        <span font-size-5 float-right>{{ project?.evaluation.qualityScore }}/100</span>
+        <span font-size-5 float-right
+          >{{ formatFloat(project?.evaluation?.qualityScore) }}/100</span
+        >
       </div>
       <el-card mb-6>
         <div flex>
@@ -736,7 +742,7 @@ const emits = defineEmits<{
             </el-icon>
           </el-tooltip>
         </div>
-        <div font-bold>{{ project?.scorecard.score }} / 10</div>
+        <div font-bold>{{ formatFloat(project?.scorecard?.score) }} / 10</div>
         <div v-for="item in openSSFScorecard" :key="item.label" flex flex-items-center h-30px>
           <div w-190px>
             <span>{{ item.label }}</span>
@@ -766,7 +772,9 @@ const emits = defineEmits<{
               <span>Reliability</span>
             </div>
             <div>
-              <span font-bold font-size-6 mr-2>{{ toKilo(project?.sonarCloudScan?.bugs) }}</span>
+              <span font-bold font-size-6 mr-2>{{
+                formatNumber(project?.sonarCloudScan?.bugs)
+              }}</span>
               <span font-light>Bugs</span>
               <el-tooltip content="编码错误会破坏您的代码并且需要立即修复。">
                 <el-icon size-5 color-gray-400>
@@ -781,7 +789,7 @@ const emits = defineEmits<{
               }"
             >
               <span vertical-middle color-white>{{
-                toKilo(project?.sonarCloudScan?.reliabilityRating)
+                formatString(project?.sonarCloudScan?.reliabilityRating)
               }}</span>
             </div>
           </div>
@@ -792,7 +800,7 @@ const emits = defineEmits<{
             </div>
             <div>
               <span font-bold font-size-6 mr-2>{{
-                toKilo(project?.sonarCloudScan?.codeSmells)
+                formatNumber(project?.sonarCloudScan?.codeSmells)
               }}</span>
               <span font-light>Code Smells</span>
               <el-tooltip content="代码混乱且难以维护。">
@@ -808,7 +816,7 @@ const emits = defineEmits<{
               }"
             >
               <span vertical-middle color-white>{{
-                toKilo(project?.sonarCloudScan?.maintainabilityRating)
+                formatString(project?.sonarCloudScan?.maintainabilityRating)
               }}</span>
             </div>
           </div>
@@ -819,7 +827,7 @@ const emits = defineEmits<{
             </div>
             <div>
               <span font-bold font-size-6 mr-2>{{
-                toKilo(project?.sonarCloudScan?.vulnerabilities)
+                formatNumber(project?.sonarCloudScan?.vulnerabilities)
               }}</span>
               <span font-light>Vulnerabilities</span>
               <el-tooltip content="可以被黑客利用的代码。">
@@ -833,7 +841,7 @@ const emits = defineEmits<{
               :style="{ backgroundColor: getLevelColor(project?.sonarCloudScan?.securityRating) }"
             >
               <span vertical-middle color-white>{{
-                toKilo(project?.sonarCloudScan?.securityRating)
+                formatString(project?.sonarCloudScan?.securityRating)
               }}</span>
             </div>
           </div>
@@ -844,7 +852,7 @@ const emits = defineEmits<{
             </div>
             <div>
               <span font-bold font-size-6 mr-2>{{
-                toKilo(project?.sonarCloudScan?.securityHotspots)
+                formatNumber(project?.sonarCloudScan?.securityHotspots)
               }}</span>
               <span font-light mr-1>Security Hotspots</span>
               <el-tooltip content="需要手动检查以评估是否存在漏洞的安全敏感代码。">
@@ -860,7 +868,7 @@ const emits = defineEmits<{
               }"
             >
               <span vertical-middle color-white>{{
-                toKilo(project?.sonarCloudScan?.securityReviewRating)
+                formatString(project?.sonarCloudScan?.securityReviewRating)
               }}</span>
             </div>
           </div>
@@ -869,7 +877,9 @@ const emits = defineEmits<{
       <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-custom:ecology mr-2 />
         <span>生态</span>
-        <span font-size-5 float-right>{{ project?.evaluation.ecologyScore }}/100</span>
+        <span font-size-5 float-right>
+          {{ formatFloat(project?.evaluation?.ecologyScore) }}/100
+        </span>
       </div>
       <div v-loading="loadingEcology" flex flex-wrap justify-between content-between>
         <el-card w-full mb-6>
@@ -878,7 +888,9 @@ const emits = defineEmits<{
             <div flex w-210px>
               <div i-custom:download font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ toKilo(project?.ecologyOverview?.downloads) }}</div>
+                <div font-bold font-size-5>
+                  {{ toKilo(project?.ecologyOverview?.downloads).split('.')[0] }} k
+                </div>
                 <div line-height-7>npm周下载量</div>
               </div>
             </div>
@@ -886,7 +898,7 @@ const emits = defineEmits<{
               <div i-custom:star font-size-14 mr-4 />
               <div>
                 <div font-bold font-size-5>
-                  {{ toKilo(project?.ecologyOverview?.stargazersCount) }}
+                  {{ toKilo(project?.ecologyOverview?.stargazersCount) }} k
                 </div>
                 <div line-height-7>Star数量</div>
               </div>
@@ -894,7 +906,9 @@ const emits = defineEmits<{
             <div flex w-210px>
               <div i-custom:fork font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ toKilo(project?.ecologyOverview?.forksCount) }}</div>
+                <div font-bold font-size-5>
+                  {{ toKilo(project?.ecologyOverview?.forksCount) }} k
+                </div>
                 <div line-height-7>Fork数量</div>
               </div>
             </div>
@@ -1029,9 +1043,5 @@ const emits = defineEmits<{
   .cell {
     line-height: 14px;
   }
-}
-
-:deep(.search-btn) {
-  width: 280px;
 }
 </style>

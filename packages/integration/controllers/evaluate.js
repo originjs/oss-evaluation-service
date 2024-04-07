@@ -170,9 +170,9 @@ async function loadModel() {
   for (const metric of metricList) {
     const key = metric.dimension + metric.techStack;
     if (!model[key]) {
-      model[key] = [metric];
+      model[key] = [metric.toJSON()];
     } else {
-      model[key].push(metric);
+      model[key].push(metric.toJSON());
     }
   }
   return model;
@@ -242,6 +242,7 @@ async function getDimensionScore(project, dimension, techStack, model) {
     const { field, techStack: subTechStack, weight, median, p10, isDesc, type } = fieldItem;
     if (type === MetricType.MAIN) {
       const fieldScore = await getDimensionScore(project, field, subTechStack, model);
+      debug.log(`${field} score= ${fieldScore}, weight = ${weight}`);
       totalScore += weight * fieldScore;
     } else {
       // score 0 if no data provided
@@ -264,6 +265,7 @@ async function getDimensionScore(project, dimension, techStack, model) {
       totalScore += weight * calLighthouseScore(rawValue, p10, median, isDesc);
     }
   }
+  debug.log(`dimension=${dimension} score=${totalScore}`);
   return totalScore;
 }
 

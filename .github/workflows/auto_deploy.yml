@@ -1,0 +1,23 @@
+name: Deploy to Cloud Server
+
+on:
+  push:
+    branches:
+      - release  # 触发部署的分支
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Deploy code
+      run: |
+        ssh -o StrictHostKeyChecking=no root@8.134.178.105 "cd /home/oss-integration-service && git pull origin release && pnpm -F @orginjs/oss-evaluation-api-server build && pnpm -F @orginjs/oss-evaluation-api-server start"
