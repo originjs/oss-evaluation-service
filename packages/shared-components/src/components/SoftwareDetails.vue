@@ -390,7 +390,6 @@ watchEffect(async () => {
 // Extract table row, min row value and column name from object array data
 function processBenchmarkData(benchmarkData?: BenchmarkData, needRetain?: boolean) {
   const rows: BenchmarkCompareData = needRetain ? { ...benchmarkCompareRows.value } : {};
-  const minRowV: MinRowValue = needRetain ? { ...minRowValue.value } : {};
   const columns: Set<string> = needRetain
     ? new Set([...benchmarkCompareColumns.value])
     : new Set(['indexName']);
@@ -406,21 +405,18 @@ function processBenchmarkData(benchmarkData?: BenchmarkData, needRetain?: boolea
         row = { ...row, [displayName]: rawValue };
         rows[indexName] = row;
 
-        // get min row value
-        if (rawValue && rawValue.includes(' ')) {
-          const num = removeUnit(rawValue);
-          const min = minRowV[indexName] || Infinity;
-          minRowV[indexName] = Math.min(min, num);
-        }
-
         // get column
         columns.add(displayName);
       }
     }
   }
   benchmarkCompareRows.value = rows;
-  minRowValue.value = minRowV;
   benchmarkCompareColumns.value = columns;
+
+  // get min row value
+  const minRowV: MinRowValue = needRetain ? { ...minRowValue.value } : {};
+  (benchmarkData?.base || []).forEach(item => (minRowV[item.indexName] = item.bestVal));
+  minRowValue.value = minRowV;
 }
 
 async function addBenchmarkCompare(info: SoftwareBaseInfo) {
