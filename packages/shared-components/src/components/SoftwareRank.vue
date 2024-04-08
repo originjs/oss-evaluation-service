@@ -2,6 +2,7 @@
 import { getStarsTopApi } from '@api/SoftwareRank';
 import type { rankInfo } from '@api/SoftwareRank';
 import * as echarts from 'echarts';
+import { toKilo } from '@utils/number';
 
 const rankPage = ref<{
   pageNo: number;
@@ -161,7 +162,7 @@ async function setActiveIcon(icon: string) {
         </div>
         <div flex flex-content-center grid-items-center ml-20px>
           <el-image
-            src="https://avatars.githubusercontent.com/u/6128107?v=4"
+            :src="item.logo"
             fit="contain"
             class="img-border"
             float-left
@@ -217,18 +218,18 @@ async function setActiveIcon(icon: string) {
               </div>
             </div>
 
-            <div flex flex-justify-between class="max-w-30%">
-              <div class="top-header-icon" flex grid-items-center>
-                <span class="i-ph-star" style="font-size: 18px; margin-right: 2px"></span>
-                <span>{{ item.starCount }}</span>
+            <div flex  class="max-w-40%">
+              <div class="top-header-icon" flex grid-items-center style="width: 33%;">
+                <span class="i-ph-star" flex-shrink-0 style="font-size: 18px; margin-right: 2px"></span>
+                <span>{{ toKilo(item.starCount) }}<span v-if="toKilo(item.starCount) !== '-'">k</span></span>
               </div>
-              <div class="top-header-icon" flex grid-items-center>
-                <span class="i-gg-git-fork" style="font-size: 24px"></span>
-                <span>{{ item.forkCount }}</span>
+              <div class="top-header-icon" flex grid-items-center style="width: 33%;">
+                <span class="i-gg-git-fork" flex-shrink-0 style="font-size: 24px"></span>
+                <span>{{ toKilo(item.forkCount) }}<span v-if="toKilo(item.forkCount) !== '-'">k</span></span>
               </div>
-              <div class="top-header-icon" flex grid-items-center>
-                <span class="i-octicon-people-24" style="font-size: 20px; margin-right: 2px"></span>
-                <span>{{ item.contributorCount }}</span>
+              <div class="top-header-icon" flex grid-items-center style="width: 33%;">
+                <span class="i-octicon-people-24" flex-shrink-0 style="font-size: 20px; margin-right: 2px"></span>
+                <span>{{ toKilo(item.contributorCount) }}<span v-if="toKilo(item.contributorCount) !== '-'">k</span></span>
               </div>
             </div>
           </div>
