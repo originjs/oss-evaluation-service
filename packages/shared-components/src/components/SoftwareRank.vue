@@ -105,11 +105,20 @@ function getRankLevel(index: number) {
   return 'white-rank';
 }
 
+const pageSize = ref(10);
+const currentPage = ref(1);
+
 async function setActiveIcon(icon: string) {
   activeIcon.value = icon;
   console.log(activeIcon);
   // TODO request parameter
-  await getTopTrendData(0, 10, icon);
+  await getTopTrendData(0, pageSize, icon);
+  currentPage.value = 1;
+}
+
+function handlePageChange(newPage:number) {
+  currentPage.value = newPage;
+  getTopTrendData(newPage, pageSize, activeIcon.value);
 }
 </script>
 
@@ -157,8 +166,8 @@ async function setActiveIcon(icon: string) {
         flex
         style="margin-left: auto; margin-right: auto"
       >
-        <div class="rank-num" :class="getRankLevel(index)" h-43px w-35px text-center>
-          {{ index + 1 }}
+        <div class="rank-num" :class="getRankLevel((currentPage - 1) * pageSize + index)" h-43px w-35px text-center>
+          {{ (currentPage - 1) * pageSize + index + 1 }}
         </div>
         <div flex flex-content-center grid-items-center ml-20px>
           <el-image
@@ -235,6 +244,11 @@ async function setActiveIcon(icon: string) {
           </div>
           <div :id="`github-trend-chart-${index}`" class="trend-chart" />
         </div>
+      </div>
+      <div w-500px style="margin-top: 20px;margin-left: auto; margin-right: auto">
+        <el-pagination background layout="prev, pager, next" :total="100" :page-size="pageSize"
+                       :current-page="currentPage"
+                       @current-change="handlePageChange"/>
       </div>
     </div>
   </div>
