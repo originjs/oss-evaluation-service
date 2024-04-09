@@ -29,7 +29,8 @@ import { refreshMainPackage } from '../controllers/refreshMainPackage.js';
 import {
   collectSonarCloudData,
   createGitlabProject,
-  createSonarProjectFromGitlab, updateDefaultBranchAfterImport,
+  createSonarProjectFromGitlab,
+  updateDefaultBranchAfterImport,
   updateSonarCloudDefaultBranch,
   uploadSonarCiConfigToGitlab,
 } from '../controllers/sonarCloud.js';
@@ -556,6 +557,7 @@ router.route('/benchmark/updateScore').post(updateScore);
  * /sync/sonarCloud/collect:
  *   get:
  *     summary: collect sonarCloud data
+ *     tags: [Sonar]
  *     responses:
  *       200:
  *         description: success.
@@ -565,28 +567,28 @@ router.route('/sonarCloud/collect').get(await collectSonarCloudData);
 /**
  * @swagger
  * /sync/gitlab/importProjectFromUrl:
- *   get:
- *     summary: create project data
- *     parameters:
- *        - name: techStack
- *          in: query
- *          description: techStack
- *          required: true
- *          type: string
- *          items:
- *            type: string
- *          example: '构建工具'
+ *  post:
+ *     summary: import Github projects for github
+ *     tags: [Gitlab]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *       example: [48296,298375]
  *     responses:
  *       200:
  *         description: success.
  */
-router.route('/gitlab/importProjectFromUrl').get(await createGitlabProject);
+router.route('/gitlab/importProjectFromUrl').post(await createGitlabProject);
 
 /**
  * @swagger
  * /sync/gitlab/updateDefaultBranchAfterImport:
  *   get:
  *     summary: update gitlab default branch
+ *     tags: [Gitlab]
  *     responses:
  *       200:
  *         description: success.
@@ -598,6 +600,7 @@ router.route('/gitlab/updateDefaultBranchAfterImport').get(await updateDefaultBr
  * /sync/sonarCloud/createSonarProjectFromGitlab:
  *   get:
  *     summary: create project data
+ *     tags: [Sonar]
  *     responses:
  *       200:
  *         description: success.
@@ -609,9 +612,9 @@ router.route('/sonarCloud/createSonarProjectFromGitlab').get(await createSonarPr
  * tags:
  *   name: gitlab
  * /sync/gitlab/addSonarCheckPipeline:
- *   tags: [gitlab]
  *   get:
  *     summary: add sonar pipeline
+ *     tags: [Gitlab]
  *     responses:
  *       200:
  *         description: success.
@@ -623,9 +626,9 @@ router.route('/gitlab/addSonarCheckPipeline').get(await uploadSonarCiConfigToGit
  * tags:
  *   name: sonarCloud
  * /sync/sonarCloud/updateDefaultBranch:
- *   tags: [sonarCloud]
  *   get:
  *     summary: update default branch
+ *     tags: [Sonar]
  *     responses:
  *       200:
  *         description: success.
