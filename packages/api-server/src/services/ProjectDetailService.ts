@@ -12,6 +12,7 @@ import {
   SonarCloudProjectMin,
   EvaluationSummary,
   PackageDownloadCount,
+  GithubProjects,
 } from '@orginjs/oss-evaluation-data-model';
 import ejsExcel from 'ejsexcel';
 import { readFileSync } from 'node:fs';
@@ -248,18 +249,18 @@ group by if(index_name.display_name is null, benchmark.benchmark, index_name.dis
 }
 
 export async function getProjectIdByRepoName(repoName: string) {
-  const data = await ProjectPackage.findOne({
+  const data = await GithubProjects.findOne({
     where: {
-      projectName: repoName,
+      fullName: repoName,
     },
-    attributes: ['projectId'],
+    attributes: ['id'],
   });
   if (!data) {
     const msg = `cant find repo named {${repoName}}!`;
     console.warn(msg);
     throw new Error(msg);
   }
-  return data.projectId;
+  return data.id;
 }
 
 /**
