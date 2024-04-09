@@ -137,7 +137,9 @@ const goSoftwareDetails = (repoName: string) => {
             :class="{ 'active-word': activeIcon === 'star' }"
             @click="() => setActiveIcon('star')"
           >
-            <span class="i-ic-round-star" style="font-size: 20px; margin-right: 2px"></span>
+            <span class="icon" style="font-size: 20px; margin-right: 2px">
+              <img src="@assets/svg/star.svg" alt="Star Icon" />
+            </span>
             <span>Star Top 100</span>
           </div>
           <div
@@ -145,7 +147,9 @@ const goSoftwareDetails = (repoName: string) => {
             :class="{ 'active-word': activeIcon === 'fork' }"
             @click="() => setActiveIcon('fork')"
           >
-            <span class="i-gg-git-fork" style="font-size: 24px"></span>
+            <span class="icon" style="font-size: 24px; margin-right: 2px">
+              <img src="@assets/svg/fork.svg" alt="Fork Icon" />
+            </span>
             <span>Fork Top 100 </span>
           </div>
           <div
@@ -153,7 +157,9 @@ const goSoftwareDetails = (repoName: string) => {
             :class="{ 'active-word': activeIcon === 'contributors' }"
             @click="() => setActiveIcon('contributors')"
           >
-            <span class="i-octicon-people-24" style="font-size: 20px; margin-right: 2px"></span>
+            <span class="icon" style="font-size: 20px; margin-right: 2px">
+              <img src="@assets/svg/contributor.svg" alt="Contributor Icon" />
+            </span>
             <span>Contributors Top 100</span>
           </div>
         </div>
@@ -224,30 +230,28 @@ const goSoftwareDetails = (repoName: string) => {
               </div>
             </div>
             <div flex class="max-w-40%">
-              <div class="top-header-icon" flex grid-items-center style="width: 33%">
-                <span
-                  class="i-ph-star"
-                  flex-shrink-0
-                  style="font-size: 18px; margin-right: 2px"
-                ></span>
+              <div flex grid-items-center style="width: 33%">
+                <span class="icon" style="font-size: 20px; margin-right: 2px">
+                  <img src="@assets/svg/star.svg" alt="Star Icon" />
+                </span>
                 <span
                   >{{ toKilo(item.starCount)
                   }}<span v-if="toKilo(item.starCount) !== '-'">k</span></span
                 >
               </div>
-              <div class="top-header-icon" flex grid-items-center style="width: 33%">
-                <span class="i-gg-git-fork" flex-shrink-0 style="font-size: 24px"></span>
+              <div flex grid-items-center style="width: 33%">
+                <span class="icon" style="font-size: 24px; margin-right: 2px">
+                  <img src="@assets/svg/fork.svg" alt="Fork Icon" />
+                </span>
                 <span
                   >{{ toKilo(item.forkCount)
                   }}<span v-if="toKilo(item.forkCount) !== '-'">k</span></span
                 >
               </div>
-              <div class="top-header-icon" flex grid-items-center style="width: 33%">
-                <span
-                  class="i-octicon-people-24"
-                  flex-shrink-0
-                  style="font-size: 20px; margin-right: 2px"
-                ></span>
+              <div flex grid-items-center style="width: 33%">
+                <span class="icon" style="font-size: 20px; margin-right: 2px">
+                  <img src="@assets/svg/contributor.svg" alt="Contributor Icon" />
+                </span>
                 <span
                   >{{ toKilo(item.contributorCount)
                   }}<span v-if="toKilo(item.contributorCount) !== '-'">k</span></span
@@ -290,13 +294,11 @@ const goSoftwareDetails = (repoName: string) => {
     background-color: #f5faff;
     color: #44a0ff;
     border-radius: 12px;
-
-    .i-ic-round-star,
-    .i-gg-git-fork,
-    .i-octicon-people-24 {
-      color: #feba60;
-    }
   }
+}
+.icon img {
+  width: 20px;
+  height: 20px;
 }
 
 .img-border {
