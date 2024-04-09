@@ -74,7 +74,7 @@ export async function githubTop(page: Page, type: string) {
   });
   const resData = result.map(item => {
     return {
-      name: item.name,
+      name: item.fullName,
       logo: item.ownerAvatarUrl,
       htmlUrl: item.htmlUrl,
       starCount: item.stargazersCount,
