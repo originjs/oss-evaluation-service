@@ -15,9 +15,15 @@ const rankPage = ref<{
   data: [],
 });
 const softwareRankEl = ref();
-const activeIcon = ref('star');
 const pageSize = ref(10);
 const currentPage = ref(1);
+
+const activeName = ref('star'); // 初始设定为 'star'
+async function handleClick() {
+  console.log(activeName.value);
+  await getTopTrendData(0, pageSize.value, activeName.value);
+  currentPage.value = 1;
+}
 
 async function getTopTrendData(pageNo: number, pageSize: number, type: string) {
   const { data } = await getStarsTopApi({ pageNo, pageSize }, type);
@@ -107,13 +113,6 @@ function getRankLevel(index: number) {
   return 'white-rank';
 }
 
-async function setActiveIcon(icon: string) {
-  activeIcon.value = icon;
-  // TODO request parameter
-  await getTopTrendData(0, pageSize, icon);
-  currentPage.value = 1;
-}
-
 const emit = defineEmits<{
   click: [repoName: string];
 }>();
@@ -125,7 +124,7 @@ const goSoftwareDetails = (repoName: string) => {
 async function getMore() {
   let pageNo = rankPage.value.pageNo + 1;
   let pageSize = rankPage.value.pageSize;
-  let type = activeIcon.value;
+  let type = activeName.value;
   const { data } = await getStarsTopApi({ pageNo, pageSize }, type);
   if (pageNo > 10) {
     ElMessage({
@@ -148,43 +147,40 @@ async function getMore() {
 
 <template>
   <div ref="softwareRankEl" class="software-rank" pb-50px bg-coolgray-50>
-    <div overflow-hidden p-20px bg-white shadow-md>
-      <div w-1280px m-auto>
-        <div class="top-header">
-          <div
-            class="top-header-icon"
-            :class="{ 'active-word': activeIcon === 'star' }"
-            @click="() => setActiveIcon('star')"
-          >
+    <div flex flex-justify-center bg-white>
+      <el-tabs v-model="activeName" h-60px @click="handleClick">
+        <el-tab-pane label="Star Top 100" name="star">
+          <template #label>
             <span class="icon" style="font-size: 20px; margin-right: 2px">
-              <img src="@assets/svg/star.svg" alt="Star Icon" />
+              <img v-if="activeName === 'star'" src="@assets/svg/star-active.svg" alt="Star Icon" />
+              <img v-else src="@assets/svg/star.svg" alt="Star Icon" />
             </span>
-            <span>Star Top 100</span>
-          </div>
-          <div
-            class="top-header-icon"
-            :class="{ 'active-word': activeIcon === 'fork' }"
-            @click="() => setActiveIcon('fork')"
-          >
+            <span style="font-weight: bold; font-size: 18px">Star Top 100</span>
+          </template>
+        </el-tab-pane>
+
+        <el-tab-pane label="Fork Top 100" name="fork">
+          <template #label>
             <span class="icon" style="font-size: 24px; margin-right: 2px">
-              <img src="@assets/svg/fork.svg" alt="Fork Icon" />
+              <img v-if="activeName === 'fork'" src="@assets/svg/fork-active.svg" />
+              <img v-else src="@assets/svg/fork.svg" />
             </span>
-            <span>Fork Top 100 </span>
-          </div>
-          <div
-            class="top-header-icon"
-            :class="{ 'active-word': activeIcon === 'contributors' }"
-            @click="() => setActiveIcon('contributors')"
-          >
+            <span style="font-weight: bold; font-size: 18px">Fork Top 100</span>
+          </template>
+        </el-tab-pane>
+
+        <el-tab-pane label="Contributors Top 100" name="contributors">
+          <template #label>
             <span class="icon" style="font-size: 20px; margin-right: 2px">
-              <img src="@assets/svg/contributor.svg" alt="Contributor Icon" />
+              <img v-if="activeName === 'contributors'" src="@assets/svg/contributor-active.svg" />
+              <img v-else src="@assets/svg/contributor.svg" />
             </span>
-            <span>Contributors Top 100</span>
-          </div>
-        </div>
-      </div>
+            <span style="font-weight: bold; font-size: 18px">Contributors Top 100</span>
+          </template>
+        </el-tab-pane>
+      </el-tabs>
     </div>
-    <div style="margin-top: 20px">
+    <div>
       <div
         v-for="(item, index) in rankPage.data"
         :key="index"
