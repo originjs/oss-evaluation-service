@@ -4,7 +4,7 @@ import router from '@router/index';
 import ElementPlus from 'element-plus';
 import * as ElementPlusIconsVue from '@element-plus/icons-vue';
 import 'element-plus/dist/index.css';
-import '@orginjs/oss-evaluation-components/dist/index.css';
+import '@orginjs/oss-evaluation-components/assets/less/index.less';
 import 'virtual:uno.css';
 
 const app = createApp(App);

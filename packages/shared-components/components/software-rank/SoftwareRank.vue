@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { getStarsTopApi } from '@api/SoftwareRank';
-import type { rankInfo } from '@api/SoftwareRank';
+import { getStarsTopApi } from '@orginjs/oss-evaluation-components-api';
+import type { rankInfo } from '@orginjs/oss-evaluation-components-api';
 import * as echarts from 'echarts';
-import { toKilo } from '@utils/number';
+import { toKilo } from '@orginjs/oss-evaluation-components-utils';
 
 const rankPage = ref<{
   pageNo: number;
@@ -305,19 +305,19 @@ function handlePageChange(newPage:number) {
 }
 
 .gold-rank {
-  background-image: url(../assets/pic/gold.png);
+  background-image: url(../../assets/pic/gold.png);
 }
 
 .silver-rank {
-  background-image: url(../assets/pic/sliver.png);
+  background-image: url(../../assets/pic/sliver.png);
 }
 
 .copper-rank {
-  background-image: url(../assets/pic/copper.png);
+  background-image: url(../../assets/pic/copper.png);
 }
 
 .white-rank {
-  background-image: url(../assets/pic/white.png);
+  background-image: url(../../assets/pic/white.png);
   color: #636363;
 }
 

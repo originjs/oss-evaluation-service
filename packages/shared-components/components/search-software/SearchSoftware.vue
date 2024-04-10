@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Search } from '@element-plus/icons-vue';
-import type { SoftwareBaseInfo } from '@/api/SearchSoftware';
-import { getSoftwareBaseInfoApi } from '@/api/SearchSoftware';
+import type { SoftwareBaseInfo } from '@orginjs/oss-evaluation-components-api';
+import { getSoftwareBaseInfoApi } from '@orginjs/oss-evaluation-components-api';
 import type { PromisifyFn } from '@vueuse/core';
 import { useDebounceFn } from '@vueuse/core';
 
@@ -99,7 +99,7 @@ const onClickSoftware = (info: SoftwareBaseInfo) => {
 </template>
 
 <style lang="less">
-.search-open-source-software-dialog {
+.el-dialog.search-open-source-software-dialog {
   border-radius: 6px;
 
   .el-dialog__header {

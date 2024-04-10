@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { SearchSoftware } from '@orginjs/oss-evaluation-components';
+import { SearchSoftware } from '@orginjs/oss-evaluation-components/search-software';
 import type { SoftwareBaseInfo } from '@orginjs/oss-evaluation-api-server';
 
 const router = useRouter();

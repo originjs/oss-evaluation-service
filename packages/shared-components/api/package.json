@@ -1,0 +1,5 @@
+{
+  "name": "@orginjs/oss-evaluation-components-api",
+  "private": true,
+  "main": "index.ts"
+}

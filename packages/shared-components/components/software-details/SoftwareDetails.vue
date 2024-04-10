@@ -11,17 +11,26 @@ import type {
   PerformanceInfo,
   EcologyActivity,
   BenchmarkData,
-} from '@api/SoftwareDetails';
+} from '@orginjs/oss-evaluation-components-api';
 import {
   getSoftwareInfo,
   getPerformanceModuleInfo,
   getEcologyActivityCategoryApi,
   exportFileApi,
-} from '@api/SoftwareDetails';
-import { default as CompareFavorites } from './CompareFavorites.vue';
-import { default as SearchSoftware } from './SearchSoftware.vue';
-import { getLevelColor, getTagType, scorecardProgressColor } from '@utils/color';
-import { toKilo, formatFloat, formatNumber, formatString } from '@utils/number';
+} from '@orginjs/oss-evaluation-components-api';
+import { CompareFavorites } from '../compare-favorites';
+import { SearchSoftware } from '../search-software';
+import {
+  getLevelColor,
+  getTagType,
+  scorecardProgressColor,
+} from '@orginjs/oss-evaluation-components-utils';
+import {
+  toKilo,
+  formatFloat,
+  formatNumber,
+  formatString,
+} from '@orginjs/oss-evaluation-components-utils';
 
 const props = defineProps<{ repoName: string }>();
 

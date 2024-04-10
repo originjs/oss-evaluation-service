@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ArrowDown, ArrowUp, Picture, Delete } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
-import { defineExpose } from 'vue';
-import type { SoftwareBaseInfo } from '@/api/SearchSoftware';
+import type { SoftwareBaseInfo } from '@orginjs/oss-evaluation-components-api';
+import { SearchSoftware } from '../search-software';
 
 enum PanelState {
   hide = 0,
