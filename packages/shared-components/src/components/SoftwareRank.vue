@@ -3,6 +3,7 @@ import { getStarsTopApi } from '@api/SoftwareRank';
 import type { rankInfo } from '@api/SoftwareRank';
 import * as echarts from 'echarts';
 import { toKilo } from '@utils/number';
+import { ElMessage } from 'element-plus';
 
 const rankPage = ref<{
   pageNo: number;
@@ -113,11 +114,6 @@ async function setActiveIcon(icon: string) {
   currentPage.value = 1;
 }
 
-function handlePageChange(newPage: number) {
-  currentPage.value = newPage;
-  getTopTrendData(newPage, pageSize, activeIcon.value);
-}
-
 const emit = defineEmits<{
   click: [repoName: string];
 }>();
@@ -125,6 +121,29 @@ const emit = defineEmits<{
 const goSoftwareDetails = (repoName: string) => {
   emit('click', repoName);
 };
+
+async function getMore() {
+  let pageNo = rankPage.value.pageNo + 1;
+  let pageSize = rankPage.value.pageSize;
+  let type = activeIcon.value;
+  const { data } = await getStarsTopApi({ pageNo, pageSize }, type);
+  if (pageNo > 10) {
+    ElMessage({
+      message: 'No more data！',
+      type: 'warning',
+    });
+    return;
+  }
+  if (data.data.length > 0) {
+    rankPage.value.data.push(...data.data);
+  }
+  nextTick(() => {
+    for (let i = (pageNo - 1) * pageSize; i < (pageNo - 1) * pageSize + pageSize; i++) {
+      renderGithubTrendChart(i);
+    }
+  });
+  rankPage.value.pageNo++;
+}
 </script>
 
 <template>
@@ -262,15 +281,8 @@ const goSoftwareDetails = (repoName: string) => {
           <div :id="`github-trend-chart-${index}`" class="trend-chart" />
         </div>
       </div>
-      <div w-500px style="margin-top: 20px; margin-left: auto; margin-right: auto">
-        <el-pagination
-          background
-          layout="prev, pager, next"
-          :total="100"
-          :page-size="pageSize"
-          :current-page="currentPage"
-          @current-change="handlePageChange"
-        />
+      <div w-1280px style="margin-top: 10px; margin-left: auto; margin-right: auto">
+        <el-button @click="getMore">展示更多>></el-button>
       </div>
     </div>
   </div>
