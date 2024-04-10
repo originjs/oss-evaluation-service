@@ -3,7 +3,7 @@ export class Result<T> {
   msg: string;
   data: T;
 
-  constructor(code: number, data, msg?: string) {
+  constructor(code: number, data: T, msg?: string) {
     this.code = code;
     this.data = data;
     this.msg = msg;
@@ -13,7 +13,7 @@ export class Result<T> {
     return new Result(200, data);
   }
 
-  static fail(code, msg) {
+  static fail(code: number, msg?: string): Result<undefined> {
     return new Result(code, null, msg);
   }
 }
