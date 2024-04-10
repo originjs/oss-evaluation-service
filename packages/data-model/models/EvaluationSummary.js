@@ -95,9 +95,21 @@ export default sequelize.define(
     forksCount: {
       type: DataTypes.INTEGER,
     },
-    // sonarcloudScore: {
-    //   type: DataTypes.DOUBLE,
-    // },
+    npmDownloads: {
+      type: DataTypes.INTEGER,
+    },
+    sonarcloudScore: {
+      type: DataTypes.INTEGER,
+    },
+    createTime: {
+      type: DataTypes.DOUBLE,
+    },
+    updateTime: {
+      type: DataTypes.DOUBLE,
+    },
+    marketShare: {
+      type: DataTypes.DOUBLE,
+    },
   },
   {
     tableName: 'oss_evaluation_summary',
