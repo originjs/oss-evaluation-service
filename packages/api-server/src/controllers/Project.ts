@@ -30,9 +30,15 @@ export class ProjectController extends Controller {
   }
 
   @Get('performance/{repoName}')
-  public async getPerformanceData(@Path() repoName: string): Promise<Result<PerformanceInfo>> {
-    const data = await getPerformance(repoName);
-    return Result.ok(data);
+  public async getPerformanceData(
+    @Path() repoName: string,
+  ): Promise<Result<PerformanceInfo | unknown>> {
+    try {
+      const data = await getPerformance(repoName);
+      return Result.ok(data);
+    } catch (e) {
+      return Result.ok({});
+    }
   }
 
   @Post('export/{repoName}')

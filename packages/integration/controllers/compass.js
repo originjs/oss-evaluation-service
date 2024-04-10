@@ -74,8 +74,8 @@ export async function syncCompassActivityMetric(req, res) {
     await syncFullProjectCompassMetric(startIndex);
     res.status(200).send('Full-scale compass activity metrics integration success');
   } else {
-    await syncSingleProjectCompassMetric({ repoUrl, beginDate });
-    res.status(200).send(`Project: ${repoUrl} - compass activity metrics integration success`);
+    const metrics = await syncSingleProjectCompassMetric(repoUrl, beginDate);
+    res.status(200).json(metrics);
   }
 }
 
@@ -148,17 +148,6 @@ async function syncSingleProjectCompassMetric(repoUrl, beginDate) {
     return;
   }
 
-  // check if the project has saved in database
-  const databaseItem = await CompassActivity.findOne({
-    where: {
-      repoUrl: project.htmlUrl,
-    },
-  });
-  if (databaseItem != null) {
-    debug.log('Project have been saved in database');
-    return;
-  }
-
   const data = await request(compassUrl, query, {
     label: repoUrl,
     beginDate,
@@ -177,6 +166,7 @@ async function syncSingleProjectCompassMetric(repoUrl, beginDate) {
     .catch(error => {
       debug.log('Batch insert error: ', error.message);
     });
+  return metrics;
 }
 
 async function getIncrementalIntegrationArray(repoUrl, projectId, activityMetrics) {

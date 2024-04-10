@@ -1,7 +1,6 @@
 import {
   GithubProjects,
   OssGitlabFork,
-  ProjectTechStack,
   SonarCloudProject,
 } from '@orginjs/oss-evaluation-data-model';
 import { Op } from 'sequelize';
@@ -53,8 +52,13 @@ const getRating = rating => {
 export async function collectSonarCloudData(req, res) {
   const sonarCloudProjects = await SonarCloudProject.findAll({
     attributes: ['sonarProjectKey', 'defaultBranch'],
+    where: {
+      analysisDate: {
+        [Op.eq]: null,
+      },
+    },
   });
-  if (!sonarCloudProjects || !sonarCloudProjects.length) {
+  if (!sonarCloudProjects?.length) {
     console.warn('no sonarCloud project!!');
   }
   const sonarCloudSdk = new SonarCloudSdk();
@@ -145,8 +149,12 @@ async function recordTime(func, name, ...args) {
 }
 
 export async function updateDefaultBranchAfterImport(req, res) {
-  const gitlabForks = await OssGitlabFork.findAll();
-  if (!gitlabForks || !gitlabForks.length) {
+  const gitlabForks = await OssGitlabFork.findAll({
+    where: {
+      updatedPrimaryBranch: false,
+    },
+  });
+  if (!gitlabForks?.length) {
     res.status(200);
   }
   const gitlabSdk = new GitlabSdk();
@@ -154,7 +162,7 @@ export async function updateDefaultBranchAfterImport(req, res) {
     const projectId = gitlabFork.projectId;
     recordTime(
       gitlabSdk.getProjectInfo,
-      `update gitlab defaultBranch of ${gitlabFork.fullPath}`,
+      `update gitlab defaultBranch of ${gitlabFork.fullPath}:${gitlabFork.projectId}`,
       projectId,
     );
     const response = await gitlabSdk.getProjectInfo(projectId);
@@ -166,6 +174,7 @@ export async function updateDefaultBranchAfterImport(req, res) {
     await OssGitlabFork.update(
       {
         defaultBranch: projectInfo?.default_branch,
+        updatedPrimaryBranch: true,
       },
       {
         where: {
@@ -179,27 +188,27 @@ export async function updateDefaultBranchAfterImport(req, res) {
 }
 
 export async function createGitlabProject(req, res) {
-  const techStack = await ProjectTechStack.findAll({
-    where: {
-      subcategory: {
-        [Op.in]: [req.query.techStack],
-      },
-    },
-    attributes: ['projectId'],
-  });
-  const projects = await GithubProjects.findAll({
+  const paramProjectIds = req.body;
+  const githubProjects = await GithubProjects.findAll({
     where: {
       id: {
-        [Op.in]: techStack.map(tech => tech.projectId),
+        [Op.in]: paramProjectIds,
       },
     },
     attributes: ['fullName', 'ownerName', 'name', 'id', 'cloneUrl'],
     order: [['id', 'desc']],
   });
 
+  if (!githubProjects?.length) {
+    res.status(200);
+    res.send('no projects');
+    return;
+  }
+
   const gitlabSdk = new GitlabSdk();
   const namespaceId = process.env.GITLAB_FORK_NAMESPACE_ID;
-  for (const project of projects) {
+  let count = 0;
+  for (const project of githubProjects) {
     const projectId = project.id;
     const gitlabFork = await OssGitlabFork.findOne({
       where: {
@@ -207,6 +216,7 @@ export async function createGitlabProject(req, res) {
       },
     });
     if (gitlabFork) {
+      count++;
       continue;
     }
     const val = {
@@ -242,9 +252,10 @@ export async function createGitlabProject(req, res) {
       namespacePath: json.namespace?.path,
     };
     await OssGitlabFork.upsert(forkResult);
+    count++;
   }
   res.status(200);
-  res.send('{success}');
+  res.send(`success ${count}/${paramProjectIds.length} projects`);
 }
 
 export async function createSonarProjectFromGitlab(req, res) {
@@ -356,7 +367,7 @@ sonar.objc.file.suffixes=-
 sonar.sources=.
 
 # Encoding of the source code. Default is default system encoding
-#sonar.sourceEncoding=UTF-8
+sonar.sourceEncoding=UTF-8
 `;
     const commitInfo = {
       branch: fork.defaultBranch,
