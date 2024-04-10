@@ -66,6 +66,7 @@ export interface SoftwareInfo extends SoftwareBaseInfo {
     maintainabilityRating: string;
     securityRating: string;
     securityReviewRating: string;
+    sonarProjectKey: string;
   };
   document: {
     documentScore: number;
