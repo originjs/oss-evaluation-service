@@ -365,6 +365,7 @@ sonar.objc.file.suffixes=-
 
 # Path is relative to the sonar-project.properties file. Replace "\\" by "/" on Windows.
 sonar.sources=.
+sonar.exclusions=**/*.java,**/*.c,**/*.cpp
 
 # Encoding of the source code. Default is default system encoding
 sonar.sourceEncoding=UTF-8
