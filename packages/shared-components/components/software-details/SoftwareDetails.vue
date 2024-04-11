@@ -499,7 +499,7 @@ watchEffect(async () => {
   renderLineChart('#update-issue-count-chart', data.updatedIssuesCount);
   renderLineChart('#close-issue-count-chart', data.closedIssuesCount);
   renderLineChart('#organization-count-chart', data.orgCount);
-  renderLineChart('#maintainer-count-chart', data.contributorCount);
+  renderLineChart('#contributor-count-chart', data.contributorCount);
   loadingEcology.value = false;
 });
 
@@ -1012,35 +1012,93 @@ const emits = defineEmits<{
           </div>
         </el-card>
         <el-card mb-6 w-626px>
-          <div mb-4 font-size-5 font-bold>代码提交频率</div>
-          <div mb-2 font-size-3>过去90天内平均每周代码提交次数。</div>
+          <div mb-2 font-size-5 font-bold>
+            代码提交频率
+            <el-tooltip
+              content="数据来源于Compass，关于指标的意义和结果可以查看 Compass 官网: https://oss-compass.org/"
+            >
+              <el-icon size-5 color-gray-400>
+                <InfoFilled />
+              </el-icon>
+            </el-tooltip>
+          </div>
+          <div mb-2 font-size-3 text-gray-500>过去90天内平均每周代码提交次数。</div>
           <div id="code-submit-frequency-chart" h-200px />
         </el-card>
         <el-card mb-6 w-626px>
-          <div mb-4 font-size-5 font-bold>Issue评论频率</div>
-          <div mb-2 font-size-3>
+          <div mb-2 font-size-5 font-bold>
+            Issue评论频率
+            <el-tooltip
+              content="数据来源于Compass，关于指标的意义和结果可以查看 Compass 官网: https://oss-compass.org/"
+            >
+              <el-icon size-5 color-gray-400>
+                <InfoFilled />
+              </el-icon>
+            </el-tooltip>
+          </div>
+          <div mb-2 font-size-3 text-gray-500>
             过去90天内新建 Issue 的评论平均数（不包含机器人和 Issue 作者本人评论）。
           </div>
           <div id="issue-comment-frequency-chart" h-200px />
         </el-card>
         <el-card mb-6 w-626px>
-          <div mb-4 font-size-5 font-bold>更新Issue数量</div>
-          <div mb-2 font-size-3>过去90天 Issue 更新的数量。</div>
+          <div mb-2 font-size-5 font-bold>
+            更新Issue数量
+            <el-tooltip
+              content="数据来源于Compass，关于指标的意义和结果可以查看 Compass 官网: https://oss-compass.org/"
+            >
+              <el-icon size-5 color-gray-400>
+                <InfoFilled />
+              </el-icon>
+            </el-tooltip>
+          </div>
+          <div mb-2 font-size-3 text-gray-500>过去90天 Issue 更新的数量。</div>
           <div id="update-issue-count-chart" h-200px />
         </el-card>
         <el-card mb-6 w-626px>
-          <div mb-4 font-size-5 font-bold>关闭Issue数量</div>
-          <div mb-2 font-size-3>过去90天 Issue 更新的数量。</div>
+          <div mb-2 font-size-5 font-bold>
+            关闭Issue数量
+            <el-tooltip
+              content="数据来源于Compass，关于指标的意义和结果可以查看 Compass 官网: https://oss-compass.org/"
+            >
+              <el-icon size-5 color-gray-400>
+                <InfoFilled />
+              </el-icon>
+            </el-tooltip>
+          </div>
+          <div mb-2 font-size-3 text-gray-500>过去90天 Issue 更新的数量。</div>
           <div id="close-issue-count-chart" h-200px />
         </el-card>
         <el-card mb-6 w-626px>
-          <div mb-4 font-size-5 font-bold>组织数量</div>
-          <div mb-2 font-size-3>过去90天内活跃的代码提交者所属组织的数目。</div>
+          <div mb-2 font-size-5 font-bold>
+            组织数量
+            <el-tooltip
+              content="数据来源于Compass，关于指标的意义和结果可以查看 Compass 官网: https://oss-compass.org/"
+            >
+              <el-icon size-5 color-gray-400>
+                <InfoFilled />
+              </el-icon>
+            </el-tooltip>
+          </div>
+          <div mb-2 font-size-3 text-gray-500>过去90天内活跃的代码提交者所属组织的数目。</div>
           <div id="organization-count-chart" h-200px />
         </el-card>
         <el-card mb-6 w-626px>
-          <div mb-4 font-size-5 font-bold>维护者数量</div>
-          <div id="maintainer-count-chart" h-200px />
+          <div mb-2 font-size-5 font-bold>
+            贡献者数量
+            <el-tooltip
+              content="数据来源于Compass，关于指标的意义和结果可以查看 Compass 官网: https://oss-compass.org/"
+            >
+              <el-icon size-5 color-gray-400>
+                <InfoFilled />
+              </el-icon>
+            </el-tooltip>
+          </div>
+          <div mb-2 font-size-3 text-gray-500>
+            过去 90 天中活跃的代码提交者、Pull Request 作者、代码审查者、Issue 作者和 Issue
+            评论者的数量。
+          </div>
+          <div id="contributor-count-chart" h-200px />
         </el-card>
       </div>
     </div>
