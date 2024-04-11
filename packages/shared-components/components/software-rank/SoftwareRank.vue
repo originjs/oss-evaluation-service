@@ -2,6 +2,7 @@
 import { getStarsTopApi } from '@orginjs/oss-evaluation-components-api';
 import type { rankInfo } from '@orginjs/oss-evaluation-components-api';
 import * as echarts from 'echarts';
+import { ElMessage } from 'element-plus';
 import { toKilo } from '@orginjs/oss-evaluation-components-utils';
 
 const rankPage = ref<{
@@ -14,7 +15,15 @@ const rankPage = ref<{
   data: [],
 });
 const softwareRankEl = ref();
-const activeIcon = ref('star');
+const pageSize = ref(10);
+const currentPage = ref(1);
+
+const activeName = ref('star'); // 初始设定为 'star'
+async function handleClick() {
+  console.log(activeName.value);
+  await getTopTrendData(0, pageSize.value, activeName.value);
+  currentPage.value = 1;
+}
 
 async function getTopTrendData(pageNo: number, pageSize: number, type: string) {
   const { data } = await getStarsTopApi({ pageNo, pageSize }, type);
@@ -24,8 +33,7 @@ async function getTopTrendData(pageNo: number, pageSize: number, type: string) {
 
 onMounted(async () => {
   // TODO request parameter
-  const data = await getTopTrendData(0, 10, 'star');
-  console.log(data);
+  await getTopTrendData(0, pageSize, 'star');
   // TODO render chart
   nextTick(() => {
     for (let i = 0; i < 10; i++) {
@@ -105,56 +113,74 @@ function getRankLevel(index: number) {
   return 'white-rank';
 }
 
-const pageSize = ref(10);
-const currentPage = ref(1);
+const emit = defineEmits<{
+  click: [repoName: string];
+}>();
 
-async function setActiveIcon(icon: string) {
-  activeIcon.value = icon;
-  console.log(activeIcon);
-  // TODO request parameter
-  await getTopTrendData(0, pageSize, icon);
-  currentPage.value = 1;
-}
+const goSoftwareDetails = (repoName: string) => {
+  emit('click', repoName);
+};
 
-function handlePageChange(newPage:number) {
-  currentPage.value = newPage;
-  getTopTrendData(newPage, pageSize, activeIcon.value);
+async function getMore() {
+  let pageNo = rankPage.value.pageNo + 1;
+  let pageSize = rankPage.value.pageSize;
+  let type = activeName.value;
+  const { data } = await getStarsTopApi({ pageNo, pageSize }, type);
+  if (pageNo > 10) {
+    ElMessage({
+      message: 'No more data！',
+      type: 'warning',
+    });
+    return;
+  }
+  if (data.data.length > 0) {
+    rankPage.value.data.push(...data.data);
+  }
+  nextTick(() => {
+    for (let i = (pageNo - 1) * pageSize; i < (pageNo - 1) * pageSize + pageSize; i++) {
+      renderGithubTrendChart(i);
+    }
+  });
+  rankPage.value.pageNo++;
 }
 </script>
 
 <template>
   <div ref="softwareRankEl" class="software-rank" pb-50px bg-coolgray-50>
-    <div overflow-hidden p-20px bg-white shadow-md>
-      <div w-1280px m-auto>
-        <div class="top-header">
-          <div
-            class="top-header-icon"
-            :class="{ 'active-word': activeIcon === 'star' }"
-            @click="() => setActiveIcon('star')"
-          >
-            <span class="i-ic-round-star" style="font-size: 20px; margin-right: 2px"></span>
-            <span>Star Top 100</span>
-          </div>
-          <div
-            class="top-header-icon"
-            :class="{ 'active-word': activeIcon === 'fork' }"
-            @click="() => setActiveIcon('fork')"
-          >
-            <span class="i-gg-git-fork" style="font-size: 24px"></span>
-            <span>Fork Top 100 </span>
-          </div>
-          <div
-            class="top-header-icon"
-            :class="{ 'active-word': activeIcon === 'contributors' }"
-            @click="() => setActiveIcon('contributors')"
-          >
-            <span class="i-octicon-people-24" style="font-size: 20px; margin-right: 2px"></span>
-            <span>Contributors Top 100</span>
-          </div>
-        </div>
-      </div>
+    <div flex flex-justify-center bg-white>
+      <el-tabs v-model="activeName" h-60px @click="handleClick">
+        <el-tab-pane label="Star Top 100" name="star">
+          <template #label>
+            <span class="icon" style="font-size: 20px; margin-right: 2px">
+              <img v-if="activeName === 'star'" src="../../assets/svg/star-active.svg" alt="Star Icon" />
+              <img v-else src="../../assets/svg/star.svg" alt="Star Icon" />
+            </span>
+            <span style="font-weight: bold; font-size: 18px">Star Top 100</span>
+          </template>
+        </el-tab-pane>
+
+        <el-tab-pane label="Fork Top 100" name="fork">
+          <template #label>
+            <span class="icon" style="font-size: 24px; margin-right: 2px">
+              <img v-if="activeName === 'fork'" src="../../assets/svg/fork-active.svg" />
+              <img v-else src="../../assets/svg/fork.svg" />
+            </span>
+            <span style="font-weight: bold; font-size: 18px">Fork Top 100</span>
+          </template>
+        </el-tab-pane>
+
+        <el-tab-pane label="Contributors Top 100" name="contributors">
+          <template #label>
+            <span class="icon" style="font-size: 20px; margin-right: 2px">
+              <img v-if="activeName === 'contributors'" src="../../assets/svg/contributor-active.svg" />
+              <img v-else src="../../assets/svg/contributor.svg" />
+            </span>
+            <span style="font-weight: bold; font-size: 18px">Contributors Top 100</span>
+          </template>
+        </el-tab-pane>
+      </el-tabs>
     </div>
-    <div style="margin-top: 20px">
+    <div>
       <div
         v-for="(item, index) in rankPage.data"
         :key="index"
@@ -166,7 +192,13 @@ function handlePageChange(newPage:number) {
         flex
         style="margin-left: auto; margin-right: auto"
       >
-        <div class="rank-num" :class="getRankLevel((currentPage - 1) * pageSize + index)" h-43px w-35px text-center>
+        <div
+          class="rank-num"
+          :class="getRankLevel((currentPage - 1) * pageSize + index)"
+          h-43px
+          w-35px
+          text-center
+        >
           {{ (currentPage - 1) * pageSize + index + 1 }}
         </div>
         <div flex flex-content-center grid-items-center ml-20px>
@@ -184,14 +216,14 @@ function handlePageChange(newPage:number) {
               </div>
             </template>
           </el-image>
-          <div float-left w-680px style="color: #c2c2c2" ml-20px>
-            <div position-relative flex flex-items-center>
+          <div w-680px style="color: #999999" ml-20px>
+            <div flex flex-items-center @click="goSoftwareDetails(item.name)">
               <el-tooltip effect="light" teleported="false">
                 <div
                   mt--5px
                   mr-12px
                   max-w-600px
-                  font-size-7
+                  font-size-5.2
                   font-bold
                   line-height-normal
                   color-black
@@ -205,50 +237,47 @@ function handlePageChange(newPage:number) {
               </el-tooltip>
             </div>
             <div flex flex-justify-between w-480px>
-              <div flex flex-items-center style="width: 50%">
-                <div class="i-mdi-link-variant" flex-shrink-0></div>
-                <el-tooltip effect="light" teleported="false">
-                  <a :href="item.htmlUrl" class="text-over" target="_blank">{{ item.htmlUrl }}</a>
-                  <template #content>
-                    <div max-w-900px>{{ item.htmlUrl }}</div>
-                  </template>
-                </el-tooltip>
-              </div>
-              <div flex flex-items-center style="width: 50%">
-                <div class="i-mdi-link-variant" flex-shrink-0></div>
-                <el-tooltip effect="light" teleported="false">
-                  <a href="https://github.com/vuejs/core" class="text-over" target="_blank">{{
-                    item.htmlUrl
-                  }}</a>
-                  <template #content>
-                    <div max-w-900px>{{ item.htmlUrl }}</div>
-                  </template>
-                </el-tooltip>
+              <div flex flex-items-center>
+                <a :href="item.htmlUrl" target="_blank">
+                  <span class="i-uiw-github" font-size-20px></span>
+                </a>
               </div>
             </div>
-
-            <div flex  class="max-w-40%">
-              <div class="top-header-icon" flex grid-items-center style="width: 33%;">
-                <span class="i-ph-star" flex-shrink-0 style="font-size: 18px; margin-right: 2px"></span>
-                <span>{{ toKilo(item.starCount) }}<span v-if="toKilo(item.starCount) !== '-'">k</span></span>
+            <div flex class="max-w-40%">
+              <div flex grid-items-center style="width: 33%">
+                <span class="icon" style="font-size: 20px; margin-right: 2px">
+                  <img src="../../assets/svg/star.svg" alt="Star Icon" />
+                </span>
+                <span
+                  >{{ toKilo(item.starCount)
+                  }}<span v-if="toKilo(item.starCount) !== '-'">k</span></span
+                >
               </div>
-              <div class="top-header-icon" flex grid-items-center style="width: 33%;">
-                <span class="i-gg-git-fork" flex-shrink-0 style="font-size: 24px"></span>
-                <span>{{ toKilo(item.forkCount) }}<span v-if="toKilo(item.forkCount) !== '-'">k</span></span>
+              <div flex grid-items-center style="width: 33%">
+                <span class="icon" style="font-size: 24px; margin-right: 2px">
+                  <img src="../../assets/svg/fork.svg" alt="Fork Icon" />
+                </span>
+                <span
+                  >{{ toKilo(item.forkCount)
+                  }}<span v-if="toKilo(item.forkCount) !== '-'">k</span></span
+                >
               </div>
-              <div class="top-header-icon" flex grid-items-center style="width: 33%;">
-                <span class="i-octicon-people-24" flex-shrink-0 style="font-size: 20px; margin-right: 2px"></span>
-                <span>{{ toKilo(item.contributorCount) }}<span v-if="toKilo(item.contributorCount) !== '-'">k</span></span>
+              <div flex grid-items-center style="width: 33%">
+                <span class="icon" style="font-size: 20px; margin-right: 2px">
+                  <img src="../../assets/svg/contributor.svg" alt="Contributor Icon" />
+                </span>
+                <span
+                  >{{ toKilo(item.contributorCount)
+                  }}<span v-if="toKilo(item.contributorCount) !== '-'">k</span></span
+                >
               </div>
             </div>
           </div>
           <div :id="`github-trend-chart-${index}`" class="trend-chart" />
         </div>
       </div>
-      <div w-500px style="margin-top: 20px;margin-left: auto; margin-right: auto">
-        <el-pagination background layout="prev, pager, next" :total="100" :page-size="pageSize"
-                       :current-page="currentPage"
-                       @current-change="handlePageChange"/>
+      <div w-1280px style="margin-top: 10px; margin-left: auto; margin-right: auto">
+        <el-button @click="getMore">展示更多>></el-button>
       </div>
     </div>
   </div>
@@ -272,13 +301,11 @@ function handlePageChange(newPage:number) {
     background-color: #f5faff;
     color: #44a0ff;
     border-radius: 12px;
-
-    .i-ic-round-star,
-    .i-gg-git-fork,
-    .i-octicon-people-24 {
-      color: #feba60;
-    }
   }
+}
+.icon img {
+  width: 20px;
+  height: 20px;
 }
 
 .img-border {
