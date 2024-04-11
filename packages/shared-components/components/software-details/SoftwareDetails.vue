@@ -583,7 +583,6 @@ const emits = defineEmits<{
           stripe
           border
           :show-header="false"
-          show-overflow-tooltip
           tooltip-effect="light"
         >
           <el-table-column prop="label" align="center" />
