@@ -95,6 +95,9 @@ export default sequelize.define(
     forksCount: {
       type: DataTypes.INTEGER,
     },
+    codeSize: {
+      type: DataTypes.INTEGER,
+    },
     npmDownloads: {
       type: DataTypes.INTEGER,
     },

@@ -166,7 +166,8 @@ export async function calculateAllMetricsHandler(req, res) {
 
   // update github star, fork, create/update time
   await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN github_projects t2
-  ON t1.project_id= t2.id SET t1.stargazers_count= t2.stargazers_count, t1.forks_count = t2.forks_count,
+  ON t1.project_id= t2.id SET t1.stargazers_count= t2.stargazers_count,
+  t1.forks_count = t2.forks_count, t1.code_size = t2.code_size,
   t1.create_time = TIMESTAMPDIFF(MONTH,STR_TO_DATE(t2.created_at,'%Y-%m-%dT%H:%i:%sZ'),NOW()),
 	t1.update_time = TIMESTAMPDIFF(MONTH,STR_TO_DATE(t2.pushed_at,'%Y-%m-%dT%H:%i:%sZ'),NOW())`);
   // update npm downloads, use the average for last 3 months
@@ -257,35 +258,35 @@ async function evaluateScore(project, model) {
 async function getDimensionScore(project, dimension, techStack, model) {
   const fieldList = model[dimension + techStack] || [];
   let totalScore = 0;
+  let totalWeight = 0;
   for (const fieldItem of fieldList) {
-    const { field, techStack: subTechStack, weight, median, p10, isDesc, type } = fieldItem;
+    const { field, techStack: subTechStack, weight, threshold, type } = fieldItem;
+    totalWeight += weight;
     if (type === MetricType.MAIN) {
       const fieldScore = await getDimensionScore(project, field, subTechStack, model);
-      debug.log(`${field} score= ${fieldScore}, weight = ${weight}`);
+      debug.log(`------ ${field}  weight = ${weight} ------`);
       totalScore += weight * fieldScore;
     } else {
-      // score 0 if no data provided
-      if (p10 === null || median === null) {
-        continue;
-      }
       let rawValue;
       if (techStack !== 'common') {
-        const { projectId } = project;
-        rawValue = await getPerformanceRawValue(projectId, field, techStack);
-        if (rawValue == null || rawValue < 0) {
+        rawValue = await getPerformanceRawValue(project.projectId, field, techStack);
+        if (!rawValue) {
           continue;
         }
+        const { median, p10, isDesc } = fieldItem;
+        totalScore += weight * calLighthouseScore(rawValue, p10, median, isDesc);
       } else {
-        if (project[field] == null) {
+        rawValue = project[field];
+        if (!rawValue) {
           continue;
         }
-        rawValue = project[field];
+        totalScore +=
+          weight * (Math.log(1.0 + rawValue) / Math.log(1.0 + Math.max(rawValue, threshold)));
       }
-      totalScore += weight * calLighthouseScore(rawValue, p10, median, isDesc);
     }
   }
-  debug.log(`dimension=${dimension} score=${totalScore}`);
-  return totalScore;
+  debug.log(`dimension=${dimension} score=${totalScore / totalWeight}`);
+  return totalWeight == 0 ? null : totalScore / totalWeight;
 }
 
 async function getPerformanceRawValue(projectId, field, techStack) {
@@ -355,15 +356,15 @@ function generateMedianAndP10(values, isDesc) {
   return { median, p10 };
 }
 function calLighthouseScore(x, p10, m, isDesc = true) {
-  if (p10 == null || m == null) {
+  if (p10 == null || m == null || x == null) {
     return null;
   }
   // special case: m and x are both 0
   if (m === 0) {
     m = 0.1;
   }
-  if (x === m && x === 0) {
-    return 0.5;
+  if (x <= 0) {
+    return 0;
   }
   const p = 0.3275911;
   const someConstant = 0.9061938024368232;
