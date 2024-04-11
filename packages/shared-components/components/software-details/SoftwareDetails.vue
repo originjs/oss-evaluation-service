@@ -781,7 +781,24 @@ const emits = defineEmits<{
         </div>
       </el-card>
       <el-card>
-        <div mb-4 font-size-5 font-bold>SonarCloud Scan</div>
+        <div
+          mb-4
+          font-size-5
+          font-bold
+          :class="project?.sonarCloudScan?.sonarProjectKey ? 'color-blue underline' : ''"
+        >
+          <a
+            :href="
+              project?.sonarCloudScan?.sonarProjectKey
+                ? `https://sonarcloud.io/summary/overall?id=${project.sonarCloudScan.sonarProjectKey}`
+                : null
+            "
+            target="_blank"
+          >
+            SonarCloud
+            <span i-material-symbols-file-open />
+          </a>
+        </div>
         <div h-207px flex flex-wrap justify-between content-between>
           <div position-relative pt-3 pd-3 pl-4 pr-4 w-607px h-92px bg-coolgray-50>
             <div mb-4 font-bold>

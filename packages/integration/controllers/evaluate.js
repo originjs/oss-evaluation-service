@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import debug from 'debug';
 import async from 'async';
 import { Op } from 'sequelize';
@@ -119,24 +120,39 @@ export async function calculateAllMetricsHandler(req, res) {
   await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN project_tech_stack t2
   ON t1.project_id= t2.project_id SET t1.tech_stack= t2.subcategory
   WHERE t2.category IS NOT NULL`);
+
+  // 1. function metrics
   // update state of js
   await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN
-  (SELECT a.project_id, a.satisfaction_percentage from state_of_js_detail a,
+  (SELECT a.project_id, a.satisfaction_percentage, a.usage_percentage from state_of_js_detail a,
     (SELECT project_id,MAX(year) year FROM state_of_js_detail GROUP BY project_id) b 
     WHERE a.project_id = b.project_id AND a.year = b.year) t2
-  ON t1.project_id= t2.project_id SET t1.satisfaction= t2.satisfaction_percentage`);
+  ON t1.project_id= t2.project_id SET t1.satisfaction= t2.satisfaction_percentage,
+	t1.market_share = t2.usage_percentage`);
+  // update cncf document
+  await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN cncf_document_score_only t2
+    ON t1.project_id= t2.project_id SET t1.doc_best_practice= t2.document_score
+    WHERE t2.document_score IS NOT NULL`);
+
+  // 2. quality metrics
   // update scorecard
   await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN scorecard_info t2
   ON t1.project_id= t2.project_id SET t1.scorecard_score= t2.score
   WHERE t2.score IS NOT NULL`);
+  // update sonar cloud score
+  await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN sonar_cloud_project t2
+  ON t1.project_id= t2.github_project_id SET t1.sonarcloud_score = 
+  ASCII('F')*2-ASCII(maintainability_rating)-ASCII(reliability_rating)`);
+
+  // 3. ecology metrics
+  // update openrank and bus factor
+  await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN opendigger_info t2
+    ON t1.project_id= t2.project_id SET t1.openrank= t2.openrank, t1.bus_factor = t2.bus_factor
+    WHERE t2.openrank IS NOT NULL`);
   // update criticality score
   await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN criticality_score t2
   ON t1.project_id= t2.project_id SET t1.criticality_score= t2.score
   WHERE t2.score IS NOT NULL`);
-  // update openrank and bus factor
-  await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN opendigger_info t2
-  ON t1.project_id= t2.project_id SET t1.openrank= t2.openrank, t1.bus_factor = t2.bus_factor
-  WHERE t2.openrank IS NOT NULL`);
   // update compass
   await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN
   (SELECT a.* from compass_activity_detail a,
@@ -148,14 +164,17 @@ export async function calculateAllMetricsHandler(req, res) {
   t1.code_review_count= t2.code_review_count, t1.org_count= t2.org_count,
   t1.updated_issues_count= t2.updated_issues_count, t1.recent_releases_count= t2.recent_releases_count`);
 
-  // update cncf document
-  await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN cncf_document_score_only t2
-  ON t1.project_id= t2.project_id SET t1.doc_best_practice= t2.document_score
-  WHERE t2.document_score IS NOT NULL`);
-
-  // update star, fork
+  // update github star, fork, create/update time
   await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN github_projects t2
-  ON t1.project_id= t2.id SET t1.stargazers_count= t2.stargazers_count, t1.forks_count = t2.forks_count`);
+  ON t1.project_id= t2.id SET t1.stargazers_count= t2.stargazers_count, t1.forks_count = t2.forks_count,
+  t1.create_time = TIMESTAMPDIFF(MONTH,STR_TO_DATE(t2.created_at,'%Y-%m-%dT%H:%i:%sZ'),NOW()),
+	t1.update_time = TIMESTAMPDIFF(MONTH,STR_TO_DATE(t2.pushed_at,'%Y-%m-%dT%H:%i:%sZ'),NOW())`);
+  // update npm downloads, use the average for last 3 months
+  const last3month = dayjs().subtract(3, 'month').format('YYYY-MM-DD');
+  await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN
+  (SELECT project_id, AVG( downloads ) AS npm_downloads FROM package_download_count a 
+  WHERE end_date > '${last3month}' GROUP BY project_id) t2
+  ON t1.project_id = t2.project_id SET t1.npm_downloads = t2.npm_downloads`);
 
   const model = await loadModel();
   await evaluateAllProjectScore(model);
@@ -253,7 +272,7 @@ async function getDimensionScore(project, dimension, techStack, model) {
       if (techStack !== 'common') {
         const { projectId } = project;
         rawValue = await getPerformanceRawValue(projectId, field, techStack);
-        if (rawValue == null) {
+        if (rawValue == null || rawValue < 0) {
           continue;
         }
       } else {
@@ -336,6 +355,9 @@ function generateMedianAndP10(values, isDesc) {
   return { median, p10 };
 }
 function calLighthouseScore(x, p10, m, isDesc = true) {
+  if (p10 == null || m == null) {
+    return null;
+  }
   // special case: m and x are both 0
   if (m === 0) {
     m = 0.1;
