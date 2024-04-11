@@ -244,9 +244,6 @@ importers:
       lodash-es:
         specifier: ^4.17.21
         version: 4.17.21
-      vue-router:
-        specifier: ^4.3.0
-        version: 4.3.0(vue@3.4.21)
     devDependencies:
       '@element-plus/icons-vue':
         specifier: ^2.3.1
@@ -260,6 +257,15 @@ importers:
       '@orginjs/oss-evaluation-api-server':
         specifier: workspace:^
         version: link:../api-server
+      '@orginjs/oss-evaluation-components-api':
+        specifier: workspace:^
+        version: link:api
+      '@orginjs/oss-evaluation-components-style':
+        specifier: workspace:^
+        version: link:assets/less
+      '@orginjs/oss-evaluation-components-utils':
+        specifier: workspace:^
+        version: link:utils
       '@types/file-saver':
         specifier: ^2.0.7
         version: 2.0.7
@@ -287,6 +293,9 @@ importers:
       element-plus:
         specifier: ^2.5.6
         version: 2.6.1(vue@3.4.21)
+      fast-glob:
+        specifier: ^3.3.2
+        version: 3.3.2
       less:
         specifier: ^4.2.0
         version: 4.2.0
@@ -315,14 +324,17 @@ importers:
         specifier: ^3.2.45
         version: 3.4.21(typescript@4.7.4)
 
+  packages/shared-components/api: {}
+
+  packages/shared-components/assets/less: {}
+
+  packages/shared-components/utils: {}
+
   packages/website:
     dependencies:
       '@element-plus/icons-vue':
         specifier: ^2.3.1
         version: 2.3.1(vue@3.4.21)
-      '@orginjs/oss-evaluation-components':
-        specifier: workspace:^
-        version: link:../shared-components
       '@vueuse/core':
         specifier: ^10.9.0
         version: 10.9.0(vue@3.4.21)
@@ -372,6 +384,9 @@ importers:
       unplugin-auto-import:
         specifier: ^0.17.5
         version: 0.17.5(@vueuse/core@10.9.0)
+      unplugin-vue-components:
+        specifier: ^0.26.0
+        version: 0.26.0(vue@3.4.21)
       vite:
         specifier: ^5.1.4
         version: 5.1.4(@types/node@18.19.21)(less@4.2.0)

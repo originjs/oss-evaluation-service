@@ -1,4 +1,4 @@
-import HttpRequest from '@api/HttpRequest';
+import HttpRequest from './HttpRequest';
 import type {
   SoftwareInfo,
   SoftwareBaseInfo,

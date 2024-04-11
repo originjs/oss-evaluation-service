@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { getLevelColor, getTagType, scorecardProgressColor } from '../src/utils/color';
-import { toKilo, formatFloat, formatNumber, formatString } from '../src/utils/number';
+import { getLevelColor, getTagType, scorecardProgressColor } from '../utils';
+import { toKilo, formatFloat, formatNumber, formatString } from '../utils';
 
 describe('getLevelColor', () => {
   it('should return the color for level A', () => {

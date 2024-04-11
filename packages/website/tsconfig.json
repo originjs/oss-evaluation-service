@@ -3,6 +3,9 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "@orginjs/oss-evaluation-components/assets/*": ["../shared-components/assets/*"],
+      "@orginjs/oss-evaluation-components": ["../shared-components/components/index.ts"],
+      "@orginjs/oss-evaluation-components/*": ["../shared-components/components/*"],
       "@/*": ["src/*"],
       "@api/*": ["src/api/*"],
       "@assets/*": ["src/assets/*"],

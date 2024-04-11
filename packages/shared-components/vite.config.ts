@@ -6,90 +6,56 @@ import AutoImport from 'unplugin-auto-import/vite';
 import UnoCSS from 'unocss/vite';
 import Components from 'unplugin-vue-components/vite';
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers';
+import glob from 'fast-glob';
+import pkg from './package.json';
 
-const pathSrc = resolve(__dirname, './src');
+const excludes = [
+  'node_modules',
+  'test',
+  'dist',
+  'uno.config.ts',
+  'vite.config.ts',
+  'vite-env.d.ts',
+  'auto-imports.d.ts',
+  'components.d.ts',
+];
+let files = await glob('**/*.{js,ts,vue}', {
+  cwd: '.',
+  absolute: true,
+  onlyFiles: true,
+});
+files = files.filter(path => !excludes.some(exclude => path.includes(exclude)));
 
 export default defineConfig({
-  resolve: {
-    alias: {
-      vue: 'vue/dist/vue.esm-bundler.js',
-      '@': pathSrc,
-      '@api': resolve(__dirname, './src/api'),
-      '@assets': resolve(__dirname, './src/assets'),
-      '@components': resolve(__dirname, './src/components'),
-      '@router': resolve(__dirname, './src/router'),
-      '@utils': resolve(__dirname, './src/utils'),
-      '@views': resolve(__dirname, './src/views'),
-    },
-  },
   plugins: [
     vue(),
-    dts({
-      insertTypesEntry: true,
-    }),
+    UnoCSS(),
     AutoImport({
-      // targets to transform
-      include: [
-        /\.[tj]sx?$/, // .ts, .tsx, .js, .jsx
-        /\.vue$/,
-        /\.vue\?vue/, // .vue
-        /\.md$/, // .md
-      ],
-
-      // global imports to register
-      imports: [
-        // presets
-        'vue',
-        'vue-router',
-      ],
-
+      imports: ['vue'],
       resolvers: [ElementPlusResolver()],
     }),
     Components({
       resolvers: [ElementPlusResolver()],
     }),
-    UnoCSS(),
+    // TODO 类型文件生成
+    // dts({
+    //   insertTypesEntry: true,
+    // }),
   ],
   build: {
     lib: {
-      entry: resolve(pathSrc, 'components/index.ts'),
-      name: 'index',
-      fileName: 'index',
+      entry: files,
+      formats: ['es'],
     },
     rollupOptions: {
-      external: [
-        'vue',
-        'element-plus',
-        'echarts',
-        'axios',
-        '@vueuse/core',
-        '@orginjs/oss-evaluation-components',
-        '@element-plus/icons-vue',
-      ],
-      output: {
-        exports: 'named',
-        globals: {
-          vue: 'Vue',
-          'element-plus': 'ElementPlus',
-          echarts: 'Echarts',
-          axios: 'Axios',
-          '@vueuse/core': 'VueUseCore',
-          '@orginjs/oss-evaluation-components': 'OssEvaluationComponents',
-          '@element-plus/icons-vue': 'ElementPlusIconsVue',
-        },
-      },
-    },
-    cssCodeSplit: true,
-  },
-  optimizeDeps: {
-    exclude: ['vue'],
-  },
-  server: {
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3000',
-        rewrite: path => path.replace(/^\/api/, ''),
-      },
+      external: id =>
+        Object.keys(pkg.peerDependencies).some(dep => id === dep || id.startsWith(`${dep}/`)),
+      // TODO 保留目录结构
+      // output: {
+      //   preserveModules: true,
+      //   preserveModulesRoot: '',
+      //   // preserveModulesRoot: resolve('components'),
+      // },
     },
   },
 });

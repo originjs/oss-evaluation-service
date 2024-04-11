@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { SearchSoftware } from '@orginjs/oss-evaluation-components';
+import { SearchSoftware } from '@orginjs/oss-evaluation-components/search-software';
 import { useWindowScroll } from '@vueuse/core';
 import { ElMessage } from 'element-plus';
 import type { SoftwareBaseInfo } from '@orginjs/oss-evaluation-api-server';

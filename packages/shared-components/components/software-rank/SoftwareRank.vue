@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { getStarsTopApi } from '@api/SoftwareRank';
-import type { rankInfo } from '@api/SoftwareRank';
+import { getStarsTopApi } from '@orginjs/oss-evaluation-components-api';
+import type { rankInfo } from '@orginjs/oss-evaluation-components-api';
 import * as echarts from 'echarts';
-import { toKilo } from '@utils/number';
 import { ElMessage } from 'element-plus';
+import { toKilo } from '@orginjs/oss-evaluation-components-utils';
 
 const rankPage = ref<{
   pageNo: number;
@@ -152,8 +152,8 @@ async function getMore() {
         <el-tab-pane label="Star Top 100" name="star">
           <template #label>
             <span class="icon" style="font-size: 20px; margin-right: 2px">
-              <img v-if="activeName === 'star'" src="@assets/svg/star-active.svg" alt="Star Icon" />
-              <img v-else src="@assets/svg/star.svg" alt="Star Icon" />
+              <img v-if="activeName === 'star'" src="../../assets/svg/star-active.svg" alt="Star Icon" />
+              <img v-else src="../../assets/svg/star.svg" alt="Star Icon" />
             </span>
             <span style="font-weight: bold; font-size: 18px">Star Top 100</span>
           </template>
@@ -162,8 +162,8 @@ async function getMore() {
         <el-tab-pane label="Fork Top 100" name="fork">
           <template #label>
             <span class="icon" style="font-size: 24px; margin-right: 2px">
-              <img v-if="activeName === 'fork'" src="@assets/svg/fork-active.svg" />
-              <img v-else src="@assets/svg/fork.svg" />
+              <img v-if="activeName === 'fork'" src="../../assets/svg/fork-active.svg" />
+              <img v-else src="../../assets/svg/fork.svg" />
             </span>
             <span style="font-weight: bold; font-size: 18px">Fork Top 100</span>
           </template>
@@ -172,8 +172,8 @@ async function getMore() {
         <el-tab-pane label="Contributors Top 100" name="contributors">
           <template #label>
             <span class="icon" style="font-size: 20px; margin-right: 2px">
-              <img v-if="activeName === 'contributors'" src="@assets/svg/contributor-active.svg" />
-              <img v-else src="@assets/svg/contributor.svg" />
+              <img v-if="activeName === 'contributors'" src="../../assets/svg/contributor-active.svg" />
+              <img v-else src="../../assets/svg/contributor.svg" />
             </span>
             <span style="font-weight: bold; font-size: 18px">Contributors Top 100</span>
           </template>
@@ -207,7 +207,6 @@ async function getMore() {
             fit="contain"
             class="img-border"
             float-left
-            @click="goSoftwareDetails(item.name)"
           >
             <template #error>
               <div flex flex-justify-center flex-items-center w-full h-full bg-gray-100>
@@ -247,7 +246,7 @@ async function getMore() {
             <div flex class="max-w-40%">
               <div flex grid-items-center style="width: 33%">
                 <span class="icon" style="font-size: 20px; margin-right: 2px">
-                  <img src="@assets/svg/star.svg" alt="Star Icon" />
+                  <img src="../../assets/svg/star.svg" alt="Star Icon" />
                 </span>
                 <span
                   >{{ toKilo(item.starCount)
@@ -256,7 +255,7 @@ async function getMore() {
               </div>
               <div flex grid-items-center style="width: 33%">
                 <span class="icon" style="font-size: 24px; margin-right: 2px">
-                  <img src="@assets/svg/fork.svg" alt="Fork Icon" />
+                  <img src="../../assets/svg/fork.svg" alt="Fork Icon" />
                 </span>
                 <span
                   >{{ toKilo(item.forkCount)
@@ -265,7 +264,7 @@ async function getMore() {
               </div>
               <div flex grid-items-center style="width: 33%">
                 <span class="icon" style="font-size: 20px; margin-right: 2px">
-                  <img src="@assets/svg/contributor.svg" alt="Contributor Icon" />
+                  <img src="../../assets/svg/contributor.svg" alt="Contributor Icon" />
                 </span>
                 <span
                   >{{ toKilo(item.contributorCount)
@@ -333,19 +332,19 @@ async function getMore() {
 }
 
 .gold-rank {
-  background-image: url(../assets/pic/gold.png);
+  background-image: url(../../assets/pic/gold.png);
 }
 
 .silver-rank {
-  background-image: url(../assets/pic/sliver.png);
+  background-image: url(../../assets/pic/sliver.png);
 }
 
 .copper-rank {
-  background-image: url(../assets/pic/copper.png);
+  background-image: url(../../assets/pic/copper.png);
 }
 
 .white-rank {
-  background-image: url(../assets/pic/white.png);
+  background-image: url(../../assets/pic/white.png);
   color: #636363;
 }
 

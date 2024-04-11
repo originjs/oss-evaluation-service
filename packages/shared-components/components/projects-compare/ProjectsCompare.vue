@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import { Close, Switch, ArrowDown } from '@element-plus/icons-vue';
 import dayjs from 'dayjs';
-import type { SoftwareBaseInfo, SoftwareInfo } from '@/api/SoftwareDetails';
-import { getSoftwareInfo } from '@/api/SoftwareDetails';
-import { toKilo, formatNumber, formatFloat, formatString } from '@/utils/number';
-import { getLevelColor } from '@utils/color';
+import type { SoftwareBaseInfo, SoftwareInfo } from '@orginjs/oss-evaluation-components-api';
+import { getSoftwareInfo } from '@orginjs/oss-evaluation-components-api';
+import {
+  toKilo,
+  formatNumber,
+  formatFloat,
+  formatString,
+} from '@orginjs/oss-evaluation-components-utils';
+import { getLevelColor } from '@orginjs/oss-evaluation-components-utils';
 import { ElMessage } from 'element-plus';
 import { get as _get } from 'lodash-es';
+import { SearchSoftware } from '../search-software';
 
 const emit = defineEmits<{
   removeRepo: [repoName: string];

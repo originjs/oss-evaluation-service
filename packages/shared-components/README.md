@@ -1,1 +1,1 @@
-# @orginjs/oss-evaluation-data-model
+# @orginjs/oss-evaluation-components
