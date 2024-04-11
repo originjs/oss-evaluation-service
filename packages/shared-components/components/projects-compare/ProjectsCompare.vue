@@ -193,6 +193,7 @@ const getShowRow = (path: string) => {
                 </div>
               </template>
             </el-image>
+            <span>{{ projects[idx - 1]?.repoName }}</span>
             <el-icon
               class="close-btn cursor-pointer hover-color-#F56C6C"
               @click="removeSoftware(idx - 1)"
