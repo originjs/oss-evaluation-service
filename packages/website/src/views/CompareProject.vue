@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ProjectsCompare } from '@orginjs/oss-evaluation-components';
+import { ProjectsCompare } from '@orginjs/oss-evaluation-components/projects-compare';
 
 const router = useRouter();
 const route = useRoute();

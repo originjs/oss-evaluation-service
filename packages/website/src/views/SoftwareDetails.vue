@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { SoftwareDetails } from '@orginjs/oss-evaluation-components';
+import { SoftwareDetails } from '@orginjs/oss-evaluation-components/software-details';
 import type { SoftwareBaseInfo } from '@orginjs/oss-evaluation-api-server';
 
 const route = useRoute();
