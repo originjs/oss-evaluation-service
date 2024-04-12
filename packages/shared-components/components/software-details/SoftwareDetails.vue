@@ -1014,13 +1014,6 @@ const emits = defineEmits<{
         <el-card mb-6 w-626px>
           <div mb-2 font-size-5 font-bold>
             代码提交频率
-            <el-tooltip
-              content="数据来源于Compass，关于指标的意义和结果可以查看 Compass 官网: https://oss-compass.org/"
-            >
-              <el-icon size-5 color-gray-400>
-                <InfoFilled />
-              </el-icon>
-            </el-tooltip>
           </div>
           <div mb-2 font-size-3 text-gray-500>过去90天内平均每周代码提交次数。</div>
           <div id="code-submit-frequency-chart" h-200px />
@@ -1028,13 +1021,6 @@ const emits = defineEmits<{
         <el-card mb-6 w-626px>
           <div mb-2 font-size-5 font-bold>
             Issue评论频率
-            <el-tooltip
-              content="数据来源于Compass，关于指标的意义和结果可以查看 Compass 官网: https://oss-compass.org/"
-            >
-              <el-icon size-5 color-gray-400>
-                <InfoFilled />
-              </el-icon>
-            </el-tooltip>
           </div>
           <div mb-2 font-size-3 text-gray-500>
             过去90天内新建 Issue 的评论平均数（不包含机器人和 Issue 作者本人评论）。
@@ -1044,13 +1030,6 @@ const emits = defineEmits<{
         <el-card mb-6 w-626px>
           <div mb-2 font-size-5 font-bold>
             更新Issue数量
-            <el-tooltip
-              content="数据来源于Compass，关于指标的意义和结果可以查看 Compass 官网: https://oss-compass.org/"
-            >
-              <el-icon size-5 color-gray-400>
-                <InfoFilled />
-              </el-icon>
-            </el-tooltip>
           </div>
           <div mb-2 font-size-3 text-gray-500>过去90天 Issue 更新的数量。</div>
           <div id="update-issue-count-chart" h-200px />
@@ -1058,13 +1037,6 @@ const emits = defineEmits<{
         <el-card mb-6 w-626px>
           <div mb-2 font-size-5 font-bold>
             关闭Issue数量
-            <el-tooltip
-              content="数据来源于Compass，关于指标的意义和结果可以查看 Compass 官网: https://oss-compass.org/"
-            >
-              <el-icon size-5 color-gray-400>
-                <InfoFilled />
-              </el-icon>
-            </el-tooltip>
           </div>
           <div mb-2 font-size-3 text-gray-500>过去90天 Issue 更新的数量。</div>
           <div id="close-issue-count-chart" h-200px />
@@ -1072,13 +1044,6 @@ const emits = defineEmits<{
         <el-card mb-6 w-626px>
           <div mb-2 font-size-5 font-bold>
             组织数量
-            <el-tooltip
-              content="数据来源于Compass，关于指标的意义和结果可以查看 Compass 官网: https://oss-compass.org/"
-            >
-              <el-icon size-5 color-gray-400>
-                <InfoFilled />
-              </el-icon>
-            </el-tooltip>
           </div>
           <div mb-2 font-size-3 text-gray-500>过去90天内活跃的代码提交者所属组织的数目。</div>
           <div id="organization-count-chart" h-200px />
@@ -1086,13 +1051,6 @@ const emits = defineEmits<{
         <el-card mb-6 w-626px>
           <div mb-2 font-size-5 font-bold>
             贡献者数量
-            <el-tooltip
-              content="数据来源于Compass，关于指标的意义和结果可以查看 Compass 官网: https://oss-compass.org/"
-            >
-              <el-icon size-5 color-gray-400>
-                <InfoFilled />
-              </el-icon>
-            </el-tooltip>
           </div>
           <div mb-2 font-size-3 text-gray-500>
             过去 90 天中活跃的代码提交者、Pull Request 作者、代码审查者、Issue 作者和 Issue
