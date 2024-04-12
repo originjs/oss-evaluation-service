@@ -26,3 +26,4 @@ export { default as EvaluationMin } from './models/EvaluationMin.js';
 export { default as CncfDocumentScoreMin } from './models/CncfDocumentScoreMin.js';
 export { default as StateOfJsMin } from './models/StateOfJsMin.js';
 export { default as SonarCloudProjectMin } from './models/SonarCloudProjectMin.js';
+export { default as GithubProjectsStargazersTrend } from './models/GithubProjectsStargazersTrend.js';

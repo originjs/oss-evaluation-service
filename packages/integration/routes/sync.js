@@ -35,6 +35,7 @@ import {
   uploadSonarCiConfigToGitlab,
 } from '../controllers/sonarCloud.js';
 import syncProjectCodeSize from '../controllers/projectCodeSize.js';
+import { syncStargazersTrend } from '../controllers/projectStarGazersTrend.js';
 
 const router = express.Router();
 
@@ -645,5 +646,27 @@ router.route('/sonarCloud/updateDefaultBranch').get(await updateSonarCloudDefaul
  *         description: success.
  */
 router.route('/syncProjectCodeSize').get(syncProjectCodeSize);
+
+/**
+ * @swagger
+ * /sync/syncStargazersTrend:
+ *   post:
+ *     summary: syncStargazersTrend
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               projectId:
+ *                 type: int
+ *                 example: 1
+ *     responses:
+ *       200:
+ *         description: The created book.
+ *
+ */
+router.route('/syncStargazersTrend').post(syncStargazersTrend);
 
 export default router;
