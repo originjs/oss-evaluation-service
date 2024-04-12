@@ -24,6 +24,7 @@ import {
   getLevelColor,
   getTagType,
   scorecardProgressColor,
+  TIPS_MAP,
 } from '@orginjs/oss-evaluation-components-utils';
 import {
   toKilo,
@@ -610,7 +611,7 @@ const emits = defineEmits<{
         <div flex>
           <div font-size-5 font-bold>开发者满意度</div>
           <el-tooltip
-            content="数据来源于历年StateOfJS生态调查报告，更多结果可以查看 https://stateofjs.com/en-US"
+            :content="TIPS_MAP['开发者满意度']"
           >
             <el-icon size-5 color-gray-400>
               <InfoFilled />
@@ -623,7 +624,7 @@ const emits = defineEmits<{
         <div flex>
           <div font-size-5 font-bold>文档最佳实践</div>
           <el-tooltip
-            content="最佳实践评分基于Linux Foundation建议的Best Practices检查，每个检查项都有不同的权重"
+            :content="TIPS_MAP['文档最佳实践']"
           >
             <el-icon size-5 color-gray-400>
               <InfoFilled />
@@ -751,7 +752,7 @@ const emits = defineEmits<{
         <div flex>
           <div mb-4 font-size-5 font-bold>OpenSSF Scorecard</div>
           <el-tooltip
-            content="OpenSSF开源安全基金会是一个跨行业合作组织，旨在提高开源软件的安全性。Scorecard为开源项目提供安全健康指标。"
+            :content="TIPS_MAP['OpenSSF Scorecard']['OpenSSF Scorecard']"
           >
             <el-icon size-5 color-gray-400>
               <InfoFilled />
@@ -762,7 +763,7 @@ const emits = defineEmits<{
         <div v-for="item in openSSFScorecard" :key="item.label" flex flex-items-center h-30px>
           <div w-190px>
             <span>{{ item.label }}</span>
-            <el-tooltip :content="item.tips">
+            <el-tooltip :content="TIPS_MAP['OpenSSF Scorecard'][item.label]">
               <el-icon size-5 color-gray-400>
                 <InfoFilled />
               </el-icon>
@@ -809,7 +810,7 @@ const emits = defineEmits<{
                 formatNumber(project?.sonarCloudScan?.bugs)
               }}</span>
               <span font-light>Bugs</span>
-              <el-tooltip content="编码错误会破坏您的代码并且需要立即修复。">
+              <el-tooltip :content="TIPS_MAP['SonarCloud']['Bugs']">
                 <el-icon size-5 color-gray-400>
                   <InfoFilled />
                 </el-icon>
@@ -836,7 +837,7 @@ const emits = defineEmits<{
                 formatNumber(project?.sonarCloudScan?.codeSmells)
               }}</span>
               <span font-light>Code Smells</span>
-              <el-tooltip content="代码混乱且难以维护。">
+              <el-tooltip :content="TIPS_MAP['SonarCloud']['Code Smells']">
                 <el-icon size-5 color-gray-400>
                   <InfoFilled />
                 </el-icon>
@@ -863,7 +864,7 @@ const emits = defineEmits<{
                 formatNumber(project?.sonarCloudScan?.vulnerabilities)
               }}</span>
               <span font-light>Vulnerabilities</span>
-              <el-tooltip content="可以被黑客利用的代码。">
+              <el-tooltip :content="TIPS_MAP['SonarCloud']['Vulnerabilities']">
                 <el-icon size-5 color-gray-400>
                   <InfoFilled />
                 </el-icon>
@@ -888,7 +889,7 @@ const emits = defineEmits<{
                 formatNumber(project?.sonarCloudScan?.securityHotspots)
               }}</span>
               <span font-light mr-1>Security Hotspots</span>
-              <el-tooltip content="需要手动检查以评估是否存在漏洞的安全敏感代码。">
+              <el-tooltip :content="TIPS_MAP['SonarCloud']['Security Hotspots']">
                 <el-icon size-5 color-gray-400>
                   <InfoFilled />
                 </el-icon>
@@ -952,7 +953,7 @@ const emits = defineEmits<{
                 <div flex>
                   <div line-height-7>巴士系数</div>
                   <el-tooltip
-                    content="一个项目失去多少贡献者参与（“被巴士撞了”）即导致项目停滞的成员数量"
+                    :content="TIPS_MAP['生态']['巴士系数']"
                   >
                     <el-icon size-5 color-gray-400>
                       <InfoFilled />
@@ -971,7 +972,7 @@ const emits = defineEmits<{
                 <div font-bold font-size-5>{{ project?.ecologyOverview?.openRank }}</div>
                 <div flex>
                   <div line-height-7>OpenRank得分</div>
-                  <el-tooltip content="X-lab提出的一种基于全域开发者协作网络的项目影响力评估方法">
+                  <el-tooltip :content="TIPS_MAP['生态']['OpenRank得分']">
                     <el-icon size-5 color-gray-400>
                       <InfoFilled />
                     </el-icon>
@@ -985,9 +986,7 @@ const emits = defineEmits<{
                 <div font-bold font-size-5>{{ project?.ecologyOverview?.criticalityScore }}</div>
                 <div flex>
                   <div line-height-7>Criticality得分</div>
-                  <el-tooltip
-                    content="OpenSSF提供的开源项目关键度得分，定义了项目的影响力和重要性。它是一个介于0(最不关键)和1(最关键)之间的数字"
-                  >
+                  <el-tooltip :content="TIPS_MAP['生态']['Criticality得分']">
                     <el-icon size-5 color-gray-400>
                       <InfoFilled />
                     </el-icon>
@@ -1012,15 +1011,33 @@ const emits = defineEmits<{
           </div>
         </el-card>
         <el-card mb-6 w-626px>
-          <div mb-2 font-size-5 font-bold>
-            代码提交频率
+          <div flex>
+            <div mb-2 font-size-5 font-bold>
+              代码提交频率
+            </div>
+            <el-tooltip
+                :content="TIPS_MAP['Compass']"
+            >
+              <el-icon size-5 color-gray-400>
+                <InfoFilled />
+              </el-icon>
+            </el-tooltip>
           </div>
           <div mb-2 font-size-3 text-gray-500>过去90天内平均每周代码提交次数。</div>
           <div id="code-submit-frequency-chart" h-200px />
         </el-card>
         <el-card mb-6 w-626px>
-          <div mb-2 font-size-5 font-bold>
-            Issue评论频率
+          <div flex>
+            <div mb-2 font-size-5 font-bold>
+              Issue评论频率
+            </div>
+            <el-tooltip
+                :content="TIPS_MAP['Compass']"
+            >
+              <el-icon size-5 color-gray-400>
+                <InfoFilled />
+              </el-icon>
+            </el-tooltip>
           </div>
           <div mb-2 font-size-3 text-gray-500>
             过去90天内新建 Issue 的评论平均数（不包含机器人和 Issue 作者本人评论）。
@@ -1028,29 +1045,65 @@ const emits = defineEmits<{
           <div id="issue-comment-frequency-chart" h-200px />
         </el-card>
         <el-card mb-6 w-626px>
-          <div mb-2 font-size-5 font-bold>
-            更新Issue数量
+          <div flex>
+            <div mb-2 font-size-5 font-bold>
+              更新Issue数量
+            </div>
+            <el-tooltip
+                :content="TIPS_MAP['Compass']"
+            >
+              <el-icon size-5 color-gray-400>
+                <InfoFilled />
+              </el-icon>
+            </el-tooltip>
           </div>
           <div mb-2 font-size-3 text-gray-500>过去90天 Issue 更新的数量。</div>
           <div id="update-issue-count-chart" h-200px />
         </el-card>
         <el-card mb-6 w-626px>
-          <div mb-2 font-size-5 font-bold>
-            关闭Issue数量
+          <div flex>
+            <div mb-2 font-size-5 font-bold>
+              关闭Issue数量
+            </div>
+            <el-tooltip
+                :content="TIPS_MAP['Compass']"
+            >
+              <el-icon size-5 color-gray-400>
+                <InfoFilled />
+              </el-icon>
+            </el-tooltip>
           </div>
           <div mb-2 font-size-3 text-gray-500>过去90天 Issue 更新的数量。</div>
           <div id="close-issue-count-chart" h-200px />
         </el-card>
         <el-card mb-6 w-626px>
-          <div mb-2 font-size-5 font-bold>
-            组织数量
+          <div flex>
+            <div mb-2 font-size-5 font-bold>
+              组织数量
+            </div>
+            <el-tooltip
+                :content="TIPS_MAP['Compass']"
+            >
+              <el-icon size-5 color-gray-400>
+                <InfoFilled />
+              </el-icon>
+            </el-tooltip>
           </div>
           <div mb-2 font-size-3 text-gray-500>过去90天内活跃的代码提交者所属组织的数目。</div>
           <div id="organization-count-chart" h-200px />
         </el-card>
         <el-card mb-6 w-626px>
-          <div mb-2 font-size-5 font-bold>
-            贡献者数量
+          <div flex>
+            <div mb-2 font-size-5 font-bold>
+              贡献者数量
+            </div>
+            <el-tooltip
+                :content="TIPS_MAP['Compass']"
+            >
+              <el-icon size-5 color-gray-400>
+                <InfoFilled />
+              </el-icon>
+            </el-tooltip>
           </div>
           <div mb-2 font-size-3 text-gray-500>
             过去 90 天中活跃的代码提交者、Pull Request 作者、代码审查者、Issue 作者和 Issue
