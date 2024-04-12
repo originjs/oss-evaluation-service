@@ -4,24 +4,13 @@ import AppFooter from '@components/AppFooter.vue';
 </script>
 
 <template>
-  <div class="layout">
+  <div class="flex flex-col min-h-100vh min-w-1366px">
     <AppHeader />
-    <div class="page">
+    <div class="pt-64px h-[fit-content]">
       <slot />
     </div>
     <AppFooter />
   </div>
 </template>
 
-<style scoped lang="less">
-.layout {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  min-width: 1366px;
-}
-
-.page {
-  padding-top: 64px;
-}
-</style>
+<style scoped lang="less"></style>
