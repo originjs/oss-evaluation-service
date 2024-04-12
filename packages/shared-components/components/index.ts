@@ -6,3 +6,4 @@ export * from './projects-compare';
 export * from './compare-favorites';
 export * from './software-details';
 export * from './software-rank';
+export * from './benchmark-compare';
