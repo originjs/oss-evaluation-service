@@ -5,11 +5,13 @@ import {
   getPerformance,
   exportScoreExcel,
   exportBenchmarkExcel,
+  getProjectsByTechStack,
 } from '../services/ProjectDetailService.js';
 import type {
   EcologyActivityCategory,
   PerformanceInfo,
   SoftwareInfo,
+  SoftwareBaseInfo,
 } from '../interfaces/SoftwareInfo.js';
 import { appendSheet } from '../utils/excel.js';
 import { Result } from '../utils/result.js';
@@ -26,6 +28,14 @@ export class ProjectController extends Controller {
   @Get('activity/{repoName}')
   public async getActivityData(@Path() repoName: string): Promise<Result<EcologyActivityCategory>> {
     const data = await getSoftwareActivity(repoName);
+    return Result.ok(data);
+  }
+
+  @Get('techstack/{techStack}')
+  public async getProjectsByTechStack(
+    @Path() techStack: string,
+  ): Promise<Result<Array<SoftwareBaseInfo>>> {
+    const data = await getProjectsByTechStack(techStack);
     return Result.ok(data);
   }
 

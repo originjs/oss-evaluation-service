@@ -1,9 +1,12 @@
 export interface SoftwareBaseInfo {
+  projectId?: string;
+  projectName?: string;
   repoName: string;
   url: string;
   description: string;
   logo: string;
   star?: number;
+  forksCount?: number;
 }
 
 export interface EcologyOverview {
@@ -112,4 +115,23 @@ export interface PerformanceInfo {
   gzipSize: number;
   benchmarkScore: number;
   benchmarkData?: BenchmarkData;
+}
+
+export interface BenchmarkIndex {
+  indexName: string;
+  displayName: string;
+  unit: string;
+  category?: string;
+  description?: string;
+}
+
+export interface BenchmarkResult {
+  projectId: string;
+  projectName: string;
+  displayName: string;
+  benchmark: string;
+  rawValue: number;
+  createdAt: string;
+  content: string;
+  platform: string;
 }
