@@ -14,6 +14,7 @@ import { ElMessage } from 'element-plus';
 import { get as _get } from 'lodash-es';
 import { SearchSoftware } from '../search-software';
 import BenchmarkCompare from '../benchmark-compare/BenchmarkCompare.vue';
+import i18n from "../../i18n";
 
 const emit = defineEmits<{
   removeRepo: [repoName: string];
@@ -460,7 +461,11 @@ const changePage = (name: string) => {
           @mouseover="showChooseBorder('开发者满意度', $event)"
           @mouseout="hideChooseBorder()"
         >
-          <div class="border param-name">开发者满意度</div>
+          <div class="border param-name">
+            <el-tooltip :content="i18n.global.t(`tips.开发者满意度`)">
+            开发者满意度
+            </el-tooltip>
+          </div>
           <div v-for="idx in 5" :key="idx" class="param-value border">
             <div v-if="projects[idx - 1]" class="value-div" style="">
               <span v-for="value in projects[idx - 1].satisfaction?.slice(-3)" :key="value.year">
@@ -478,7 +483,11 @@ const changePage = (name: string) => {
           @mouseover="showChooseBorder('文档最佳实践', $event)"
           @mouseout="hideChooseBorder()"
         >
-          <div class="border param-name">文档最佳实践</div>
+          <div class="border param-name">
+          <el-tooltip :content="i18n.global.t(`tips.文档最佳实践`)">
+            文档最佳实践
+          </el-tooltip>
+        </div>
           <div v-for="idx in 5" :key="idx" class="param-value border">
             <div v-if="projects[idx - 1]" class="value-div">
               <div>
@@ -577,17 +586,19 @@ const changePage = (name: string) => {
               text-align: center;
             "
           >
+            <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.OpenSSF Scorecard`)">
             OpenSSF Scorecard
-          </div>
-          <div style="flex: 1">
-            <div
-              v-show="getShowRow('scorecard.score')"
-              class="row"
-              @mouseover="showChooseBorder('Score', $event)"
-              @mouseout="hideChooseBorder()"
-            >
-              <div class="border param-name" style="width: 97px">
-                <el-tooltip content="Score" placement="top-start">
+          </el-tooltip>
+        </div>
+        <div style="flex: 1">
+          <div
+            v-show="getShowRow('scorecard.score')"
+            class="row"
+            @mouseover="showChooseBorder('Score', $event)"
+            @mouseout="hideChooseBorder()"
+          >
+            <div class="border param-name" style="width: 97px">
+              <el-tooltip :content="i18n.global.t(`tips.Score`)" placement="top-start">
                   <el-text size="small" line-clamp="3">Score</el-text>
                 </el-tooltip>
               </div>
@@ -608,7 +619,7 @@ const changePage = (name: string) => {
               @mouseout="hideChooseBorder()"
             >
               <div class="border param-name" style="width: 97px">
-                <el-tooltip content="Code-Review" placement="top-start">
+                <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.Code-Review`)" placement="top-start">
                   <el-text size="small" line-clamp="3">Code-Review</el-text>
                 </el-tooltip>
               </div>
@@ -631,7 +642,7 @@ const changePage = (name: string) => {
               @mouseout="hideChooseBorder()"
             >
               <div class="border param-name" style="width: 97px">
-                <el-tooltip content="Maintained" placement="top-start">
+                <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.Maintained`)" placement="top-start">
                   <el-text size="small" line-clamp="3">Maintained</el-text>
                 </el-tooltip>
               </div>
@@ -654,7 +665,7 @@ const changePage = (name: string) => {
               @mouseout="hideChooseBorder()"
             >
               <div class="border param-name" style="width: 97px">
-                <el-tooltip content="CII-Best-Practices" placement="top-start">
+                <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.CII-Best-Practices`)" placement="top-start">
                   <el-text size="small" line-clamp="3">CII-Best-Practices</el-text>
                 </el-tooltip>
               </div>
@@ -680,7 +691,7 @@ const changePage = (name: string) => {
               @mouseout="hideChooseBorder()"
             >
               <div class="border param-name" style="width: 97px">
-                <el-tooltip content="License" placement="top-start">
+                <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.License`)" placement="top-start">
                   <el-text size="small" line-clamp="3">License</el-text>
                 </el-tooltip>
               </div>
@@ -703,7 +714,7 @@ const changePage = (name: string) => {
               @mouseout="hideChooseBorder()"
             >
               <div class="border param-name" style="width: 97px">
-                <el-tooltip content="Security-Policy" placement="top-start">
+                <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.Security-Policy`)" placement="top-start">
                   <el-text size="small" line-clamp="3">Security-Policy</el-text>
                 </el-tooltip>
               </div>
@@ -729,7 +740,7 @@ const changePage = (name: string) => {
               @mouseout="hideChooseBorder()"
             >
               <div class="border param-name" style="width: 97px">
-                <el-tooltip content="Dangerous-Workflow" placement="top-start">
+                <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.Dangerous-Workflow`)" placement="top-start">
                   <el-text size="small" line-clamp="3">Dangerous-Workflow</el-text>
                 </el-tooltip>
               </div>
@@ -755,7 +766,7 @@ const changePage = (name: string) => {
               @mouseout="hideChooseBorder()"
             >
               <div class="border param-name" style="width: 97px">
-                <el-tooltip content="Branch-Protection" placement="top-start">
+                <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.Branch-Protection`)" placement="top-start">
                   <el-text size="small" line-clamp="3">Branch-Protection</el-text>
                 </el-tooltip>
               </div>
@@ -781,7 +792,7 @@ const changePage = (name: string) => {
               @mouseout="hideChooseBorder()"
             >
               <div class="border param-name" style="width: 97px">
-                <el-tooltip content="Token-Permissions" placement="top-start">
+                <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.Token-Permissions`)" placement="top-start">
                   <el-text size="small" line-clamp="3">Token-Permissions</el-text>
                 </el-tooltip>
               </div>
@@ -807,7 +818,7 @@ const changePage = (name: string) => {
               @mouseout="hideChooseBorder()"
             >
               <div class="border param-name" style="width: 97px">
-                <el-tooltip content="Binary-Artifacts" placement="top-start">
+                <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.Binary-Artifacts`)" placement="top-start">
                   <el-text size="small" line-clamp="3">Binary-Artifacts</el-text>
                 </el-tooltip>
               </div>
@@ -833,7 +844,7 @@ const changePage = (name: string) => {
               @mouseout="hideChooseBorder()"
             >
               <div class="border param-name" style="width: 97px">
-                <el-tooltip content="Fuzzing" placement="top-start">
+                <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.Fuzzing`)" placement="top-start">
                   <el-text size="small" line-clamp="3">Fuzzing</el-text>
                 </el-tooltip>
               </div>
@@ -856,7 +867,7 @@ const changePage = (name: string) => {
               @mouseout="hideChooseBorder()"
             >
               <div class="border param-name" style="width: 97px">
-                <el-tooltip content="SAST" placement="top-start">
+                <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.SAST`)" placement="top-start">
                   <el-text size="small" line-clamp="3">SAST</el-text>
                 </el-tooltip>
               </div>
@@ -877,7 +888,7 @@ const changePage = (name: string) => {
               @mouseout="hideChooseBorder()"
             >
               <div class="border param-name" style="width: 97px">
-                <el-tooltip content="Vulnerabilities" placement="top-start">
+                <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.Vulnerabilities`)" placement="top-start">
                   <el-text size="small" line-clamp="3">Vulnerabilities</el-text>
                 </el-tooltip>
               </div>
@@ -903,7 +914,7 @@ const changePage = (name: string) => {
               @mouseout="hideChooseBorder()"
             >
               <div class="border param-name" style="width: 97px">
-                <el-tooltip content="Pinned-Dependencies" placement="top-start">
+                <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.Pinned-Dependencies`)" placement="top-start">
                   <el-text size="small" line-clamp="3">Pinned-Dependencies</el-text>
                 </el-tooltip>
               </div>
@@ -945,7 +956,7 @@ const changePage = (name: string) => {
               @mouseout="hideChooseBorder()"
             >
               <div class="border param-name" style="width: 97px">
-                <el-tooltip content="Reliability" placement="top-start">
+                <el-tooltip :content="i18n.global.t(`tips.SonarCloud.Reliability`)" placement="top-start">
                   <el-text size="small" line-clamp="3">Reliability</el-text>
                 </el-tooltip>
               </div>
@@ -974,7 +985,7 @@ const changePage = (name: string) => {
               @mouseout="hideChooseBorder()"
             >
               <div class="border param-name" style="width: 97px">
-                <el-tooltip content="Maintainability" placement="top-start">
+                <el-tooltip :content="i18n.global.t(`tips.SonarCloud.Maintainability`)" placement="top-start">
                   <el-text size="small" line-clamp="2">Maintainability</el-text>
                 </el-tooltip>
               </div>
@@ -1006,7 +1017,7 @@ const changePage = (name: string) => {
               @mouseout="hideChooseBorder()"
             >
               <div class="border param-name" style="width: 97px">
-                <el-tooltip content="Security" placement="top-start">
+                <el-tooltip :content="i18n.global.t(`tips.SonarCloud.Security`)" placement="top-start">
                   <el-text size="small" line-clamp="3">Security</el-text>
                 </el-tooltip>
               </div>
@@ -1040,7 +1051,7 @@ const changePage = (name: string) => {
               @mouseout="hideChooseBorder()"
             >
               <div class="border param-name" style="width: 97px">
-                <el-tooltip content="Security Review" placement="top-start">
+                <el-tooltip :content="i18n.global.t(`tips.SonarCloud.Security Review`)" placement="top-start">
                   <el-text size="small" line-clamp="3">Security Review</el-text>
                 </el-tooltip>
               </div>
@@ -1182,7 +1193,11 @@ const changePage = (name: string) => {
                 >
                 <div style="display: inline-flex">
                   <div i-custom:bus font-size-6 mr-4 />
-                  <div>巴士系数</div>
+                  <div>
+                  <el-tooltip :content="i18n.global.t(`tips.生态.巴士系数`)">
+                    巴士系数
+                  </el-tooltip>
+                </div>
                 </div>
               </div>
             </div>
@@ -1221,7 +1236,11 @@ const changePage = (name: string) => {
                 >
                 <div style="display: inline-flex">
                   <div i-custom:medal font-size-6 mr-4 />
-                  <div>OpenRank得分</div>
+                  <div>
+                  <el-tooltip :content="i18n.global.t(`tips.生态.OpenRank得分`)">
+                    OpenRank得分
+                  </el-tooltip>
+                </div>
                 </div>
               </div>
 
@@ -1247,7 +1266,11 @@ const changePage = (name: string) => {
                 >
                 <div style="display: inline-flex">
                   <div i-custom:trophy font-size-6 mr-4 />
-                  <div>Criticality得分</div>
+                  <div>
+                  <el-tooltip :content="i18n.global.t(`tips.生态.Criticality得分`)">
+                    Criticality得分
+                  </el-tooltip>
+                </div>
                 </div>
               </div>
 
