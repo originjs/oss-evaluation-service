@@ -9,19 +9,6 @@ export interface SoftwareBaseInfo {
   forksCount?: number;
 }
 
-export interface EcologyOverview {
-  name: string;
-  fullName: string;
-  downloads: number;
-  stargazersCount: number;
-  busFactor: number;
-  openRank: number;
-  criticalityScore: number;
-  contributorCount: number;
-  dependentCount: number;
-  forksCount: number;
-}
-
 export interface SoftwareInfo extends SoftwareBaseInfo {
   fork: number;
   language: string;
@@ -35,7 +22,15 @@ export interface SoftwareInfo extends SoftwareBaseInfo {
     qualityScore: string | number;
     performanceScore: string | number;
     ecologyScore: string | number;
-    innovationValue: string | number;
+    innovationScore: string | number;
+    npmDownloads: number;
+    stargazersCount: number;
+    busFactor: number;
+    openRank: number;
+    criticalityScore: number;
+    contributorCount: number;
+    dependentCount: number;
+    forksCount: number;
   };
   scorecard: {
     projectId: number;
@@ -82,7 +77,6 @@ export interface SoftwareInfo extends SoftwareBaseInfo {
     year: number;
     val: number;
   }[];
-  ecologyOverview: EcologyOverview;
 }
 
 export interface EcologyActivity {

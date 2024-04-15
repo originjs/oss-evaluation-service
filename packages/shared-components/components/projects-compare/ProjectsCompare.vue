@@ -594,7 +594,10 @@ const changePage = (name: string) => {
               @mouseout="hideChooseBorder()"
             >
               <div class="border param-name" style="width: 97px">
-                <el-tooltip :content="i18n.global.t(`tips.scorecard.scorecard`)" placement="top-start">
+                <el-tooltip
+                  :content="i18n.global.t(`tips.scorecard.scorecard`)"
+                  placement="top-start"
+                >
                   <el-text size="small" line-clamp="3">Score</el-text>
                 </el-tooltip>
               </div>
@@ -893,10 +896,7 @@ const changePage = (name: string) => {
               @mouseout="hideChooseBorder()"
             >
               <div class="border param-name" style="width: 97px">
-                <el-tooltip
-                  :content="i18n.global.t(`tips.scorecard.SAST`)"
-                  placement="top-start"
-                >
+                <el-tooltip :content="i18n.global.t(`tips.scorecard.SAST`)" placement="top-start">
                   <el-text size="small" line-clamp="3">SAST</el-text>
                 </el-tooltip>
               </div>
@@ -1147,7 +1147,7 @@ const changePage = (name: string) => {
           <div v-for="idx in 5" :key="idx" class="param-value border">
             <div v-if="projects[idx - 1]" class="value-div">
               <div
-                v-show="getShowRow('ecologyOverview.downloads')"
+                v-show="getShowRow('evaluation.npmDownloads')"
                 style="
                   width: 160px;
                   display: flex;
@@ -1160,11 +1160,11 @@ const changePage = (name: string) => {
                   style="text-align: center; font-weight: bold"
                   :class="{
                     good: isGood(
-                      projects[idx - 1].ecologyOverview.downloads,
-                      'ecologyOverview.downloads',
+                      projects[idx - 1].evaluation.npmDownloads,
+                      'evaluation.npmDownloads',
                     ),
                   }"
-                  >{{ toKilo(projects[idx - 1].ecologyOverview.downloads).split('.')[0] }} k</span
+                  >{{ toKilo(projects[idx - 1].evaluation.npmDownloads).split('.')[0] }} k</span
                 >
                 <div style="display: inline-flex">
                   <div i-custom:download font-size-6 mr-4 />
@@ -1173,7 +1173,7 @@ const changePage = (name: string) => {
               </div>
 
               <div
-                v-show="getShowRow('ecologyOverview.stargazersCount')"
+                v-show="getShowRow('evaluation.stargazersCount')"
                 style="
                   width: 160px;
                   display: flex;
@@ -1186,11 +1186,11 @@ const changePage = (name: string) => {
                   style="text-align: center; font-weight: bold"
                   :class="{
                     good: isGood(
-                      projects[idx - 1].ecologyOverview.stargazersCount,
-                      'ecologyOverview.stargazersCount',
+                      projects[idx - 1].evaluation.stargazersCount,
+                      'evaluation.stargazersCount',
                     ),
                   }"
-                  >{{ toKilo(projects[idx - 1].ecologyOverview.stargazersCount) }} k</span
+                  >{{ toKilo(projects[idx - 1].evaluation.stargazersCount) }} k</span
                 >
                 <div style="display: inline-flex">
                   <div i-custom:star font-size-6 mr-4 />
@@ -1199,7 +1199,7 @@ const changePage = (name: string) => {
               </div>
 
               <div
-                v-show="getShowRow('ecologyOverview.forksCount')"
+                v-show="getShowRow('evaluation.forksCount')"
                 style="
                   width: 160px;
                   display: flex;
@@ -1211,12 +1211,9 @@ const changePage = (name: string) => {
                 <span
                   style="text-align: center; font-weight: bold"
                   :class="{
-                    good: isGood(
-                      projects[idx - 1].ecologyOverview.forksCount,
-                      'ecologyOverview.forksCount',
-                    ),
+                    good: isGood(projects[idx - 1].evaluation.forksCount, 'evaluation.forksCount'),
                   }"
-                  >{{ toKilo(projects[idx - 1].ecologyOverview.forksCount) }} k</span
+                  >{{ toKilo(projects[idx - 1].evaluation.forksCount) }} k</span
                 >
                 <div style="display: inline-flex">
                   <div i-custom:fork font-size-6 mr-4 />
@@ -1225,18 +1222,15 @@ const changePage = (name: string) => {
               </div>
 
               <div
-                v-show="getShowRow('ecologyOverview.busFactor')"
+                v-show="getShowRow('evaluation.busFactor')"
                 style="width: 160px; display: flex; flex-direction: column; justify-content: center"
               >
                 <span
                   style="text-align: center; font-weight: bold"
                   :class="{
-                    good: isGood(
-                      projects[idx - 1].ecologyOverview.busFactor,
-                      'ecologyOverview.busFactor',
-                    ),
+                    good: isGood(projects[idx - 1].evaluation.busFactor, 'evaluation.busFactor'),
                   }"
-                  >{{ formatFloat(projects[idx - 1].ecologyOverview.busFactor) }}</span
+                  >{{ formatFloat(projects[idx - 1].evaluation.busFactor) }}</span
                 >
                 <div style="display: inline-flex">
                   <div i-custom:bus font-size-6 mr-4 />
@@ -1262,7 +1256,7 @@ const changePage = (name: string) => {
           <div v-for="idx in 5" :key="idx" class="param-value border">
             <div v-if="projects[idx - 1]" class="value-div">
               <div
-                v-show="getShowRow('ecologyOverview.openRank')"
+                v-show="getShowRow('evaluation.openrank')"
                 style="
                   width: 160px;
                   display: flex;
@@ -1274,17 +1268,14 @@ const changePage = (name: string) => {
                 <span
                   style="text-align: center; font-weight: bold"
                   :class="{
-                    good: isGood(
-                      projects[idx - 1].ecologyOverview.openRank,
-                      'ecologyOverview.openRank',
-                    ),
+                    good: isGood(projects[idx - 1].evaluation.openrank, 'evaluation.openrank'),
                   }"
-                  >{{ formatFloat(projects[idx - 1].ecologyOverview.openRank) }}</span
+                  >{{ formatFloat(projects[idx - 1].evaluation.openrank) }}</span
                 >
                 <div style="display: inline-flex">
                   <div i-custom:medal font-size-6 mr-4 />
                   <div>
-                    <el-tooltip :content="i18n.global.t(`tips.ecology.openRank`)">
+                    <el-tooltip :content="i18n.global.t(`tips.ecology.openrank`)">
                       OpenRank得分
                     </el-tooltip>
                   </div>
@@ -1292,7 +1283,7 @@ const changePage = (name: string) => {
               </div>
 
               <div
-                v-show="getShowRow('ecologyOverview.criticalityScore')"
+                v-show="getShowRow('evaluation.criticalityScore')"
                 style="
                   width: 160px;
                   display: flex;
@@ -1305,11 +1296,11 @@ const changePage = (name: string) => {
                   style="text-align: center; font-weight: bold"
                   :class="{
                     good: isGood(
-                      projects[idx - 1].ecologyOverview.criticalityScore,
-                      'ecologyOverview.criticalityScore',
+                      projects[idx - 1].evaluation.criticalityScore,
+                      'evaluation.criticalityScore',
                     ),
                   }"
-                  >{{ formatFloat(projects[idx - 1].ecologyOverview.criticalityScore) }}</span
+                  >{{ formatFloat(projects[idx - 1].evaluation.criticalityScore) }}</span
                 >
                 <div style="display: inline-flex">
                   <div i-custom:trophy font-size-6 mr-4 />
@@ -1322,7 +1313,7 @@ const changePage = (name: string) => {
               </div>
 
               <div
-                v-show="getShowRow('ecologyOverview.contributorCount')"
+                v-show="getShowRow('evaluation.contributorCount')"
                 style="
                   width: 160px;
                   display: flex;
@@ -1335,11 +1326,11 @@ const changePage = (name: string) => {
                   style="text-align: center; font-weight: bold"
                   :class="{
                     good: isGood(
-                      projects[idx - 1].ecologyOverview.contributorCount,
-                      'ecologyOverview.contributorCount',
+                      projects[idx - 1].evaluation.contributorCount,
+                      'evaluation.contributorCount',
                     ),
                   }"
-                  >{{ formatNumber(projects[idx - 1].ecologyOverview.contributorCount) }}</span
+                  >{{ formatNumber(projects[idx - 1].evaluation.contributorCount) }}</span
                 >
                 <div style="display: inline-flex">
                   <div i-custom:contributor font-size-6 mr-4 />
@@ -1348,23 +1339,119 @@ const changePage = (name: string) => {
               </div>
 
               <div
-                v-show="getShowRow('ecologyOverview.dependentCount')"
+                v-show="getShowRow('evaluation.dependentCount')"
                 style="width: 160px; display: flex; flex-direction: column; justify-content: center"
               >
                 <span
                   style="text-align: center; font-weight: bold"
                   :class="{
                     good: isGood(
-                      projects[idx - 1].ecologyOverview.dependentCount,
-                      'ecologyOverview.dependentCount',
+                      projects[idx - 1].evaluation.dependentCount,
+                      'evaluation.dependentCount',
                     ),
                   }"
-                  >{{ formatNumber(projects[idx - 1].ecologyOverview.dependentCount) }}</span
+                  >{{ formatNumber(projects[idx - 1].evaluation.dependentCount) }}</span
                 >
                 <div style="display: inline-flex">
                   <div i-custom:link font-size-6 mr-4 />
                   <div>被依赖数量</div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          v-show="showEcology"
+          key="2"
+          class="row"
+          @mouseover="showChooseBorder('活跃度', $event)"
+          @mouseout="hideChooseBorder()"
+        >
+          <div class="border param-name">活跃度</div>
+          <div v-for="idx in 5" :key="idx" class="param-value border">
+            <div v-if="projects[idx - 1]" class="value-div">
+              <div
+                v-show="getShowRow('evaluation.openRank')"
+                style="
+                  width: 160px;
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: center;
+                  margin-bottom: 10px;
+                "
+              >
+                <span
+                  style="text-align: center; font-weight: bold"
+                  :class="{
+                    good: isGood(
+                      projects[idx - 1].evaluation.commentFrequency,
+                      'evaluation.commentFrequency',
+                    ),
+                  }"
+                  >{{ formatFloat(projects[idx - 1].evaluation.commentFrequency) }}</span
+                >
+                <span text-center> 代码提交频率 </span>
+              </div>
+
+              <div
+                v-show="getShowRow('evaluation.orgCount')"
+                style="
+                  width: 160px;
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: center;
+                  margin-bottom: 10px;
+                "
+              >
+                <span
+                  style="text-align: center; font-weight: bold"
+                  :class="{
+                    good: isGood(projects[idx - 1].evaluation.orgCount, 'evaluation.orgCount'),
+                  }"
+                  >{{ formatFloat(projects[idx - 1].evaluation.orgCount) }}</span
+                >
+                <span text-center>组织数量</span>
+              </div>
+
+              <div
+                v-show="getShowRow('evaluation.commentFrequency')"
+                style="
+                  width: 160px;
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: center;
+                  margin-bottom: 10px;
+                "
+              >
+                <span
+                  style="text-align: center; font-weight: bold"
+                  :class="{
+                    good: isGood(
+                      projects[idx - 1].evaluation.commentFrequency,
+                      'evaluation.commentFrequency',
+                    ),
+                  }"
+                  >{{ formatNumber(projects[idx - 1].evaluation.commentFrequency) }}</span
+                >
+                <span text-center>Issue评论频率</span>
+              </div>
+
+              <div
+                v-show="getShowRow('evaluation.recentReleasesCount')"
+                style="width: 160px; display: flex; flex-direction: column; justify-content: center"
+              >
+                <span
+                  style="text-align: center; font-weight: bold"
+                  :class="{
+                    good: isGood(
+                      projects[idx - 1].evaluation.recentReleasesCount,
+                      'evaluation.recentReleasesCount',
+                    ),
+                  }"
+                  >{{ formatNumber(projects[idx - 1].evaluation.recentReleasesCount) }}</span
+                >
+                <span text-center>最近版本发布数量</span>
               </div>
             </div>
           </div>

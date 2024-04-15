@@ -5,13 +5,10 @@ import {
   Benchmark,
   sequelize,
   ProjectInfo,
-  EvaluationMin,
   CncfDocumentScoreMin,
   StateOfJsMin,
-  ProjectTechStack,
   SonarCloudProjectMin,
   EvaluationSummary,
-  PackageDownloadCount,
   GithubProjects,
 } from '@orginjs/oss-evaluation-data-model';
 import ejsExcel from 'ejsexcel';
@@ -20,7 +17,6 @@ import XLSX from 'xlsx';
 import type {
   BenchmarkData,
   EcologyActivityCategory,
-  EcologyOverview,
   PerformanceInfo,
   SoftwareInfo,
   SoftwareBaseInfo,
@@ -31,58 +27,49 @@ import { Op } from 'sequelize';
 
 ProjectInfo.hasOne(Scorecard, { foreignKey: 'project_id', as: 'scorecard' });
 ProjectInfo.hasOne(SonarCloudProjectMin, { foreignKey: 'github_project_id', as: 'sonarCloudScan' });
-ProjectInfo.hasOne(EvaluationMin, { foreignKey: 'project_id', as: 'evaluation' });
+ProjectInfo.hasOne(EvaluationSummary, { foreignKey: 'project_id', as: 'evaluation' });
 ProjectInfo.hasMany(StateOfJsMin, { foreignKey: 'project_id', as: 'satisfaction' });
 ProjectInfo.hasOne(CncfDocumentScoreMin, { foreignKey: 'project_id', as: 'document' });
-ProjectInfo.hasOne(ProjectTechStack, { foreignKey: 'project_id', as: 'techStack' });
 
 export async function getProjectDetailInfo(repoName: string): Promise<SoftwareInfo> {
   const projectId = await getProjectIdByRepoName(repoName);
-  const [softwareInfo, ecologyOverview] = await Promise.all([
-    ProjectInfo.findOne({
-      include: [
-        {
-          model: EvaluationMin,
-          as: 'evaluation',
-        },
-        {
-          model: Scorecard,
-          as: 'scorecard',
-        },
-        {
-          model: SonarCloudProjectMin,
-          as: 'sonarCloudScan',
-          required: false,
-          where: {
-            analysisDate: {
-              [Op.ne]: null,
-            },
+  const softwareInfo = await ProjectInfo.findOne({
+    include: [
+      {
+        model: EvaluationSummary,
+        as: 'evaluation',
+      },
+      {
+        model: Scorecard,
+        as: 'scorecard',
+      },
+      {
+        model: SonarCloudProjectMin,
+        as: 'sonarCloudScan',
+        required: false,
+        where: {
+          analysisDate: {
+            [Op.ne]: null,
           },
         },
-        {
-          model: CncfDocumentScoreMin,
-          as: 'document',
-        },
-        {
-          model: StateOfJsMin,
-          as: 'satisfaction',
-        },
-        {
-          model: ProjectTechStack,
-          as: 'techStack',
-        },
-      ],
-      where: {
-        id: projectId,
       },
-    }),
-    getSoftwareEcologyOverview(repoName),
-  ]);
+      {
+        model: CncfDocumentScoreMin,
+        as: 'document',
+      },
+      {
+        model: StateOfJsMin,
+        as: 'satisfaction',
+      },
+    ],
+    where: {
+      id: projectId,
+    },
+  });
 
   const res = softwareInfo.toJSON();
   res.repoName = repoName;
-  res.ecologyOverview = ecologyOverview;
-  res.techStack = res.techStack?.subcategory;
+  res.techStack = res.evaluation?.techStack;
 
   if (res.satisfaction?.length !== 0) {
     const satisfaction = res.satisfaction.sort((a, b) => {
@@ -95,62 +82,6 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
   }
 
   return res;
-}
-
-/**
- * getSoftwareEcologyOverview
- *
- * @param repoName repoName
- * @returns softwareEcologyOverview
- */
-export async function getSoftwareEcologyOverview(
-  repoName: string,
-): Promise<EcologyOverview | null> {
-  const sql = `
-        select project.id,
-               name,
-               full_name,
-               stargazers_count,
-               forks_count,
-               bus_factor,
-               openrank,
-               score as criticality_score,
-               max(contributor_count) as contributor_count
-        from github_projects project
-           left join opendigger_info digeer on project.id = digeer.project_id
-           left join criticality_score criticality on project.id = criticality.project_id
-           left join compass_activity_detail compass on project.id = compass.project_id
-        where project.id = :projectId
-        group by project.id;
-  `;
-
-  const projectId = await getProjectIdByRepoName(repoName);
-  const softwareEcologyOverview = await sequelize.query(sql, {
-    replacements: { projectId: projectId },
-    type: sequelize.QueryTypes.SELECT,
-  });
-  const downloadData = await PackageDownloadCount.findOne({
-    where: {
-      projectId,
-    },
-    attributes: ['downloads'],
-    order: [['week', 'desc']],
-  });
-  if (softwareEcologyOverview.length === 0 || !downloadData) {
-    return null;
-  }
-  return {
-    name: softwareEcologyOverview[0].name,
-    fullName: softwareEcologyOverview[0].full_name,
-    downloads: downloadData.downloads,
-    stargazersCount: softwareEcologyOverview[0].stargazers_count,
-    forksCount: softwareEcologyOverview[0].forks_count,
-    busFactor: softwareEcologyOverview[0].bus_factor,
-    openRank: softwareEcologyOverview[0].openrank,
-    criticalityScore: softwareEcologyOverview[0].criticality_score,
-    contributorCount: softwareEcologyOverview[0].contributor_count,
-    dependentCount: 0,
-  };
 }
 
 export async function getPerformance(repoName: string): Promise<PerformanceInfo> {

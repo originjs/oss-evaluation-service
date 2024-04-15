@@ -923,7 +923,7 @@ const emits = defineEmits<{
               <div i-custom:download font-size-14 mr-4 />
               <div>
                 <div font-bold font-size-5>
-                  {{ toKilo(project?.ecologyOverview?.downloads).split('.')[0] }} k
+                  {{ toKilo(project?.evaluation?.npmDownloads).split('.')[0] }} k
                 </div>
                 <div line-height-7>npm周下载量</div>
               </div>
@@ -932,7 +932,7 @@ const emits = defineEmits<{
               <div i-custom:star font-size-14 mr-4 />
               <div>
                 <div font-bold font-size-5>
-                  {{ toKilo(project?.ecologyOverview?.stargazersCount) }} k
+                  {{ toKilo(project?.evaluation?.stargazersCount) }} k
                 </div>
                 <div line-height-7>Star数量</div>
               </div>
@@ -940,16 +940,14 @@ const emits = defineEmits<{
             <div flex w-210px>
               <div i-custom:fork font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>
-                  {{ toKilo(project?.ecologyOverview?.forksCount) }} k
-                </div>
+                <div font-bold font-size-5>{{ toKilo(project?.evaluation?.forksCount) }} k</div>
                 <div line-height-7>Fork数量</div>
               </div>
             </div>
             <div flex w-210px>
               <div i-custom:bus font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ project?.ecologyOverview?.busFactor }}</div>
+                <div font-bold font-size-5>{{ project?.evaluation?.busFactor }}</div>
                 <div flex>
                   <div line-height-7>巴士系数</div>
                   <el-tooltip :content="i18n.global.t(`tips.ecology.busFactor`)">
@@ -967,7 +965,7 @@ const emits = defineEmits<{
             <div flex w-210px>
               <div i-custom:medal font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ project?.ecologyOverview?.openRank }}</div>
+                <div font-bold font-size-5>{{ project?.evaluation?.openrank }}</div>
                 <div flex>
                   <div line-height-7>OpenRank得分</div>
                   <el-tooltip :content="i18n.global.t(`tips.ecology.openRank`)">
@@ -981,7 +979,7 @@ const emits = defineEmits<{
             <div flex w-210px>
               <div i-custom:trophy font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ project?.ecologyOverview?.criticalityScore }}</div>
+                <div font-bold font-size-5>{{ project?.evaluation?.criticalityScore }}</div>
                 <div flex>
                   <div line-height-7>Criticality得分</div>
                   <el-tooltip :content="i18n.global.t(`tips.ecology.criticality`)">
@@ -995,14 +993,14 @@ const emits = defineEmits<{
             <div flex w-210px>
               <div i-custom:contributor font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ project?.ecologyOverview?.contributorCount }}</div>
+                <div font-bold font-size-5>{{ project?.evaluation?.contributorCount }}</div>
                 <div line-height-7>贡献者数量</div>
               </div>
             </div>
             <div flex w-210px>
               <div i-custom:link font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ project?.ecologyOverview?.dependentCount }}</div>
+                <div font-bold font-size-5>{{ project?.evaluation?.dependentCount }}</div>
                 <div line-height-7>被依赖数量</div>
               </div>
             </div>
