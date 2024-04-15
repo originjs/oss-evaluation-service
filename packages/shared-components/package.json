@@ -41,6 +41,7 @@
   },
   "devDependencies": {
     "@element-plus/icons-vue": "^2.3.1",
+    "vue-i18n": "^9.11.1",
     "@iconify/json": "^2.2.190",
     "@iconify/utils": "^2.1.22",
     "@orginjs/oss-evaluation-api-server": "workspace:^",

@@ -24,7 +24,6 @@ import {
   getLevelColor,
   getTagType,
   scorecardProgressColor,
-  TIPS_MAP,
 } from '@orginjs/oss-evaluation-components-utils';
 import {
   toKilo,
@@ -32,6 +31,7 @@ import {
   formatNumber,
   formatString,
 } from '@orginjs/oss-evaluation-components-utils';
+import i18n from "../../i18n";
 
 const props = defineProps<{ repoName: string }>();
 
@@ -611,7 +611,7 @@ const emits = defineEmits<{
         <div flex>
           <div font-size-5 font-bold>开发者满意度</div>
           <el-tooltip
-            :content="TIPS_MAP['开发者满意度']"
+            :content="i18n.global.t(`tips.开发者满意度`)"
           >
             <el-icon size-5 color-gray-400>
               <InfoFilled />
@@ -624,7 +624,7 @@ const emits = defineEmits<{
         <div flex>
           <div font-size-5 font-bold>文档最佳实践</div>
           <el-tooltip
-            :content="TIPS_MAP['文档最佳实践']"
+            :content="i18n.global.t(`tips.文档最佳实践`)"
           >
             <el-icon size-5 color-gray-400>
               <InfoFilled />
@@ -752,7 +752,7 @@ const emits = defineEmits<{
         <div flex>
           <div mb-4 font-size-5 font-bold>OpenSSF Scorecard</div>
           <el-tooltip
-            :content="TIPS_MAP['OpenSSF Scorecard']['OpenSSF Scorecard']"
+            :content="i18n.global.t(`tips.OpenSSF Scorecard.OpenSSF Scorecard`)"
           >
             <el-icon size-5 color-gray-400>
               <InfoFilled />
@@ -763,7 +763,7 @@ const emits = defineEmits<{
         <div v-for="item in openSSFScorecard" :key="item.label" flex flex-items-center h-30px>
           <div w-190px>
             <span>{{ item.label }}</span>
-            <el-tooltip :content="TIPS_MAP['OpenSSF Scorecard'][item.label]">
+            <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.`+item.label)">
               <el-icon size-5 color-gray-400>
                 <InfoFilled />
               </el-icon>
@@ -810,7 +810,7 @@ const emits = defineEmits<{
                 formatNumber(project?.sonarCloudScan?.bugs)
               }}</span>
               <span font-light>Bugs</span>
-              <el-tooltip :content="TIPS_MAP['SonarCloud']['Bugs']">
+              <el-tooltip :content="i18n.global.t(`tips.SonarCloud.Bugs`)">
                 <el-icon size-5 color-gray-400>
                   <InfoFilled />
                 </el-icon>
@@ -837,7 +837,7 @@ const emits = defineEmits<{
                 formatNumber(project?.sonarCloudScan?.codeSmells)
               }}</span>
               <span font-light>Code Smells</span>
-              <el-tooltip :content="TIPS_MAP['SonarCloud']['Code Smells']">
+              <el-tooltip :content="i18n.global.t(`tips.SonarCloud.Code Smells`)">
                 <el-icon size-5 color-gray-400>
                   <InfoFilled />
                 </el-icon>
@@ -864,7 +864,7 @@ const emits = defineEmits<{
                 formatNumber(project?.sonarCloudScan?.vulnerabilities)
               }}</span>
               <span font-light>Vulnerabilities</span>
-              <el-tooltip :content="TIPS_MAP['SonarCloud']['Vulnerabilities']">
+              <el-tooltip :content="i18n.global.t(`tips.SonarCloud.Vulnerabilities`)">
                 <el-icon size-5 color-gray-400>
                   <InfoFilled />
                 </el-icon>
@@ -889,7 +889,7 @@ const emits = defineEmits<{
                 formatNumber(project?.sonarCloudScan?.securityHotspots)
               }}</span>
               <span font-light mr-1>Security Hotspots</span>
-              <el-tooltip :content="TIPS_MAP['SonarCloud']['Security Hotspots']">
+              <el-tooltip :content="i18n.global.t(`tips.SonarCloud.Security Hotspots`)">
                 <el-icon size-5 color-gray-400>
                   <InfoFilled />
                 </el-icon>
@@ -953,7 +953,7 @@ const emits = defineEmits<{
                 <div flex>
                   <div line-height-7>巴士系数</div>
                   <el-tooltip
-                    :content="TIPS_MAP['生态']['巴士系数']"
+                    :content="i18n.global.t(`tips.生态.巴士系数`)"
                   >
                     <el-icon size-5 color-gray-400>
                       <InfoFilled />
@@ -972,7 +972,7 @@ const emits = defineEmits<{
                 <div font-bold font-size-5>{{ project?.ecologyOverview?.openRank }}</div>
                 <div flex>
                   <div line-height-7>OpenRank得分</div>
-                  <el-tooltip :content="TIPS_MAP['生态']['OpenRank得分']">
+                  <el-tooltip :content="i18n.global.t(`tips.生态.OpenRank得分`)">
                     <el-icon size-5 color-gray-400>
                       <InfoFilled />
                     </el-icon>
@@ -986,7 +986,7 @@ const emits = defineEmits<{
                 <div font-bold font-size-5>{{ project?.ecologyOverview?.criticalityScore }}</div>
                 <div flex>
                   <div line-height-7>Criticality得分</div>
-                  <el-tooltip :content="TIPS_MAP['生态']['Criticality得分']">
+                  <el-tooltip :content="i18n.global.t(`tips.生态.Criticality得分`)">
                     <el-icon size-5 color-gray-400>
                       <InfoFilled />
                     </el-icon>
@@ -1016,7 +1016,7 @@ const emits = defineEmits<{
               代码提交频率
             </div>
             <el-tooltip
-                :content="TIPS_MAP['Compass']"
+                :content="i18n.global.t(`tips.Compass`)"
             >
               <el-icon size-5 color-gray-400>
                 <InfoFilled />
@@ -1032,7 +1032,7 @@ const emits = defineEmits<{
               Issue评论频率
             </div>
             <el-tooltip
-                :content="TIPS_MAP['Compass']"
+                :content="i18n.global.t(`tips.Compass`)"
             >
               <el-icon size-5 color-gray-400>
                 <InfoFilled />
@@ -1050,7 +1050,7 @@ const emits = defineEmits<{
               更新Issue数量
             </div>
             <el-tooltip
-                :content="TIPS_MAP['Compass']"
+                :content="i18n.global.t(`tips.Compass`)"
             >
               <el-icon size-5 color-gray-400>
                 <InfoFilled />
@@ -1066,7 +1066,7 @@ const emits = defineEmits<{
               关闭Issue数量
             </div>
             <el-tooltip
-                :content="TIPS_MAP['Compass']"
+                :content="i18n.global.t(`tips.Compass`)"
             >
               <el-icon size-5 color-gray-400>
                 <InfoFilled />
@@ -1082,7 +1082,7 @@ const emits = defineEmits<{
               组织数量
             </div>
             <el-tooltip
-                :content="TIPS_MAP['Compass']"
+                :content="i18n.global.t(`tips.Compass`)"
             >
               <el-icon size-5 color-gray-400>
                 <InfoFilled />
@@ -1098,7 +1098,7 @@ const emits = defineEmits<{
               贡献者数量
             </div>
             <el-tooltip
-                :content="TIPS_MAP['Compass']"
+                :content="i18n.global.t(`tips.Compass`)"
             >
               <el-icon size-5 color-gray-400>
                 <InfoFilled />

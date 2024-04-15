@@ -13,7 +13,7 @@ import { getLevelColor } from '@orginjs/oss-evaluation-components-utils';
 import { ElMessage } from 'element-plus';
 import { get as _get } from 'lodash-es';
 import { SearchSoftware } from '../search-software';
-import { TIPS_MAP } from '@orginjs/oss-evaluation-components-utils';
+import i18n from "../../i18n";
 
 const emit = defineEmits<{
   removeRepo: [repoName: string];
@@ -442,7 +442,7 @@ const getShowRow = (path: string) => {
         @mouseout="hideChooseBorder()"
       >
           <div class="border param-name">
-            <el-tooltip :content="TIPS_MAP['开发者满意度']">
+            <el-tooltip :content="i18n.global.t(`tips.开发者满意度`)">
             开发者满意度
             </el-tooltip>
           </div>
@@ -464,7 +464,7 @@ const getShowRow = (path: string) => {
         @mouseout="hideChooseBorder()"
       >
         <div class="border param-name">
-          <el-tooltip :content="TIPS_MAP['文档最佳实践']">
+          <el-tooltip :content="i18n.global.t(`tips.文档最佳实践`)">
             文档最佳实践
           </el-tooltip>
         </div>
@@ -566,7 +566,7 @@ const getShowRow = (path: string) => {
             text-align: center;
           "
         >
-          <el-tooltip :content="TIPS_MAP['OpenSSF Scorecard']['OpenSSF Scorecard']">
+          <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.OpenSSF Scorecard`)">
             OpenSSF Scorecard
           </el-tooltip>
         </div>
@@ -578,7 +578,7 @@ const getShowRow = (path: string) => {
             @mouseout="hideChooseBorder()"
           >
             <div class="border param-name" style="width: 97px">
-              <el-tooltip :content="TIPS_MAP['Score']" placement="top-start">
+              <el-tooltip :content="i18n.global.t(`tips.Score`)" placement="top-start">
                 <el-text size="small" line-clamp="3">Score</el-text>
               </el-tooltip>
             </div>
@@ -599,7 +599,7 @@ const getShowRow = (path: string) => {
             @mouseout="hideChooseBorder()"
           >
             <div class="border param-name" style="width: 97px">
-              <el-tooltip :content="TIPS_MAP['OpenSSF Scorecard']['Code-Review']" placement="top-start">
+              <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.Code-Review`)" placement="top-start">
                 <el-text size="small" line-clamp="3">Code-Review</el-text>
               </el-tooltip>
             </div>
@@ -622,7 +622,7 @@ const getShowRow = (path: string) => {
             @mouseout="hideChooseBorder()"
           >
             <div class="border param-name" style="width: 97px">
-              <el-tooltip :content="TIPS_MAP['OpenSSF Scorecard']['Maintained']" placement="top-start">
+              <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.Maintained`)" placement="top-start">
                 <el-text size="small" line-clamp="3">Maintained</el-text>
               </el-tooltip>
             </div>
@@ -645,7 +645,7 @@ const getShowRow = (path: string) => {
             @mouseout="hideChooseBorder()"
           >
             <div class="border param-name" style="width: 97px">
-              <el-tooltip :content="TIPS_MAP['OpenSSF Scorecard']['CII-Best-Practices']" placement="top-start">
+              <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.CII-Best-Practices`)" placement="top-start">
                 <el-text size="small" line-clamp="3">CII-Best-Practices</el-text>
               </el-tooltip>
             </div>
@@ -671,7 +671,7 @@ const getShowRow = (path: string) => {
             @mouseout="hideChooseBorder()"
           >
             <div class="border param-name" style="width: 97px">
-              <el-tooltip :content="TIPS_MAP['OpenSSF Scorecard']['License']" placement="top-start">
+              <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.License`)" placement="top-start">
                 <el-text size="small" line-clamp="3">License</el-text>
               </el-tooltip>
             </div>
@@ -694,7 +694,7 @@ const getShowRow = (path: string) => {
             @mouseout="hideChooseBorder()"
           >
             <div class="border param-name" style="width: 97px">
-              <el-tooltip :content="TIPS_MAP['OpenSSF Scorecard']['Security-Policy']" placement="top-start">
+              <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.Security-Policy`)" placement="top-start">
                 <el-text size="small" line-clamp="3">Security-Policy</el-text>
               </el-tooltip>
             </div>
@@ -720,7 +720,7 @@ const getShowRow = (path: string) => {
             @mouseout="hideChooseBorder()"
           >
             <div class="border param-name" style="width: 97px">
-              <el-tooltip :content="TIPS_MAP['OpenSSF Scorecard']['Dangerous-Workflow']" placement="top-start">
+              <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.Dangerous-Workflow`)" placement="top-start">
                 <el-text size="small" line-clamp="3">Dangerous-Workflow</el-text>
               </el-tooltip>
             </div>
@@ -746,7 +746,7 @@ const getShowRow = (path: string) => {
             @mouseout="hideChooseBorder()"
           >
             <div class="border param-name" style="width: 97px">
-              <el-tooltip :content="TIPS_MAP['OpenSSF Scorecard']['Branch-Protection']" placement="top-start">
+              <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.Branch-Protection`)" placement="top-start">
                 <el-text size="small" line-clamp="3">Branch-Protection</el-text>
               </el-tooltip>
             </div>
@@ -772,7 +772,7 @@ const getShowRow = (path: string) => {
             @mouseout="hideChooseBorder()"
           >
             <div class="border param-name" style="width: 97px">
-              <el-tooltip :content="TIPS_MAP['OpenSSF Scorecard']['Token-Permissions']" placement="top-start">
+              <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.Token-Permissions`)" placement="top-start">
                 <el-text size="small" line-clamp="3">Token-Permissions</el-text>
               </el-tooltip>
             </div>
@@ -798,7 +798,7 @@ const getShowRow = (path: string) => {
             @mouseout="hideChooseBorder()"
           >
             <div class="border param-name" style="width: 97px">
-              <el-tooltip :content="TIPS_MAP['OpenSSF Scorecard']['Binary-Artifacts']" placement="top-start">
+              <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.Binary-Artifacts`)" placement="top-start">
                 <el-text size="small" line-clamp="3">Binary-Artifacts</el-text>
               </el-tooltip>
             </div>
@@ -824,7 +824,7 @@ const getShowRow = (path: string) => {
             @mouseout="hideChooseBorder()"
           >
             <div class="border param-name" style="width: 97px">
-              <el-tooltip :content="TIPS_MAP['OpenSSF Scorecard']['Fuzzing']" placement="top-start">
+              <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.Fuzzing`)" placement="top-start">
                 <el-text size="small" line-clamp="3">Fuzzing</el-text>
               </el-tooltip>
             </div>
@@ -847,7 +847,7 @@ const getShowRow = (path: string) => {
             @mouseout="hideChooseBorder()"
           >
             <div class="border param-name" style="width: 97px">
-              <el-tooltip :content="TIPS_MAP['OpenSSF Scorecard']['SAST']" placement="top-start">
+              <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.SAST`)" placement="top-start">
                 <el-text size="small" line-clamp="3">SAST</el-text>
               </el-tooltip>
             </div>
@@ -866,7 +866,7 @@ const getShowRow = (path: string) => {
             @mouseout="hideChooseBorder()"
           >
             <div class="border param-name" style="width: 97px">
-              <el-tooltip :content="TIPS_MAP['OpenSSF Scorecard']['Vulnerabilities']" placement="top-start">
+              <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.Vulnerabilities`)" placement="top-start">
                 <el-text size="small" line-clamp="3">Vulnerabilities</el-text>
               </el-tooltip>
             </div>
@@ -892,7 +892,7 @@ const getShowRow = (path: string) => {
             @mouseout="hideChooseBorder()"
           >
             <div class="border param-name" style="width: 97px">
-              <el-tooltip :content="TIPS_MAP['OpenSSF Scorecard']['Pinned-Dependencies']" placement="top-start">
+              <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.Pinned-Dependencies`)" placement="top-start">
                 <el-text size="small" line-clamp="3">Pinned-Dependencies</el-text>
               </el-tooltip>
             </div>
@@ -934,7 +934,7 @@ const getShowRow = (path: string) => {
             @mouseout="hideChooseBorder()"
           >
             <div class="border param-name" style="width: 97px">
-              <el-tooltip :content="TIPS_MAP['SonarCloud']['Reliability']" placement="top-start">
+              <el-tooltip :content="i18n.global.t(`tips.SonarCloud.Reliability`)" placement="top-start">
                 <el-text size="small" line-clamp="3">Reliability</el-text>
               </el-tooltip>
             </div>
@@ -963,7 +963,7 @@ const getShowRow = (path: string) => {
             @mouseout="hideChooseBorder()"
           >
             <div class="border param-name" style="width: 97px">
-              <el-tooltip :content="TIPS_MAP['SonarCloud']['Maintainability']" placement="top-start">
+              <el-tooltip :content="i18n.global.t(`tips.SonarCloud.Maintainability`)" placement="top-start">
                 <el-text size="small" line-clamp="2">Maintainability</el-text>
               </el-tooltip>
             </div>
@@ -995,7 +995,7 @@ const getShowRow = (path: string) => {
             @mouseout="hideChooseBorder()"
           >
             <div class="border param-name" style="width: 97px">
-              <el-tooltip :content="TIPS_MAP['SonarCloud']['Security']" placement="top-start">
+              <el-tooltip :content="i18n.global.t(`tips.SonarCloud.Security`)" placement="top-start">
                 <el-text size="small" line-clamp="3">Security</el-text>
               </el-tooltip>
             </div>
@@ -1029,7 +1029,7 @@ const getShowRow = (path: string) => {
             @mouseout="hideChooseBorder()"
           >
             <div class="border param-name" style="width: 97px">
-              <el-tooltip :content="TIPS_MAP['SonarCloud']['Security Review']" placement="top-start">
+              <el-tooltip :content="i18n.global.t(`tips.SonarCloud.Security Review`)" placement="top-start">
                 <el-text size="small" line-clamp="3">Security Review</el-text>
               </el-tooltip>
             </div>
@@ -1172,7 +1172,7 @@ const getShowRow = (path: string) => {
               <div style="display: inline-flex">
                 <div i-custom:bus font-size-6 mr-4 />
                 <div>
-                  <el-tooltip :content="TIPS_MAP['生态']['巴士系数']">
+                  <el-tooltip :content="i18n.global.t(`tips.生态.巴士系数`)">
                     巴士系数
                   </el-tooltip>
                 </div>
@@ -1215,7 +1215,7 @@ const getShowRow = (path: string) => {
               <div style="display: inline-flex">
                 <div i-custom:medal font-size-6 mr-4 />
                 <div>
-                  <el-tooltip :content="TIPS_MAP['生态']['OpenRank得分']">
+                  <el-tooltip :content="i18n.global.t(`tips.生态.OpenRank得分`)">
                     OpenRank得分
                   </el-tooltip>
                 </div>
@@ -1245,7 +1245,7 @@ const getShowRow = (path: string) => {
               <div style="display: inline-flex">
                 <div i-custom:trophy font-size-6 mr-4 />
                 <div>
-                  <el-tooltip :content="TIPS_MAP['生态']['Criticality得分']">
+                  <el-tooltip :content="i18n.global.t(`tips.生态.Criticality得分`)">
                     Criticality得分
                   </el-tooltip>
                 </div>
