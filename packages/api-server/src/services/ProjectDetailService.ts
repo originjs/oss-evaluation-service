@@ -23,6 +23,7 @@ import type {
   EcologyOverview,
   PerformanceInfo,
   SoftwareInfo,
+  SoftwareBaseInfo,
 } from '../interfaces/SoftwareInfo.js';
 import { fixedRound } from '../utils/math.js';
 import Logger from '../utils/logger.js';
@@ -282,6 +283,37 @@ export async function getMainPackageByRepoName(repoName: string) {
     throw new Error(msg);
   }
   return data.package;
+}
+
+/**
+ * query projects by tech stack
+ *
+ * @param techStack Tech stack
+ * @returns projects
+ */
+export async function getProjectsByTechStack(techStack: string): Promise<Array<SoftwareBaseInfo>> {
+  const sql = `
+    SELECT gp.id as projectId,
+           gp.NAME AS projectName,
+           gp.full_name as repoName,
+           gp.html_url as url,
+           gp.description,
+           gp.owner_avatar_url as logo,
+           gp.stargazers_count as star,
+           gp.forks_count as forksCount
+      FROM github_projects gp
+INNER JOIN project_tech_stack pts 
+        ON gp.id = pts.project_id
+     WHERE pts.category = :techStack
+  ORDER BY gp.stargazers_count DESC;
+  `;
+
+  const projects = await sequelize.query(sql, {
+    replacements: { techStack },
+    type: sequelize.QueryTypes.SELECT,
+  });
+
+  return projects;
 }
 
 /**

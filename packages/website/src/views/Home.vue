@@ -71,6 +71,7 @@ const goSoftwareDetails = ({ repoName }: SoftwareBaseInfo) => {
 <style scoped lang="less">
 .home {
   margin: 20px 20px 108px;
+  min-height: calc(100vh - 241px);
 }
 
 .intro {
