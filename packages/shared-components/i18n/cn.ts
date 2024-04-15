@@ -1,11 +1,11 @@
 export default {
   tips: {
-    开发者满意度:
+    satisfaction:
       '数据来源于历年StateOfJS生态调查报告，更多结果可以查看 https://stateofjs.com/en-US',
-    文档最佳实践:
+    bestPractices:
       '最佳实践评分基于Linux Foundation建议的Best Practices检查，每个检查项都有不同的权重',
-    'OpenSSF Scorecard': {
-      'OpenSSF Scorecard':
+    scorecard: {
+      scorecard:
         'OpenSSF开源安全基金会是一个跨行业合作组织，旨在提高开源软件的安全性。Scorecard为开源项目提供安全健康指标。',
       'Code-Review':
         'Determines if the project requires human code review before pull requests (aka merge requests) are merged.',
@@ -28,26 +28,26 @@ export default {
       'Pinned-Dependencies':
         'Determines if the project has declared and pinned the dependencies of its build process.',
     },
-    SonarCloud: {
-      Reliability:
+    sonarCloud: {
+      reliability:
         'Issues in this domain mark code where you will get behavior other than what was expected.',
-      Maintainability:
+      maintainability:
         'Issues in this domain mark code that will be more difficult to update competently than it should.',
-      Security: 'Issues in this domain mark potential weaknesses to hackers.',
-      'Security Review':
+      security: 'Issues in this domain mark potential weaknesses to hackers.',
+      securityReview:
         'This domain represents potential security risks in the form of hotspots and their review status.',
-      Bugs: '编码错误会破坏您的代码并且需要立即修复。',
-      'Code Smells': '代码混乱且难以维护。',
-      Vulnerabilities: '可以被黑客利用的代码。',
-      'Security Hotspots': '需要手动检查以评估是否存在漏洞的安全敏感代码。',
+      bugs: '编码错误会破坏您的代码并且需要立即修复。',
+      codeSmells: '代码混乱且难以维护。',
+      vulnerabilities: '可以被黑客利用的代码。',
+      securityHotspots: '需要手动检查以评估是否存在漏洞的安全敏感代码。',
     },
-    生态: {
-      巴士系数: '一个项目失去多少贡献者参与（“被巴士撞了”）即导致项目停滞的成员数量',
-      OpenRank得分: 'X-lab提出的一种基于全域开发者协作网络的项目影响力评估方法',
-      Criticality得分:
+    ecology: {
+      busFactor: '一个项目失去多少贡献者参与（“被巴士撞了”）将导致项目停滞的成员数量',
+      openRank: 'X-lab提出的一种基于全域开发者协作网络的项目影响力评估方法',
+      criticality:
         'OpenSSF提供的开源项目关键度得分，定义了项目的影响力和重要性。它是一个介于0(最不关键)和1(最关键)之间的数字',
     },
-    Compass:
+    compass:
       '数据来源于开源指南针OSS Compass，关于指标的详细说明可以查看官网: https://oss-compass.org/zh/docs/docs/metrics-models/',
   },
 };

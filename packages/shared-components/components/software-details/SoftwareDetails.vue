@@ -31,7 +31,7 @@ import {
   formatNumber,
   formatString,
 } from '@orginjs/oss-evaluation-components-utils';
-import i18n from "../../i18n";
+import i18n from '../../i18n';
 
 const props = defineProps<{ repoName: string }>();
 
@@ -48,7 +48,6 @@ const tagList = ref<string[]>([]);
 const openSSFScorecard = ref<
   Array<{
     label: string;
-    tips: string;
     value: string | number;
   }>
 >([]);
@@ -102,67 +101,54 @@ watchEffect(async () => {
   openSSFScorecard.value = [
     {
       label: 'Code-Review',
-      tips: 'Determines if the project requires human code review before pull requests (aka merge requests) are merged.',
       value: formatFloat(data.scorecard?.codeReview),
     },
     {
       label: 'Maintained',
-      tips: 'Determines if the project is "actively maintained".',
       value: formatFloat(data.scorecard?.maintained),
     },
     {
       label: 'CII-Best-Practices',
-      tips: 'Determines if the project has an OpenSSF (formerly CII) Best Practices Badge.',
       value: formatFloat(data.scorecard?.ciiBestPractices),
     },
     {
       label: 'License',
-      tips: 'Determines if the project has defined a license.',
       value: formatFloat(data.scorecard?.license),
     },
     {
       label: 'Security-Policy',
-      tips: 'Determines if the project has published a security policy.',
       value: formatFloat(data.scorecard?.securityPolicy),
     },
     {
       label: 'Dangerous-Workflow',
-      tips: "Determines if the project's GitHub Action workflows avoid dangerous patterns.",
       value: formatFloat(data.scorecard?.dangerousWorkflow),
     },
     {
       label: 'Branch-Protection',
-      tips: "Determines if the default and release branches are protected with GitHub's branch protection settings.",
       value: formatFloat(data.scorecard?.branchProtection),
     },
     {
       label: 'Token-Permissions',
-      tips: "Determines if the project's workflows follow the principle of least privilege.",
       value: formatFloat(data.scorecard?.tokenPermissions),
     },
     {
       label: 'Binary-Artifacts',
-      tips: 'Determines if the project has generated executable (binary) artifacts in the source repository.',
       value: formatFloat(data.scorecard?.binaryArtifacts),
     },
     {
       label: 'Fuzzing',
-      tips: 'Determines if the project uses fuzzing.',
       value: formatFloat(data.scorecard?.fuzzing),
     },
     {
       label: 'SAST',
-      tips: 'Determines if the project uses static code analysis.',
       value: formatFloat(data.scorecard?.sast),
     },
     {
       label: 'Vulnerabilities',
-      tips: 'Determines if the project has open, known unfixed vulnerabilities.',
       value: formatFloat(data.scorecard?.vulnerabilities),
     },
     {
       label: 'Pinned-Dependencies',
-      tips: 'Determines if the project has declared and pinned the dependencies of its build process.',
       value: formatFloat(data.scorecard?.pinnedDependencies),
     },
   ];
@@ -610,9 +596,7 @@ const emits = defineEmits<{
       <el-card v-if="developerSatisfaction.xAxis.length > 0" mb-6>
         <div flex>
           <div font-size-5 font-bold>开发者满意度</div>
-          <el-tooltip
-            :content="i18n.global.t(`tips.开发者满意度`)"
-          >
+          <el-tooltip :content="i18n.global.t(`tips.satisfaction`)">
             <el-icon size-5 color-gray-400>
               <InfoFilled />
             </el-icon>
@@ -623,9 +607,7 @@ const emits = defineEmits<{
       <el-card>
         <div flex>
           <div font-size-5 font-bold>文档最佳实践</div>
-          <el-tooltip
-            :content="i18n.global.t(`tips.文档最佳实践`)"
-          >
+          <el-tooltip :content="i18n.global.t(`tips.bestPractices`)">
             <el-icon size-5 color-gray-400>
               <InfoFilled />
             </el-icon>
@@ -751,9 +733,7 @@ const emits = defineEmits<{
       <el-card mb-6>
         <div flex>
           <div mb-4 font-size-5 font-bold>OpenSSF Scorecard</div>
-          <el-tooltip
-            :content="i18n.global.t(`tips.OpenSSF Scorecard.OpenSSF Scorecard`)"
-          >
+          <el-tooltip :content="i18n.global.t(`tips.scorecard.scorecard`)">
             <el-icon size-5 color-gray-400>
               <InfoFilled />
             </el-icon>
@@ -763,7 +743,7 @@ const emits = defineEmits<{
         <div v-for="item in openSSFScorecard" :key="item.label" flex flex-items-center h-30px>
           <div w-190px>
             <span>{{ item.label }}</span>
-            <el-tooltip :content="i18n.global.t(`tips.OpenSSF Scorecard.`+item.label)">
+            <el-tooltip :content="i18n.global.t(`tips.scorecard.` + item.label)">
               <el-icon size-5 color-gray-400>
                 <InfoFilled />
               </el-icon>
@@ -803,14 +783,19 @@ const emits = defineEmits<{
           <div position-relative pt-3 pd-3 pl-4 pr-4 w-607px h-92px bg-coolgray-50>
             <div mb-4 font-bold>
               <span i-ph-bug-beetle-fill font-size-5 mb-3px mr-1 />
-              <span>Reliability</span>
+              <el-tooltip
+                :content="i18n.global.t(`tips.sonarCloud.reliability`)"
+                placement="top-start"
+              >
+                <span>Reliability</span>
+              </el-tooltip>
             </div>
             <div>
               <span font-bold font-size-6 mr-2>{{
                 formatNumber(project?.sonarCloudScan?.bugs)
               }}</span>
               <span font-light>Bugs</span>
-              <el-tooltip :content="i18n.global.t(`tips.SonarCloud.Bugs`)">
+              <el-tooltip :content="i18n.global.t(`tips.sonarCloud.bugs`)">
                 <el-icon size-5 color-gray-400>
                   <InfoFilled />
                 </el-icon>
@@ -830,14 +815,19 @@ const emits = defineEmits<{
           <div position-relative pt-3 pd-3 pl-4 pr-4 w-607px h-92px bg-coolgray-50>
             <div mb-4 font-bold>
               <span i-ph-atom-bold font-size-5 mb-3px mr-1 />
-              <span>Maintainability</span>
+              <el-tooltip
+                :content="i18n.global.t(`tips.sonarCloud.maintainability`)"
+                placement="top-start"
+              >
+                <span>Maintainability</span>
+              </el-tooltip>
             </div>
             <div>
               <span font-bold font-size-6 mr-2>{{
                 formatNumber(project?.sonarCloudScan?.codeSmells)
               }}</span>
               <span font-light>Code Smells</span>
-              <el-tooltip :content="i18n.global.t(`tips.SonarCloud.Code Smells`)">
+              <el-tooltip :content="i18n.global.t(`tips.sonarCloud.codeSmells`)">
                 <el-icon size-5 color-gray-400>
                   <InfoFilled />
                 </el-icon>
@@ -857,14 +847,19 @@ const emits = defineEmits<{
           <div position-relative pt-3 pd-3 pl-4 pr-4 w-607px h-92px bg-coolgray-50>
             <div mb-4 font-bold>
               <span i-ph-lock-simple-open-fill font-size-5 mb-3px mr-1 />
-              <span>Security</span>
+              <el-tooltip
+                :content="i18n.global.t(`tips.sonarCloud.security`)"
+                placement="top-start"
+              >
+                <span>Security</span>
+              </el-tooltip>
             </div>
             <div>
               <span font-bold font-size-6 mr-2>{{
                 formatNumber(project?.sonarCloudScan?.vulnerabilities)
               }}</span>
               <span font-light>Vulnerabilities</span>
-              <el-tooltip :content="i18n.global.t(`tips.SonarCloud.Vulnerabilities`)">
+              <el-tooltip :content="i18n.global.t(`tips.sonarCloud.vulnerabilities`)">
                 <el-icon size-5 color-gray-400>
                   <InfoFilled />
                 </el-icon>
@@ -882,14 +877,19 @@ const emits = defineEmits<{
           <div position-relative pt-3 pd-3 pl-4 pr-4 w-607px h-92px bg-coolgray-50>
             <div mb-4 font-bold>
               <span i-ph-shield-checkered-fill font-size-5 mb-3px mr-1 />
-              <span>Security Review</span>
+              <el-tooltip
+                :content="i18n.global.t(`tips.sonarCloud.securityReview`)"
+                placement="top-start"
+              >
+                <span>Security Review</span>
+              </el-tooltip>
             </div>
             <div>
               <span font-bold font-size-6 mr-2>{{
                 formatNumber(project?.sonarCloudScan?.securityHotspots)
               }}</span>
               <span font-light mr-1>Security Hotspots</span>
-              <el-tooltip :content="i18n.global.t(`tips.SonarCloud.Security Hotspots`)">
+              <el-tooltip :content="i18n.global.t(`tips.sonarCloud.securityHotspots`)">
                 <el-icon size-5 color-gray-400>
                   <InfoFilled />
                 </el-icon>
@@ -952,9 +952,7 @@ const emits = defineEmits<{
                 <div font-bold font-size-5>{{ project?.ecologyOverview?.busFactor }}</div>
                 <div flex>
                   <div line-height-7>巴士系数</div>
-                  <el-tooltip
-                    :content="i18n.global.t(`tips.生态.巴士系数`)"
-                  >
+                  <el-tooltip :content="i18n.global.t(`tips.ecology.busFactor`)">
                     <el-icon size-5 color-gray-400>
                       <InfoFilled />
                     </el-icon>
@@ -972,7 +970,7 @@ const emits = defineEmits<{
                 <div font-bold font-size-5>{{ project?.ecologyOverview?.openRank }}</div>
                 <div flex>
                   <div line-height-7>OpenRank得分</div>
-                  <el-tooltip :content="i18n.global.t(`tips.生态.OpenRank得分`)">
+                  <el-tooltip :content="i18n.global.t(`tips.ecology.openRank`)">
                     <el-icon size-5 color-gray-400>
                       <InfoFilled />
                     </el-icon>
@@ -986,7 +984,7 @@ const emits = defineEmits<{
                 <div font-bold font-size-5>{{ project?.ecologyOverview?.criticalityScore }}</div>
                 <div flex>
                   <div line-height-7>Criticality得分</div>
-                  <el-tooltip :content="i18n.global.t(`tips.生态.Criticality得分`)">
+                  <el-tooltip :content="i18n.global.t(`tips.ecology.criticality`)">
                     <el-icon size-5 color-gray-400>
                       <InfoFilled />
                     </el-icon>
@@ -1012,12 +1010,8 @@ const emits = defineEmits<{
         </el-card>
         <el-card mb-6 w-626px>
           <div flex>
-            <div mb-2 font-size-5 font-bold>
-              代码提交频率
-            </div>
-            <el-tooltip
-                :content="i18n.global.t(`tips.Compass`)"
-            >
+            <div mb-2 font-size-5 font-bold>代码提交频率</div>
+            <el-tooltip :content="i18n.global.t(`tips.compass`)">
               <el-icon size-5 color-gray-400>
                 <InfoFilled />
               </el-icon>
@@ -1028,12 +1022,8 @@ const emits = defineEmits<{
         </el-card>
         <el-card mb-6 w-626px>
           <div flex>
-            <div mb-2 font-size-5 font-bold>
-              Issue评论频率
-            </div>
-            <el-tooltip
-                :content="i18n.global.t(`tips.Compass`)"
-            >
+            <div mb-2 font-size-5 font-bold>Issue评论频率</div>
+            <el-tooltip :content="i18n.global.t(`tips.compass`)">
               <el-icon size-5 color-gray-400>
                 <InfoFilled />
               </el-icon>
@@ -1046,12 +1036,8 @@ const emits = defineEmits<{
         </el-card>
         <el-card mb-6 w-626px>
           <div flex>
-            <div mb-2 font-size-5 font-bold>
-              更新Issue数量
-            </div>
-            <el-tooltip
-                :content="i18n.global.t(`tips.Compass`)"
-            >
+            <div mb-2 font-size-5 font-bold>更新Issue数量</div>
+            <el-tooltip :content="i18n.global.t(`tips.compass`)">
               <el-icon size-5 color-gray-400>
                 <InfoFilled />
               </el-icon>
@@ -1062,12 +1048,8 @@ const emits = defineEmits<{
         </el-card>
         <el-card mb-6 w-626px>
           <div flex>
-            <div mb-2 font-size-5 font-bold>
-              关闭Issue数量
-            </div>
-            <el-tooltip
-                :content="i18n.global.t(`tips.Compass`)"
-            >
+            <div mb-2 font-size-5 font-bold>关闭Issue数量</div>
+            <el-tooltip :content="i18n.global.t(`tips.compass`)">
               <el-icon size-5 color-gray-400>
                 <InfoFilled />
               </el-icon>
@@ -1078,12 +1060,8 @@ const emits = defineEmits<{
         </el-card>
         <el-card mb-6 w-626px>
           <div flex>
-            <div mb-2 font-size-5 font-bold>
-              组织数量
-            </div>
-            <el-tooltip
-                :content="i18n.global.t(`tips.Compass`)"
-            >
+            <div mb-2 font-size-5 font-bold>组织数量</div>
+            <el-tooltip :content="i18n.global.t(`tips.compass`)">
               <el-icon size-5 color-gray-400>
                 <InfoFilled />
               </el-icon>
@@ -1094,12 +1072,8 @@ const emits = defineEmits<{
         </el-card>
         <el-card mb-6 w-626px>
           <div flex>
-            <div mb-2 font-size-5 font-bold>
-              贡献者数量
-            </div>
-            <el-tooltip
-                :content="i18n.global.t(`tips.Compass`)"
-            >
+            <div mb-2 font-size-5 font-bold>贡献者数量</div>
+            <el-tooltip :content="i18n.global.t(`tips.compass`)">
               <el-icon size-5 color-gray-400>
                 <InfoFilled />
               </el-icon>
