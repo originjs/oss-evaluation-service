@@ -28,7 +28,7 @@ const prop = defineProps({
   },
 });
 
-const pageName = ref('BenchmarkCompare');
+const pageName = ref('ProjectsCompare');
 const projects = reactive<Array<SoftwareInfo>>([]);
 prop.repositories.forEach(repoName => {
   const encodedname = encodeURIComponent(repoName);
