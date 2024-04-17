@@ -4,6 +4,7 @@ import type { rankInfo } from '@orginjs/oss-evaluation-components-api';
 import * as echarts from 'echarts';
 import { ElMessage } from 'element-plus';
 import { toKilo } from '@orginjs/oss-evaluation-components-utils';
+import { throttle } from 'echarts';
 
 const rankPage = ref<{
   pageNo: number;
@@ -14,14 +15,19 @@ const rankPage = ref<{
   pageSize: 10,
   data: [],
 });
+const loadingOverview = ref(false);
 const softwareRankEl = ref();
 const pageSize = ref(10);
 const currentPage = ref(1);
+const isFirstPage = ref(true);
 
 const activeName = ref('star'); // 初始设定为 'star'
-async function handleClick() {
+async function switchActiveTrend() {
+  loadingOverview.value = true;
   await getTopTrendData(0, pageSize.value, activeName.value);
   currentPage.value = 1;
+  isFirstPage.value = true;
+  loadingOverview.value = false;
 }
 
 async function getTopTrendData(pageNo: number, pageSize: number, type: string) {
@@ -30,7 +36,8 @@ async function getTopTrendData(pageNo: number, pageSize: number, type: string) {
   return data;
 }
 
-onMounted(async () => {
+watchEffect(async () => {
+  loadingOverview.value = true;
   // TODO request parameter
   await getTopTrendData(0, pageSize, 'star');
   // TODO render chart
@@ -39,6 +46,8 @@ onMounted(async () => {
       renderGithubTrendChart(i, rankPage.value.data);
     }
   });
+  addScrollListener();
+  loadingOverview.value = false;
 });
 
 function renderGithubTrendChart(index: number, data: Array<rankInfo>) {
@@ -120,18 +129,21 @@ const goSoftwareDetails = (repoName: string) => {
   emit('click', repoName);
 };
 
+
+
 async function getMore() {
+  loadingOverview.value = true;
   let pageNo = rankPage.value.pageNo + 1;
   let pageSize = rankPage.value.pageSize;
   let type = activeName.value;
-  const { data } = await getStarsTopApi({ pageNo, pageSize }, type);
-  if (pageNo > 10) {
+  if (rankPage.value.data.length >= 100) {
     ElMessage({
       message: 'No more data！',
       type: 'warning',
     });
     return;
   }
+  const { data } = await getStarsTopApi({ pageNo, pageSize }, type);
   if (data.data.length > 0) {
     rankPage.value.data.push(...data.data);
   }
@@ -141,17 +153,46 @@ async function getMore() {
     }
   });
   rankPage.value.pageNo++;
+  isFirstPage.value = false;
+  loadingOverview.value = false;
+}
+
+const initHeight = ref<any>();
+const scrollListener = ref();
+
+function addScrollListener() {
+  const documentElement = document.documentElement;
+  initHeight.value = documentElement.clientHeight;
+  scrollListener.value = throttle(() => {
+    const scrollTop = documentElement.scrollTop;
+    const scrollHeight = documentElement.scrollHeight;
+    const clientHeight = documentElement.clientHeight;
+    if (scrollHeight - scrollTop - clientHeight < 1 && !isFirstPage.value) {
+      getMore();
+    }
+  }, 100);
+  document.addEventListener('scroll', scrollListener.value);
 }
 </script>
 
 <template>
-  <div ref="softwareRankEl" class="software-rank" pb-50px bg-coolgray-50>
+  <div
+    v-if="rankPage?.data.length"
+    ref="softwareRankEl"
+    class="software-rank"
+    pb-50px
+    bg-coolgray-50
+  >
     <div flex flex-justify-center bg-white>
-      <el-tabs v-model="activeName" h-60px @click="handleClick">
+      <el-tabs v-model="activeName" h-60px @click="switchActiveTrend">
         <el-tab-pane label="Star Top 100" name="star">
           <template #label>
             <span class="icon" style="font-size: 20px; margin-right: 2px">
-              <img v-if="activeName === 'star'" src="../../assets/svg/star-active.svg" alt="Star Icon" />
+              <img
+                v-if="activeName === 'star'"
+                src="../../assets/svg/star-active.svg"
+                alt="Star Icon"
+              />
               <img v-else src="../../assets/svg/star.svg" alt="Star Icon" />
             </span>
             <span style="font-weight: bold; font-size: 18px">Star Top 100</span>
@@ -171,7 +212,10 @@ async function getMore() {
         <el-tab-pane label="Contributors Top 100" name="contributors">
           <template #label>
             <span class="icon" style="font-size: 20px; margin-right: 2px">
-              <img v-if="activeName === 'contributors'" src="../../assets/svg/contributor-active.svg" />
+              <img
+                v-if="activeName === 'contributors'"
+                src="../../assets/svg/contributor-active.svg"
+              />
               <img v-else src="../../assets/svg/contributor.svg" />
             </span>
             <span style="font-weight: bold; font-size: 18px">Contributors Top 100</span>
@@ -179,7 +223,7 @@ async function getMore() {
         </el-tab-pane>
       </el-tabs>
     </div>
-    <div>
+    <div v-loading="loadingOverview">
       <div
         v-for="(item, index) in rankPage.data"
         :key="index"
@@ -205,7 +249,8 @@ async function getMore() {
             :src="item.logo"
             fit="contain"
             class="img-border"
-            float-left
+            style="cursor: pointer"
+            @click="goSoftwareDetails(item.name)"
           >
             <template #error>
               <div flex flex-justify-center flex-items-center w-full h-full bg-gray-100>
@@ -216,7 +261,12 @@ async function getMore() {
             </template>
           </el-image>
           <div w-680px style="color: #999999" ml-20px>
-            <div flex flex-items-center @click="goSoftwareDetails(item.name)">
+            <div
+              flex
+              flex-items-center
+              style="cursor: pointer"
+              @click="goSoftwareDetails(item.name)"
+            >
               <el-tooltip effect="light" teleported="false">
                 <div
                   mt--5px
@@ -275,8 +325,11 @@ async function getMore() {
           <div :id="`github-trend-chart-${index}`" class="trend-chart" />
         </div>
       </div>
-      <div w-1280px style="margin-top: 10px; margin-left: auto; margin-right: auto">
-        <el-button @click="getMore">展示更多>></el-button>
+      <div v-if="isFirstPage" w-1280px class="get-more">
+        <div @click="getMore">
+          展示更多
+          <el-icon><CaretBottom /></el-icon>
+        </div>
       </div>
     </div>
   </div>
@@ -352,5 +405,14 @@ async function getMore() {
   width: 390px;
   border-radius: 12px;
   overflow: hidden;
+}
+.get-more {
+  padding: 20px 0;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  font-size: 14px;
+  background-color: white;
+  cursor: pointer;
 }
 </style>
