@@ -169,7 +169,7 @@ const getSummaries = (param: SummaryMethodProps) => {
       <el-table
         :data="benchmarksResultTableData"
         class="w-full"
-        height="630px"
+        height="570px"
         border
         :cell-style="{ padding: '0px' }"
         :summary-method="getSummaries"
