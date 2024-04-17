@@ -2,6 +2,7 @@
 import { Close, Switch, ArrowDown } from '@element-plus/icons-vue';
 import dayjs from 'dayjs';
 import type { SoftwareBaseInfo, SoftwareInfo } from '@orginjs/oss-evaluation-components-api';
+import type { ResultData } from '../../api';
 import { getSoftwareInfo } from '@orginjs/oss-evaluation-components-api';
 import {
   toKilo,
@@ -30,15 +31,18 @@ const prop = defineProps({
 
 const pageName = ref('ProjectsCompare');
 const projects = reactive<Array<SoftwareInfo>>([]);
+const promises: Array<Promise<ResultData<SoftwareInfo>>> = [];
 prop.repositories.forEach(repoName => {
   const encodedname = encodeURIComponent(repoName);
-  getSoftwareInfo(encodedname)
-    .then((data: { [x: string]: any }) => {
-      projects.push(data['data']);
-    })
-    .catch((error: any) => {
-      console.error('Failed to get data, try again later.', error);
-    });
+  promises.push(getSoftwareInfo(encodedname));
+});
+
+Promise.all(promises).then(result=>{
+  result.forEach(data => {
+    projects.push(data['data']);
+  })
+}).catch((error: any) => {
+  console.error('Failed to get data, try again later.', error);
 });
 
 function isStarTop(currStar: number) {
