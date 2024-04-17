@@ -1,30 +1,16 @@
-import { GithubProjectsStargazersTrend } from '@orginjs/oss-evaluation-data-model';
+import { GithubProjects, GithubProjectsStargazersTrend } from '@orginjs/oss-evaluation-data-model';
 import fetch from '@adobe/node-fetch-retry';
-import sequelize from '../util/database.js';
-import debug from "debug";
-
-const QUERY_SQL = `
-select distinct project.id,
-                project.name,
-                project.full_name as fullName,
-                project.html_url  as htmlUrl,
-                project_id        as projectId
-from github_projects project
-         left join github_projects_stargazers_trend on project.id = project_id
-where isnull(project_id) and project.id >= :projectId
-order by id;
-`;
+import debug from 'debug';
 
 export async function syncStargazersTrend(req, res) {
-  const { projectId } = req.body;
-  await getStargazersTrend(projectId);
+  await getStargazersTrend();
   res.status(200).json('ok');
 }
 
-async function getStargazersTrend(projectId) {
-  const needSyncProject = await sequelize.query(QUERY_SQL, {
-    replacements: { projectId },
-    type: sequelize.QueryTypes.SELECT,
+async function getStargazersTrend() {
+  const needSyncProject = await GithubProjects.findAll({
+    order: [['stargazers_count', 'desc']],
+    limit: 200,
   });
 
   for (let project of needSyncProject) {
@@ -54,7 +40,9 @@ async function getStargazersTrend(projectId) {
         project.fullName,
     );
     if (resTrend.length > 0) {
-      await GithubProjectsStargazersTrend.bulkCreate(resTrend);
+      for (let res of resTrend) {
+        await GithubProjectsStargazersTrend.upsert(res);
+      }
     }
   }
 }
