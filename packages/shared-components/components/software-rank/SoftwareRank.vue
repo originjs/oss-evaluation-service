@@ -141,6 +141,7 @@ async function getMore() {
       message: 'No more data！',
       type: 'warning',
     });
+    loadingOverview.value = false;
     return;
   }
   const { data } = await getStarsTopApi({ pageNo, pageSize }, type);
