@@ -629,7 +629,11 @@ const emits = defineEmits<{
                 <span v-else i-ph-minus-circle mr-1 font-size-5 color-gray-400 />
                 <span>{{ docItem.title }}</span>
               </div>
-              <div font-size-14px color-gray class="text-over-2">{{ docItem.content }}</div>
+              <el-tooltip :content="docItem.content" placement="top">
+                <div font-size-14px color-gray class="text-over-2">
+                  {{ docItem.content }}
+                </div>
+              </el-tooltip>
             </div>
           </div>
         </div>
