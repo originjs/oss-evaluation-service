@@ -1,15 +1,21 @@
 import { GithubProjects } from '@orginjs/oss-evaluation-data-model';
-import { EvaluationSummary } from '@orginjs/oss-evaluation-data-model';
+import {
+  EvaluationSummary,
+  GithubProjectsStargazersTrend,
+} from '@orginjs/oss-evaluation-data-model';
+import _ from 'underscore';
 
 export class ChartData {
-  xAxis: [];
-  yAxis: [];
+  monthCount: [];
+  monthDiff: [];
 
   constructor(x: [], y: []) {
-    this.xAxis = x;
-    this.yAxis = y;
+    this.monthCount = x;
+    this.monthDiff = y;
   }
 }
+
+const MONTH_SIZE = 12;
 
 export class Page {
   pageSize: number;
@@ -72,19 +78,36 @@ export async function githubTop(page: Page, type: string) {
     limit: pageSize,
     offset: offset,
   });
-  const resData = result.map(item => {
-    return {
+  const data = [];
+  for (const item of result) {
+    let softwareTrend = await GithubProjectsStargazersTrend.findAll({
+      where: {
+        fullName: item.fullName,
+      },
+      order: [['date', 'desc']],
+      limit: MONTH_SIZE + 1,
+    });
+    softwareTrend = _.sortBy(softwareTrend, 'date');
+
+    const monthDiff = softwareTrend
+      .map((current, index, array) => {
+        if (index === 0) return undefined;
+        return current.stargazers - array[index - 1].stargazers;
+      })
+      .slice(1);
+
+    const monthCount = _.pluck(_.first(softwareTrend, MONTH_SIZE), 'stargazers');
+    data.push({
       name: item.fullName,
       logo: item.ownerAvatarUrl,
       htmlUrl: item.htmlUrl,
       starCount: item.stargazersCount,
       forkCount: item.forksCount,
       contributorCount: item.evaluationSummary.contributorCount,
-      // TODO star/fork/contributor trend
-      trend: new ChartData([], []),
-    };
-  });
+      trend: new ChartData(monthCount, monthDiff),
+    });
+  }
   const res = Page.clone(page);
-  res.data = resData;
+  res.data = data;
   return res;
 }

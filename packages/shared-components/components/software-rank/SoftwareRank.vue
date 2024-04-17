@@ -20,7 +20,6 @@ const currentPage = ref(1);
 
 const activeName = ref('star'); // 初始设定为 'star'
 async function handleClick() {
-  console.log(activeName.value);
   await getTopTrendData(0, pageSize.value, activeName.value);
   currentPage.value = 1;
 }
@@ -36,13 +35,13 @@ onMounted(async () => {
   await getTopTrendData(0, pageSize, 'star');
   // TODO render chart
   nextTick(() => {
-    for (let i = 0; i < 10; i++) {
-      renderGithubTrendChart(i);
+    for (let i = 0; i < rankPage.value.data.length; i++) {
+      renderGithubTrendChart(i, rankPage.value.data);
     }
   });
 });
 
-function renderGithubTrendChart(index: number) {
+function renderGithubTrendChart(index: number, data: Array<rankInfo>) {
   const chartDom = softwareRankEl.value.querySelector(`#github-trend-chart-${index}`);
   if (!chartDom) {
     return;
@@ -79,7 +78,7 @@ function renderGithubTrendChart(index: number) {
     series: [
       {
         name: '每月新增',
-        data: [200, 300, 400, 469, 570, 657, 800, 876, 767, 900, 980, 982],
+        data: data[index].trend.monthDiff,
         type: 'line',
         lineStyle: {
           color: '#a0d388',
@@ -91,7 +90,7 @@ function renderGithubTrendChart(index: number) {
       },
       {
         name: '当月总数',
-        data: [200, 467, 456, 570, 680, 765, 900, 785, 743, 932, 999, 700],
+        data: data[index].trend.monthCount,
         type: 'line',
         lineStyle: {
           color: '#4dafff',
@@ -138,7 +137,7 @@ async function getMore() {
   }
   nextTick(() => {
     for (let i = (pageNo - 1) * pageSize; i < (pageNo - 1) * pageSize + pageSize; i++) {
-      renderGithubTrendChart(i);
+      renderGithubTrendChart(i, rankPage.value.data);
     }
   });
   rankPage.value.pageNo++;
