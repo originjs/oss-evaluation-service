@@ -83,7 +83,10 @@ export async function getBenchmarkResultByTechStack(
                                content,
                               platform
           FROM BENCHMARK
-         WHERE tech_stack = :techStack 
+          WHERE patch_id = (
+            SELECT MAX(patch_id)
+            FROM BENCHMARK
+            WHERE tech_stack = :techStack) 
       ORDER BY project_id, BENCHMARK,created_at;
   `;
 
