@@ -110,6 +110,9 @@ importers:
       tsoa:
         specifier: ^6.2.0
         version: 6.2.0
+      underscore:
+        specifier: ^1.13.6
+        version: 1.13.6
       winston:
         specifier: ^3.13.0
         version: 3.13.0
