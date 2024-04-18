@@ -27,7 +27,7 @@ const benchmarks = ref<Array<BenchmarkIndex>>([]);
 const benchmarksResultTableData = ref<any[]>([]);
 const benchmarksResult = ref<BenchmarkResult[]>([]);
 
-getProjectsByTechStack('前端框架').then(response => {
+getProjectsByTechStack('前端框架', '前端框架').then(response => {
   projects.value = response.data;
 });
 

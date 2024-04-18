@@ -12,6 +12,7 @@ import type {
  * @returns projects
  */
 export async function queryProjectsByTechStack(
+  category: string,
   techStack: string,
 ): Promise<Array<SoftwareBaseInfo>> {
   const sql = `
@@ -26,12 +27,13 @@ export async function queryProjectsByTechStack(
       FROM github_projects gp
 INNER JOIN project_tech_stack pts 
         ON gp.id = pts.project_id
-     WHERE pts.category = :techStack
+     WHERE pts.category = :category
+       AND pts.subcategory = :techStack
   ORDER BY gp.stargazers_count DESC;
   `;
 
   const projects = await sequelize.query(sql, {
-    replacements: { techStack },
+    replacements: { category, techStack },
     type: sequelize.QueryTypes.SELECT,
   });
 
