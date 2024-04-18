@@ -2,6 +2,7 @@ import debug from 'debug';
 import { GithubProjects } from '@orginjs/oss-evaluation-data-model';
 import { CheerioCrawler, Configuration } from 'crawlee';
 import { Cron } from 'croner';
+import { XMLParser } from 'fast-xml-parser'
 
 export default async function syncProjectCodeSize(req, res) {
   debug.log('Sync Porject Code Size');
@@ -16,9 +17,14 @@ export default async function syncProjectCodeSize(req, res) {
     debug.log('**Current Progress**: ', `${count}/${sumOfProject}`);
     count += 1;
     const url = `https://git-cloc.fly.dev/cloc/${project.ownerName}/${project.name}`;
+    const tokeiUrl = `https://tokei.rs/b1/github/${project.ownerName}/${project.name}`
     // 2. get project code size
-    const codeSize = await getProjectCodeSize(url);
-    if (codeSize == '') {
+    let codeSize = await getProjectCodeSize(url, tokeiUrl);
+    if (codeSize == '' || codeSize == undefined) {
+      codeSize = await getCodeSizeByOtherWays(project.ownerName, project.name)
+    }
+
+    if (codeSize == '' || codeSize == undefined) {
       continue;
     }
 
@@ -34,7 +40,7 @@ export default async function syncProjectCodeSize(req, res) {
   res.status(200).send('success');
 }
 
-async function getProjectCodeSize(url) {
+async function getProjectCodeSize(url, otherUrl) {
   let codeSize;
   const config = new Configuration({ persistStorage: false });
   const crawler = new CheerioCrawler(
@@ -45,7 +51,7 @@ async function getProjectCodeSize(url) {
         if (head.length > 0 && head.indexOf('Code') > 0) {
           const index = head.indexOf('Code');
           const tfoot = $('#cloc-table > tfoot > tr').text();
-          codeSize = tfoot.replaceAll(' ', '').split('\n')[index].rreplaceAll(',', '');
+          codeSize = tfoot.replaceAll(' ', '').split('\n')[index].replaceAll(',', '');
         }
         log.info(`codeSize of ${request.loadedUrl} is ${codeSize}`);
       },
@@ -54,8 +60,70 @@ async function getProjectCodeSize(url) {
     },
     config,
   );
+  const crawlerOther = new CheerioCrawler(
+    {
+      async requestHandler({  request, body, log}) {
+        const svgContent = body.toString()
+        // Parse SVG files
+        const parser = new XMLParser();
+        const jsonObj = parser.parse(svgContent);
+
+        // Extract text nodes
+        const textContents = jsonObj['svg']['g'] ? jsonObj['svg']['g'][1].text[2]: [];
+
+        log.info(`textContents is : ${textContents}`)
+        let codeTextReplace = textContents.toString();
+        if (codeTextReplace.indexOf('K') > 0) {
+           codeTextReplace = codeTextReplace.replaceAll('K', '');
+          codeTextReplace = codeTextReplace * 1000;
+        } else if (codeTextReplace.indexOf('M') > 0){
+            codeTextReplace = codeTextReplace.replaceAll('M', '');
+          codeTextReplace = codeTextReplace * 1000000
+        } else {
+          log.info(`This value does not require special processing: ${codeTextReplace}`);
+        }
+
+        codeSize = codeTextReplace;
+        log.info(`codeSize of ${request.loadedUrl} is ${codeSize}`);
+      },
+      maxRequestsPerCrawl: 20000,
+      maxRequestRetries: 1,
+      additionalMimeTypes:['image/svg+xml', 'application/octet-stream']
+    },
+    config,
+  );
+
   await crawler.run([url]);
+  if (codeSize == '' || codeSize == undefined) {
+    await crawlerOther.run([otherUrl]);
+  }
   return codeSize;
+}
+
+async function getCodeSizeByOtherWays(ownerName, name) {
+  const url = `https://api.codetabs.com/v1/loc?github=${ownerName}/${name}`;
+  try {
+    debug.log(`**loadUrl is** :${url}`);
+    const response = await fetch(url, {
+      retryOptions: {
+        retryMaxDuration: 3600000, // 60 min retry duration
+        retryInitialDelay: 100,
+      }
+    });
+
+    if (response.ok) {
+      const body = await response.json();
+      const index = body.length -1;
+      if(index > 0 && body[index].language == 'Total') {
+        const codeSize = body[index].linesOfCode;
+        debug.log(`**codeSize of '${url} is :${codeSize}`);
+        return codeSize;
+      }
+    }
+    return '';
+  } catch (e) {
+    debug.log(`**Url get code size is failed !** :${url}`);
+  }
 }
 
 const errorHandler = e => {
