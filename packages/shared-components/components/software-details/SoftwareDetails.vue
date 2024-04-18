@@ -45,6 +45,10 @@ const project = ref<SoftwareInfo>();
 const loadingOverview = ref(false);
 const baseInfoTable = ref<TableRow[]>([]);
 const tagList = ref<string[]>([]);
+const starTrend = ref<Array<{
+ date: string;
+ stargazers: number;
+}>>;
 const openSSFScorecard = ref<
   Array<{
     label: string;
@@ -72,6 +76,7 @@ watchEffect(async () => {
   const { data } = await getSoftwareInfo(encodedRepoName.value);
   project.value = data;
   tagList.value = data.tags ? data.tags.split('|') : [];
+  starTrend.value = data.starTrend;
   baseInfoTable.value = [
     {
       label: 'Stars',
@@ -250,19 +255,19 @@ function renderGithubStartChart() {
     },
     xAxis: {
       type: 'category',
-      data: ['2016', '2017', '2018', '2019', '2020', '2021', '2022'],
+      data: starTrend.value.date,
     },
     yAxis: {
       type: 'value',
     },
     series: [
       {
-        data: [20, 30, 60, 80, 60, 30, 20],
+        data: starTrend.value.stargazers,
         type: 'line',
       },
     ],
     grid: {
-      left: '3%',
+      left: '5%',
       right: '4%',
       bottom: '10%',
     },
@@ -590,7 +595,7 @@ const emits = defineEmits<{
         >
       </div>
       <el-card mb-6>
-        <div font-size-5 font-bold>Github Star 趋势（演示数据）</div>
+        <div font-size-5 font-bold>Github Star 趋势</div>
         <div id="github-start-chart" h-252px />
       </el-card>
       <el-card v-if="developerSatisfaction.xAxis.length > 0" mb-6>
