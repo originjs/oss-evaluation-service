@@ -10,6 +10,7 @@ import {
   SonarCloudProjectMin,
   EvaluationSummary,
   GithubProjects,
+  GithubProjectsStargazersTrend,
 } from '@orginjs/oss-evaluation-data-model';
 import ejsExcel from 'ejsexcel';
 import { readFileSync } from 'node:fs';
@@ -24,6 +25,7 @@ import type {
 import { fixedRound } from '../utils/math.js';
 import Logger from '../utils/logger.js';
 import { Op } from 'sequelize';
+import _ from 'underscore';
 
 ProjectInfo.hasOne(Scorecard, { foreignKey: 'project_id', as: 'scorecard' });
 ProjectInfo.hasOne(SonarCloudProjectMin, { foreignKey: 'github_project_id', as: 'sonarCloudScan' });
@@ -66,10 +68,23 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
       id: projectId,
     },
   });
+  const trend = await GithubProjectsStargazersTrend.findAll({
+    where: {
+      fullName: repoName,
+    },
+    attributes: ['stargazers', 'date',],
+    order: [['date', 'asc']],
+  });
+  const stargazers = _.pluck(trend, 'stargazers');
+  const date = _.pluck(trend, 'date');
 
   const res = softwareInfo.toJSON();
   res.repoName = repoName;
   res.techStack = res.evaluation?.techStack;
+  res.starTrend = {
+    stargazers,
+    date,
+  };
 
   if (res.satisfaction?.length !== 0) {
     const satisfaction = res.satisfaction.sort((a, b) => {
