@@ -652,6 +652,16 @@ router.route('/syncProjectCodeSize').get(syncProjectCodeSize);
  * /sync/syncStargazersTrend:
  *   post:
  *     summary: syncStargazersTrend
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               projectId:
+ *                 type: int
+ *                 example: 1
  *     responses:
  *       200:
  *         description: The created book.
