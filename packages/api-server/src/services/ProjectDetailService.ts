@@ -163,8 +163,8 @@ order by benchmark.display_name, index_name.order`;
       !item.rawValue || item.rawValue === -1
         ? null
         : item.unit
-          ? `${item.rawValue} ${item.unit}`
-          : `${item.rawValue}`;
+          ? `${fixedRound(item.rawValue, 2)} ${item.unit}`
+          : `${fixedRound(item.rawValue, 2)}`;
     const { displayName, indexName, rawValue } = item;
     if (!map.has(displayName)) {
       map.set(displayName, []);
