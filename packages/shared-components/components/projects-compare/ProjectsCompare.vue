@@ -1279,7 +1279,7 @@ const changePage = (name: string) => {
                 <div style="display: inline-flex">
                   <div i-custom:medal font-size-6 mr-4 />
                   <div>
-                    <el-tooltip :content="i18n.global.t(`tips.ecology.openrank`)">
+                    <el-tooltip :content="i18n.global.t(`tips.ecology.openRank`)">
                       OpenRank得分
                     </el-tooltip>
                   </div>
