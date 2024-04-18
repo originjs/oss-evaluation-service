@@ -15,8 +15,6 @@ export class ChartData {
   }
 }
 
-const MONTH_SIZE = 12;
-
 export class Page {
   pageSize: number;
   pageNo: number;
@@ -80,14 +78,12 @@ export async function githubTop(page: Page, type: string) {
   });
   const data = [];
   for (const item of result) {
-    let softwareTrend = await GithubProjectsStargazersTrend.findAll({
+    const softwareTrend = await GithubProjectsStargazersTrend.findAll({
       where: {
         fullName: item.fullName,
       },
-      order: [['date', 'desc']],
-      limit: MONTH_SIZE + 1,
+      order: [['date', 'asc']],
     });
-    softwareTrend = _.sortBy(softwareTrend, 'date');
 
     const monthDiff = softwareTrend
       .map((current, index, array) => {
@@ -96,7 +92,7 @@ export async function githubTop(page: Page, type: string) {
       })
       .slice(1);
 
-    const monthCount = _.pluck(_.first(softwareTrend, MONTH_SIZE), 'stargazers');
+    const monthCount = _.pluck(softwareTrend, 'stargazers');
     data.push({
       name: item.fullName,
       logo: item.ownerAvatarUrl,
