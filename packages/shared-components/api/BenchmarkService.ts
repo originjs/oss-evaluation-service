@@ -7,8 +7,8 @@ import type {
 
 export { BenchmarkIndex, SoftwareBaseInfo, BenchmarkResult };
 
-export function getProjectsByTechStack(techStack: string) {
-  return HttpRequest.get<Array<SoftwareBaseInfo>>(`/benchmark/techstack/${techStack}`);
+export function getProjectsByTechStack(category:string, techStack: string) {
+  return HttpRequest.get<Array<SoftwareBaseInfo>>(`/benchmark/techstack/${category}/${techStack}`);
 }
 
 export function getIndexByTechStack(techStack: string) {
