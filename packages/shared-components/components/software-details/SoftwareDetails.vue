@@ -550,6 +550,15 @@ const emits = defineEmits<{
                 <div max-w-900px>{{ repoName }}</div>
               </template>
             </el-tooltip>
+            <el-tag
+              mr-3
+              size="small"
+              type="danger"
+              effect="dark"
+              v-if="project?.techStack !== null && project?.techStack !== undefined"
+            >
+              {{ project?.techStack }}
+            </el-tag>
             <el-button type="primary" plain :icon="Plus" @click="addProjectToCompare"
               >对比</el-button
             >
@@ -563,9 +572,6 @@ const emits = defineEmits<{
               <div max-w-900px>{{ project?.description }}</div>
             </template>
           </el-tooltip>
-          <el-tag mr-2 mb-2 v-if="project?.techStack !== null && project?.techStack !== undefined">
-            {{ project?.techStack }}
-          </el-tag>
           <el-tag v-for="(label, idx) in tagList" :key="idx" :type="getTagType(idx)" mr-2 mb-2>{{
             label
           }}</el-tag>
