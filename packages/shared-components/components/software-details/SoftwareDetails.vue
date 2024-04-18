@@ -566,12 +566,14 @@ const emits = defineEmits<{
               >导出评估报告</el-button
             >
           </div>
-          <el-tooltip effect="light" :teleported="false">
-            <div mb-2 font-size-3.5 class="text-over">{{ project?.description }}</div>
-            <template #content>
-              <div max-w-900px>{{ project?.description }}</div>
-            </template>
-          </el-tooltip>
+          <div>
+            <el-tooltip effect="light" :teleported="false">
+              <span mb-2 font-size-3.5 class="text-over">{{ project?.description }}</span>
+              <template #content>
+                <div max-w-900px>{{ project?.description }}</div>
+              </template>
+            </el-tooltip>
+          </div>
           <el-tag v-for="(label, idx) in tagList" :key="idx" :type="getTagType(idx)" mr-2 mb-2>{{
             label
           }}</el-tag>
