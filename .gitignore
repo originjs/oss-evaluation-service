@@ -148,3 +148,4 @@ packages/**/node_modules
 build
 logos
 github_projects
+components.d.ts
