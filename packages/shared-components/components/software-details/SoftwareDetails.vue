@@ -563,7 +563,9 @@ const emits = defineEmits<{
               <div max-w-900px>{{ project?.description }}</div>
             </template>
           </el-tooltip>
-          <el-tag mr-2 mb-2>{{ project?.techStack }}</el-tag>
+          <el-tag mr-2 mb-2 v-if="project?.techStack !== null && project?.techStack !== undefined">
+            {{ project?.techStack }}
+          </el-tag>
           <el-tag v-for="(label, idx) in tagList" :key="idx" :type="getTagType(idx)" mr-2 mb-2>{{
             label
           }}</el-tag>
