@@ -644,9 +644,8 @@ const emits = defineEmits<{
         </div>
       </el-card>
       <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
-        <span i-custom:performance mr-2 />
+        <span class="i-line-md-speedometer-loop" mr-2 />
         <span>性能</span>
-        <span i-custom:profession mr-2 />
         <span font-size-5 float-right
           >{{ formatFloat(project?.evaluation?.performanceScore) }}/100</span
         >

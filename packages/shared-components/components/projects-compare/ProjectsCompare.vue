@@ -303,9 +303,8 @@ const changePage = (name: string) => {
         @mouseout="hideChooseBorder()"
       >
         <div class="border param-name">
-          <span i-custom:performance mr-2 />
+          <span class="i-line-md-speedometer-loop" mr-2 />
           <span>性能</span>
-          <span i-custom:profession />
         </div>
         <div v-for="idx in 5" :key="idx" class="param-value border">
           <div v-if="projects[idx - 1]" class="value-div">
