@@ -106,7 +106,10 @@ async function syncFullProjectCompassMetric(startIndex) {
       throw { error, startIndex: count - 1 };
     });
 
-    const activityMetrics = compassData.metricActivity.slice(-8);
+    // Retrieve the latest 8 elements after deduplication
+    const activityMetrics = Array.from(
+      new Map(compassData.metricActivity.map(item => [item.grimoireCreationDate, item])).values(),
+    ).slice(-8);
 
     // Compass metric does not exist
     if (activityMetrics.length === 0) {
