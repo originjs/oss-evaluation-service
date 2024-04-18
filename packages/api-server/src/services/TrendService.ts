@@ -6,10 +6,10 @@ import {
 import _ from 'underscore';
 
 export class ChartData {
-  monthCount: [];
-  monthDiff: [];
+  monthCount: number[];
+  monthDiff: number[];
 
-  constructor(x: [], y: []) {
+  constructor(x: number[], y: number[]) {
     this.monthCount = x;
     this.monthDiff = y;
   }
