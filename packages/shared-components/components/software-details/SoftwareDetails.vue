@@ -264,6 +264,8 @@ function renderGithubStartChart() {
       {
         data: starTrend.value.stargazers,
         type: 'line',
+        showSymbol: false,
+        hoverAnimation: true,
       },
     ],
     grid: {

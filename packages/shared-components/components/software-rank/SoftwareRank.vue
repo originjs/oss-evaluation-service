@@ -96,6 +96,8 @@ function renderGithubTrendChart(index: number, data: Array<rankInfo>) {
           color: '#a0d388',
         },
         smooth: true,
+        showSymbol: false,
+        hoverAnimation: true,
       },
       {
         name: '当月总数',
@@ -108,6 +110,8 @@ function renderGithubTrendChart(index: number, data: Array<rankInfo>) {
           color: '#4dafff',
         },
         smooth: true,
+        showSymbol: false,
+        hoverAnimation: true,
       },
     ],
   };
