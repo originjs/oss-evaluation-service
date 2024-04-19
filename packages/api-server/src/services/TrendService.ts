@@ -6,10 +6,10 @@ import {
 import _ from 'underscore';
 
 export class ChartData {
-  monthCount: [];
-  monthDiff: [];
+  monthCount: number[];
+  monthDiff: number[];
 
-  constructor(x: [], y: []) {
+  constructor(x: number[], y: number[]) {
     this.monthCount = x;
     this.monthDiff = y;
   }
@@ -87,10 +87,9 @@ export async function githubTop(page: Page, type: string) {
 
     const monthDiff = softwareTrend
       .map((current, index, array) => {
-        if (index === 0) return undefined;
+        if (index === 0) return 0;
         return current.stargazers - array[index - 1].stargazers;
       })
-      .slice(1);
 
     const monthCount = _.pluck(softwareTrend, 'stargazers');
     data.push({
