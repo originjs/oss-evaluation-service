@@ -36,7 +36,7 @@ async function getTopTrendData(pageNo: number, pageSize: number, type: string) {
   return data;
 }
 
-watchEffect(async () => {
+onMounted(async () => {
   loadingOverview.value = true;
   // TODO request parameter
   await getTopTrendData(0, pageSize, 'star');
@@ -129,8 +129,6 @@ const goSoftwareDetails = (repoName: string) => {
   emit('click', repoName);
 };
 
-
-
 async function getMore() {
   loadingOverview.value = true;
   let pageNo = rankPage.value.pageNo + 1;
@@ -158,13 +156,11 @@ async function getMore() {
   loadingOverview.value = false;
 }
 
-const initHeight = ref<any>();
-const scrollListener = ref();
+let scrollListener;
 
 function addScrollListener() {
   const documentElement = document.documentElement;
-  initHeight.value = documentElement.clientHeight;
-  scrollListener.value = throttle(() => {
+  scrollListener = throttle(() => {
     const scrollTop = documentElement.scrollTop;
     const scrollHeight = documentElement.scrollHeight;
     const clientHeight = documentElement.clientHeight;
@@ -172,8 +168,12 @@ function addScrollListener() {
       getMore();
     }
   }, 100);
-  document.addEventListener('scroll', scrollListener.value);
+  document.addEventListener('scroll', scrollListener);
 }
+
+onUnmounted(() => {
+  document.removeEventListener('scroll', scrollListener);
+});
 </script>
 
 <template>
