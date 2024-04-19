@@ -659,6 +659,9 @@ router.route('/syncProjectCodeSize').get(syncProjectCodeSize);
  *           schema:
  *             type: object
  *             properties:
+ *               startDate:
+ *                  type: string
+ *                  example: '2024-04-01'
  *               projectId:
  *                 type: int
  *                 example: 1
