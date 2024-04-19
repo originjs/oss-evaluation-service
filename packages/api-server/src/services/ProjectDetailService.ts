@@ -306,7 +306,7 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
 }
 
 export async function exportScoreExcel(packageName: string) {
-  const excelTemplate = readFileSync('./assets/evaluation-template.xlsx');
+  const excelTemplate = readFileSync('assets/evaluation-template.xlsx');
   const data = await EvaluationSummary.findOne({
     where: {
       project_name: packageName,
