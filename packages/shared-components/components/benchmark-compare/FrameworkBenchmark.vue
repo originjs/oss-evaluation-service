@@ -63,10 +63,14 @@ Promise.all([getBenchmarkResultByTechStack('前端框架'), benchmarksIndexPromi
   let number1, number2;
   benchmarksIndexs.forEach(item => {
     isAllEqual = true;
-    record = { benchmarkName: `${item.displayName}(${item.unit})` };
+    record = {
+      ...item,
+      benchmarkName: `${item.displayName}(${item.unit})`,
+    };
     isGoodIndex = 0;
     for (let i = 0; i < projectBenchmark.length; i++) {
-      record['p' + i] = projectBenchmark[i][item.indexName] || '--';
+      const indexValue = projectBenchmark[i][item.indexName];
+      record['p' + i] = indexValue && Number(indexValue) !== 0 ? indexValue : '--';
       number1 = record['p' + isGoodIndex] === '--' ? Number.MAX_VALUE : record['p' + isGoodIndex];
       number2 = record['p' + i] === '--' ? Number.MAX_VALUE : record['p' + i];
       if (Number(number1) > Number(number2)) {
@@ -96,21 +100,21 @@ const computeColor = (scope: { row: any; column: any; $index: number }) => {
   const row = scope.row;
   const column = scope.column;
   const cellVal = row[column.property];
-  const min = Number(row.isGoodValue);   
+  const min = Number(row.isGoodValue);
   const factor = cellVal / min;
-  let a,r,g,b;
+  let a, r, g, b;
   if (factor < 2.0) {
-     a = factor - 1.0;
-     r = (1.0 - a) * 99 + a * 255;
-     g = (1.0 - a) * 191 + a * 236;
-     b = (1.0 - a) * 124 + a * 132;
+    a = factor - 1.0;
+    r = (1.0 - a) * 99 + a * 255;
+    g = (1.0 - a) * 191 + a * 236;
+    b = (1.0 - a) * 124 + a * 132;
   } else {
-     a = Math.min((factor - 2.0) / 2.0, 1.0);
-     r = (1.0 - a) * 255 + a * 249;
-     g = (1.0 - a) * 236 + a * 105;
-     b = (1.0 - a) * 132 + a * 108;
-  } 
-  return `background-color: rgb(${r.toFixed(0)}, ${g.toFixed(0)}, ${b.toFixed(0)});`; 
+    a = Math.min((factor - 2.0) / 2.0, 1.0);
+    r = (1.0 - a) * 255 + a * 249;
+    g = (1.0 - a) * 236 + a * 105;
+    b = (1.0 - a) * 132 + a * 108;
+  }
+  return `background-color: rgb(${r.toFixed(0)}, ${g.toFixed(0)}, ${b.toFixed(0)});`;
 };
 
 const changeBenchmarks = (values: string[]) => {
@@ -190,7 +194,7 @@ const getSummaries = (param: SummaryMethodProps) => {
           v-for="idx in benchmarksResult.length"
           :key="idx"
           :prop="'p' + (idx - 1)"
-          min-width="100"
+          min-width="120"
           class-name="benchmark-value-cell"
           :label="benchmarksResult[idx - 1]?.displayName || benchmarksResult[idx - 1]?.projectName"
         >
@@ -211,16 +215,15 @@ const getSummaries = (param: SummaryMethodProps) => {
             </div>
           </template>
           <template #default="scope">
-            <span
-              h-full
-              w-full
-              block
-              py-8px
-              px-12px
-              :class="isGoodClass(scope)"
-              :style="computeColor(scope)"
-              >{{ scope.row['p' + (idx - 1)] }}</span
-            >
+            <div py-8px px-12px :style="computeColor(scope)">
+              <div>
+                {{ scope.row['p' + (idx - 1)]
+                }}{{ scope.row['p' + (idx - 1)] === '--' ? '' : scope.row.unit }}
+              </div>
+              <div v-if="scope.row['p' + (idx - 1)] !== '--'" :class="isGoodClass(scope)">
+                ({{ (scope.row['p' + (idx - 1)] / scope.row.isGoodValue).toFixed(2) }})
+              </div>
+            </div>
           </template>
         </el-table-column>
       </el-table>
