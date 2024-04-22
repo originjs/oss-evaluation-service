@@ -1,16 +1,33 @@
-import { GithubProjects, GithubProjectsStargazersTrend } from '@orginjs/oss-evaluation-data-model';
+import { GithubProjectsStargazersTrend } from '@orginjs/oss-evaluation-data-model';
 import fetch from '@adobe/node-fetch-retry';
+import sequelize from '../util/database.js';
 import debug from 'debug';
 
+const QUERY_SQL = `
+select distinct project.id,
+                project.name,
+                project.full_name as fullName,
+                project.html_url  as htmlUrl,
+                project_id        as projectId
+from github_projects project
+         left join (select *
+                    from github_projects_stargazers_trend
+                    where date >= :startDate) trend on project.id = project_id
+where isnull(project_id)
+  and project.id >= :projectId
+order by id;
+`;
+
 export async function syncStargazersTrend(req, res) {
-  await getStargazersTrend();
+  const { startDate, projectId } = req.body;
+  await getStargazersTrend(startDate, projectId);
   res.status(200).json('ok');
 }
 
-async function getStargazersTrend() {
-  const needSyncProject = await GithubProjects.findAll({
-    order: [['stargazers_count', 'desc']],
-    limit: 200,
+async function getStargazersTrend(startDate, projectId) {
+  const needSyncProject = await sequelize.query(QUERY_SQL, {
+    replacements: { startDate, projectId },
+    type: sequelize.QueryTypes.SELECT,
   });
 
   for (let project of needSyncProject) {
@@ -22,14 +39,16 @@ async function getStargazersTrend() {
       continue;
     }
     for (let trend of trendList) {
-      resTrend.push({
-        projectId: project.id,
-        name: project.name,
-        fullName: project.fullName,
-        htmlUrl: project.htmlUrl,
-        stargazers: trend.stargazers,
-        date: trend.date,
-      });
+      if (trend.date >= startDate) {
+        resTrend.push({
+          projectId: project.id,
+          name: project.name,
+          fullName: project.fullName,
+          htmlUrl: project.htmlUrl,
+          stargazers: trend.stargazers,
+          date: trend.date,
+        });
+      }
     }
     debug.log(
       'total:' +
@@ -40,9 +59,7 @@ async function getStargazersTrend() {
         project.fullName,
     );
     if (resTrend.length > 0) {
-      for (let res of resTrend) {
-        await GithubProjectsStargazersTrend.upsert(res);
-      }
+      await GithubProjectsStargazersTrend.bulkCreate(resTrend);
     }
   }
 }

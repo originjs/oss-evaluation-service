@@ -20,7 +20,6 @@ import type {
   EcologyActivityCategory,
   PerformanceInfo,
   SoftwareInfo,
-  SoftwareBaseInfo,
 } from '../interfaces/SoftwareInfo.js';
 import { fixedRound } from '../utils/math.js';
 import Logger from '../utils/logger.js';
@@ -162,10 +161,10 @@ order by benchmark.display_name, index_name.order`;
     // fill unit(ms,kb..)
     item.rawValue =
       !item.rawValue || item.rawValue === -1
-        ? null
+        ? '--'
         : item.unit
-          ? `${item.rawValue} ${item.unit}`
-          : `${item.rawValue}`;
+          ? `${fixedRound(item.rawValue, 2)} ${item.unit}`
+          : `${fixedRound(item.rawValue, 2)}`;
     const { displayName, indexName, rawValue } = item;
     if (!map.has(displayName)) {
       map.set(displayName, []);
@@ -181,7 +180,7 @@ from benchmark
                    on benchmark.tech_stack = index_name.tech_stack
                        and benchmark.benchmark = index_name.index_name
 where benchmark.patch_id = :patchId
-  and benchmark.raw_value > 0
+  and benchmark.raw_value is not null
 group by if(index_name.display_name is null, benchmark.benchmark, index_name.display_name)`;
   const bestVal = await sequelize.query(queryBase, {
     type: sequelize.QueryTypes.SELECT,
@@ -229,37 +228,6 @@ export async function getMainPackageByRepoName(repoName: string) {
     throw new Error(msg);
   }
   return data.package;
-}
-
-/**
- * query projects by tech stack
- *
- * @param techStack Tech stack
- * @returns projects
- */
-export async function getProjectsByTechStack(techStack: string): Promise<Array<SoftwareBaseInfo>> {
-  const sql = `
-    SELECT gp.id as projectId,
-           gp.NAME AS projectName,
-           gp.full_name as repoName,
-           gp.html_url as url,
-           gp.description,
-           gp.owner_avatar_url as logo,
-           gp.stargazers_count as star,
-           gp.forks_count as forksCount
-      FROM github_projects gp
-INNER JOIN project_tech_stack pts 
-        ON gp.id = pts.project_id
-     WHERE pts.category = :techStack
-  ORDER BY gp.stargazers_count DESC;
-  `;
-
-  const projects = await sequelize.query(sql, {
-    replacements: { techStack },
-    type: sequelize.QueryTypes.SELECT,
-  });
-
-  return projects;
 }
 
 /**
@@ -338,7 +306,8 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
 }
 
 export async function exportScoreExcel(packageName: string) {
-  const excelTemplate = readFileSync('./assets/evaluation-template.xlsx');
+  // Reading Excel template through static file url
+  const excelTemplate = readFileSync('assets/evaluation-template.xlsx');
   const data = await EvaluationSummary.findOne({
     where: {
       project_name: packageName,

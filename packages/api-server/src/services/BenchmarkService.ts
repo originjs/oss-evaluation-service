@@ -4,14 +4,18 @@ import type {
   BenchmarkIndex,
   BenchmarkResult,
 } from '../interfaces/SoftwareInfo.js';
+import { isNumber } from 'underscore';
+import { fixedRound } from '../utils/math.js';
 
 /**
  * query projects by tech stack
  *
+ * @param category category
  * @param techStack Tech stack
  * @returns projects
  */
 export async function queryProjectsByTechStack(
+  category: string,
   techStack: string,
 ): Promise<Array<SoftwareBaseInfo>> {
   const sql = `
@@ -26,12 +30,13 @@ export async function queryProjectsByTechStack(
       FROM github_projects gp
 INNER JOIN project_tech_stack pts 
         ON gp.id = pts.project_id
-     WHERE pts.category = :techStack
+     WHERE pts.category = :category
+       AND pts.subcategory = :techStack
   ORDER BY gp.stargazers_count DESC;
   `;
 
   const projects = await sequelize.query(sql, {
-    replacements: { techStack },
+    replacements: { category, techStack },
     type: sequelize.QueryTypes.SELECT,
   });
 
@@ -87,13 +92,22 @@ export async function getBenchmarkResultByTechStack(
             SELECT MAX(patch_id)
             FROM BENCHMARK
             WHERE tech_stack = :techStack) 
+          and raw_value is not null
       ORDER BY project_id, BENCHMARK,created_at;
   `;
 
-  const indexs = await sequelize.query(sql, {
+  const indexes = await sequelize.query(sql, {
     replacements: { techStack },
     type: sequelize.QueryTypes.SELECT,
   });
 
-  return indexs;
+  // format val
+  for (const index of indexes) {
+    if (isNumber(index?.rawValue)) {
+      // rounding
+      index.rawValue = fixedRound(index.rawValue, 2);
+    }
+  }
+
+  return indexes;
 }

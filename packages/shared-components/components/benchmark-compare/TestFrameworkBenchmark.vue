@@ -26,7 +26,7 @@ const benchmarks = ref<Array<BenchmarkIndex>>([]);
 const benchmarksResultTableData = ref<any[]>([]);
 const benchmarksResult = ref<BenchmarkResult[]>([]);
 
-getProjectsByTechStack('测试').then(response => {
+getProjectsByTechStack('测试', '测试框架-UT').then(response => {
   projects.value = response.data;
 });
 const benchmarksIndexPromise = getIndexByTechStack('测试框架-UT');
@@ -88,24 +88,28 @@ const submitProjectBenchmark = ref(false);
 const showChooseProjects = ref(false);
 const showChooseBenchmark = ref(false);
 
-const randomBg = (scope: { row: any; column: any; $index: number }) => {
+const computeColor = (scope: { row: any; column: any; $index: number }) => {
   if (scope.row[scope.column.property] === '--') {
     return '';
   }
-
-  let randomNumber = Math.floor(Math.random() * 9);
-  //const colors = ['#63bf7c', '#8aca7e', '#f9696c', '#ffec84', '#b1d680', '#fedd81', '#fdc27c', '#fb9374', '#fecb7e'];
-  const colors = [
-    '#63bf7c',
-    '#8aca7e',
-    '#ffec84',
-    '#b1d680',
-    '#fedd81',
-    '#fdc27c',
-    '#fb9374',
-    '#fecb7e',
-  ];
-  return `background-color: ${colors[randomNumber]};`;
+  const row = scope.row;
+  const column = scope.column;
+  const cellVal = row[column.property];
+  const min = Number(row.isGoodValue);   
+  const factor = cellVal / min;
+  let a,r,g,b;
+  if (factor < 2.0) {
+     a = factor - 1.0;
+     r = (1.0 - a) * 99 + a * 255;
+     g = (1.0 - a) * 191 + a * 236;
+     b = (1.0 - a) * 124 + a * 132;
+  } else {
+     a = Math.min((factor - 2.0) / 2.0, 1.0);
+     r = (1.0 - a) * 255 + a * 249;
+     g = (1.0 - a) * 236 + a * 105;
+     b = (1.0 - a) * 132 + a * 108;
+  } 
+  return `background-color: rgb(${r.toFixed(0)}, ${g.toFixed(0)}, ${b.toFixed(0)});`; 
 };
 
 const changeBenchmarks = (values: string[]) => {
@@ -208,7 +212,7 @@ const getSummaries = (param: SummaryMethodProps) => {
               py-8px
               px-12px
               :class="isGoodClass(scope)"
-              :style="randomBg(scope)"
+              :style="computeColor(scope)"
               >{{ scope.row['p' + (idx - 1)] }}</span
             >
           </template>

@@ -14,11 +14,12 @@ import { Result } from '../utils/result.js';
 
 @Route('benchmark')
 export class BenchmarkController extends Controller {
-  @Get('techstack/{techStack}')
+  @Get('techstack/{category}/{techStack}')
   public async getProjectsByTechStack(
+    @Path() category: string,
     @Path() techStack: string,
   ): Promise<Result<Array<SoftwareBaseInfo>>> {
-    const data = await queryProjectsByTechStack(techStack);
+    const data = await queryProjectsByTechStack(category, techStack);
     return Result.ok(data);
   }
 

@@ -36,7 +36,7 @@ async function getTopTrendData(pageNo: number, pageSize: number, type: string) {
   return data;
 }
 
-watchEffect(async () => {
+onMounted(async () => {
   loadingOverview.value = true;
   // TODO request parameter
   await getTopTrendData(0, pageSize, 'star');
@@ -96,6 +96,8 @@ function renderGithubTrendChart(index: number, data: Array<rankInfo>) {
           color: '#a0d388',
         },
         smooth: true,
+        showSymbol: false,
+        hoverAnimation: true,
       },
       {
         name: '当月总数',
@@ -108,6 +110,8 @@ function renderGithubTrendChart(index: number, data: Array<rankInfo>) {
           color: '#4dafff',
         },
         smooth: true,
+        showSymbol: false,
+        hoverAnimation: true,
       },
     ],
   };
@@ -128,8 +132,6 @@ const emit = defineEmits<{
 const goSoftwareDetails = (repoName: string) => {
   emit('click', repoName);
 };
-
-
 
 async function getMore() {
   loadingOverview.value = true;
@@ -158,13 +160,11 @@ async function getMore() {
   loadingOverview.value = false;
 }
 
-const initHeight = ref<any>();
-const scrollListener = ref();
+let scrollListener;
 
 function addScrollListener() {
   const documentElement = document.documentElement;
-  initHeight.value = documentElement.clientHeight;
-  scrollListener.value = throttle(() => {
+  scrollListener = throttle(() => {
     const scrollTop = documentElement.scrollTop;
     const scrollHeight = documentElement.scrollHeight;
     const clientHeight = documentElement.clientHeight;
@@ -172,8 +172,12 @@ function addScrollListener() {
       getMore();
     }
   }, 100);
-  document.addEventListener('scroll', scrollListener.value);
+  document.addEventListener('scroll', scrollListener);
 }
+
+onUnmounted(() => {
+  document.removeEventListener('scroll', scrollListener);
+});
 </script>
 
 <template>
