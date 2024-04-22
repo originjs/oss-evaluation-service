@@ -38,12 +38,12 @@ prop.repositories.forEach(repoName => {
 });
 
 Promise.all(promises).then(result=>{
-  result.forEach(data => {
-    projects.push(data['data']);
+    result.forEach(data => {
+      projects.push(data['data']);
   })
 }).catch((error: any) => {
-  console.error('Failed to get data, try again later.', error);
-});
+    console.error('Failed to get data, try again later.', error);
+  });
 
 function isStarTop(currStar: number) {
   return !projects.some(item => Number(item.star) > Number(currStar));
@@ -1394,7 +1394,9 @@ const changePage = (name: string) => {
                   }"
                   >{{ formatFloat(projects[idx - 1].evaluation.commentFrequency) }}</span
                 >
-                <span text-center> 代码提交频率 </span>
+                <span text-center>
+                  <el-tooltip content="过去90天内平均每周代码提交次数"> 代码提交频率 </el-tooltip>
+                </span>
               </div>
 
               <div
@@ -1414,7 +1416,11 @@ const changePage = (name: string) => {
                   }"
                   >{{ formatFloat(projects[idx - 1].evaluation.orgCount) }}</span
                 >
-                <span text-center>组织数量</span>
+                <span text-center>
+                  <el-tooltip content="过去90天内活跃的代码提交者所属组织的数目">
+                    组织数量
+                  </el-tooltip>
+                </span>
               </div>
 
               <div
@@ -1437,7 +1443,13 @@ const changePage = (name: string) => {
                   }"
                   >{{ formatNumber(projects[idx - 1].evaluation.commentFrequency) }}</span
                 >
-                <span text-center>Issue评论频率</span>
+                <span text-center>
+                  <el-tooltip
+                    content="过去90天内新建 Issue 的评论平均数（不包含机器人和 Issue 作者本人评论）"
+                  >
+                    Issue评论频率
+                  </el-tooltip>
+                </span>
               </div>
 
               <div
@@ -1454,7 +1466,9 @@ const changePage = (name: string) => {
                   }"
                   >{{ formatNumber(projects[idx - 1].evaluation.recentReleasesCount) }}</span
                 >
-                <span text-center>最近版本发布数量</span>
+                <span text-center>
+                  <el-tooltip content="过去12个月版本发布的数量"> 最近版本发布数量 </el-tooltip>
+                </span>
               </div>
             </div>
           </div>
