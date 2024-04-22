@@ -22,7 +22,7 @@ const changeCheckBoxVal = (value: any[]) => {
 </script>
 
 <template>
-  <el-dialog title="Choose benchmark" class="choose-benchmark-dialog">
+  <el-dialog title="选择Benchmark指标项" class="choose-benchmark-dialog">
     <div overflow-y-auto h-500px>
       <el-checkbox-group v-model="selectedBenchmarks" @change="changeCheckBoxVal">
         <div v-for="(item, index) in props.benchmarks" :key="item.indexName">

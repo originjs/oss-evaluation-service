@@ -22,7 +22,7 @@ const props = defineProps({
   <el-dialog title="Choose projects" class="choose-projects-dialog">
     <template #header>
       <div flex flex-items-center>
-        <h4 font-size-18px fw-400 mr-20px>Choose projects</h4>
+        <h4 font-size-18px fw-400 mr-20px>选择要显示的项目</h4>
         <el-checkbox v-model="isSelectedAll" label="全选" />
         <el-checkbox v-model="showAll" label="仅显示有评测数据的项目" />
         <el-input
