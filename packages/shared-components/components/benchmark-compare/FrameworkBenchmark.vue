@@ -189,7 +189,13 @@ const getSummaries = (param: SummaryMethodProps) => {
         :summary-method="getSummaries"
         show-summary
       >
-        <el-table-column fixed prop="benchmarkName" label="Name" min-width="180" />
+        <el-table-column fixed prop="benchmarkName" label="Name" min-width="180">
+          <template #default="{ row }">
+            <el-tooltip :content="row.description || row.benchmarkName">{{
+              row.benchmarkName
+            }}</el-tooltip>
+          </template>
+        </el-table-column>
         <el-table-column
           v-for="idx in benchmarksResult.length"
           :key="idx"
