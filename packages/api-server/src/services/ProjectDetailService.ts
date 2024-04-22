@@ -161,7 +161,7 @@ order by benchmark.display_name, index_name.order`;
     // fill unit(ms,kb..)
     item.rawValue =
       !item.rawValue || item.rawValue === -1
-        ? null
+        ? '--'
         : item.unit
           ? `${fixedRound(item.rawValue, 2)} ${item.unit}`
           : `${fixedRound(item.rawValue, 2)}`;
@@ -180,7 +180,7 @@ from benchmark
                    on benchmark.tech_stack = index_name.tech_stack
                        and benchmark.benchmark = index_name.index_name
 where benchmark.patch_id = :patchId
-  and benchmark.raw_value > 0
+  and benchmark.raw_value is not null
 group by if(index_name.display_name is null, benchmark.benchmark, index_name.display_name)`;
   const bestVal = await sequelize.query(queryBase, {
     type: sequelize.QueryTypes.SELECT,
