@@ -26,7 +26,8 @@ export async function queryProjectsByTechStack(
            gp.description,
            gp.owner_avatar_url as logo,
            gp.stargazers_count as star,
-           gp.forks_count as forksCount
+           gp.forks_count as forksCount,
+           (SELECT GROUP_CONCAT( distinct VERSION ORDER BY VERSION desc  SEPARATOR '##')  FROM benchmark_version_score bvs WHERE bvs.project_id = gp.id) version
       FROM github_projects gp
 INNER JOIN project_tech_stack pts 
         ON gp.id = pts.project_id
