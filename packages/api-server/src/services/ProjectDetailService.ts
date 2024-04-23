@@ -239,24 +239,25 @@ export async function getMainPackageByRepoName(repoName: string) {
 export async function getSoftwareActivity(repoName: string): Promise<EcologyActivityCategory> {
   const sql = `
         select project_id,
-               name,
-               commit_frequency,
-               comment_frequency,
-               updated_issues_count,
-               closed_issues_count,
-               org_count,
-               contributor_count,
-               date_format(grimoire_creation_date, '%Y-%m-%d') as grimoire_creation_date
-        from github_projects project
-                 inner join compass_activity_detail compass on project.id = compass.project_id
-        where full_name = :repoName
-            and grimoire_creation_date between DATE_SUB(CURDATE(), INTERVAL 3 MONTH) and CURDATE()
-        order by grimoire_creation_date;
+             name,
+             commit_frequency,
+             comment_frequency,
+             updated_issues_count,
+             closed_issues_count,
+             org_count,
+             contributor_count,
+             date_format(grimoire_creation_date, '%Y-%m-%d') as grimoire_creation_date
+      from github_projects project
+               inner join compass_activity_detail compass on project.id = compass.project_id
+      where full_name = :repoName
+      order by grimoire_creation_date desc
+      limit 7
   `;
-  const softwareActivity = await sequelize.query(sql, {
+  let softwareActivity = await sequelize.query(sql, {
     replacements: { repoName },
     type: sequelize.QueryTypes.SELECT,
   });
+  softwareActivity = _.sortBy(softwareActivity, ['grimoire_creation_date']);
   const commitFrequency = [];
   const commentFrequency = [];
   const updatedIssuesCount = [];
