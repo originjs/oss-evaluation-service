@@ -49,4 +49,8 @@ jobs:
           SCRIPT_AFTER: |
             export DATABASE_URL=${{ secrets.DATABASE_URL }}
             export VITE_BACKEND_SERVICE_URL=${{ secrets.BACKEND_SERVICE_URL }}
+            pm2 stop all
+            pm2 start ./packages/api-server/dist/app.js --watch
+            pm2 start ./packages/integration/bin/www.js --watch
             nginx -s reload
+
