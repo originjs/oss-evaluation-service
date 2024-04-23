@@ -321,8 +321,8 @@ onUnmounted(() => {
                   <img src="../../assets/svg/contributor.svg" alt="Contributor Icon" />
                 </span>
                 <span
-                  >{{ toKilo(item.contributorCount)
-                  }}<span v-if="toKilo(item.contributorCount) !== '-'">k</span></span
+                  >{{ item.contributorCount
+                  }}<span v-if="item.contributorCount == null">-</span></span
                 >
               </div>
             </div>
