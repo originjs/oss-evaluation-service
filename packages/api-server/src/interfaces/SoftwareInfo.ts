@@ -7,6 +7,7 @@ export interface SoftwareBaseInfo {
   logo: string;
   star?: number;
   forksCount?: number;
+  version?: string;
 }
 
 export interface SoftwareInfo extends SoftwareBaseInfo {
