@@ -22,28 +22,45 @@ interface SummaryMethodProps<
   data: T[];
 }
 
-const projects = ref<Array<SoftwareBaseInfo>>([]);
-const benchmarks = ref<Array<BenchmarkIndex>>([]);
-const benchmarksResultTableData = ref<any[]>([]);
-const benchmarksResult = ref<BenchmarkResult[]>([]);
-
+let projectsRaw = ref<Array<SoftwareBaseInfo>>([]); // 原始数据，用来展示所有可选项目
+const projects = ref<Array<SoftwareBaseInfo>>([]); // 选中的项目，可修改其值改变表格展示的项目
 getProjectsByTechStack('前端框架', '前端框架').then(response => {
+  projectsRaw.value = [...response.data]; // 使用 ... 运算符断开引用，防止原始数据被修改
   projects.value = response.data;
 });
 
-const benchmarksIndexPromise = getIndexByTechStack('前端框架');
-benchmarksIndexPromise.then(response => {
-  benchmarks.value = response.data;
+const removeProject = (projectId: string) => {
+  projects.value = projects.value.filter(item => projectId !== item.projectId);
+};
+
+let benchmarksRaw = ref<BenchmarkIndex[]>([]); // 原始数据
+const benchmarkIndex = ref<Array<BenchmarkIndex>>([]); // 选中的 benchmark 指标，修改其值改变表格展示的指标项
+getIndexByTechStack('前端框架').then(response => {
+  benchmarksRaw.value = [...response.data];
+  benchmarkIndex.value = response.data;
 });
 
-Promise.all([getBenchmarkResultByTechStack('前端框架'), benchmarksIndexPromise]).then(results => {
-  const benchmarkResult = results[0].data as BenchmarkResult[];
-  const benchmarksIndexs = results[1].data as BenchmarkIndex[];
+const benchmarkResult = ref<BenchmarkResult[]>([]);
+getBenchmarkResultByTechStack('前端框架').then(response => {
+  benchmarkResult.value = response.data;
+});
+
+let benchmarksResultTableDataRaw = ref<any[]>([]); // 表格原始数据，在接口返回数据后只计算(更新)一次
+let benchmarkResultProjectsRaw = ref<BenchmarkResult[]>([]); // 表格列原始数据，按照项目分组后的 benchmarkResult 数据
+watch([benchmarkIndex, benchmarkResult], () => {
+  // 待异步数据返回后才往下执行
+  if (!benchmarkResult.value.length || !benchmarkIndex.value.length) {
+    return [];
+  }
 
   const projectBenchmark: { [key: string]: string | number }[] = [];
   const projectIndexMapping: { [key: string]: number } = {};
   let project: { [key: string]: string | number };
-  benchmarkResult.forEach(item => {
+  for (const item of benchmarkResult.value) {
+    if (!projects.value.some(project => project.projectId === item.projectId)) {
+      continue;
+    }
+
     if (typeof projectIndexMapping[item.projectId] === 'undefined') {
       projectIndexMapping[item.projectId] = projectBenchmark.length;
       project = {
@@ -55,13 +72,14 @@ Promise.all([getBenchmarkResultByTechStack('前端框架'), benchmarksIndexPromi
     }
     project = projectBenchmark[projectIndexMapping[item.projectId]];
     project[item.benchmark] = Number(item.rawValue).toFixed(2);
-  });
+  }
 
   let record: any;
   let isGoodIndex;
   let isAllEqual;
   let number1, number2;
-  benchmarksIndexs.forEach(item => {
+  const tableData = [];
+  benchmarkIndex.value.forEach(item => {
     isAllEqual = true;
     record = {
       ...item,
@@ -82,10 +100,25 @@ Promise.all([getBenchmarkResultByTechStack('前端框架'), benchmarksIndexPromi
     if (!isAllEqual) {
       record['isGoodValue'] = record['p' + isGoodIndex];
     }
-
-    benchmarksResultTableData.value.push(record);
+    tableData.push(record);
   });
-  benchmarksResult.value = projectBenchmark;
+
+  benchmarksResultTableDataRaw.value = tableData;
+  benchmarkResultProjectsRaw.value = projectBenchmark;
+});
+
+const benchmarksResultTableData = ref<any[]>([]); // 实际表格展示的数据，根据选中的指标项，并基于原始表格数据计算更新
+watch([benchmarkIndex, benchmarksResultTableDataRaw], () => {
+  benchmarksResultTableData.value = benchmarksResultTableDataRaw.value.filter(item =>
+    benchmarkIndex.value.some(indexItem => indexItem.indexName === item.indexName),
+  );
+});
+
+const benchmarkResultProjects = ref<BenchmarkResult[]>([]); // 实际表格展示的列，根据选中的项目，并基于原始表格数据计算更新
+watch([projects, benchmarkResultProjectsRaw], () => {
+  benchmarkResultProjects.value = benchmarkResultProjectsRaw.value.filter(item =>
+    projects.value.some(project => project.projectId === item.projectId),
+  );
 });
 
 const showChooseProjects = ref(false);
@@ -155,7 +188,7 @@ const getSummaries = (param: SummaryMethodProps) => {
         <div class="flex flex-items-center mr-8">
           <span>Benchmarks:</span>
           <el-button text type="primary" @click="showChooseBenchmark = true"
-            >{{ benchmarks.length }}项benchmark</el-button
+            >{{ benchmarkIndex.length }}项benchmark</el-button
           >
         </div>
         <div class="flex flex-items-center mr-8">
@@ -197,17 +230,20 @@ const getSummaries = (param: SummaryMethodProps) => {
           </template>
         </el-table-column>
         <el-table-column
-          v-for="idx in benchmarksResult.length"
+          v-for="idx in benchmarkResultProjects.length"
           :key="idx"
           :prop="'p' + (idx - 1)"
           min-width="120"
           class-name="benchmark-value-cell"
-          :label="benchmarksResult[idx - 1]?.displayName || benchmarksResult[idx - 1]?.projectName"
+          :label="
+            benchmarkResultProjects[idx - 1]?.displayName ||
+            benchmarkResultProjects[idx - 1]?.projectName
+          "
         >
           <template #header="headerScope">
             <div text-center class="table-column-header">
               {{ headerScope.column.label }}
-              <!-- <el-button v-if="idx < benchmarksResult.length"
+              <!-- <el-button v-if="idx < benchmarkResultProjects.length"
                 style="top:calc(50% - 16px);right:-26px;z-index: 9999;position: absolute;" :icon="Switch" circle /> -->
 
               <el-button class="header-move-btn" :icon="Rank" circle />
@@ -215,6 +251,7 @@ const getSummaries = (param: SummaryMethodProps) => {
               <el-icon
                 class="cursor-pointer hover-color-#F56C6C"
                 style="position: absolute; top: 3px; right: 3px"
+                @click="removeProject(benchmarkResultProjects[idx - 1].projectId)"
               >
                 <Close />
               </el-icon>
@@ -238,7 +275,7 @@ const getSummaries = (param: SummaryMethodProps) => {
     <ChooseProjectsDialog v-model="showChooseProjects" :projects="projects" />
     <ChooseBenchmarkDialog
       v-model="showChooseBenchmark"
-      :benchmarks="benchmarks"
+      :benchmarks="benchmarkIndex"
       @change-value="changeBenchmarks"
     />
     <ApplyNewProjectBenchmarkDialog v-model="submitProjectBenchmark" category="前端框架" />
