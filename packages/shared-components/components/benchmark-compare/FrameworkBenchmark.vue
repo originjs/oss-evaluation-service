@@ -34,7 +34,7 @@ const removeProject = (projectId: string) => {
 };
 
 let benchmarksRaw = ref<BenchmarkIndex[]>([]); // 原始数据
-const benchmarkIndex = ref<Array<BenchmarkIndex>>([]); // 选中的 benchmark 指标，修改其值改变表格展示的指标项
+const benchmarkIndex = ref<Array<BenchmarkIndex>>([]); // 选中的 benchmark 指标，修改其值改变展示的表格行(指标项)
 getIndexByTechStack('前端框架').then(response => {
   benchmarksRaw.value = [...response.data];
   benchmarkIndex.value = response.data;
@@ -75,30 +75,32 @@ watch([benchmarkIndex, benchmarkResult], () => {
   }
 
   let record: any;
-  let isGoodIndex;
+  let isGoodProjectId;
   let isAllEqual;
   let number1, number2;
   const tableData = [];
-  benchmarkIndex.value.forEach(item => {
+  benchmarkIndex.value.forEach(benchmarkIndexItem => {
     isAllEqual = true;
     record = {
-      ...item,
-      benchmarkName: `${item.displayName}(${item.unit})`,
+      ...benchmarkIndexItem,
+      benchmarkName: `${benchmarkIndexItem.displayName}(${benchmarkIndexItem.unit})`,
     };
-    isGoodIndex = 0;
+    isGoodProjectId = projectBenchmark[0].projectId; // 初始化一个值，方便后续比较
     for (let i = 0; i < projectBenchmark.length; i++) {
-      const indexValue = projectBenchmark[i][item.indexName];
-      record['p' + i] = indexValue && Number(indexValue) !== 0 ? indexValue : '--';
-      number1 = record['p' + isGoodIndex] === '--' ? Number.MAX_VALUE : record['p' + isGoodIndex];
-      number2 = record['p' + i] === '--' ? Number.MAX_VALUE : record['p' + i];
+      const projectBenchmarkItem = projectBenchmark[i];
+      const indexValue = projectBenchmarkItem[benchmarkIndexItem.indexName];
+      const projectId = projectBenchmarkItem.projectId;
+      record[projectId] = indexValue && Number(indexValue) !== 0 ? indexValue : '--';
+      number1 = record[isGoodProjectId] === '--' ? Infinity : record[isGoodProjectId];
+      number2 = record[projectId] === '--' ? Infinity : record[projectId];
       if (Number(number1) > Number(number2)) {
         isAllEqual = false;
-        isGoodIndex = i;
+        isGoodProjectId = projectId;
       }
     }
 
     if (!isAllEqual) {
-      record['isGoodValue'] = record['p' + isGoodIndex];
+      record['isGoodValue'] = record[isGoodProjectId];
     }
     tableData.push(record);
   });
@@ -107,18 +109,31 @@ watch([benchmarkIndex, benchmarkResult], () => {
   benchmarkResultProjectsRaw.value = projectBenchmark;
 });
 
-const benchmarksResultTableData = ref<any[]>([]); // 实际表格展示的数据，根据选中的指标项，并基于原始表格数据计算更新
+const benchmarksResultTableData = ref<any[]>([]); // 实际表格展示的行，根据选中的指标项，并基于原始表格数据计算更新
 watch([benchmarkIndex, benchmarksResultTableDataRaw], () => {
   benchmarksResultTableData.value = benchmarksResultTableDataRaw.value.filter(item =>
     benchmarkIndex.value.some(indexItem => indexItem.indexName === item.indexName),
   );
 });
 
+const hoveringRow = ref('');
+const sortedRow = ref('');
 const benchmarkResultProjects = ref<BenchmarkResult[]>([]); // 实际表格展示的列，根据选中的项目，并基于原始表格数据计算更新
-watch([projects, benchmarkResultProjectsRaw], () => {
-  benchmarkResultProjects.value = benchmarkResultProjectsRaw.value.filter(item =>
+watch([projects, benchmarkResultProjectsRaw, sortedRow], () => {
+  const res = benchmarkResultProjectsRaw.value.filter(item =>
     projects.value.some(project => project.projectId === item.projectId),
   );
+  sortedRow.value &&
+    res.sort((a, b) => {
+      if (!a[sortedRow.value]) {
+        return 1;
+      }
+      if (!b[sortedRow.value]) {
+        return -1;
+      }
+      return a[sortedRow.value] - b[sortedRow.value];
+    });
+  benchmarkResultProjects.value = res;
 });
 
 const showChooseProjects = ref(false);
@@ -221,24 +236,35 @@ const getSummaries = (param: SummaryMethodProps) => {
         :cell-style="{ padding: '0px' }"
         :summary-method="getSummaries"
         show-summary
+        @cell-mouse-enter="({ indexName }) => (hoveringRow = indexName)"
+        @cell-mouse-leave="hoveringRow = ''"
       >
-        <el-table-column fixed prop="benchmarkName" label="Name" min-width="180">
+        <el-table-column fixed prop="benchmarkName" label="Name" min-width="210">
           <template #default="{ row }">
-            <el-tooltip :content="row.description || row.benchmarkName">{{
-              row.benchmarkName
-            }}</el-tooltip>
+            <div class="relative flex justify-between">
+              <el-tooltip :content="row.description || row.benchmarkName">
+                <span class="flex-1 text-center">{{ row.benchmarkName }}</span></el-tooltip
+              >
+              <span
+                v-show="hoveringRow === row.indexName || sortedRow === row.indexName"
+                :class="
+                  sortedRow === row.indexName ? 'i-custom:sorted-thumb' : 'i-custom:sort-thumb'
+                "
+                class="right-[-6px] absolute top-50% transform-translate-y-[-50%] ml-2 h-5 w-5 cursor-pointer"
+                @click="
+                  sortedRow === row.indexName ? (sortedRow = '') : (sortedRow = row.indexName)
+                "
+              />
+            </div>
           </template>
         </el-table-column>
         <el-table-column
-          v-for="idx in benchmarkResultProjects.length"
-          :key="idx"
-          :prop="'p' + (idx - 1)"
+          v-for="benchmarkResultProject of benchmarkResultProjects"
+          :key="benchmarkResultProject.projectId"
+          :prop="benchmarkResultProject.projectId"
           min-width="120"
           class-name="benchmark-value-cell"
-          :label="
-            benchmarkResultProjects[idx - 1]?.displayName ||
-            benchmarkResultProjects[idx - 1]?.projectName
-          "
+          :label="benchmarkResultProject.displayName || benchmarkResultProject.projectName"
         >
           <template #header="headerScope">
             <div text-center class="table-column-header">
@@ -251,7 +277,7 @@ const getSummaries = (param: SummaryMethodProps) => {
               <el-icon
                 class="cursor-pointer hover-color-#F56C6C"
                 style="position: absolute; top: 3px; right: 3px"
-                @click="removeProject(benchmarkResultProjects[idx - 1].projectId)"
+                @click="removeProject(benchmarkResultProject.projectId)"
               >
                 <Close />
               </el-icon>
@@ -260,11 +286,16 @@ const getSummaries = (param: SummaryMethodProps) => {
           <template #default="scope">
             <div py-8px px-12px text-center :style="computeColor(scope)">
               <div>
-                {{ scope.row['p' + (idx - 1)]
-                }}{{ scope.row['p' + (idx - 1)] === '--' ? '' : scope.row.unit }}
+                {{ scope.row[benchmarkResultProject.projectId]
+                }}{{ scope.row[benchmarkResultProject.projectId] === '--' ? '' : scope.row.unit }}
               </div>
-              <div v-if="scope.row['p' + (idx - 1)] !== '--'" :class="isGoodClass(scope)">
-                ({{ (scope.row['p' + (idx - 1)] / scope.row.isGoodValue).toFixed(2) }})
+              <div
+                v-if="scope.row[benchmarkResultProject.projectId] !== '--'"
+                :class="isGoodClass(scope)"
+              >
+                ({{
+                  (scope.row[benchmarkResultProject.projectId] / scope.row.isGoodValue).toFixed(2)
+                }})
               </div>
             </div>
           </template>
