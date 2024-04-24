@@ -45,10 +45,12 @@ const project = ref<SoftwareInfo>();
 const loadingOverview = ref(false);
 const baseInfoTable = ref<TableRow[]>([]);
 const tagList = ref<string[]>([]);
-const starTrend = ref<Array<{
- date: string;
- stargazers: number;
-}>>;
+const starTrend = ref<
+  Array<{
+    date: string;
+    stargazers: number;
+  }>
+>;
 const openSSFScorecard = ref<
   Array<{
     label: string;
@@ -967,7 +969,7 @@ const emits = defineEmits<{
             <div flex w-210px>
               <div i-custom:bus font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ project?.evaluation?.busFactor }}</div>
+                <div font-bold font-size-5>{{ formatFloat(project?.evaluation?.busFactor) }}</div>
                 <div flex>
                   <div line-height-7>巴士系数</div>
                   <el-tooltip :content="i18n.global.t(`tips.ecology.busFactor`)">
@@ -985,7 +987,7 @@ const emits = defineEmits<{
             <div flex w-210px>
               <div i-custom:medal font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ project?.evaluation?.openrank }}</div>
+                <div font-bold font-size-5>{{ formatFloat(project?.evaluation?.openrank) }}</div>
                 <div flex>
                   <div line-height-7>OpenRank得分</div>
                   <el-tooltip :content="i18n.global.t(`tips.ecology.openRank`)">
@@ -999,7 +1001,9 @@ const emits = defineEmits<{
             <div flex w-210px>
               <div i-custom:trophy font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ project?.evaluation?.criticalityScore }}</div>
+                <div font-bold font-size-5>
+                  {{ formatFloat(project?.evaluation?.criticalityScore) }}
+                </div>
                 <div flex>
                   <div line-height-7>Criticality得分</div>
                   <el-tooltip :content="i18n.global.t(`tips.ecology.criticality`)">
@@ -1013,14 +1017,18 @@ const emits = defineEmits<{
             <div flex w-210px>
               <div i-custom:contributor font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ project?.evaluation?.contributorCount }}</div>
+                <div font-bold font-size-5>
+                  {{ formatNumber(project?.evaluation?.contributorCount) }}
+                </div>
                 <div line-height-7>贡献者数量</div>
               </div>
             </div>
             <div flex w-210px>
               <div i-custom:link font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ project?.evaluation?.dependentCount }}</div>
+                <div font-bold font-size-5>
+                  {{ formatNumber(project?.evaluation?.dependentCount) }}
+                </div>
                 <div line-height-7>被依赖数量</div>
               </div>
             </div>
