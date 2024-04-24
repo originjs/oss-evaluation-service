@@ -10,7 +10,6 @@ import {
   SonarCloudProjectMin,
   EvaluationSummary,
   GithubProjects,
-  GithubProjectsStargazersTrend,
 } from '@orginjs/oss-evaluation-data-model';
 import ejsExcel from 'ejsexcel';
 import { readFileSync } from 'node:fs';
@@ -67,23 +66,10 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
       id: projectId,
     },
   });
-  const trend = await GithubProjectsStargazersTrend.findAll({
-    where: {
-      fullName: repoName,
-    },
-    attributes: ['stargazers', 'date',],
-    order: [['date', 'asc']],
-  });
-  const stargazers = _.pluck(trend, 'stargazers');
-  const date = _.pluck(trend, 'date');
 
   const res = softwareInfo.toJSON();
   res.repoName = repoName;
   res.techStack = res.evaluation?.techStack;
-  res.starTrend = {
-    stargazers,
-    date,
-  };
 
   if (res.satisfaction?.length !== 0) {
     const satisfaction = res.satisfaction.sort((a, b) => {
