@@ -39,6 +39,7 @@ const getSoftwareBaseInfoList: PromisifyFn<(query: string) => Promise<void>> = u
 );
 
 const onClickSoftware = (info: SoftwareBaseInfo) => {
+  searchValue.value = '';
   emit('change', info);
   showSearchBox.value = false;
 };
