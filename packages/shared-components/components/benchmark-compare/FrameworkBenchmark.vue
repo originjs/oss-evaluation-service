@@ -231,11 +231,11 @@ const getSummaries = (param: SummaryMethodProps) => {
       <el-table
         :data="benchmarksResultTableData"
         class="w-full"
-        height="570px"
         border
         :cell-style="{ padding: '0px' }"
         :summary-method="getSummaries"
         show-summary
+        table-layout="auto"
         @cell-mouse-enter="({ indexName }) => (hoveringRow = indexName)"
         @cell-mouse-leave="hoveringRow = ''"
       >
@@ -261,8 +261,8 @@ const getSummaries = (param: SummaryMethodProps) => {
         <el-table-column
           v-for="benchmarkResultProject of benchmarkResultProjects"
           :key="benchmarkResultProject.projectId"
-          :prop="benchmarkResultProject.projectId"
-          min-width="120"
+          :prop="String(benchmarkResultProject.projectId)"
+          width="100%"
           class-name="benchmark-value-cell"
           :label="benchmarkResultProject.displayName || benchmarkResultProject.projectName"
         >
@@ -284,14 +284,15 @@ const getSummaries = (param: SummaryMethodProps) => {
             </div>
           </template>
           <template #default="scope">
-            <div py-8px px-12px text-center :style="computeColor(scope)">
-              <div>
+            <div text-center :style="computeColor(scope)">
+              <div class="font-size-3 h4.5 font-500">
                 {{ scope.row[benchmarkResultProject.projectId]
                 }}{{ scope.row[benchmarkResultProject.projectId] === '--' ? '' : scope.row.unit }}
               </div>
               <div
                 v-if="scope.row[benchmarkResultProject.projectId] !== '--'"
                 :class="isGoodClass(scope)"
+                class="flex items-center justify-center font-size-2.5"
               >
                 ({{
                   (scope.row[benchmarkResultProject.projectId] / scope.row.isGoodValue).toFixed(2)
@@ -317,12 +318,11 @@ const getSummaries = (param: SummaryMethodProps) => {
 @border-color: #e6e6e6;
 
 :deep(.good::after) {
-  position: absolute;
   content: '  ';
   display: inline-block;
   width: 16px;
   height: 16px;
-  margin-left: 10px;
+  margin-left: 4px;
   background-image: url('data:image/svg+xml;base64,PHN2ZyB0PSIxNzEwOTIzMjQ0Njc2IiBjbGFzcz0iaWNvbiIgdmlld0JveD0iMCAwIDEwMjQgMTAyNCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHAtaWQ9IjUwNTQiIGlkPSJteF9uXzE3MTA5MjMyNDQ2NzciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiI+PHBhdGggZD0iTTIyNC4xNiAzOTEuMzZ2NjEwLjA4SDkzLjQ0QzQxLjkyIDEwMDEuNDQgMCA5NjAgMCA5MDkuMjhWNDgzLjM2YzAtNTAuNzIgNDEuOTItOTIgOTMuNDQtOTJoMTMwLjcyek0xMDA2LjA4IDU3My40NGMtMy44NCA2LjcyLTcuNTIgMTIuNjQtMTAuODggMTguMDgtMTYuMTYgMjYuNzItMjIuNCAzNi44LTIwLjMyIDY5LjkyIDAuNDggMTAuMDggMS45MiAyMC4zMiAzLjM2IDMwLjQgNS4yOCAzOS4zNiAxMiA4OC4xNi0yNi4yNCAxMzMuNzYtMjUuOTIgMzEuMzYtMjkuNDQgNDguOC0zMS44NCA2MC40OC0xLjEyIDUuNDQtMi4yNCAxMS4yLTUuMTIgMTYuOTYtMzIuMTYgNjMuNjgtOTAuNTYgOTguNC0xNjUuMjggOTguNEgyNzIuMTZWMzkxLjM2aDI3LjUyYzI5LjI4IDAgOTQuMjQtNjEuNDQgMTU3Ljc2LTE0OS4yOCAyNC4xNi0zMy4yOCAyNC4xNi00MS4xMiAyNC4xNi0xMDEuOTJDNDgxLjYgNjEuNiA1MzMuOTIgMCA2MDAuNjQgMGM2MC4zMiAwIDEzMC41NiAzNC41NiAxMzAuNTYgMTMxLjY4IDAgNTguODgtMTcuNiAxNjguNDgtMjYuNzIgMjIwLjk2IDM0Ljg4LTAuOCA5NC40LTEuOTIgMTQ4LjQ4LTEuOTIgNjMuODQgMCAxMjAuMTYgMzAuNzIgMTUwLjU2IDgyLjQgMjYuNCA0NC45NiAyNy4zNiA5Ny40NCAyLjU2IDE0MC4zMnoiIHAtaWQ9IjUwNTUiIGZpbGw9IiNkNDIzN2EiPjwvcGF0aD48L3N2Zz4=');
 }
 
