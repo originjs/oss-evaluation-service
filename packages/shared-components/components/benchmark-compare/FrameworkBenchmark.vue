@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { TableColumnCtx } from 'element-plus';
 import { Setting, Rank, Close } from '@element-plus/icons-vue';
 import type {
   SoftwareBaseInfo,
@@ -14,13 +13,6 @@ import {
 import ChooseProjectsDialog from './ChooseProjectsDialog.vue';
 import ChooseBenchmarkDialog from './ChooseBenchmarkDialog.vue';
 import ApplyNewProjectBenchmarkDialog from './ApplyNewProjectBenchmarkDialog.vue';
-
-interface SummaryMethodProps<
-  T = { isGoodValue: number; benchmarkName: string; [key: string]: number | string },
-> {
-  columns: TableColumnCtx<T>[];
-  data: T[];
-}
 
 let projectsRaw = ref<Array<SoftwareBaseInfo>>([]); // 原始数据，用来展示所有可选项目
 const projects = ref<Array<SoftwareBaseInfo>>([]); // 选中的项目，可修改其值改变表格展示的项目
@@ -105,14 +97,19 @@ watch([benchmarkIndex, benchmarkResult], () => {
     tableData.push(record);
   });
 
+  // TODO 在上面循环中添加每个项目的得分数据
+  tableData.unshift({ benchmarkName: '得分' });
+
   benchmarksResultTableDataRaw.value = tableData;
   benchmarkResultProjectsRaw.value = projectBenchmark;
 });
 
 const benchmarksResultTableData = ref<any[]>([]); // 实际表格展示的行，根据选中的指标项，并基于原始表格数据计算更新
 watch([benchmarkIndex, benchmarksResultTableDataRaw], () => {
-  benchmarksResultTableData.value = benchmarksResultTableDataRaw.value.filter(item =>
-    benchmarkIndex.value.some(indexItem => indexItem.indexName === item.indexName),
+  benchmarksResultTableData.value = benchmarksResultTableDataRaw.value.filter(
+    item =>
+      benchmarkIndex.value.some(indexItem => indexItem.indexName === item.indexName) ||
+      item.benchmarkName === '得分',
   );
 });
 
@@ -175,19 +172,6 @@ const isGoodClass = (scope: { row: any; column: any; $index: number }) => {
   }
   return '';
 };
-
-const getSummaries = (param: SummaryMethodProps) => {
-  const { columns } = param;
-  const sums: string[] = [];
-  columns.forEach((column, index) => {
-    if (index === 0) {
-      sums[index] = '得分';
-      return;
-    }
-    sums[index] = 'N/A';
-  });
-  return sums;
-};
 </script>
 
 <template>
@@ -233,15 +217,16 @@ const getSummaries = (param: SummaryMethodProps) => {
         class="w-full"
         border
         :cell-style="{ padding: '0px' }"
-        :summary-method="getSummaries"
-        show-summary
         table-layout="auto"
         @cell-mouse-enter="({ indexName }) => (hoveringRow = indexName)"
         @cell-mouse-leave="hoveringRow = ''"
       >
         <el-table-column fixed prop="benchmarkName" label="Name" min-width="210">
           <template #default="{ row }">
-            <div class="relative flex justify-between">
+            <div v-if="row.benchmarkName === '得分'" class="text-center">
+              {{ row.benchmarkName }}
+            </div>
+            <div v-else class="relative flex justify-between">
               <el-tooltip :content="row.description || row.benchmarkName">
                 <span class="flex-1 text-center">{{ row.benchmarkName }}</span></el-tooltip
               >
@@ -284,7 +269,8 @@ const getSummaries = (param: SummaryMethodProps) => {
             </div>
           </template>
           <template #default="scope">
-            <div text-center :style="computeColor(scope)">
+            <div v-if="scope.row.benchmarkName === '得分'" class="text-center">NA</div>
+            <div v-else text-center :style="computeColor(scope)">
               <div class="font-size-3 h4.5 font-500">
                 {{ scope.row[benchmarkResultProject.projectId]
                 }}{{ scope.row[benchmarkResultProject.projectId] === '--' ? '' : scope.row.unit }}
