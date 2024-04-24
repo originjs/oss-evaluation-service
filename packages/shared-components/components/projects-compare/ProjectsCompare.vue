@@ -444,7 +444,7 @@ const changePage = (name: string) => {
       </div>
       <TransitionGroup name="list" tag="div" class="overflow-hidden">
         <div
-          v-show="showBasic && getShowRow('language')"
+          v-show="showFunction && getShowRow('codesize')"
           key="3"
           class="row"
           @mouseover="showChooseBorder('代码量', $event)"
@@ -457,7 +457,7 @@ const changePage = (name: string) => {
             </div>
           </div>
         </div>
-        
+
         <div
           v-show="showFunction && getShowRow('satisfaction')"
           key="1"
