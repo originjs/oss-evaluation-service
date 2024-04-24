@@ -672,11 +672,11 @@ const emits = defineEmits<{
         </div>
         <div flex flex-items-center h-86px>
           <div mr-200px>
-            <div mb-2 font-bold>{{ (performanceModuleInfo.size / 1024).toFixed(1) }} kB</div>
+            <div mb-2 font-bold>{{ performanceModuleInfo?.size?(performanceModuleInfo.size / 1024).toFixed(1): '--' }} kB</div>
             <div>MINIFIED</div>
           </div>
           <div mr-200px>
-            <div mb-2 font-bold>{{ (performanceModuleInfo.gzipSize / 1024).toFixed(1) }} kB</div>
+            <div mb-2 font-bold>{{ performanceModuleInfo?.gzipSize ?(performanceModuleInfo.gzipSize / 1024).toFixed(1): '--' }} kB</div>
             <div>MINIFIED + GZIPPED</div>
           </div>
         </div>
