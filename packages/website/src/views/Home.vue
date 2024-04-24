@@ -4,24 +4,6 @@ import type { SoftwareBaseInfo } from '@orginjs/oss-evaluation-api-server';
 
 const router = useRouter();
 
-const features = ref([
-  {
-    icon: 'ELIConSearch',
-    title: '性能 Benchmark',
-    details: '10+ 前端子技术线性能 Benchmark 评测，权威对比分析，方便您更好选型',
-  },
-  {
-    icon: 'ELIConSearch',
-    title: 'Landscape',
-    details: '包含前端 9k+ 软件，全面分类整理，数字化呈现 20+ 子技术栈',
-  },
-  {
-    icon: 'ELIConSearch',
-    title: '先进性评估',
-    details: '功能、性能、生态、质量、创新多维度数字化画像，一键自动化生成评估报告',
-  },
-]);
-
 const goSoftwareDetails = ({ repoName }: SoftwareBaseInfo) => {
   router.push({
     path: 'software-details',
@@ -37,9 +19,8 @@ const goSoftwareDetails = ({ repoName }: SoftwareBaseInfo) => {
     <div class="intro">
       <div class="intro-wrapper">
         <div class="main">
-          <h1 class="name"><span class="clip">OSS Evaluation</span></h1>
+          <h1 class="name"><span class="clip">OSS Evaluation for Web Front-end</span></h1>
           <p class="text">前端先进性评估</p>
-          <p class="tagline">前端先进性评估</p>
           <div class="actions">
             <SearchSoftware class="w-280px" @change="goSoftwareDetails" />
           </div>
@@ -55,11 +36,29 @@ const goSoftwareDetails = ({ repoName }: SoftwareBaseInfo) => {
     <div class="features">
       <div class="features-wrapper">
         <div class="items">
-          <div v-for="item in features" :key="item.title" class="item">
+          <div class="item">
             <div class="item-wrapper">
-              <el-icon class="icon"><Link /></el-icon>
-              <div class="title">{{ item.title }}</div>
-              <div class="details">{{ item.details }}</div>
+              <el-icon class="icon"><DataLine /></el-icon>
+              <div class="title">性能 Benchmark</div>
+              <div class="details">
+                10+ 前端子技术线性能 Benchmark 评测，权威对比分析，方便您更好选型
+              </div>
+            </div>
+          </div>
+          <div class="item">
+            <div class="item-wrapper">
+              <el-icon class="icon"><MapLocation /></el-icon>
+              <div class="title">Landscape</div>
+              <div class="details">包含前端 9k+ 软件，全面分类整理，数字化呈现 20+ 子技术栈</div>
+            </div>
+          </div>
+          <div class="item">
+            <div class="item-wrapper">
+              <el-icon class="icon"><Present /></el-icon>
+              <div class="title">先进性评估</div>
+              <div class="details">
+                功能、性能、生态、质量、创新多维度数字化画像，一键自动化生成评估报告
+              </div>
             </div>
           </div>
         </div>
