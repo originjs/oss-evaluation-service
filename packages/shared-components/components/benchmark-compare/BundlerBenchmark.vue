@@ -322,7 +322,7 @@ const getSummaries = (param: SummaryMethodProps) => {
               <!-- <el-button v-if="idx < benchmarksResult.length"
                 style="top:calc(50% - 16px);right:-26px;z-index: 9999;position: absolute;" :icon="Switch" circle /> -->
 
-              <el-button class="header-move-btn" :icon="Rank" circle />
+              <!-- <el-button class="header-move-btn" :icon="Rank" circle /> -->
               <!-- <el-icon style="position: absolute; top:calc(50% - 10px);left:calc(50% - 10px);font-size: 20px;" circle><Rank /></el-icon> -->
               <el-icon
                 class="cursor-pointer hover-color-#F56C6C"
