@@ -39,6 +39,13 @@ const changeSelectedProjects = () => {
 let benchmarksRaw = ref<BenchmarkIndex[]>([]); // 原始数据
 const benchmarkIndex = ref<Array<BenchmarkIndex>>([]); // 选中的 benchmark 指标，修改其值改变展示的表格行(指标项)
 getIndexByTechStack('前端框架').then(response => {
+  response.data.unshift({
+    indexName: 'score',
+    displayName: '得分',
+    unit: '',
+    category: '',
+    description: '',    
+  });
   benchmarksRaw.value = [...response.data];
   benchmarkIndex.value = response.data;
 });
@@ -78,6 +85,7 @@ watch([benchmarkIndex, benchmarkResult], () => {
         projectName: item.projectName,
         displayName: item.displayName,
         version: item.version,
+        score: item.score,
       };
       projectBenchmark.push(project);
     }
@@ -94,8 +102,13 @@ watch([benchmarkIndex, benchmarkResult], () => {
     isAllEqual = true;
     record = {
       ...benchmarkIndexItem,
-      benchmarkName: `${benchmarkIndexItem.displayName}(${benchmarkIndexItem.unit})`,
+      benchmarkName: `${benchmarkIndexItem.displayName}`,
     };
+
+    if(benchmarkIndexItem.unit){
+      record.benchmarkName += `(${benchmarkIndexItem.unit})`;
+    }
+
     isGoodProjectId = getMappingKey(projectBenchmark[0]); // 初始化一个值，方便后续比较
     for (let i = 0; i < projectBenchmark.length; i++) {
       const projectBenchmarkItem = projectBenchmark[i];
@@ -115,10 +128,6 @@ watch([benchmarkIndex, benchmarkResult], () => {
     }
     tableData.push(record);
   });
-
-  // TODO 在上面循环中添加每个项目的得分数据
-  tableData.unshift({ benchmarkName: '得分' });
-
   benchmarksResultTableDataRaw.value = tableData;
   benchmarkResultProjectsRaw.value = projectBenchmark;
 });
@@ -154,6 +163,9 @@ watch([projects, benchmarkResultProjectsRaw, sortedRow], () => {
       }
       if (!b[sortedRow.value]) {
         return -1;
+      }
+      if(sortedRow.value == 'score'){
+        return b[sortedRow.value] - a[sortedRow.value];
       }
       return a[sortedRow.value] - b[sortedRow.value];
     });
@@ -313,8 +325,7 @@ const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
         </el-table-column>
         <el-table-column fixed prop="benchmarkName" label="Name" width="220">
           <template #default="{ row }">
-            <div v-if="row.benchmarkName === '得分'">{{ row.benchmarkName }}</div>
-            <div v-else class="relative flex justify-between">
+            <div class="relative flex justify-between">
               <el-tooltip :content="row.description || row.benchmarkName">
                 <span class="flex-1">{{ row.benchmarkName }}</span></el-tooltip
               >
@@ -363,7 +374,9 @@ const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
             </div>
           </template>
           <template #default="scope">
-            <div v-if="scope.row.benchmarkName === '得分'" class="text-center">NA</div>
+            <div v-if="scope.row.benchmarkName === '得分'" class="text-center">
+              {{ scope.row[getMappingKey(benchmarkResultProject)]}}
+            </div>
             <div v-else text-center :style="computeColor(scope)">
               <div class="font-size-3 h4.5 font-500">
                 {{ scope.row[getMappingKey(benchmarkResultProject)]
