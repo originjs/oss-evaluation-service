@@ -88,7 +88,7 @@ const search = (value:string)=>{
     showProjects.value = _projects;
     return;
   }
-  showProjects.value = _projects.filter(project=> project.projectName?.includes(value));
+  showProjects.value = _projects.filter(project=> project.repoName?.includes(value));
 }
 
 const changeSelectedVersion = (project:ProjectInfo)=>{
