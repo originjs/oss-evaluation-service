@@ -130,7 +130,7 @@ export async function calculateAllMetricsHandler(req, res) {
   ON t1.project_id= t2.project_id SET t1.satisfaction= t2.satisfaction_percentage,
 	t1.market_share = t2.usage_percentage`);
   // update cncf document
-  await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN cncf_document_score_only t2
+  await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN cncf_document_score t2
     ON t1.project_id= t2.project_id SET t1.doc_best_practice= t2.document_score
     WHERE t2.document_score IS NOT NULL`);
 

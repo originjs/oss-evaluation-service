@@ -672,11 +672,11 @@ const emits = defineEmits<{
         </div>
         <div flex flex-items-center h-86px>
           <div mr-200px>
-            <div mb-2 font-bold>{{ (performanceModuleInfo.size / 1024).toFixed(1) }} kB</div>
+            <div mb-2 font-bold>{{ performanceModuleInfo?.size?(performanceModuleInfo.size / 1024).toFixed(1): '--' }} kB</div>
             <div>MINIFIED</div>
           </div>
           <div mr-200px>
-            <div mb-2 font-bold>{{ (performanceModuleInfo.gzipSize / 1024).toFixed(1) }} kB</div>
+            <div mb-2 font-bold>{{ performanceModuleInfo?.gzipSize ?(performanceModuleInfo.gzipSize / 1024).toFixed(1): '--' }} kB</div>
             <div>MINIFIED + GZIPPED</div>
           </div>
         </div>
@@ -1106,8 +1106,7 @@ const emits = defineEmits<{
             </el-tooltip>
           </div>
           <div mb-2 font-size-3 text-gray-500>
-            过去 90 天中活跃的代码提交者、Pull Request 作者、代码审查者、Issue 作者和 Issue
-            评论者的数量。
+            {{i18n.global.t(`tips.ecology.contributor`)}}
           </div>
           <div id="contributor-count-chart" h-200px />
         </el-card>
