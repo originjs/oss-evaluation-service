@@ -27,7 +27,12 @@ getProjectsByTechStack('构建工具', '构建工具').then(response => {
 
 const removeProject = (project: SoftwareBaseInfo) => {
   projects.value = projects.value.filter(
-    item => !(project.projectId === item.projectId && project.version === item.version),
+    item => {
+      if(project.projectId === item.projectId){
+        return item.selectedVersions.length > 1 && item.selectedVersions.some(v => project.version !== v)
+      }      
+      return true;
+    }    
   );
   chooseProjectsRef.value?.cancelSelectedProject(project);
 };
@@ -410,7 +415,7 @@ const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
           <div class="flex flex-items-center mr-8">
             <span mr-2>Benchmarks:</span>
             <el-button text type="primary" @click="showChooseBenchmark = true"
-              >{{ benchmarkIndex.length }}项benchmark</el-button
+              >{{ benchmarkIndex.length - 2 }}项benchmark</el-button
             >
           </div>
           <div class="flex flex-items-center mr-8" style="font-size: 12px">
@@ -449,7 +454,7 @@ const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
               <el-tooltip :content="row.description || row.benchmarkName">
                 <span class="flex-1">{{ row.benchmarkName }}</span></el-tooltip
               >
-              <span
+              <span v-if="row.benchmarkName != '版本'"
                 v-show="hoveringRow === row.indexName || sortedRow === row.indexName"
                 :class="
                   sortedRow === row.indexName ? 'i-custom:sorted-thumb' : 'i-custom:sort-thumb'
@@ -475,6 +480,7 @@ const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
               <el-link
                 :underline="false"
                 target="_blank"
+                style="font-weight: bolder;"
                 @click="getProjectInfoUrl(benchmarkResultProject)"
               >
                 {{ headerScope.column.label }}
