@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { ElMessage } from 'element-plus'
 import type { TableColumnCtx } from 'element-plus';
-import { Setting, Rank, Close, InfoFilled } from '@element-plus/icons-vue';
+import { Setting, Close, InfoFilled } from '@element-plus/icons-vue';
 import type {
   SoftwareBaseInfo,
   BenchmarkIndex,
@@ -154,7 +155,6 @@ watch([projects, benchmarkResultProjectsRaw, sortedRow], () => {
 const showChooseProjects = ref(false);
 const showChooseBenchmark = ref(false);
 const submitProjectBenchmark = ref(false);
-const selectedPlatform = ref('Linxu');
 
 const computeColor = (scope: { row: any; column: any; $index: number }) => {
   if (scope.row[scope.column.property] === '--') {
@@ -203,6 +203,15 @@ const getSummaries = (param: SummaryMethodProps) => {
   });
   return sums;
 };
+
+const getProjectInfoUrl = (project:SoftwareBaseInfo)=>{
+  const projectInfo = projectsRaw.value.find(p => p.projectId === project.projectId);
+  if(!projectInfo){
+    ElMessage.error('抱歉，系统缺少该开源软件的详情, 我们会尽快提供');
+    return;
+  }
+  window.open(`/#/software-details?repoName=${projectInfo.repoName}`,'_blank');
+}
 </script>
 
 <template>
@@ -210,20 +219,18 @@ const getSummaries = (param: SummaryMethodProps) => {
     <div class="tools" flex justify-between>
       <div flex-col w-full>
         <div flex w-full>
-          <div flex  w-full>
+          <div flex w-full>
             <div class="flex flex-items-center mr-8">
               <span>开源前端框架:</span>
               <el-button text type="primary" @click="showChooseProjects = true">
-                {{ projects[0]?.projectName }}等{{ projects.length }}款软件</el-button
-              >
+                {{ projects[0]?.projectName }}等{{ projects.length }}款软件</el-button>
             </div>
             <div class="flex flex-items-center mr-8">
               <span>Benchmarks:</span>
-              <el-button text type="primary" @click="showChooseBenchmark = true"
-                >{{ benchmarkIndex.length }}项benchmark</el-button
-              >
+              <el-button text type="primary" @click="showChooseBenchmark = true">{{ benchmarkIndex.length
+                }}项benchmark</el-button>
             </div>
-        
+
             <!-- <div class="flex flex-items-center mr-8">
               <span mr-2>Platform:</span>
               <el-select v-model="selectedPlatform" style="width: 100px" size="small">
@@ -236,9 +243,7 @@ const getSummaries = (param: SummaryMethodProps) => {
             </div> -->
           </div>
           <div flex flex-items-center>
-            <el-button type="primary" text @click="submitProjectBenchmark = true"
-              >增加Benchmark软件</el-button
-            >
+            <el-button type="primary" text @click="submitProjectBenchmark = true">增加Benchmark软件</el-button>
             <el-icon class="cursor-pointer">
               <Setting />
             </el-icon>
@@ -246,65 +251,49 @@ const getSummaries = (param: SummaryMethodProps) => {
         </div>
         <div flex mt-10px>
           <div class="flex flex-items-center mr-8" style="font-size: 12px">
-              <el-icon style="color: #fdbb7b;margin-right: 8px;"><InfoFilled /></el-icon>
-              {{ envInfo }}
-          </div>  
+            <el-icon style="color: #fdbb7b;margin-right: 8px;">
+              <InfoFilled />
+            </el-icon>
+            {{ envInfo }}
+          </div>
         </div>
       </div>
     </div>
 
     <div class="results" mt-20px>
-      <el-table
-        :data="benchmarksResultTableData"
-        class="w-full"
-        height="530px"
-        border
-        :cell-style="{ padding: '0px' }"
-        :summary-method="getSummaries"
-        show-summary
-        @cell-mouse-enter="({ indexName }) => (hoveringRow = indexName)"
-        @cell-mouse-leave="hoveringRow = ''"
-      >
+      <el-table :data="benchmarksResultTableData" class="w-full" height="530px" border :cell-style="{ padding: '0px' }"
+        :summary-method="getSummaries" show-summary @cell-mouse-enter="({ indexName }) => (hoveringRow = indexName)"
+        @cell-mouse-leave="hoveringRow = ''">
         <el-table-column fixed prop="benchmarkName" label="Name" min-width="210">
           <template #default="{ row }">
             <div class="relative flex justify-between">
               <el-tooltip :content="row.description || row.benchmarkName">
-                <span class="flex-1 text-center">{{ row.benchmarkName }}</span></el-tooltip
-              >
-              <span
-                v-show="hoveringRow === row.indexName || sortedRow === row.indexName"
-                :class="
+                <span class="flex-1 text-center">{{ row.benchmarkName }}</span></el-tooltip>
+              <span v-show="hoveringRow === row.indexName || sortedRow === row.indexName" :class="
                   sortedRow === row.indexName ? 'i-custom:sorted-thumb' : 'i-custom:sort-thumb'
-                "
-                class="right-[-6px] absolute top-50% transform-translate-y-[-50%] ml-2 h-5 w-5 cursor-pointer"
+                " class="right-[-6px] absolute top-50% transform-translate-y-[-50%] ml-2 h-5 w-5 cursor-pointer"
                 @click="
                   sortedRow === row.indexName ? (sortedRow = '') : (sortedRow = row.indexName)
-                "
-              />
+                " />
             </div>
           </template>
         </el-table-column>
-        <el-table-column
-          v-for="benchmarkResultProject of benchmarkResultProjects"
-          :key="getMappingKey(benchmarkResultProject)"
-          :prop="getMappingKey(benchmarkResultProject)"
-          min-width="120"
+        <el-table-column v-for="benchmarkResultProject of benchmarkResultProjects"
+          :key="getMappingKey(benchmarkResultProject)" :prop="getMappingKey(benchmarkResultProject)" min-width="120"
           class-name="benchmark-value-cell"
-          :label="benchmarkResultProject.displayName || benchmarkResultProject.projectName"
-        >
+          :label="benchmarkResultProject.displayName || benchmarkResultProject.projectName">
           <template #header="headerScope">
             <div text-center class="table-column-header">
-              {{ headerScope.column.label }}
+              <el-link @click="getProjectInfoUrl(benchmarkResultProject)" :underline="false" target="_blank">
+                {{headerScope.column.label }}
+              </el-link>
               <!-- <el-button v-if="idx < benchmarkResultProjects.length"
                 style="top:calc(50% - 16px);right:-26px;z-index: 9999;position: absolute;" :icon="Switch" circle /> -->
 
-              <el-button class="header-move-btn" :icon="Rank" circle />
+              <!-- <el-button class="header-move-btn" :icon="Rank" circle /> -->
               <!-- <el-icon style="position: absolute; top:calc(50% - 10px);left:calc(50% - 10px);font-size: 20px;" circle><Rank /></el-icon> -->
-              <el-icon
-                class="cursor-pointer hover-color-#F56C6C"
-                style="position: absolute; top: 3px; right: 3px"
-                @click="removeProject(benchmarkResultProject)"
-              >
+              <el-icon class="cursor-pointer hover-color-#F56C6C" style="position: absolute; top: 3px; right: 3px"
+                @click="removeProject(benchmarkResultProject)">
                 <Close />
               </el-icon>
             </div>
@@ -315,12 +304,9 @@ const getSummaries = (param: SummaryMethodProps) => {
                 {{ scope.row[getMappingKey(benchmarkResultProject)]
                 }}{{ scope.row[getMappingKey(benchmarkResultProject)] === '--' ? '' : scope.row.unit }}
               </div>
-              <div
-                v-if="scope.row[getMappingKey(benchmarkResultProject)] !== '--'"
-                :class="isGoodClass(scope)"
-              >
+              <div v-if="scope.row[getMappingKey(benchmarkResultProject)] !== '--'" :class="isGoodClass(scope)">
                 ({{
-                  (scope.row[getMappingKey(benchmarkResultProject)] / scope.row.isGoodValue).toFixed(2)
+                (scope.row[getMappingKey(benchmarkResultProject)] / scope.row.isGoodValue).toFixed(2)
                 }})
               </div>
             </div>
@@ -329,12 +315,10 @@ const getSummaries = (param: SummaryMethodProps) => {
       </el-table>
     </div>
 
-    <ChooseProjectsDialog ref="chooseProjectsRef" v-model="showChooseProjects" :projects="projectsRaw" @changeProjects='changeSelectedProjects'/>
-    <ChooseBenchmarkDialog
-      v-model="showChooseBenchmark"
-      :benchmarks="benchmarkIndex"
-      @change-value="changeBenchmarks"
-    />
+    <ChooseProjectsDialog ref="chooseProjectsRef" v-model="showChooseProjects" :projects="projectsRaw"
+      @changeProjects='changeSelectedProjects' />
+    <ChooseBenchmarkDialog v-model="showChooseBenchmark" :benchmarks="benchmarkIndex"
+      @change-value="changeBenchmarks" />
     <ApplyNewProjectBenchmarkDialog v-model="submitProjectBenchmark" category="前端框架" />
   </div>
 </template>
