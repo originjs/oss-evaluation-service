@@ -93,6 +93,7 @@ export interface EcologyActivityCategory {
   closedIssuesCount: EcologyActivity[];
   orgCount: EcologyActivity[];
   contributorCount: EcologyActivity[];
+  starTrend: object;
 }
 
 export interface BenchmarkData {

@@ -78,7 +78,6 @@ watchEffect(async () => {
   const { data } = await getSoftwareInfo(encodedRepoName.value);
   project.value = data;
   tagList.value = data.tags ? data.tags.split('|') : [];
-  starTrend.value = data.starTrend;
   baseInfoTable.value = [
     {
       label: 'Stars',
@@ -194,7 +193,6 @@ watchEffect(async () => {
   }
   await nextTick();
   renderSoftwareRadarChart();
-  renderGithubStartChart();
   renderDeveloperSatisfactionChart();
   renderDocBestPracticesChart();
   loadingOverview.value = false;
@@ -490,12 +488,14 @@ const loadingEcology = ref(false);
 watchEffect(async () => {
   loadingEcology.value = true;
   const { data } = await getEcologyActivityCategoryApi(encodedRepoName.value);
+  starTrend.value = data.starTrend;
   renderLineChart('#code-submit-frequency-chart', data.commitFrequency);
   renderLineChart('#issue-comment-frequency-chart', data!.commentFrequency);
   renderLineChart('#update-issue-count-chart', data.updatedIssuesCount);
   renderLineChart('#close-issue-count-chart', data.closedIssuesCount);
   renderLineChart('#organization-count-chart', data.orgCount);
   renderLineChart('#contributor-count-chart', data.contributorCount);
+  renderGithubStartChart();
   loadingEcology.value = false;
 });
 

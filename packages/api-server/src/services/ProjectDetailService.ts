@@ -67,23 +67,10 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
       id: projectId,
     },
   });
-  const trend = await GithubProjectsStargazersTrend.findAll({
-    where: {
-      fullName: repoName,
-    },
-    attributes: ['stargazers', 'date',],
-    order: [['date', 'asc']],
-  });
-  const stargazers = _.pluck(trend, 'stargazers');
-  const date = _.pluck(trend, 'date');
 
   const res = softwareInfo.toJSON();
   res.repoName = repoName;
   res.techStack = res.evaluation?.techStack;
-  res.starTrend = {
-    stargazers,
-    date,
-  };
 
   if (res.satisfaction?.length !== 0) {
     const satisfaction = res.satisfaction.sort((a, b) => {
@@ -264,6 +251,8 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
   const closedIssuesCount = [];
   const orgCount = [];
   const contributorCount = [];
+  let stargazers = [];
+  let date = [];
   for (const activity of softwareActivity || []) {
     commitFrequency.push({
       projectId: activity.project_id,
@@ -295,6 +284,15 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
       value: activity.contributor_count,
       date: activity.grimoire_creation_date,
     });
+    const trend = await GithubProjectsStargazersTrend.findAll({
+      where: {
+        fullName: repoName,
+      },
+      attributes: ['stargazers', 'date',],
+      order: [['date', 'asc']],
+    });
+     stargazers = _.pluck(trend, 'stargazers');
+     date = _.pluck(trend, 'date');
   }
   return {
     commitFrequency,
@@ -303,6 +301,10 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
     closedIssuesCount,
     orgCount,
     contributorCount,
+    starTrend: {
+      stargazers,
+      date,
+    },
   };
 }
 
