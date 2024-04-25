@@ -182,23 +182,13 @@ const changePage = (name: string) => {
   <div class="main">
     <div class="page-title flex justify-between items-center">
       <div>
-        <span
-          class="menu"
-          :class="{ selected: pageName == 'ProjectsCompare' }"
-          @click="changePage('ProjectsCompare')"
-          >开源软件对比</span
-        >
-        <span
-          class="menu"
-          :class="{ selected: pageName == 'BenchmarkCompare' }"
-          @click="changePage('BenchmarkCompare')"
-          >性能Benchmark</span
+        <span class="menu" >开源软件对比</span
         >
       </div>
       <div v-if="pageName === 'ProjectsCompare'">
         <div class="mr-12px flex items-center">
           <el-switch v-model="isShowDiff" style="--el-switch-on-color: #13ce66" />
-          <span class="pl-6px">显示{{ isShowDiff ? '差异' : '全部' }}</span>
+          <span class="pl-6px">仅显示差异</span>
         </div>
       </div>
     </div>
@@ -217,7 +207,12 @@ const changePage = (name: string) => {
                   </div>
                 </template>
               </el-image>
-              <span>{{ projects[idx - 1]?.repoName }}</span>
+              <span>
+                <el-link :href="'/#/software-details?repoName=' + projects[idx - 1]?.repoName" 
+                target="_blank" :underline="false">
+                  {{ projects[idx - 1]?.repoName }}
+                </el-link>
+              </span>              
               <el-icon
                 class="close-btn cursor-pointer hover-color-#F56C6C"
                 @click="removeSoftware(idx - 1)"
@@ -1524,11 +1519,6 @@ const changePage = (name: string) => {
     display: inline-block;
     padding: 0px 18px;
     line-height: 50px;
-    cursor: pointer;
-
-    &:hover {
-      background-color: #1579d1;
-    }
   }
 
   .selected {
