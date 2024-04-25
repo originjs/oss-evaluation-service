@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ElMessage } from 'element-plus'
-import type { TableColumnCtx } from 'element-plus';
+import { ElMessage } from 'element-plus';
 import { Setting, Close, InfoFilled } from '@element-plus/icons-vue';
 import type {
   SoftwareBaseInfo,
@@ -15,15 +14,9 @@ import {
 import ChooseProjectsDialog from './ChooseProjectsDialog.vue';
 import ChooseBenchmarkDialog from './ChooseBenchmarkDialog.vue';
 import ApplyNewProjectBenchmarkDialog from './ApplyNewProjectBenchmarkDialog.vue';
+import type { TableColumnCtx } from 'element-plus';
 
-interface SummaryMethodProps<
-  T = { isGoodValue: number; benchmarkName: string; [key: string]: number | string },
-> {
-  columns: TableColumnCtx<T>[];
-  data: T[];
-}
 const chooseProjectsRef = ref<InstanceType<typeof ChooseProjectsDialog>>();
-
 let projectsRaw = ref<Array<SoftwareBaseInfo>>([]); // 原始数据，用来展示所有可选项目
 const projects = ref<Array<SoftwareBaseInfo>>([]); // 选中的项目，可修改其值改变表格展示的项目
 const envInfo = ref<string>();
@@ -32,16 +25,20 @@ getProjectsByTechStack('前端框架', '前端框架').then(response => {
   projects.value = response.data;
 });
 
-const removeProject = (project:SoftwareBaseInfo) => {
-  projects.value = projects.value.filter(item => !(project.projectId === item.projectId && project.version === item.version));
+const removeProject = (project: SoftwareBaseInfo) => {
+  projects.value = projects.value.filter(
+    item => !(project.projectId === item.projectId && project.version === item.version),
+  );
   chooseProjectsRef.value?.cancelSelectedProject(project);
 };
 
-const changeSelectedProjects = (selectedProjects:SoftwareBaseInfo[]) =>{
-  projects.value = projectsRaw.value.filter(item => selectedProjects.some(p => 
-    p.projectId === item.projectId && p.selectedVersions.includes(item.version)
-  ));  
-}
+const changeSelectedProjects = (selectedProjects: SoftwareBaseInfo[]) => {
+  projects.value = projectsRaw.value.filter(item =>
+    selectedProjects.some(
+      p => p.projectId === item.projectId && p.selectedVersions.includes(item.version),
+    ),
+  );
+};
 
 let benchmarksRaw = ref<BenchmarkIndex[]>([]); // 原始数据
 const benchmarkIndex = ref<Array<BenchmarkIndex>>([]); // 选中的 benchmark 指标，修改其值改变展示的表格行(指标项)
@@ -52,11 +49,13 @@ getIndexByTechStack('前端框架').then(response => {
 
 const benchmarkResult = ref<BenchmarkResult[]>([]);
 getBenchmarkResultByTechStack('前端框架').then(response => {
-  benchmarkResult.value = response.data;  
+  benchmarkResult.value = response.data;
   envInfo.value = response.data[0]?.envInfo;
 });
 
-const getMappingKey = (project)=>{ return `${project.projectId}##${project.version}` };
+const getMappingKey = project => {
+  return `${project.projectId}##${project.version}`;
+};
 
 let benchmarksResultTableDataRaw = ref<any[]>([]); // 表格原始数据，在接口返回数据后只计算(更新)一次
 let benchmarkResultProjectsRaw = ref<BenchmarkResult[]>([]); // 表格列原始数据，按照项目分组后的 benchmarkResult 数据
@@ -82,7 +81,7 @@ watch([benchmarkIndex, benchmarkResult], () => {
         projectId: item.projectId,
         projectName: item.projectName,
         displayName: item.displayName,
-        version: item.version
+        version: item.version,
       };
       projectBenchmark.push(project);
     }
@@ -121,14 +120,19 @@ watch([benchmarkIndex, benchmarkResult], () => {
     tableData.push(record);
   });
 
+  // TODO 在上面循环中添加每个项目的得分数据
+  tableData.unshift({ benchmarkName: '得分' });
+
   benchmarksResultTableDataRaw.value = tableData;
   benchmarkResultProjectsRaw.value = projectBenchmark;
 });
 
 const benchmarksResultTableData = ref<any[]>([]); // 实际表格展示的行，根据选中的指标项，并基于原始表格数据计算更新
 watch([benchmarkIndex, benchmarksResultTableDataRaw], () => {
-  benchmarksResultTableData.value = benchmarksResultTableDataRaw.value.filter(item =>
-    benchmarkIndex.value.some(indexItem => indexItem.indexName === item.indexName),
+  benchmarksResultTableData.value = benchmarksResultTableDataRaw.value.filter(
+    item =>
+      benchmarkIndex.value.some(indexItem => indexItem.indexName === item.indexName) ||
+      item.benchmarkName === '得分',
   );
 });
 
@@ -137,7 +141,9 @@ const sortedRow = ref('');
 const benchmarkResultProjects = ref<BenchmarkResult[]>([]); // 实际表格展示的列，根据选中的项目，并基于原始表格数据计算更新
 watch([projects, benchmarkResultProjectsRaw, sortedRow], () => {
   const res = benchmarkResultProjectsRaw.value.filter(item =>
-    projects.value.some(project => project.projectId === item.projectId && project.version?.startsWith(item.version)),
+    projects.value.some(
+      project => project.projectId === item.projectId && project.version?.startsWith(item.version),
+    ),
   );
   sortedRow.value &&
     res.sort((a, b) => {
@@ -191,27 +197,49 @@ const isGoodClass = (scope: { row: any; column: any; $index: number }) => {
   return '';
 };
 
-const getSummaries = (param: SummaryMethodProps) => {
-  const { columns } = param;
-  const sums: string[] = [];
-  columns.forEach((column, index) => {
-    if (index === 0) {
-      sums[index] = '得分';
-      return;
+interface SpanMethodProps {
+  row: { category: string };
+  column: TableColumnCtx<{ category: string }>;
+  rowIndex: number;
+  columnIndex: number;
+}
+
+let rowLen = 1;
+const objectSpanMethod = ({ row, column, rowIndex, columnIndex }: SpanMethodProps) => {
+  if (columnIndex === 0) {
+    if (rowLen > 1) {
+      rowLen--;
+      return {
+        rowspan: 0,
+        colspan: 0,
+      };
     }
-    sums[index] = 'N/A';
-  });
-  return sums;
+    let nextIndex = rowIndex + 1;
+    while (
+      rowIndex < benchmarksResultTableData.value.length &&
+      benchmarksResultTableData.value[rowIndex]?.category &&
+      benchmarksResultTableData.value[nextIndex]?.category &&
+      benchmarksResultTableData.value[rowIndex].category ===
+        benchmarksResultTableData.value[nextIndex].category
+    ) {
+      nextIndex++;
+      rowLen++;
+    }
+    return {
+      rowspan: rowLen,
+      colspan: 1,
+    };
+  }
 };
 
-const getProjectInfoUrl = (project:SoftwareBaseInfo)=>{
+const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
   const projectInfo = projectsRaw.value.find(p => p.projectId === project.projectId);
-  if(!projectInfo){
+  if (!projectInfo) {
     ElMessage.error('抱歉，系统缺少该开源软件的详情, 我们会尽快提供');
     return;
   }
-  window.open(`/#/software-details?repoName=${projectInfo.repoName}`,'_blank');
-}
+  window.open(`/#/software-details?repoName=${projectInfo.repoName}`, '_blank');
+};
 </script>
 
 <template>
@@ -223,12 +251,14 @@ const getProjectInfoUrl = (project:SoftwareBaseInfo)=>{
             <div class="flex flex-items-center mr-8">
               <span>开源前端框架:</span>
               <el-button text type="primary" @click="showChooseProjects = true">
-                {{ projects[0]?.projectName }}等{{ projects.length }}款软件</el-button>
+                {{ projects[0]?.projectName }}等{{ projects.length }}款软件</el-button
+              >
             </div>
             <div class="flex flex-items-center mr-8">
               <span>Benchmarks:</span>
-              <el-button text type="primary" @click="showChooseBenchmark = true">{{ benchmarkIndex.length
-                }}项benchmark</el-button>
+              <el-button text type="primary" @click="showChooseBenchmark = true"
+                >{{ benchmarkIndex.length }}项benchmark</el-button
+              >
             </div>
 
             <!-- <div class="flex flex-items-center mr-8">
@@ -243,7 +273,9 @@ const getProjectInfoUrl = (project:SoftwareBaseInfo)=>{
             </div> -->
           </div>
           <div flex flex-items-center>
-            <el-button type="primary" text @click="submitProjectBenchmark = true">增加Benchmark软件</el-button>
+            <el-button type="primary" text @click="submitProjectBenchmark = true"
+              >增加Benchmark软件</el-button
+            >
             <el-icon class="cursor-pointer">
               <Setting />
             </el-icon>
@@ -251,7 +283,7 @@ const getProjectInfoUrl = (project:SoftwareBaseInfo)=>{
         </div>
         <div flex mt-10px>
           <div class="flex flex-items-center mr-8" style="font-size: 12px">
-            <el-icon style="color: #fdbb7b;margin-right: 8px;">
+            <el-icon style="color: #fdbb7b; margin-right: 8px">
               <InfoFilled />
             </el-icon>
             {{ envInfo }}
@@ -261,52 +293,92 @@ const getProjectInfoUrl = (project:SoftwareBaseInfo)=>{
     </div>
 
     <div class="results" mt-20px>
-      <el-table :data="benchmarksResultTableData" class="w-full" height="530px" border :cell-style="{ padding: '0px' }"
-        :summary-method="getSummaries" show-summary @cell-mouse-enter="({ indexName }) => (hoveringRow = indexName)"
-        @cell-mouse-leave="hoveringRow = ''">
-        <el-table-column fixed prop="benchmarkName" label="Name" min-width="210">
+      <el-table
+        :data="benchmarksResultTableData"
+        class="w-full"
+        height="530px"
+        border
+        :cell-style="{ padding: '0px' }"
+        :span-method="objectSpanMethod"
+        table-layout="auto"
+        @cell-mouse-enter="({ indexName }) => (hoveringRow = indexName)"
+        @cell-mouse-leave="hoveringRow = ''"
+      >
+        <el-table-column width="14px" fixed prop="category" label="类型">
+          <template #header><div class="w-4 break-all">类型</div></template>
+          <template #default="{ row }"
+            ><div class="w-4 break-all">{{ row.category }}</div></template
+          >
+        </el-table-column>
+        <el-table-column fixed prop="benchmarkName" label="Name" min-width="220">
           <template #default="{ row }">
-            <div class="relative flex justify-between">
+            <div v-if="row.benchmarkName === '得分'">{{ row.benchmarkName }}</div>
+            <div v-else class="relative flex justify-between">
               <el-tooltip :content="row.description || row.benchmarkName">
-                <span class="flex-1 text-center">{{ row.benchmarkName }}</span></el-tooltip>
-              <span v-show="hoveringRow === row.indexName || sortedRow === row.indexName" :class="
+                <span class="flex-1">{{ row.benchmarkName }}</span></el-tooltip
+              >
+              <span
+                v-show="hoveringRow === row.indexName || sortedRow === row.indexName"
+                :class="
                   sortedRow === row.indexName ? 'i-custom:sorted-thumb' : 'i-custom:sort-thumb'
-                " class="right-[-6px] absolute top-50% transform-translate-y-[-50%] ml-2 h-5 w-5 cursor-pointer"
+                "
+                class="right-[-6px] absolute top-50% transform-translate-y-[-50%] ml-2 h-5 w-5 cursor-pointer"
                 @click="
                   sortedRow === row.indexName ? (sortedRow = '') : (sortedRow = row.indexName)
-                " />
+                "
+              />
             </div>
           </template>
         </el-table-column>
-        <el-table-column v-for="benchmarkResultProject of benchmarkResultProjects"
-          :key="getMappingKey(benchmarkResultProject)" :prop="getMappingKey(benchmarkResultProject)" min-width="120"
+        <el-table-column
+          v-for="benchmarkResultProject of benchmarkResultProjects"
+          :key="getMappingKey(benchmarkResultProject)"
+          :prop="getMappingKey(benchmarkResultProject)"
+          width="100%"
           class-name="benchmark-value-cell"
-          :label="benchmarkResultProject.displayName || benchmarkResultProject.projectName">
+          :label="benchmarkResultProject.displayName || benchmarkResultProject.projectName"
+        >
           <template #header="headerScope">
             <div text-center class="table-column-header">
-              <el-link @click="getProjectInfoUrl(benchmarkResultProject)" :underline="false" target="_blank">
-                {{headerScope.column.label }}
+              <el-link
+                :underline="false"
+                target="_blank"
+                @click="getProjectInfoUrl(benchmarkResultProject)"
+              >
+                {{ headerScope.column.label }}
               </el-link>
               <!-- <el-button v-if="idx < benchmarkResultProjects.length"
                 style="top:calc(50% - 16px);right:-26px;z-index: 9999;position: absolute;" :icon="Switch" circle /> -->
 
               <!-- <el-button class="header-move-btn" :icon="Rank" circle /> -->
               <!-- <el-icon style="position: absolute; top:calc(50% - 10px);left:calc(50% - 10px);font-size: 20px;" circle><Rank /></el-icon> -->
-              <el-icon class="cursor-pointer hover-color-#F56C6C" style="position: absolute; top: 3px; right: 3px"
-                @click="removeProject(benchmarkResultProject)">
+              <el-icon
+                class="cursor-pointer hover-color-#F56C6C"
+                style="position: absolute; top: 3px; right: 3px"
+                @click="removeProject(benchmarkResultProject)"
+              >
                 <Close />
               </el-icon>
             </div>
           </template>
           <template #default="scope">
-            <div py-8px px-12px text-center :style="computeColor(scope)">
-              <div>
+            <div v-if="scope.row.benchmarkName === '得分'" class="text-center">NA</div>
+            <div v-else text-center :style="computeColor(scope)">
+              <div class="font-size-3 h4.5 font-500">
                 {{ scope.row[getMappingKey(benchmarkResultProject)]
-                }}{{ scope.row[getMappingKey(benchmarkResultProject)] === '--' ? '' : scope.row.unit }}
+                }}{{
+                  scope.row[getMappingKey(benchmarkResultProject)] === '--' ? '' : scope.row.unit
+                }}
               </div>
-              <div v-if="scope.row[getMappingKey(benchmarkResultProject)] !== '--'" :class="isGoodClass(scope)">
+              <div
+                v-if="scope.row[getMappingKey(benchmarkResultProject)] !== '--'"
+                :class="isGoodClass(scope)"
+                class="flex items-center justify-center font-size-2.5"
+              >
                 ({{
-                (scope.row[getMappingKey(benchmarkResultProject)] / scope.row.isGoodValue).toFixed(2)
+                  (
+                    scope.row[getMappingKey(benchmarkResultProject)] / scope.row.isGoodValue
+                  ).toFixed(2)
                 }})
               </div>
             </div>
@@ -315,10 +387,17 @@ const getProjectInfoUrl = (project:SoftwareBaseInfo)=>{
       </el-table>
     </div>
 
-    <ChooseProjectsDialog ref="chooseProjectsRef" v-model="showChooseProjects" :projects="projectsRaw"
-      @changeProjects='changeSelectedProjects' />
-    <ChooseBenchmarkDialog v-model="showChooseBenchmark" :benchmarks="benchmarkIndex"
-      @change-value="changeBenchmarks" />
+    <ChooseProjectsDialog
+      ref="chooseProjectsRef"
+      v-model="showChooseProjects"
+      :projects="projectsRaw"
+      @change-projects="changeSelectedProjects"
+    />
+    <ChooseBenchmarkDialog
+      v-model="showChooseBenchmark"
+      :benchmarks="benchmarkIndex"
+      @change-value="changeBenchmarks"
+    />
     <ApplyNewProjectBenchmarkDialog v-model="submitProjectBenchmark" category="前端框架" />
   </div>
 </template>
@@ -327,12 +406,11 @@ const getProjectInfoUrl = (project:SoftwareBaseInfo)=>{
 @border-color: #e6e6e6;
 
 :deep(.good::after) {
-  position: absolute;
   content: '  ';
   display: inline-block;
   width: 16px;
   height: 16px;
-  margin-left: 10px;
+  margin-left: 4px;
   background-image: url('data:image/svg+xml;base64,PHN2ZyB0PSIxNzEwOTIzMjQ0Njc2IiBjbGFzcz0iaWNvbiIgdmlld0JveD0iMCAwIDEwMjQgMTAyNCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHAtaWQ9IjUwNTQiIGlkPSJteF9uXzE3MTA5MjMyNDQ2NzciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiI+PHBhdGggZD0iTTIyNC4xNiAzOTEuMzZ2NjEwLjA4SDkzLjQ0QzQxLjkyIDEwMDEuNDQgMCA5NjAgMCA5MDkuMjhWNDgzLjM2YzAtNTAuNzIgNDEuOTItOTIgOTMuNDQtOTJoMTMwLjcyek0xMDA2LjA4IDU3My40NGMtMy44NCA2LjcyLTcuNTIgMTIuNjQtMTAuODggMTguMDgtMTYuMTYgMjYuNzItMjIuNCAzNi44LTIwLjMyIDY5LjkyIDAuNDggMTAuMDggMS45MiAyMC4zMiAzLjM2IDMwLjQgNS4yOCAzOS4zNiAxMiA4OC4xNi0yNi4yNCAxMzMuNzYtMjUuOTIgMzEuMzYtMjkuNDQgNDguOC0zMS44NCA2MC40OC0xLjEyIDUuNDQtMi4yNCAxMS4yLTUuMTIgMTYuOTYtMzIuMTYgNjMuNjgtOTAuNTYgOTguNC0xNjUuMjggOTguNEgyNzIuMTZWMzkxLjM2aDI3LjUyYzI5LjI4IDAgOTQuMjQtNjEuNDQgMTU3Ljc2LTE0OS4yOCAyNC4xNi0zMy4yOCAyNC4xNi00MS4xMiAyNC4xNi0xMDEuOTJDNDgxLjYgNjEuNiA1MzMuOTIgMCA2MDAuNjQgMGM2MC4zMiAwIDEzMC41NiAzNC41NiAxMzAuNTYgMTMxLjY4IDAgNTguODgtMTcuNiAxNjguNDgtMjYuNzIgMjIwLjk2IDM0Ljg4LTAuOCA5NC40LTEuOTIgMTQ4LjQ4LTEuOTIgNjMuODQgMCAxMjAuMTYgMzAuNzIgMTUwLjU2IDgyLjQgMjYuNCA0NC45NiAyNy4zNiA5Ny40NCAyLjU2IDE0MC4zMnoiIHAtaWQ9IjUwNTUiIGZpbGw9IiNkNDIzN2EiPjwvcGF0aD48L3N2Zz4=');
 }
 
