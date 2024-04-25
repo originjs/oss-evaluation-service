@@ -129,8 +129,10 @@ watch([benchmarkIndex, benchmarkResult], () => {
       number1 = record[isGoodProjectId] === '--' ? Infinity : record[isGoodProjectId];
       number2 = record[projectId] === '--' ? Infinity : record[projectId];
       if (Number(number1) > Number(number2)) {
-        isAllEqual = false;
         isGoodProjectId = projectId;
+      }
+      if (number1 !== Infinity && number2 !== Infinity && number1 !== number2) {
+        isAllEqual = false;
       }
     }
 

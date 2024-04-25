@@ -49,15 +49,15 @@ getIndexByTechStack('测试框架-UT').then(response => {
     displayName: '得分',
     unit: '',
     category: '',
-    description: '',    
+    description: '',
   });
   response.data.unshift({
     indexName: 'version',
     displayName: '版本',
     unit: '',
     category: '',
-    description: '',    
-  });  
+    description: '',
+  });
   benchmarksRaw.value = [...response.data];
   benchmarkIndex.value = response.data;
 });
@@ -117,7 +117,7 @@ watch([benchmarkIndex, benchmarkResult], () => {
       benchmarkName: `${benchmarkIndexItem.displayName}`,
     };
 
-    if(benchmarkIndexItem.unit){
+    if (benchmarkIndexItem.unit) {
       record.benchmarkName += `(${benchmarkIndexItem.unit})`;
     }
 
@@ -130,8 +130,10 @@ watch([benchmarkIndex, benchmarkResult], () => {
       number1 = record[isGoodProjectId] === '--' ? Infinity : record[isGoodProjectId];
       number2 = record[projectId] === '--' ? Infinity : record[projectId];
       if (Number(number1) > Number(number2)) {
-        isAllEqual = false;
         isGoodProjectId = projectId;
+      }
+      if (number1 !== Infinity && number2 !== Infinity && number1 !== number2) {
+        isAllEqual = false;
       }
     }
 
@@ -174,7 +176,7 @@ watch([projects, benchmarkResultProjectsRaw, sortedRow], () => {
       if (!b[sortedRow.value]) {
         return -1;
       }
-      if(sortedRow.value == 'score'){
+      if (sortedRow.value == 'score') {
         return b[sortedRow.value] - a[sortedRow.value];
       }
       return a[sortedRow.value] - b[sortedRow.value];
@@ -380,8 +382,11 @@ const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
             </div>
           </template>
           <template #default="scope">
-            <div v-if="scope.row.benchmarkName === '得分' || scope.row.benchmarkName === '版本'" class="text-center">
-              {{ scope.row[getMappingKey(benchmarkResultProject)]}}
+            <div
+              v-if="scope.row.benchmarkName === '得分' || scope.row.benchmarkName === '版本'"
+              class="text-center"
+            >
+              {{ scope.row[getMappingKey(benchmarkResultProject)] }}
             </div>
             <div v-else text-center :style="computeColor(scope)">
               <div class="font-size-3 h4.5 font-500">
