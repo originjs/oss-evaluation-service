@@ -24,16 +24,20 @@ getProjectsByTechStack('前端框架', '前端框架').then(response => {
   projects.value = response.data;
 });
 
-const removeProject = (project:SoftwareBaseInfo) => {
-  projects.value = projects.value.filter(item => !(project.projectId === item.projectId && project.version === item.version));
+const removeProject = (project: SoftwareBaseInfo) => {
+  projects.value = projects.value.filter(
+    item => !(project.projectId === item.projectId && project.version === item.version),
+  );
   chooseProjectsRef.value?.cancelSelectedProject(project);
 };
 
-const changeSelectedProjects = (selectedProjects:SoftwareBaseInfo[]) =>{
-  projects.value = projectsRaw.value.filter(item => selectedProjects.some(p =>
-    p.projectId === item.projectId && p.selectedVersions.includes(item.version)
-  ));
-}
+const changeSelectedProjects = (selectedProjects: SoftwareBaseInfo[]) => {
+  projects.value = projectsRaw.value.filter(item =>
+    selectedProjects.some(
+      p => p.projectId === item.projectId && p.selectedVersions.includes(item.version),
+    ),
+  );
+};
 
 let benchmarksRaw = ref<BenchmarkIndex[]>([]); // 原始数据
 const benchmarkIndex = ref<Array<BenchmarkIndex>>([]); // 选中的 benchmark 指标，修改其值改变展示的表格行(指标项)
@@ -48,7 +52,9 @@ getBenchmarkResultByTechStack('前端框架').then(response => {
   envInfo.value = response.data[0]?.envInfo;
 });
 
-const getMappingKey = (project)=>{ return `${project.projectId}##${project.version}` };
+const getMappingKey = project => {
+  return `${project.projectId}##${project.version}`;
+};
 
 let benchmarksResultTableDataRaw = ref<any[]>([]); // 表格原始数据，在接口返回数据后只计算(更新)一次
 let benchmarkResultProjectsRaw = ref<BenchmarkResult[]>([]); // 表格列原始数据，按照项目分组后的 benchmarkResult 数据
@@ -74,7 +80,7 @@ watch([benchmarkIndex, benchmarkResult], () => {
         projectId: item.projectId,
         projectName: item.projectName,
         displayName: item.displayName,
-        version: item.version
+        version: item.version,
       };
       projectBenchmark.push(project);
     }
@@ -134,7 +140,9 @@ const sortedRow = ref('');
 const benchmarkResultProjects = ref<BenchmarkResult[]>([]); // 实际表格展示的列，根据选中的项目，并基于原始表格数据计算更新
 watch([projects, benchmarkResultProjectsRaw, sortedRow], () => {
   const res = benchmarkResultProjectsRaw.value.filter(item =>
-    projects.value.some(project => project.projectId === item.projectId && project.version?.startsWith(item.version)),
+    projects.value.some(
+      project => project.projectId === item.projectId && project.version?.startsWith(item.version),
+    ),
   );
   sortedRow.value &&
     res.sort((a, b) => {
@@ -206,7 +214,7 @@ const objectSpanMethod = ({ row, column, rowIndex, columnIndex }: SpanMethodProp
         colspan: 0,
       };
     }
-    let nextIndex = rowIndex++;
+    let nextIndex = rowIndex + 1;
     while (
       rowIndex < benchmarksResultTableData.value.length &&
       benchmarksResultTableData.value[rowIndex]?.category &&
@@ -230,7 +238,7 @@ const objectSpanMethod = ({ row, column, rowIndex, columnIndex }: SpanMethodProp
     <div class="tools" flex justify-between>
       <div flex-col w-full>
         <div flex w-full>
-          <div flex  w-full>
+          <div flex w-full>
             <div class="flex flex-items-center mr-8">
               <span>开源前端框架:</span>
               <el-button text type="primary" @click="showChooseProjects = true">
@@ -266,8 +274,8 @@ const objectSpanMethod = ({ row, column, rowIndex, columnIndex }: SpanMethodProp
         </div>
         <div flex mt-10px>
           <div class="flex flex-items-center mr-8" style="font-size: 12px">
-              <el-icon style="color: #fdbb7b;margin-right: 8px;"><InfoFilled /></el-icon>
-              {{ envInfo }}
+            <el-icon style="color: #fdbb7b; margin-right: 8px"><InfoFilled /></el-icon>
+            {{ envInfo }}
           </div>
         </div>
       </div>
@@ -287,16 +295,16 @@ const objectSpanMethod = ({ row, column, rowIndex, columnIndex }: SpanMethodProp
       >
         <el-table-column width="14px" fixed prop="category" label="类型">
           <template #header><div class="w-4 break-all">类型</div></template>
-          <template #default="{ row }"><div class="w-4 break-all">{{ row.category }}</div></template>
+          <template #default="{ row }"
+            ><div class="w-4 break-all">{{ row.category }}</div></template
+          >
         </el-table-column>
-        <el-table-column fixed prop="benchmarkName" label="Name" min-width="210">
+        <el-table-column fixed prop="benchmarkName" label="Name" min-width="220">
           <template #default="{ row }">
-            <div v-if="row.benchmarkName === '得分'" class="text-center">
-              {{ row.benchmarkName }}
-            </div>
+            <div v-if="row.benchmarkName === '得分'">{{ row.benchmarkName }}</div>
             <div v-else class="relative flex justify-between">
               <el-tooltip :content="row.description || row.benchmarkName">
-                <span class="flex-1 text-center">{{ row.benchmarkName }}</span></el-tooltip
+                <span class="flex-1">{{ row.benchmarkName }}</span></el-tooltip
               >
               <span
                 v-show="hoveringRow === row.indexName || sortedRow === row.indexName"
@@ -341,7 +349,9 @@ const objectSpanMethod = ({ row, column, rowIndex, columnIndex }: SpanMethodProp
             <div v-else text-center :style="computeColor(scope)">
               <div class="font-size-3 h4.5 font-500">
                 {{ scope.row[getMappingKey(benchmarkResultProject)]
-                }}{{ scope.row[getMappingKey(benchmarkResultProject)] === '--' ? '' : scope.row.unit }}
+                }}{{
+                  scope.row[getMappingKey(benchmarkResultProject)] === '--' ? '' : scope.row.unit
+                }}
               </div>
               <div
                 v-if="scope.row[getMappingKey(benchmarkResultProject)] !== '--'"
@@ -349,7 +359,9 @@ const objectSpanMethod = ({ row, column, rowIndex, columnIndex }: SpanMethodProp
                 class="flex items-center justify-center font-size-2.5"
               >
                 ({{
-                  (scope.row[getMappingKey(benchmarkResultProject)] / scope.row.isGoodValue).toFixed(2)
+                  (
+                    scope.row[getMappingKey(benchmarkResultProject)] / scope.row.isGoodValue
+                  ).toFixed(2)
                 }})
               </div>
             </div>
@@ -358,7 +370,12 @@ const objectSpanMethod = ({ row, column, rowIndex, columnIndex }: SpanMethodProp
       </el-table>
     </div>
 
-    <ChooseProjectsDialog ref="chooseProjectsRef" v-model="showChooseProjects" :projects="projectsRaw" @changeProjects='changeSelectedProjects'/>
+    <ChooseProjectsDialog
+      ref="chooseProjectsRef"
+      v-model="showChooseProjects"
+      :projects="projectsRaw"
+      @change-projects="changeSelectedProjects"
+    />
     <ChooseBenchmarkDialog
       v-model="showChooseBenchmark"
       :benchmarks="benchmarkIndex"
