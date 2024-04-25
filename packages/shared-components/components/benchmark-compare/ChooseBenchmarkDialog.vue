@@ -15,6 +15,12 @@ const props = defineProps({
 
 const emit = defineEmits(['changeValue']);
 
+const showBenchmark = ref<Array<BenchmarkIndex>>();
+
+watch(()=> props.benchmarks,()=>{
+  showBenchmark.value = props.benchmarks?.filter(item => !['score','version'].includes(item.indexName))
+});
+
 const selectedBenchmarks = ref<Array<string>>([]);
 const changeCheckBoxVal = (value: any[]) => {
   emit('changeValue', value);
@@ -25,7 +31,7 @@ const changeCheckBoxVal = (value: any[]) => {
   <el-dialog title="选择Benchmark指标项" class="choose-benchmark-dialog">
     <div overflow-y-auto h-500px>
       <el-checkbox-group v-model="selectedBenchmarks" @change="changeCheckBoxVal">
-        <div v-for="(item, index) in props.benchmarks" :key="item.indexName">
+        <div v-for="(item, index) in showBenchmark" :key="item.indexName">
           <div
             v-if="
               index == 0 ||
