@@ -680,39 +680,7 @@ const emits = defineEmits<{
             <div>MINIFIED + GZIPPED</div>
           </div>
         </div>
-        <div flex flex-items-center h-30px>
-          <span font-bold>Benchmark Score: </span>
-          <el-progress
-            :percentage="performanceModuleInfo.benchmarkScore"
-            text-inside
-            :stroke-width="15"
-            flex-auto
-            ml-6
-            mr-6
-          />
-          <el-link
-            :underline="false"
-            type="primary"
-            @click="showBenchmarkCompare = !showBenchmarkCompare"
-          >
-            {{ showBenchmarkCompare ? '隐藏' : '显示' }}性能Benchmark
-          </el-link>
-        </div>
         <div v-show="showBenchmarkCompare">
-          <SearchSoftware
-            class="w-280px"
-            :tech-stack="project?.techStack"
-            @change="addBenchmarkCompare"
-          >
-            <button
-              class="w-full flex flex-items-center p-12px rd-8px h-40px bg-#f6f6f7 b-1 b-solid b-transparent color-black-75 hover:b-#3451b2 mt-10px mb-10px"
-            >
-              <span class="flex flex-items-center">
-                <span i-ph-magnifying-glass-bold />
-                <span class="ml-6px">添加软件性能对比</span>
-              </span>
-            </button>
-          </SearchSoftware>
           <el-table
             :data="benchmarkCompareTable"
             border
@@ -723,14 +691,6 @@ const emits = defineEmits<{
               <template #header>
                 <div class="flex items-center justify-center">
                   <span>{{ column === 'indexName' ? 'Name' : column }}</span>
-                  <el-icon
-                    v-show="column !== 'indexName'"
-                    size="16"
-                    class="ml-6px cursor-pointer hover-color-#F56C6C"
-                    @click="benchmarkCompareColumns.delete(column)"
-                  >
-                    <Delete />
-                  </el-icon>
                 </div>
               </template>
               <template #default="{ row }">
