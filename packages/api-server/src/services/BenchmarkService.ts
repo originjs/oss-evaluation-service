@@ -52,14 +52,14 @@ INNER JOIN project_tech_stack pts
  */
 export async function queryIndexByTechStack(techStack: string): Promise<Array<BenchmarkIndex>> {
   const sql = `
-    SELECT index_name as indexName,
-       display_name as displayName,
-                              unit,
-                          category,
-                       description  
-      FROM benchmark_index 
-     WHERE tech_stack = :techStack 
-  ORDER BY category, 'ORDER';
+    SELECT t.index_name as indexName,
+       t.display_name as displayName,
+                              t.unit,
+                          t.category,
+                       t.description  
+      FROM benchmark_index t
+     WHERE t.tech_stack = :techStack 
+  ORDER BY t.order;
   `;
 
   const indexs = await sequelize.query(sql, {
