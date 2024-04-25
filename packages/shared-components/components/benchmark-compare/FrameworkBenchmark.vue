@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Setting, Rank, Close, InfoFilled } from '@element-plus/icons-vue';
+import { ElMessage } from 'element-plus';
+import { Setting, Close, InfoFilled } from '@element-plus/icons-vue';
 import type {
   SoftwareBaseInfo,
   BenchmarkIndex,
@@ -160,7 +161,6 @@ watch([projects, benchmarkResultProjectsRaw, sortedRow], () => {
 const showChooseProjects = ref(false);
 const showChooseBenchmark = ref(false);
 const submitProjectBenchmark = ref(false);
-const selectedPlatform = ref('Linxu');
 
 const computeColor = (scope: { row: any; column: any; $index: number }) => {
   if (scope.row[scope.column.property] === '--') {
@@ -231,6 +231,15 @@ const objectSpanMethod = ({ row, column, rowIndex, columnIndex }: SpanMethodProp
     };
   }
 };
+
+const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
+  const projectInfo = projectsRaw.value.find(p => p.projectId === project.projectId);
+  if (!projectInfo) {
+    ElMessage.error('抱歉，系统缺少该开源软件的详情, 我们会尽快提供');
+    return;
+  }
+  window.open(`/#/software-details?repoName=${projectInfo.repoName}`, '_blank');
+};
 </script>
 
 <template>
@@ -274,7 +283,9 @@ const objectSpanMethod = ({ row, column, rowIndex, columnIndex }: SpanMethodProp
         </div>
         <div flex mt-10px>
           <div class="flex flex-items-center mr-8" style="font-size: 12px">
-            <el-icon style="color: #fdbb7b; margin-right: 8px"><InfoFilled /></el-icon>
+            <el-icon style="color: #fdbb7b; margin-right: 8px">
+              <InfoFilled />
+            </el-icon>
             {{ envInfo }}
           </div>
         </div>
@@ -329,11 +340,17 @@ const objectSpanMethod = ({ row, column, rowIndex, columnIndex }: SpanMethodProp
         >
           <template #header="headerScope">
             <div text-center class="table-column-header">
-              {{ headerScope.column.label }}
+              <el-link
+                :underline="false"
+                target="_blank"
+                @click="getProjectInfoUrl(benchmarkResultProject)"
+              >
+                {{ headerScope.column.label }}
+              </el-link>
               <!-- <el-button v-if="idx < benchmarkResultProjects.length"
                 style="top:calc(50% - 16px);right:-26px;z-index: 9999;position: absolute;" :icon="Switch" circle /> -->
 
-              <el-button class="header-move-btn" :icon="Rank" circle />
+              <!-- <el-button class="header-move-btn" :icon="Rank" circle /> -->
               <!-- <el-icon style="position: absolute; top:calc(50% - 10px);left:calc(50% - 10px);font-size: 20px;" circle><Rank /></el-icon> -->
               <el-icon
                 class="cursor-pointer hover-color-#F56C6C"
