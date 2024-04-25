@@ -298,7 +298,6 @@ const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
       <el-table
         :data="benchmarksResultTableData"
         class="w-full"
-        height="530px"
         border
         :cell-style="{ padding: '0px' }"
         :span-method="objectSpanMethod"

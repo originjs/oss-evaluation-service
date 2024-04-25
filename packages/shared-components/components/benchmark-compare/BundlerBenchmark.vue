@@ -414,7 +414,6 @@ const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
       <el-table
         :data="benchmarksResultTableData"
         class="w-full"
-        height="530px"
         border
         :cell-style="{ padding: '0px' }"
         :span-method="objectSpanMethod"
@@ -425,7 +424,7 @@ const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
         <el-table-column width="14px" fixed prop="category" label="类型">
           <template #header><div class="write-vertical-left">类型</div></template>
           <template #default="{ row }"
-            ><div class="write-vertical-left">{{ row.category }}</div></template
+            ><div class="write-vertical-left rotate-180">{{ row.category }}</div></template
           >
         </el-table-column>
         <el-table-column fixed prop="benchmarkName" label="Name" width="220">
