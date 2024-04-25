@@ -15,6 +15,7 @@ import {
 } from '@orginjs/oss-evaluation-data-model';
 import sequelize from '../util/database.js';
 import { ServerError } from '../util/error.js';
+import BenchmarkVersionScore from '@orginjs/oss-evaluation-data-model/models/BenchmarkVersionScore.js';
 
 const MetricType = Object.freeze({
   L0: 0, // L0: Function / Quality / Performance / Ecology / Innovation
@@ -220,6 +221,46 @@ export async function evaluateProjectHandler(req, res) {
   res.status(200).json(project);
 }
 
+export async function evaluateBenchmark(req, res) {
+  const model = await loadModel();
+  let allBenchmarkVersion;
+  const { projectId, techStack } = req.body;
+  const scoreMap = {};
+  if (projectId) {
+    allBenchmarkVersion = await BenchmarkVersionScore.findAll({ where: { projectId } });
+  } else {
+    // take all projects from specific techstack
+    allBenchmarkVersion = await BenchmarkVersionScore.findAll({ where: { techStack } });
+  }
+  for (const benchmarkVersion of allBenchmarkVersion) {
+    const { id: bId } = benchmarkVersion;
+    const performanceValue = await getDimensionScore(
+      benchmarkVersion,
+      'performance',
+      techStack,
+      model,
+      bId,
+    );
+    benchmarkVersion.score = Math.round(performanceValue * 100);
+    maxOrCreate(scoreMap, benchmarkVersion.projectId, benchmarkVersion.score);
+    await benchmarkVersion.save();
+  }
+  for (let benchmarkProjecId in scoreMap) {
+    let projectScore = await EvaluationSummary.findOne({where: {projectId: benchmarkProjecId}});
+    projectScore.performanceScore = scoreMap[benchmarkProjecId];
+    await projectScore.save();
+  }
+  res.status(200).send('Done!');
+}
+
+function maxOrCreate(map, key, value) {
+  if (map[key] !== undefined) {
+    map[key] = Math.max(map[key], value);
+  } else {
+    map[key] = value;
+  }
+}
+
 async function evaluateScore(project, model) {
   if (!project) {
     throw new ServerError('Project not found!');
@@ -255,7 +296,7 @@ async function evaluateScore(project, model) {
   return project;
 }
 
-async function getDimensionScore(project, dimension, techStack, model) {
+async function getDimensionScore(project, dimension, techStack, model, bId) {
   const fieldList = model[dimension + techStack] || [];
   let totalScore = 0;
   let totalWeight = 0;
@@ -263,14 +304,15 @@ async function getDimensionScore(project, dimension, techStack, model) {
     const { field, techStack: subTechStack, weight, threshold, type } = fieldItem;
     totalWeight += weight;
     if (type === MetricType.MAIN) {
-      const fieldScore = await getDimensionScore(project, field, subTechStack, model);
+      const fieldScore = await getDimensionScore(project, field, subTechStack, model, bId);
       debug.log(`------ ${field}  weight = ${weight} ------`);
       totalScore += weight * fieldScore;
     } else {
       let rawValue;
       if (techStack !== 'common') {
-        rawValue = await getPerformanceRawValue(project.projectId, field, techStack);
-        if (!rawValue) {
+        const { projectId } = project;
+        rawValue = await getPerformanceRawValue(projectId, field, techStack, bId);
+        if (rawValue == null || rawValue < 0) {
           continue;
         }
         const { median, p10, isDesc } = fieldItem;
@@ -289,8 +331,10 @@ async function getDimensionScore(project, dimension, techStack, model) {
   return totalWeight == 0 ? null : totalScore / totalWeight;
 }
 
-async function getPerformanceRawValue(projectId, field, techStack) {
-  const rawData = await Benchmark.findOne({ where: { benchmark: field, projectId, techStack } });
+async function getPerformanceRawValue(projectId, field, techStack, bId) {
+  const rawData = await Benchmark.findOne({
+    where: { benchmark: field, projectId, techStack, bId },
+  });
   if (rawData == null) {
     debug.log(`Project ${projectId} data not found`);
     return null;
