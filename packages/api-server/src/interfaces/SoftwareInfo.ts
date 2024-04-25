@@ -132,4 +132,5 @@ export interface BenchmarkResult {
   platform: string;
   version: string;
   envInfo: string;
+  score: number;
 }

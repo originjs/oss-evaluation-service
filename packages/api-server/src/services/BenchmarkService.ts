@@ -89,13 +89,15 @@ export async function getBenchmarkResultByTechStack(
           bt.content,
           bt.platform,
           bvst.version,
-          bvst.env_info AS envInfo
+          bvst.env_info AS envInfo,
+          bvst.score
       FROM BENCHMARK bt
 INNER JOIN (
     SELECT st.project_id, 
            st.VERSION, 
            MAX(st.id) b_id, 
-           MAX(st.env_info) env_info
+           MAX(st.env_info) env_info,
+           MAX(st.score) score
       FROM benchmark_version_score st
      WHERE st.tech_stack = :techStack
   GROUP BY st.project_id, st.VERSION) bvst 
