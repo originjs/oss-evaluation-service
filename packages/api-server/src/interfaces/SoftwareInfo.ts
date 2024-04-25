@@ -8,6 +8,9 @@ export interface SoftwareBaseInfo {
   star?: number;
   forksCount?: number;
   version?: string;
+  versionList: string[];
+  selectedVersion: string;
+  selectedVersions: string[];
 }
 
 export interface SoftwareInfo extends SoftwareBaseInfo {

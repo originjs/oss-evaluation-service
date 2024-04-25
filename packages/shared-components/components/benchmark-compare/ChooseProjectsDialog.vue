@@ -5,8 +5,6 @@ import type { SoftwareBaseInfo } from '@orginjs/oss-evaluation-components-api';
 import { Search } from '@element-plus/icons-vue';
 
 interface ProjectInfo extends SoftwareBaseInfo {
-  versionList: string[];
-  selectedVersions: string[];
   selected: boolean;
 }
 
@@ -42,12 +40,10 @@ watch(()=> props.projects,()=>{
   _projects = [];
   props.projects?.forEach(project =>{
     const _project = project as ProjectInfo;
-    _project["versionList"] = [];
     _project["selected"] = false;
     if(_project.version){
-      _project["versionList"] = _project.version.split("##");
       _project["selected"] = true;
-      _project.selectedVersions = [_project["versionList"][0]];
+      //_project.selectedVersions = [_project["versionList"][0]];
     }    
     _projects.push(_project);
   })

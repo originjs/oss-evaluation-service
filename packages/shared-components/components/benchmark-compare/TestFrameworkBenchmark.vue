@@ -46,6 +46,13 @@ getIndexByTechStack('测试框架-UT').then(response => {
     category: '',
     description: '',    
   });
+  response.data.unshift({
+    indexName: 'version',
+    displayName: '版本',
+    unit: '',
+    category: '',
+    description: '',    
+  });  
   benchmarksRaw.value = [...response.data];
   benchmarkIndex.value = response.data;
 });
@@ -148,9 +155,9 @@ const benchmarkResultProjects = ref<BenchmarkResult[]>([]); // 实际表格展�
 watch([projects, benchmarkResultProjectsRaw, sortedRow], () => {
   const res = benchmarkResultProjectsRaw.value.filter(item =>
     projects.value.some(project => {
-      if (typeof project.selectedVersions === 'undefined') {
-        return project.projectId === item.projectId && project.version?.startsWith(item.version);
-      }
+      // if (typeof project.selectedVersions === 'undefined') {
+      //   return project.projectId === item.projectId && project.version?.startsWith(item.version);
+      // }
       return project.selectedVersions.includes(item.version);
     }),
   );
@@ -261,7 +268,7 @@ const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
         <div flex w-full>
           <div flex w-full>
             <div class="flex flex-items-center mr-8">
-              <span>开源测试框架:</span>
+              <span>开源软件:</span>
               <el-button text type="primary" @click="showChooseProjects = true">
                 {{ projects[0]?.projectName }}等{{ projects.length }}款软件</el-button
               >
@@ -347,7 +354,7 @@ const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
           :prop="getMappingKey(benchmarkResultProject)"
           width="100%"
           class-name="benchmark-value-cell"
-          :label="benchmarkResultProject.displayName || benchmarkResultProject.projectName"
+          :label="benchmarkResultProject.projectName"
         >
           <template #header="headerScope">
             <div text-center class="table-column-header">
@@ -373,7 +380,7 @@ const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
             </div>
           </template>
           <template #default="scope">
-            <div v-if="scope.row.benchmarkName === '得分'" class="text-center">
+            <div v-if="scope.row.benchmarkName === '得分' || scope.row.benchmarkName === '版本'" class="text-center">
               {{ scope.row[getMappingKey(benchmarkResultProject)]}}
             </div>
             <div v-else text-center :style="computeColor(scope)">
