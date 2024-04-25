@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TableColumnCtx } from 'element-plus';
-import { Setting, Rank, Close } from '@element-plus/icons-vue';
+import { Setting, Rank, Close, InfoFilled } from '@element-plus/icons-vue';
 import type {
   SoftwareBaseInfo,
   BenchmarkIndex,
@@ -21,17 +21,26 @@ interface SummaryMethodProps<
   columns: TableColumnCtx<T>[];
   data: T[];
 }
+const chooseProjectsRef = ref<InstanceType<typeof ChooseProjectsDialog>>();
 
 let projectsRaw = ref<Array<SoftwareBaseInfo>>([]); // 原始数据，用来展示所有可选项目
 const projects = ref<Array<SoftwareBaseInfo>>([]); // 选中的项目，可修改其值改变表格展示的项目
+const envInfo = ref<string>();
 getProjectsByTechStack('前端框架', '前端框架').then(response => {
   projectsRaw.value = [...response.data]; // 使用 ... 运算符断开引用，防止原始数据被修改
   projects.value = response.data;
 });
 
-const removeProject = (projectId: string) => {
-  projects.value = projects.value.filter(item => projectId !== item.projectId);
+const removeProject = (project:SoftwareBaseInfo) => {
+  projects.value = projects.value.filter(item => !(project.projectId === item.projectId && project.version === item.version));
+  chooseProjectsRef.value?.cancelSelectedProject(project);
 };
+
+const changeSelectedProjects = (selectedProjects:SoftwareBaseInfo[]) =>{
+  projects.value = projectsRaw.value.filter(item => selectedProjects.some(p => 
+    p.projectId === item.projectId && p.selectedVersions.includes(item.version)
+  ));  
+}
 
 let benchmarksRaw = ref<BenchmarkIndex[]>([]); // 原始数据
 const benchmarkIndex = ref<Array<BenchmarkIndex>>([]); // 选中的 benchmark 指标，修改其值改变展示的表格行(指标项)
@@ -42,8 +51,11 @@ getIndexByTechStack('前端框架').then(response => {
 
 const benchmarkResult = ref<BenchmarkResult[]>([]);
 getBenchmarkResultByTechStack('前端框架').then(response => {
-  benchmarkResult.value = response.data;
+  benchmarkResult.value = response.data;  
+  envInfo.value = response.data[0]?.envInfo;
 });
+
+const getMappingKey = (project)=>{ return `${project.projectId}##${project.version}` };
 
 let benchmarksResultTableDataRaw = ref<any[]>([]); // 表格原始数据，在接口返回数据后只计算(更新)一次
 let benchmarkResultProjectsRaw = ref<BenchmarkResult[]>([]); // 表格列原始数据，按照项目分组后的 benchmarkResult 数据
@@ -56,21 +68,24 @@ watch([benchmarkIndex, benchmarkResult], () => {
   const projectBenchmark: { [key: string]: string | number }[] = [];
   const projectIndexMapping: { [key: string]: number } = {};
   let project: { [key: string]: string | number };
+  let mappingKey;
   for (const item of benchmarkResult.value) {
     if (!projects.value.some(project => project.projectId === item.projectId)) {
       continue;
     }
 
-    if (typeof projectIndexMapping[item.projectId] === 'undefined') {
-      projectIndexMapping[item.projectId] = projectBenchmark.length;
+    mappingKey = getMappingKey(item);
+    if (typeof projectIndexMapping[mappingKey] === 'undefined') {
+      projectIndexMapping[mappingKey] = projectBenchmark.length;
       project = {
         projectId: item.projectId,
         projectName: item.projectName,
         displayName: item.displayName,
+        version: item.version
       };
       projectBenchmark.push(project);
     }
-    project = projectBenchmark[projectIndexMapping[item.projectId]];
+    project = projectBenchmark[projectIndexMapping[mappingKey]];
     project[item.benchmark] = Number(item.rawValue).toFixed(2);
   }
 
@@ -85,11 +100,11 @@ watch([benchmarkIndex, benchmarkResult], () => {
       ...benchmarkIndexItem,
       benchmarkName: `${benchmarkIndexItem.displayName}(${benchmarkIndexItem.unit})`,
     };
-    isGoodProjectId = projectBenchmark[0].projectId; // 初始化一个值，方便后续比较
+    isGoodProjectId = getMappingKey(projectBenchmark[0]); // 初始化一个值，方便后续比较
     for (let i = 0; i < projectBenchmark.length; i++) {
       const projectBenchmarkItem = projectBenchmark[i];
       const indexValue = projectBenchmarkItem[benchmarkIndexItem.indexName];
-      const projectId = projectBenchmarkItem.projectId;
+      const projectId = getMappingKey(projectBenchmarkItem);
       record[projectId] = indexValue && Number(indexValue) !== 0 ? indexValue : '--';
       number1 = record[isGoodProjectId] === '--' ? Infinity : record[isGoodProjectId];
       number2 = record[projectId] === '--' ? Infinity : record[projectId];
@@ -121,7 +136,7 @@ const sortedRow = ref('');
 const benchmarkResultProjects = ref<BenchmarkResult[]>([]); // 实际表格展示的列，根据选中的项目，并基于原始表格数据计算更新
 watch([projects, benchmarkResultProjectsRaw, sortedRow], () => {
   const res = benchmarkResultProjectsRaw.value.filter(item =>
-    projects.value.some(project => project.projectId === item.projectId),
+    projects.value.some(project => project.projectId === item.projectId && project.version?.startsWith(item.version)),
   );
   sortedRow.value &&
     res.sort((a, b) => {
@@ -193,37 +208,48 @@ const getSummaries = (param: SummaryMethodProps) => {
 <template>
   <div>
     <div class="tools" flex justify-between>
-      <div flex>
-        <div class="flex flex-items-center mr-8">
-          <span>开源前端框架:</span>
-          <el-button text type="primary" @click="showChooseProjects = true">
-            {{ projects[0]?.projectName }}等{{ projects.length }}款软件</el-button
-          >
+      <div flex-col w-full>
+        <div flex w-full>
+          <div flex  w-full>
+            <div class="flex flex-items-center mr-8">
+              <span>开源前端框架:</span>
+              <el-button text type="primary" @click="showChooseProjects = true">
+                {{ projects[0]?.projectName }}等{{ projects.length }}款软件</el-button
+              >
+            </div>
+            <div class="flex flex-items-center mr-8">
+              <span>Benchmarks:</span>
+              <el-button text type="primary" @click="showChooseBenchmark = true"
+                >{{ benchmarkIndex.length }}项benchmark</el-button
+              >
+            </div>
+        
+            <!-- <div class="flex flex-items-center mr-8">
+              <span mr-2>Platform:</span>
+              <el-select v-model="selectedPlatform" style="width: 100px" size="small">
+                <el-option label="Linux" value="Linux" />
+                <el-option label="Window" value="Window" />
+              </el-select>
+            </div> -->
+            <!-- <div class="flex flex-items-center mr-8">
+              <el-switch size="small" inactive-text="仅显示有数据" />
+            </div> -->
+          </div>
+          <div flex flex-items-center>
+            <el-button type="primary" text @click="submitProjectBenchmark = true"
+              >增加Benchmark软件</el-button
+            >
+            <el-icon class="cursor-pointer">
+              <Setting />
+            </el-icon>
+          </div>
         </div>
-        <div class="flex flex-items-center mr-8">
-          <span>Benchmarks:</span>
-          <el-button text type="primary" @click="showChooseBenchmark = true"
-            >{{ benchmarkIndex.length }}项benchmark</el-button
-          >
+        <div flex mt-10px>
+          <div class="flex flex-items-center mr-8" style="font-size: 12px">
+              <el-icon style="color: #fdbb7b;margin-right: 8px;"><InfoFilled /></el-icon>
+              {{ envInfo }}
+          </div>  
         </div>
-        <div class="flex flex-items-center mr-8">
-          <span mr-2>Platform:</span>
-          <el-select v-model="selectedPlatform" style="width: 100px" size="small">
-            <el-option label="Linux" value="Linux" />
-            <el-option label="Window" value="Window" />
-          </el-select>
-        </div>
-        <div class="flex flex-items-center mr-8">
-          <el-switch size="small" inactive-text="仅显示有数据" />
-        </div>
-      </div>
-      <div flex flex-items-center>
-        <el-button type="primary" text @click="submitProjectBenchmark = true"
-          >增加Benchmark软件</el-button
-        >
-        <el-icon class="cursor-pointer">
-          <Setting />
-        </el-icon>
       </div>
     </div>
 
@@ -231,7 +257,7 @@ const getSummaries = (param: SummaryMethodProps) => {
       <el-table
         :data="benchmarksResultTableData"
         class="w-full"
-        height="570px"
+        height="530px"
         border
         :cell-style="{ padding: '0px' }"
         :summary-method="getSummaries"
@@ -260,8 +286,8 @@ const getSummaries = (param: SummaryMethodProps) => {
         </el-table-column>
         <el-table-column
           v-for="benchmarkResultProject of benchmarkResultProjects"
-          :key="benchmarkResultProject.projectId"
-          :prop="benchmarkResultProject.projectId"
+          :key="getMappingKey(benchmarkResultProject)"
+          :prop="getMappingKey(benchmarkResultProject)"
           min-width="120"
           class-name="benchmark-value-cell"
           :label="benchmarkResultProject.displayName || benchmarkResultProject.projectName"
@@ -277,7 +303,7 @@ const getSummaries = (param: SummaryMethodProps) => {
               <el-icon
                 class="cursor-pointer hover-color-#F56C6C"
                 style="position: absolute; top: 3px; right: 3px"
-                @click="removeProject(benchmarkResultProject.projectId)"
+                @click="removeProject(benchmarkResultProject)"
               >
                 <Close />
               </el-icon>
@@ -286,15 +312,15 @@ const getSummaries = (param: SummaryMethodProps) => {
           <template #default="scope">
             <div py-8px px-12px text-center :style="computeColor(scope)">
               <div>
-                {{ scope.row[benchmarkResultProject.projectId]
-                }}{{ scope.row[benchmarkResultProject.projectId] === '--' ? '' : scope.row.unit }}
+                {{ scope.row[getMappingKey(benchmarkResultProject)]
+                }}{{ scope.row[getMappingKey(benchmarkResultProject)] === '--' ? '' : scope.row.unit }}
               </div>
               <div
-                v-if="scope.row[benchmarkResultProject.projectId] !== '--'"
+                v-if="scope.row[getMappingKey(benchmarkResultProject)] !== '--'"
                 :class="isGoodClass(scope)"
               >
                 ({{
-                  (scope.row[benchmarkResultProject.projectId] / scope.row.isGoodValue).toFixed(2)
+                  (scope.row[getMappingKey(benchmarkResultProject)] / scope.row.isGoodValue).toFixed(2)
                 }})
               </div>
             </div>
@@ -303,7 +329,7 @@ const getSummaries = (param: SummaryMethodProps) => {
       </el-table>
     </div>
 
-    <ChooseProjectsDialog v-model="showChooseProjects" :projects="projects" />
+    <ChooseProjectsDialog ref="chooseProjectsRef" v-model="showChooseProjects" :projects="projectsRaw" @changeProjects='changeSelectedProjects'/>
     <ChooseBenchmarkDialog
       v-model="showChooseBenchmark"
       :benchmarks="benchmarkIndex"

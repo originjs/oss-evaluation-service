@@ -91,6 +91,30 @@ const search = (value:string)=>{
   showProjects.value = _projects.filter(project=> project.projectName?.includes(value));
 }
 
+const changeSelectedVersion = (project:ProjectInfo)=>{
+  if(!project.selectedVersions.length){
+    project.selected = false;
+  }
+  emit('changeProjects',showProjects.value!.filter(p => p.selected));
+}
+
+const cancelSelectedProject = (project:SoftwareBaseInfo) => {
+  showProjects.value?.forEach(p=>{
+    if(p.projectId !== project.projectId){
+      return;
+    }
+
+    if(p.selectedVersions.length <= 1){
+      p.selected = false;
+      return;
+    }
+
+    p.selectedVersions = p.selectedVersions.filter(v=> v !== project.version);    
+  })
+}
+
+defineExpose({ cancelSelectedProject });
+
 </script>
 
 <template>
@@ -98,46 +122,31 @@ const search = (value:string)=>{
     <template #header>
       <div flex flex-items-center>
         <h4 font-size-18px fw-400 mr-20px>选择要显示的项目</h4>
-        <el-checkbox v-model="isSelectedAll" label="全选" @change="selectAll"/>
+        <el-checkbox v-model="isSelectedAll" label="全选" @change="selectAll" />
         <el-checkbox v-model="onlyShowHasBenchmark" @change="getShowProjects" label="仅显示有评测数据的项目" />
-        <el-input
-          class="ml-2"
-          style="width: 180px"
-          size="small"
-          placeholder="Please input project name"
-          v-model="searchKeyWord"
-          @change="search"
-          :prefix-icon="Search"
-        />
+        <el-input class="ml-2" style="width: 180px" size="small" placeholder="Please input project name"
+          v-model="searchKeyWord" @change="search" :prefix-icon="Search" />
         <div ml-20px flex flex-items-center>
           开源项目总数：{{ showProjects?.length }}
         </div>
       </div>
     </template>
     <div overflow-y-scroll h-lg>
-      <div
-        v-for="item in showProjects"
-        :key="item.projectId"
-        flex
-        items-center
-        h-80px
-        class="project"
-        :class="{'selected':item.selected,'disable': !item.version}"
-        @click="chooseProject(item)"
-      >
+      <div v-for="item in showProjects" :key="item.projectId" flex items-center h-80px class="project"
+        :class="{'selected':item.selected,'disable': !item.version}" @click="chooseProject(item)">
         <el-image :src="item.logo" fit="contain" class="w-64px h-64px mr-14px">
           <template #error>
             <div flex flex-justify-center flex-items-center w-full h-full bg-gray-100>
               <el-icon font-size-7 color-gray-400>
                 <Picture />
               </el-icon>
-            </div> </template
-          >ost
+            </div>
+          </template>ost
         </el-image>
         <div flex flex-col flex-1>
           <div flex items-center justify-between>
             <div flex>
-              <b mr-12px font-size-18px>{{ item.projectName }}</b>
+              <b mr-12px font-size-18px>{{ item.repoName }}</b>
               <span mr-4 flex items-center>
                 <div i-custom:star font-size-5 mr-1></div>
                 {{ item.star }}
@@ -149,11 +158,12 @@ const search = (value:string)=>{
             </div>
             <div flex>
               <span mr-4 flex items-center>
-                <el-select placeholder="Select version" size="small" style="width: 120px" multiple v-model="item.selectedVersions">
+                <el-select @change="changeSelectedVersion(item)" placeholder="Select version" size="small" collapse-tags
+                  collapse-tags-tooltip style="width: 120px" multiple v-model="item.selectedVersions">
                   <template #header>
                     <el-button text type="primary">申请其他版本</el-button>
                   </template>
-                  <el-option v-for="version in item.versionList" :label="version" :value="version" :key="version"/>
+                  <el-option v-for="version in item.versionList" :label="version" :value="version" :key="version" />
                 </el-select>
               </span>
             </div>

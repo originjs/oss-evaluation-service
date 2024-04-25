@@ -129,4 +129,6 @@ export interface BenchmarkResult {
   createdAt: string;
   content: string;
   platform: string;
+  version: string;
+  envInfo: string;
 }

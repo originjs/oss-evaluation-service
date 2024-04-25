@@ -59,7 +59,7 @@ export async function queryIndexByTechStack(techStack: string): Promise<Array<Be
                        description  
       FROM benchmark_index 
      WHERE tech_stack = :techStack 
-  ORDER BY category, 'ORDER';
+  ORDER BY 'ORDER';
   `;
 
   const indexs = await sequelize.query(sql, {
@@ -80,22 +80,28 @@ export async function getBenchmarkResultByTechStack(
   techStack: string,
 ): Promise<Array<BenchmarkResult>> {
   const sql = `
-        SELECT project_id as projectId,
-           project_name as projectName,
-           display_name as displayName,
-                             benchmark,
-                 raw_value as rawValue,
-               created_at as createdAt,
-                               content,
-                              platform
-          FROM BENCHMARK
-          WHERE patch_id = (
-            SELECT MAX(patch_id)
-            FROM BENCHMARK
-            WHERE tech_stack = :techStack) 
-          and raw_value is not null
-      ORDER BY project_id, BENCHMARK,created_at;
-  `;
+    SELECT bt.project_id AS projectId,
+          bt.project_name AS projectName,
+          bt.display_name AS displayName, 
+          benchmark,
+          bt.raw_value AS rawValue,
+          bt.created_at AS createdAt,
+          bt.content,
+          bt.platform,
+          bvst.version,
+          bvst.env_info AS envInfo
+      FROM BENCHMARK bt
+INNER JOIN (
+    SELECT st.project_id, 
+           st.VERSION, 
+           MAX(st.id) b_id, 
+           MAX(st.env_info) env_info
+      FROM benchmark_version_score st
+     WHERE st.tech_stack = :techStack
+  GROUP BY st.project_id, st.VERSION) bvst 
+        ON bvst.b_id = bt.b_id
+     WHERE bt.raw_value IS NOT NULL
+  ORDER BY bt.project_id, bt.BENCHMARK,bt.created_at;`;
 
   const indexes = await sequelize.query(sql, {
     replacements: { techStack },
