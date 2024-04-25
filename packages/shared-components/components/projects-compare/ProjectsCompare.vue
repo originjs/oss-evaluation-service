@@ -37,11 +37,13 @@ prop.repositories.forEach(repoName => {
   promises.push(getSoftwareInfo(encodedname));
 });
 
-Promise.all(promises).then(result=>{
+Promise.all(promises)
+  .then(result => {
     result.forEach(data => {
       projects.push(data['data']);
+    });
   })
-}).catch((error: any) => {
+  .catch((error: any) => {
     console.error('Failed to get data, try again later.', error);
   });
 
@@ -1338,7 +1340,11 @@ const changePage = (name: string) => {
                 >
                 <div style="display: inline-flex">
                   <div i-custom:contributor font-size-6 mr-4 />
-                  <div>贡献者数量</div>
+                  <div>
+                    <el-tooltip :content="i18n.global.t(`tips.ecology.contributor`)">
+                      贡献者数量
+                    </el-tooltip>
+                  </div>
                 </div>
               </div>
 
@@ -1389,11 +1395,11 @@ const changePage = (name: string) => {
                   style="text-align: center; font-weight: bold"
                   :class="{
                     good: isGood(
-                      projects[idx - 1].evaluation.commentFrequency,
-                      'evaluation.commentFrequency',
+                      projects[idx - 1].evaluation.commitFrequency,
+                      'evaluation.commitFrequency',
                     ),
                   }"
-                  >{{ formatFloat(projects[idx - 1].evaluation.commentFrequency) }}</span
+                  >{{ formatFloat(projects[idx - 1].evaluation.commitFrequency) }}</span
                 >
                 <span text-center>
                   <el-tooltip content="过去90天内平均每周代码提交次数"> 代码提交频率 </el-tooltip>
@@ -1442,7 +1448,7 @@ const changePage = (name: string) => {
                       'evaluation.commentFrequency',
                     ),
                   }"
-                  >{{ formatNumber(projects[idx - 1].evaluation.commentFrequency) }}</span
+                  >{{ formatFloat(projects[idx - 1].evaluation.commentFrequency) }}</span
                 >
                 <span text-center>
                   <el-tooltip
@@ -1452,7 +1458,24 @@ const changePage = (name: string) => {
                   </el-tooltip>
                 </span>
               </div>
-
+              <div
+                v-show="getShowRow('evaluation.closedIssuesCount')"
+                style="width: 160px; display: flex; flex-direction: column; justify-content: center"
+              >
+                <span
+                  style="text-align: center; font-weight: bold"
+                  :class="{
+                    good: isGood(
+                      projects[idx - 1].evaluation.closedIssuesCount,
+                      'evaluation.closedIssuesCount',
+                    ),
+                  }"
+                  >{{ formatNumber(projects[idx - 1].evaluation.closedIssuesCount) }}</span
+                >
+                <span text-center>
+                  <el-tooltip content="过去90天内Issue解决关闭的数量"> Issue关闭数量 </el-tooltip>
+                </span>
+              </div>
               <div
                 v-show="getShowRow('evaluation.recentReleasesCount')"
                 style="width: 160px; display: flex; flex-direction: column; justify-content: center"
