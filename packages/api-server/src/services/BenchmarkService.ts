@@ -27,7 +27,12 @@ export async function queryProjectsByTechStack(
            gp.owner_avatar_url as logo,
            gp.stargazers_count as star,
            gp.forks_count as forksCount,
-           (SELECT GROUP_CONCAT( distinct VERSION ORDER BY VERSION desc  SEPARATOR '##')  FROM benchmark_version_score bvs WHERE bvs.project_id = gp.id) version
+           (SELECT GROUP_CONCAT( distinct VERSION ORDER BY VERSION desc SEPARATOR '##') 
+              FROM benchmark_version_score bvs 
+             WHERE bvs.project_id = gp.id) version,
+           (SELECT version 
+              FROM benchmark_version_score bvs 
+             WHERE bvs.project_id = gp.id ORDER BY score DESC LIMIT 1) selectedVersion
       FROM github_projects gp
 INNER JOIN project_tech_stack pts 
         ON gp.id = pts.project_id
@@ -39,6 +44,12 @@ INNER JOIN project_tech_stack pts
   const projects = await sequelize.query(sql, {
     replacements: { category, techStack },
     type: sequelize.QueryTypes.SELECT,
+  });
+
+  projects.forEach(element => {
+    element["versionList"] = element.version? element.version.split("##") : [];
+    element["selectedVersions"] = [];
+    element.selectedVersion && element["selectedVersions"].push(element.selectedVersion);
   });
 
   return projects;
