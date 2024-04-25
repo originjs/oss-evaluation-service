@@ -13,6 +13,7 @@ import {
 import ChooseProjectsDialog from './ChooseProjectsDialog.vue';
 import ChooseBenchmarkDialog from './ChooseBenchmarkDialog.vue';
 import ApplyNewProjectBenchmarkDialog from './ApplyNewProjectBenchmarkDialog.vue';
+import type { TableColumnCtx } from 'element-plus';
 
 let projectsRaw = ref<Array<SoftwareBaseInfo>>([]); // 原始数据，用来展示所有可选项目
 const projects = ref<Array<SoftwareBaseInfo>>([]); // 选中的项目，可修改其值改变表格展示的项目
@@ -172,6 +173,41 @@ const isGoodClass = (scope: { row: any; column: any; $index: number }) => {
   }
   return '';
 };
+
+interface SpanMethodProps {
+  row: { category: string };
+  column: TableColumnCtx<{ category: string }>;
+  rowIndex: number;
+  columnIndex: number;
+}
+
+let rowLen = 1;
+const objectSpanMethod = ({ row, column, rowIndex, columnIndex }: SpanMethodProps) => {
+  if (columnIndex === 0) {
+    if (rowLen > 1) {
+      rowLen--;
+      return {
+        rowspan: 0,
+        colspan: 0,
+      };
+    }
+    let nextIndex = rowIndex++;
+    while (
+      rowIndex < benchmarksResultTableData.value.length &&
+      benchmarksResultTableData.value[rowIndex]?.category &&
+      benchmarksResultTableData.value[nextIndex]?.category &&
+      benchmarksResultTableData.value[rowIndex].category ===
+        benchmarksResultTableData.value[nextIndex].category
+    ) {
+      nextIndex++;
+      rowLen++;
+    }
+    return {
+      rowspan: rowLen,
+      colspan: 1,
+    };
+  }
+};
 </script>
 
 <template>
@@ -217,10 +253,15 @@ const isGoodClass = (scope: { row: any; column: any; $index: number }) => {
         class="w-full"
         border
         :cell-style="{ padding: '0px' }"
+        :span-method="objectSpanMethod"
         table-layout="auto"
         @cell-mouse-enter="({ indexName }) => (hoveringRow = indexName)"
         @cell-mouse-leave="hoveringRow = ''"
       >
+        <el-table-column width="14px" fixed prop="category" label="类型">
+          <template #header><div class="w-4 break-all">类型</div></template>
+          <template #default="{ row }"><div class="w-4 break-all">{{ row.category }}</div></template>
+        </el-table-column>
         <el-table-column fixed prop="benchmarkName" label="Name" min-width="210">
           <template #default="{ row }">
             <div v-if="row.benchmarkName === '得分'" class="text-center">
