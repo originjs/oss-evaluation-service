@@ -32,6 +32,9 @@ export default sequelize.define(
     platform: {
       type: DataTypes.STRING,
     },
+    bId: {
+      type: DataTypes.INTEGER,
+    },
   },
   {
     tableName: 'benchmark',

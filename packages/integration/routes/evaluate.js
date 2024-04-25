@@ -2,6 +2,7 @@ import express from 'express';
 import {
   calculateAllMetricsHandler,
   evaluateProjectHandler,
+  evaluateBenchmark,
   setAllMedianAndP10,
 } from '../controllers/evaluate.js';
 
@@ -40,6 +41,32 @@ router.route('/all').post(calculateAllMetricsHandler);
  *         description: Success
  */
 router.route('/project/:repoName').get(evaluateProjectHandler);
+
+/**
+ * @swagger
+ * tags:
+ *   name: Evaluate
+ * /eval/project/evaluateBenchmark:
+ *   post:
+ *     summary: Evaluate techStack performance
+ *     tags: [Evaluate]
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               techStack:
+ *                 type: string
+ *                 example: "前端框架"
+ *               projectId:
+ *                 type: string
+ *                 example: null
+ *     responses:
+ *       200:
+ *         description: Success
+ */
+router.route('/project/evaluateBenchmark').post(evaluateBenchmark);
 
 /**
  * @swagger
