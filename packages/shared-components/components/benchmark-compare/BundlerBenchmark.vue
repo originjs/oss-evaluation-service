@@ -32,12 +32,8 @@ const removeProject = (project: SoftwareBaseInfo) => {
   chooseProjectsRef.value?.cancelSelectedProject(project);
 };
 
-const changeSelectedProjects = (selectedProjects: SoftwareBaseInfo[]) => {
-  projects.value = projectsRaw.value.filter(item =>
-    selectedProjects.some(
-      p => p.projectId === item.projectId && p.selectedVersions.includes(item.version),
-    ),
-  );
+const changeSelectedProjects = () => {
+  projects.value = projectsRaw.value.filter(item => item.selected)
 };
 
 let benchmarksRaw = ref<BenchmarkIndex[]>([]); // 原始数据
@@ -86,7 +82,7 @@ watch([benchmarkIndex, benchmarkResult], () => {
       projectBenchmark.push(project);
     }
     project = projectBenchmark[projectIndexMapping[mappingKey]];
-    project[item.benchmark] = Number(item.rawValue).toFixed(2);
+    project[item.benchmark] = Number(item.rawValue).toFixed(3);
   }
 
   let record: any;
@@ -142,9 +138,15 @@ const benchmarkResultProjects = ref<BenchmarkResult[]>([]); // 实际表格展�
 watch([projects, benchmarkResultProjectsRaw, sortedRow], () => {
   const res = benchmarkResultProjectsRaw.value.filter(item =>
     projects.value.some(
-      project => project.projectId === item.projectId && project.version?.startsWith(item.version),
+      project => {
+        if(typeof project.selectedVersions ===  'undefined'){
+          return project.projectId === item.projectId && project.version?.startsWith(item.version);
+        }
+        return project.selectedVersions.includes(item.version);        
+      }
     ),
   );
+
   sortedRow.value &&
     res.sort((a, b) => {
       if (!a[sortedRow.value]) {
@@ -426,7 +428,7 @@ const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
             ><div class="write-vertical-left">{{ row.category }}</div></template
           >
         </el-table-column>
-        <el-table-column fixed prop="benchmarkName" label="Name" min-width="220">
+        <el-table-column fixed prop="benchmarkName" label="Name" width="220">
           <template #default="{ row }">
             <div v-if="row.benchmarkName === '得分'">{{ row.benchmarkName }}</div>
             <div v-else class="relative flex justify-between">

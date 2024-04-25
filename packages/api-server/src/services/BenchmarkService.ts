@@ -112,7 +112,7 @@ INNER JOIN (
   for (const index of indexes) {
     if (isNumber(index?.rawValue)) {
       // rounding
-      index.rawValue = fixedRound(index.rawValue, 2);
+      index.rawValue = fixedRound(index.rawValue, 3);
     }
   }
 
