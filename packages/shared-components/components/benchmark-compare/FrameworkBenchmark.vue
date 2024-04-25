@@ -305,9 +305,9 @@ const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
         @cell-mouse-leave="hoveringRow = ''"
       >
         <el-table-column width="14px" fixed prop="category" label="类型">
-          <template #header><div class="w-4 break-all">类型</div></template>
+          <template #header><div class="write-vertical-left">类型</div></template>
           <template #default="{ row }"
-            ><div class="w-4 break-all">{{ row.category }}</div></template
+            ><div class="write-vertical-left">{{ row.category }}</div></template
           >
         </el-table-column>
         <el-table-column fixed prop="benchmarkName" label="Name" min-width="220">
