@@ -161,6 +161,12 @@ export default sequelize.define(
     integratedState: {
       type: DataTypes.INTEGER,
     },
+    contributors: {
+      type: DataTypes.INTEGER,
+    },
+    dependentCount: {
+      type: DataTypes.BIGINT,
+    },
   },
   {
     tableName: 'github_projects',
