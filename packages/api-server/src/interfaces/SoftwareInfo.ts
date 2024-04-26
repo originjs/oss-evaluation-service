@@ -96,6 +96,8 @@ export interface EcologyActivityCategory {
   closedIssuesCount: EcologyActivity[];
   orgCount: EcologyActivity[];
   contributorCount: EcologyActivity[];
+  recentReleasesCount: EcologyActivity[];
+  packageDownload: EcologyActivity[];
   starTrend: object;
 }
 

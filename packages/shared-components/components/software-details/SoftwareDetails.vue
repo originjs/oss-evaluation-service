@@ -489,12 +489,14 @@ watchEffect(async () => {
   loadingEcology.value = true;
   const { data } = await getEcologyActivityCategoryApi(encodedRepoName.value);
   starTrend.value = data.starTrend;
+  renderLineChart('#week-package-downloads-chart', data.packageDownload);
   renderLineChart('#code-submit-frequency-chart', data.commitFrequency);
   renderLineChart('#issue-comment-frequency-chart', data!.commentFrequency);
   renderLineChart('#update-issue-count-chart', data.updatedIssuesCount);
   renderLineChart('#close-issue-count-chart', data.closedIssuesCount);
   renderLineChart('#organization-count-chart', data.orgCount);
   renderLineChart('#contributor-count-chart', data.contributorCount);
+  renderLineChart('#recent-releases-count-chart', data.recentReleasesCount);
   renderGithubStartChart();
   loadingEcology.value = false;
 });
@@ -996,6 +998,19 @@ const emits = defineEmits<{
         </el-card>
         <el-card mb-6 w-626px>
           <div flex>
+            <div mb-2 font-size-5 font-bold>主包周下载量</div>
+            <el-tooltip content="主包周下载量">
+              <el-icon size-5 color-gray-400>
+                <InfoFilled />
+              </el-icon>
+            </el-tooltip>
+          </div>
+          <div mb-2 font-size-3 text-gray-500>主包周下载量</div>
+          <div id="week-package-downloads-chart" h-200px />
+        </el-card>
+
+        <el-card mb-6 w-626px>
+          <div flex>
             <div mb-2 font-size-5 font-bold>代码提交频率</div>
             <el-tooltip :content="i18n.global.t(`tips.compass`)">
               <el-icon size-5 color-gray-400>
@@ -1069,6 +1084,20 @@ const emits = defineEmits<{
             {{i18n.global.t(`tips.ecology.contributor`)}}
           </div>
           <div id="contributor-count-chart" h-200px />
+        </el-card>
+        <el-card mb-6 w-626px>
+          <div flex>
+            <div mb-2 font-size-5 font-bold>最近发布版本次数</div>
+            <el-tooltip :content="i18n.global.t(`tips.compass`)">
+              <el-icon size-5 color-gray-400>
+                <InfoFilled />
+              </el-icon>
+            </el-tooltip>
+          </div>
+          <div mb-2 font-size-3 text-gray-500>
+            {{i18n.global.t(`tips.ecology.release`)}}
+          </div>
+          <div id="recent-releases-count-chart" h-200px />
         </el-card>
       </div>
     </div>
