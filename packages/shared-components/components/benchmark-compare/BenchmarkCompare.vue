@@ -31,6 +31,7 @@ const handleClick = (tab: TabsPaneContext, event: Event) => {
 @border-color: #e6e6e6;
 
 .benchmark-compare-main {
+  min-height: calc(100vh - 177px);
   border-bottom: 1px @border-color solid;
   border-right: 1px @border-color solid;
   margin: 0px;
