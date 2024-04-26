@@ -11,6 +11,7 @@ import {
   EvaluationSummary,
   GithubProjects,
   GithubProjectsStargazersTrend,
+  PackageDownloadCount,
 } from '@orginjs/oss-evaluation-data-model';
 import ejsExcel from 'ejsexcel';
 import { readFileSync } from 'node:fs';
@@ -217,6 +218,9 @@ export async function getMainPackageByRepoName(repoName: string) {
   return data.package;
 }
 
+
+ProjectPackage.hasMany(PackageDownloadCount, { foreignKey: 'package_name', sourceKey: 'package' });
+PackageDownloadCount.belongsTo(ProjectPackage, { foreignKey: 'package_name', targetKey: 'package' });
 /**
  * getSoftwareCompassActivity
  *
@@ -233,6 +237,7 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
              closed_issues_count,
              org_count,
              contributor_count,
+             recent_releases_count,
              date_format(grimoire_creation_date, '%Y-%m-%d') as grimoire_creation_date
       from github_projects project
                inner join compass_activity_detail compass on project.id = compass.project_id
@@ -251,6 +256,8 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
   const closedIssuesCount = [];
   const orgCount = [];
   const contributorCount = [];
+  const recentReleasesCount = [];
+  const packageDownload = [];
   let stargazers = [];
   let date = [];
   for (const activity of softwareActivity || []) {
@@ -284,17 +291,43 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
       value: activity.contributor_count,
       date: activity.grimoire_creation_date,
     });
-    const trend = await GithubProjectsStargazersTrend.findAll({
-      where: {
-        fullName: repoName,
-      },
-      attributes: ['stargazers', 'date',],
-      order: [['date', 'asc']],
+    recentReleasesCount.push({
+      projectId: activity.project_id,
+      value: activity.recent_releases_count,
+      date: activity.grimoire_creation_date,
     });
-     stargazers = _.pluck(trend, 'stargazers');
-     date = _.pluck(trend, 'date');
   }
+  const downloadList = await PackageDownloadCount.findAll({
+    attributes: ['week', 'downloads'],
+    include: [{
+      model: ProjectPackage,
+      where: {
+        project_name: repoName
+      },
+      attributes: []
+    }],
+    order: [
+      ['week', 'ASC']
+    ]
+  });
+  for (const download of downloadList) {
+    packageDownload.push({
+      value: download.downloads,
+      date: download.week,
+    });
+  }
+  const trend = await GithubProjectsStargazersTrend.findAll({
+    where: {
+      fullName: repoName,
+    },
+    attributes: ['stargazers', 'date',],
+    order: [['date', 'asc']],
+  });
+  stargazers = _.pluck(trend, 'stargazers');
+  date = _.pluck(trend, 'date');
+
   return {
+    packageDownload,
     commitFrequency,
     commentFrequency,
     updatedIssuesCount,
@@ -305,6 +338,7 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
       stargazers,
       date,
     },
+    recentReleasesCount,
   };
 }
 
