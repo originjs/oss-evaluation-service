@@ -7,6 +7,10 @@ export interface SoftwareBaseInfo {
   logo: string;
   star?: number;
   forksCount?: number;
+  version?: string;
+  versionList: string[];
+  selectedVersion: string;
+  selectedVersions: string[];
 }
 
 export interface SoftwareInfo extends SoftwareBaseInfo {
@@ -92,6 +96,9 @@ export interface EcologyActivityCategory {
   closedIssuesCount: EcologyActivity[];
   orgCount: EcologyActivity[];
   contributorCount: EcologyActivity[];
+  recentReleasesCount: EcologyActivity[];
+  packageDownload: EcologyActivity[];
+  starTrend: object;
 }
 
 export interface BenchmarkData {
@@ -128,4 +135,7 @@ export interface BenchmarkResult {
   createdAt: string;
   content: string;
   platform: string;
+  version: string;
+  envInfo: string;
+  score: number;
 }

@@ -42,6 +42,7 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.ALIYUN_SSH_PRIVATE_KEY }}
           ARGS: "-avz --delete"
           SOURCE: "./"  # 更改为你要部署的文件夹
+          TARGET: "/home/oss-evaluation-service/"
           EXCLUDE: "/node_modules/"
           REMOTE_HOST: ${{ secrets.ALIYUN_HOST }}
           REMOTE_USER: ${{ secrets.ALIYUN_USER }}
@@ -49,4 +50,11 @@ jobs:
           SCRIPT_AFTER: |
             export DATABASE_URL=${{ secrets.DATABASE_URL }}
             export VITE_BACKEND_SERVICE_URL=${{ secrets.BACKEND_SERVICE_URL }}
+            export PATH=$PATH:/root/.nvm/versions/node/v21.6.2/bin
+            pm2 stop all
+            cd /home/oss-evaluation-service/packages/api-server
+            pm2 start ./dist/app.js --watch
+            cd /home/oss-evaluation-service/packages/integration
+            pm2 start ./bin/www.js --watch
             nginx -s reload
+

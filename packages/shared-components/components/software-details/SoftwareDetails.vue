@@ -45,10 +45,12 @@ const project = ref<SoftwareInfo>();
 const loadingOverview = ref(false);
 const baseInfoTable = ref<TableRow[]>([]);
 const tagList = ref<string[]>([]);
-const starTrend = ref<Array<{
- date: string;
- stargazers: number;
-}>>;
+const starTrend = ref<
+  Array<{
+    date: string;
+    stargazers: number;
+  }>
+>;
 const openSSFScorecard = ref<
   Array<{
     label: string;
@@ -76,7 +78,6 @@ watchEffect(async () => {
   const { data } = await getSoftwareInfo(encodedRepoName.value);
   project.value = data;
   tagList.value = data.tags ? data.tags.split('|') : [];
-  starTrend.value = data.starTrend;
   baseInfoTable.value = [
     {
       label: 'Stars',
@@ -192,7 +193,6 @@ watchEffect(async () => {
   }
   await nextTick();
   renderSoftwareRadarChart();
-  renderGithubStartChart();
   renderDeveloperSatisfactionChart();
   renderDocBestPracticesChart();
   loadingOverview.value = false;
@@ -488,12 +488,16 @@ const loadingEcology = ref(false);
 watchEffect(async () => {
   loadingEcology.value = true;
   const { data } = await getEcologyActivityCategoryApi(encodedRepoName.value);
+  starTrend.value = data.starTrend;
+  renderLineChart('#week-package-downloads-chart', data.packageDownload);
   renderLineChart('#code-submit-frequency-chart', data.commitFrequency);
   renderLineChart('#issue-comment-frequency-chart', data!.commentFrequency);
   renderLineChart('#update-issue-count-chart', data.updatedIssuesCount);
   renderLineChart('#close-issue-count-chart', data.closedIssuesCount);
   renderLineChart('#organization-count-chart', data.orgCount);
   renderLineChart('#contributor-count-chart', data.contributorCount);
+  renderLineChart('#recent-releases-count-chart', data.recentReleasesCount);
+  renderGithubStartChart();
   loadingEcology.value = false;
 });
 
@@ -670,47 +674,15 @@ const emits = defineEmits<{
         </div>
         <div flex flex-items-center h-86px>
           <div mr-200px>
-            <div mb-2 font-bold>{{ (performanceModuleInfo.size / 1024).toFixed(1) }} kB</div>
+            <div mb-2 font-bold>{{ performanceModuleInfo?.size?(performanceModuleInfo.size / 1024).toFixed(1): '--' }} kB</div>
             <div>MINIFIED</div>
           </div>
           <div mr-200px>
-            <div mb-2 font-bold>{{ (performanceModuleInfo.gzipSize / 1024).toFixed(1) }} kB</div>
+            <div mb-2 font-bold>{{ performanceModuleInfo?.gzipSize ?(performanceModuleInfo.gzipSize / 1024).toFixed(1): '--' }} kB</div>
             <div>MINIFIED + GZIPPED</div>
           </div>
         </div>
-        <div flex flex-items-center h-30px>
-          <span font-bold>Benchmark Score: </span>
-          <el-progress
-            :percentage="performanceModuleInfo.benchmarkScore"
-            text-inside
-            :stroke-width="15"
-            flex-auto
-            ml-6
-            mr-6
-          />
-          <el-link
-            :underline="false"
-            type="primary"
-            @click="showBenchmarkCompare = !showBenchmarkCompare"
-          >
-            {{ showBenchmarkCompare ? '隐藏' : '显示' }}性能Benchmark
-          </el-link>
-        </div>
         <div v-show="showBenchmarkCompare">
-          <SearchSoftware
-            class="w-280px"
-            :tech-stack="project?.techStack"
-            @change="addBenchmarkCompare"
-          >
-            <button
-              class="w-full flex flex-items-center p-12px rd-8px h-40px bg-#f6f6f7 b-1 b-solid b-transparent color-black-75 hover:b-#3451b2 mt-10px mb-10px"
-            >
-              <span class="flex flex-items-center">
-                <span i-ph-magnifying-glass-bold />
-                <span class="ml-6px">添加软件性能对比</span>
-              </span>
-            </button>
-          </SearchSoftware>
           <el-table
             :data="benchmarkCompareTable"
             border
@@ -721,14 +693,6 @@ const emits = defineEmits<{
               <template #header>
                 <div class="flex items-center justify-center">
                   <span>{{ column === 'indexName' ? 'Name' : column }}</span>
-                  <el-icon
-                    v-show="column !== 'indexName'"
-                    size="16"
-                    class="ml-6px cursor-pointer hover-color-#F56C6C"
-                    @click="benchmarkCompareColumns.delete(column)"
-                  >
-                    <Delete />
-                  </el-icon>
                 </div>
               </template>
               <template #default="{ row }">
@@ -967,7 +931,7 @@ const emits = defineEmits<{
             <div flex w-210px>
               <div i-custom:bus font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ project?.evaluation?.busFactor }}</div>
+                <div font-bold font-size-5>{{ formatFloat(project?.evaluation?.busFactor) }}</div>
                 <div flex>
                   <div line-height-7>巴士系数</div>
                   <el-tooltip :content="i18n.global.t(`tips.ecology.busFactor`)">
@@ -985,7 +949,7 @@ const emits = defineEmits<{
             <div flex w-210px>
               <div i-custom:medal font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ project?.evaluation?.openrank }}</div>
+                <div font-bold font-size-5>{{ formatFloat(project?.evaluation?.openrank) }}</div>
                 <div flex>
                   <div line-height-7>OpenRank得分</div>
                   <el-tooltip :content="i18n.global.t(`tips.ecology.openRank`)">
@@ -999,7 +963,9 @@ const emits = defineEmits<{
             <div flex w-210px>
               <div i-custom:trophy font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ project?.evaluation?.criticalityScore }}</div>
+                <div font-bold font-size-5>
+                  {{ formatFloat(project?.evaluation?.criticalityScore) }}
+                </div>
                 <div flex>
                   <div line-height-7>Criticality得分</div>
                   <el-tooltip :content="i18n.global.t(`tips.ecology.criticality`)">
@@ -1013,19 +979,36 @@ const emits = defineEmits<{
             <div flex w-210px>
               <div i-custom:contributor font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ project?.evaluation?.contributorCount }}</div>
+                <div font-bold font-size-5>
+                  {{ formatNumber(project?.evaluation?.contributorCount) }}
+                </div>
                 <div line-height-7>贡献者数量</div>
               </div>
             </div>
             <div flex w-210px>
               <div i-custom:link font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ project?.evaluation?.dependentCount }}</div>
+                <div font-bold font-size-5>
+                  {{ formatNumber(project?.evaluation?.dependentCount) }}
+                </div>
                 <div line-height-7>被依赖数量</div>
               </div>
             </div>
           </div>
         </el-card>
+        <el-card mb-6 w-626px>
+          <div flex>
+            <div mb-2 font-size-5 font-bold>主包周下载量</div>
+            <el-tooltip content="主包周下载量">
+              <el-icon size-5 color-gray-400>
+                <InfoFilled />
+              </el-icon>
+            </el-tooltip>
+          </div>
+          <div mb-2 font-size-3 text-gray-500>主包周下载量</div>
+          <div id="week-package-downloads-chart" h-200px />
+        </el-card>
+
         <el-card mb-6 w-626px>
           <div flex>
             <div mb-2 font-size-5 font-bold>代码提交频率</div>
@@ -1098,10 +1081,23 @@ const emits = defineEmits<{
             </el-tooltip>
           </div>
           <div mb-2 font-size-3 text-gray-500>
-            过去 90 天中活跃的代码提交者、Pull Request 作者、代码审查者、Issue 作者和 Issue
-            评论者的数量。
+            {{i18n.global.t(`tips.ecology.contributor`)}}
           </div>
           <div id="contributor-count-chart" h-200px />
+        </el-card>
+        <el-card mb-6 w-626px>
+          <div flex>
+            <div mb-2 font-size-5 font-bold>最近发布版本次数</div>
+            <el-tooltip :content="i18n.global.t(`tips.compass`)">
+              <el-icon size-5 color-gray-400>
+                <InfoFilled />
+              </el-icon>
+            </el-tooltip>
+          </div>
+          <div mb-2 font-size-3 text-gray-500>
+            {{i18n.global.t(`tips.ecology.release`)}}
+          </div>
+          <div id="recent-releases-count-chart" h-200px />
         </el-card>
       </div>
     </div>

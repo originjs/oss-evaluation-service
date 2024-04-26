@@ -18,7 +18,7 @@ const props = defineProps({
 
 <template>
   <el-dialog
-    title="Submit project benchmark"
+    title="申请新项目的Benchmark"
     class="submit-project-benchmark-dialog"
     style="width: 650px"
   >

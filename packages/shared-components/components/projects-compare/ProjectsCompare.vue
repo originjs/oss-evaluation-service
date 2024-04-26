@@ -37,13 +37,15 @@ prop.repositories.forEach(repoName => {
   promises.push(getSoftwareInfo(encodedname));
 });
 
-Promise.all(promises).then(result=>{
-  result.forEach(data => {
-    projects.push(data['data']);
+Promise.all(promises)
+  .then(result => {
+    result.forEach(data => {
+      projects.push(data['data']);
+    });
   })
-}).catch((error: any) => {
-  console.error('Failed to get data, try again later.', error);
-});
+  .catch((error: any) => {
+    console.error('Failed to get data, try again later.', error);
+  });
 
 function isStarTop(currStar: number) {
   return !projects.some(item => Number(item.star) > Number(currStar));
@@ -180,23 +182,13 @@ const changePage = (name: string) => {
   <div class="main">
     <div class="page-title flex justify-between items-center">
       <div>
-        <span
-          class="menu"
-          :class="{ selected: pageName == 'ProjectsCompare' }"
-          @click="changePage('ProjectsCompare')"
-          >开源软件对比</span
-        >
-        <span
-          class="menu"
-          :class="{ selected: pageName == 'BenchmarkCompare' }"
-          @click="changePage('BenchmarkCompare')"
-          >性能Benchmark</span
+        <span class="menu" >开源软件对比</span
         >
       </div>
       <div v-if="pageName === 'ProjectsCompare'">
         <div class="mr-12px flex items-center">
           <el-switch v-model="isShowDiff" style="--el-switch-on-color: #13ce66" />
-          <span class="pl-6px">显示{{ isShowDiff ? '差异' : '全部' }}</span>
+          <span class="pl-6px">仅显示差异</span>
         </div>
       </div>
     </div>
@@ -215,7 +207,12 @@ const changePage = (name: string) => {
                   </div>
                 </template>
               </el-image>
-              <span>{{ projects[idx - 1]?.repoName }}</span>
+              <span>
+                <el-link :href="'/#/software-details?repoName=' + projects[idx - 1]?.repoName" 
+                target="_blank" :underline="false">
+                  {{ projects[idx - 1]?.repoName }}
+                </el-link>
+              </span>              
               <el-icon
                 class="close-btn cursor-pointer hover-color-#F56C6C"
                 @click="removeSoftware(idx - 1)"
@@ -404,20 +401,6 @@ const changePage = (name: string) => {
             </div>
           </div>
         </div>
-        <div
-          v-show="showBasic && getShowRow('language')"
-          key="3"
-          class="row"
-          @mouseover="showChooseBorder('代码量', $event)"
-          @mouseout="hideChooseBorder()"
-        >
-          <div class="border param-name">代码量</div>
-          <div v-for="idx in 5" :key="idx" class="param-value border">
-            <div v-if="projects[idx - 1]" class="value-div">
-              <span>{{ toKilo(projects[idx - 1].codeLines) }} kl</span>
-            </div>
-          </div>
-        </div>
 
         <div
           v-show="showBasic && getShowRow('firstCommit')"
@@ -457,6 +440,21 @@ const changePage = (name: string) => {
         功能
       </div>
       <TransitionGroup name="list" tag="div" class="overflow-hidden">
+        <div
+          v-show="showFunction && getShowRow('codesize')"
+          key="3"
+          class="row"
+          @mouseover="showChooseBorder('代码量', $event)"
+          @mouseout="hideChooseBorder()"
+        >
+          <div class="border param-name">代码量</div>
+          <div v-for="idx in 5" :key="idx" class="param-value border">
+            <div v-if="projects[idx - 1]" class="value-div">
+              <span>{{ toKilo(projects[idx - 1].codeLines) }} kl</span>
+            </div>
+          </div>
+        </div>
+
         <div
           v-show="showFunction && getShowRow('satisfaction')"
           key="1"
@@ -1337,7 +1335,11 @@ const changePage = (name: string) => {
                 >
                 <div style="display: inline-flex">
                   <div i-custom:contributor font-size-6 mr-4 />
-                  <div>贡献者数量</div>
+                  <div>
+                    <el-tooltip :content="i18n.global.t(`tips.ecology.contributor`)">
+                      贡献者数量
+                    </el-tooltip>
+                  </div>
                 </div>
               </div>
 
@@ -1388,13 +1390,15 @@ const changePage = (name: string) => {
                   style="text-align: center; font-weight: bold"
                   :class="{
                     good: isGood(
-                      projects[idx - 1].evaluation.commentFrequency,
-                      'evaluation.commentFrequency',
+                      projects[idx - 1].evaluation.commitFrequency,
+                      'evaluation.commitFrequency',
                     ),
                   }"
-                  >{{ formatFloat(projects[idx - 1].evaluation.commentFrequency) }}</span
+                  >{{ formatFloat(projects[idx - 1].evaluation.commitFrequency) }}</span
                 >
-                <span text-center> 代码提交频率 </span>
+                <span text-center>
+                  <el-tooltip content="过去90天内平均每周代码提交次数"> 代码提交频率 </el-tooltip>
+                </span>
               </div>
 
               <div
@@ -1414,7 +1418,11 @@ const changePage = (name: string) => {
                   }"
                   >{{ formatFloat(projects[idx - 1].evaluation.orgCount) }}</span
                 >
-                <span text-center>组织数量</span>
+                <span text-center>
+                  <el-tooltip content="过去90天内活跃的代码提交者所属组织的数目">
+                    组织数量
+                  </el-tooltip>
+                </span>
               </div>
 
               <div
@@ -1435,11 +1443,34 @@ const changePage = (name: string) => {
                       'evaluation.commentFrequency',
                     ),
                   }"
-                  >{{ formatNumber(projects[idx - 1].evaluation.commentFrequency) }}</span
+                  >{{ formatFloat(projects[idx - 1].evaluation.commentFrequency) }}</span
                 >
-                <span text-center>Issue评论频率</span>
+                <span text-center>
+                  <el-tooltip
+                    content="过去90天内新建 Issue 的评论平均数（不包含机器人和 Issue 作者本人评论）"
+                  >
+                    Issue评论频率
+                  </el-tooltip>
+                </span>
               </div>
-
+              <div
+                v-show="getShowRow('evaluation.closedIssuesCount')"
+                style="width: 160px; display: flex; flex-direction: column; justify-content: center"
+              >
+                <span
+                  style="text-align: center; font-weight: bold"
+                  :class="{
+                    good: isGood(
+                      projects[idx - 1].evaluation.closedIssuesCount,
+                      'evaluation.closedIssuesCount',
+                    ),
+                  }"
+                  >{{ formatNumber(projects[idx - 1].evaluation.closedIssuesCount) }}</span
+                >
+                <span text-center>
+                  <el-tooltip content="过去90天内Issue解决关闭的数量"> Issue关闭数量 </el-tooltip>
+                </span>
+              </div>
               <div
                 v-show="getShowRow('evaluation.recentReleasesCount')"
                 style="width: 160px; display: flex; flex-direction: column; justify-content: center"
@@ -1454,7 +1485,9 @@ const changePage = (name: string) => {
                   }"
                   >{{ formatNumber(projects[idx - 1].evaluation.recentReleasesCount) }}</span
                 >
-                <span text-center>最近版本发布数量</span>
+                <span text-center>
+                  <el-tooltip content="过去12个月版本发布的数量"> 最近版本发布数量 </el-tooltip>
+                </span>
               </div>
             </div>
           </div>
@@ -1486,11 +1519,6 @@ const changePage = (name: string) => {
     display: inline-block;
     padding: 0px 18px;
     line-height: 50px;
-    cursor: pointer;
-
-    &:hover {
-      background-color: #1579d1;
-    }
   }
 
   .selected {

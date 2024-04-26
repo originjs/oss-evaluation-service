@@ -26,7 +26,13 @@ export async function queryProjectsByTechStack(
            gp.description,
            gp.owner_avatar_url as logo,
            gp.stargazers_count as star,
-           gp.forks_count as forksCount
+           gp.forks_count as forksCount,
+           (SELECT GROUP_CONCAT( distinct VERSION ORDER BY VERSION desc SEPARATOR '##') 
+              FROM benchmark_version_score bvs 
+             WHERE bvs.project_id = gp.id) version,
+           (SELECT version 
+              FROM benchmark_version_score bvs 
+             WHERE bvs.project_id = gp.id ORDER BY score DESC LIMIT 1) selectedVersion
       FROM github_projects gp
 INNER JOIN project_tech_stack pts 
         ON gp.id = pts.project_id
@@ -40,6 +46,12 @@ INNER JOIN project_tech_stack pts
     type: sequelize.QueryTypes.SELECT,
   });
 
+  projects.forEach(element => {
+    element["versionList"] = element.version? element.version.split("##") : [];
+    element["selectedVersions"] = [];
+    element.selectedVersion && element["selectedVersions"].push(element.selectedVersion);
+  });
+
   return projects;
 }
 
@@ -51,14 +63,14 @@ INNER JOIN project_tech_stack pts
  */
 export async function queryIndexByTechStack(techStack: string): Promise<Array<BenchmarkIndex>> {
   const sql = `
-    SELECT index_name as indexName,
-       display_name as displayName,
-                              unit,
-                          category,
-                       description  
-      FROM benchmark_index 
-     WHERE tech_stack = :techStack 
-  ORDER BY category, 'ORDER';
+  SELECT t.index_name   as indexName,
+    t.display_name as displayName,
+    t.unit,
+    t.category,
+    t.description
+  FROM benchmark_index t
+  WHERE t.tech_stack = :techStack
+  ORDER BY t.order;
   `;
 
   const indexs = await sequelize.query(sql, {
@@ -79,22 +91,30 @@ export async function getBenchmarkResultByTechStack(
   techStack: string,
 ): Promise<Array<BenchmarkResult>> {
   const sql = `
-        SELECT project_id as projectId,
-           project_name as projectName,
-           display_name as displayName,
-                             benchmark,
-                 raw_value as rawValue,
-               created_at as createdAt,
-                               content,
-                              platform
-          FROM BENCHMARK
-          WHERE patch_id = (
-            SELECT MAX(patch_id)
-            FROM BENCHMARK
-            WHERE tech_stack = :techStack) 
-          and raw_value is not null
-      ORDER BY project_id, BENCHMARK,created_at;
-  `;
+    SELECT bt.project_id AS projectId,
+          bt.project_name AS projectName,
+          bt.display_name AS displayName, 
+          benchmark,
+          bt.raw_value AS rawValue,
+          bt.created_at AS createdAt,
+          bt.content,
+          bt.platform,
+          bvst.version,
+          bvst.env_info AS envInfo,
+          bvst.score
+      FROM BENCHMARK bt
+INNER JOIN (
+    SELECT st.project_id, 
+           st.VERSION, 
+           MAX(st.id) b_id, 
+           MAX(st.env_info) env_info,
+           MAX(st.score) score
+      FROM benchmark_version_score st
+     WHERE st.tech_stack = :techStack
+  GROUP BY st.project_id, st.VERSION) bvst 
+        ON bvst.b_id = bt.b_id
+     WHERE bt.raw_value IS NOT NULL
+  ORDER BY bt.project_id, bt.BENCHMARK,bt.created_at;`;
 
   const indexes = await sequelize.query(sql, {
     replacements: { techStack },
@@ -105,7 +125,7 @@ export async function getBenchmarkResultByTechStack(
   for (const index of indexes) {
     if (isNumber(index?.rawValue)) {
       // rounding
-      index.rawValue = fixedRound(index.rawValue, 2);
+      index.rawValue = fixedRound(index.rawValue, 3);
     }
   }
 
