@@ -998,14 +998,14 @@ const emits = defineEmits<{
         </el-card>
         <el-card mb-6 w-626px>
           <div flex>
-            <div mb-2 font-size-5 font-bold>主包周下载量</div>
-            <el-tooltip content="主包周下载量">
+            <div mb-2 font-size-5 font-bold>npm包下载量</div>
+            <el-tooltip :content="i18n.global.t(`tips.ecology.packageDownloads`)">
               <el-icon size-5 color-gray-400>
                 <InfoFilled />
               </el-icon>
             </el-tooltip>
           </div>
-          <div mb-2 font-size-3 text-gray-500>主包周下载量</div>
+          <div mb-2 font-size-3 text-gray-500>{{ i18n.global.t(`tips.ecology.packageDownloads`) }}</div>
           <div id="week-package-downloads-chart" h-200px />
         </el-card>
 
