@@ -315,8 +315,10 @@ async function getDimensionScore(project, dimension, techStack, model, bId) {
         if (rawValue == null || rawValue < 0) {
           continue;
         }
-        const { median, p10, isDesc } = fieldItem;
-        totalScore += weight * calLighthouseScore(rawValue, p10, median, isDesc);
+        const { isDesc, threshold } = fieldItem;
+        totalScore +=  weight * calCriticalityScore(rawValue, threshold, isDesc);
+        // const { median, p10, isDesc} = fieldItem;
+        // totalScore += weight * calLighthouseScore(rawValue, p10, median, isDesc);
       } else {
         rawValue = project[field];
         if (!rawValue) {
@@ -428,4 +430,17 @@ function calLighthouseScore(x, p10, m, isDesc = true) {
   // isDesc为true的时候，数据越高，得分越高，用log-normal CDF，反之用complementary log-normal CDF
   const result = (1 + descFlag * err) / 2;
   return result;
+}
+
+function calCriticalityScore(x, threshold, isDesc) {
+  if (threshold === 0) {
+    return 0;
+  }
+  if (isDesc) {
+    // Larger the data the better
+    return Math.log(1.0 + x) / Math.log(1.0 + Math.max(x, threshold));
+  } else {
+    // Smaller the data the better
+    return Math.log(1.0 + Math.min(x, threshold)) / Math.log(1.0 + x);
+  }
 }
