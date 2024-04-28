@@ -431,6 +431,14 @@ const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
 <style scoped lang="less">
 @border-color: #e6e6e6;
 
+// el-table滚动条样式
+:deep(.el-scrollbar) {
+  .el-scrollbar__bar.is-horizontal .el-scrollbar__thumb {
+    height: 8px;
+    background-color: #409eff;
+  }
+}
+
 :deep(.good::after) {
   content: '  ';
   display: inline-block;
