@@ -129,7 +129,16 @@ defineExpose({ addProject });
               </el-image>
             </div>
             <div class="project-info">
-              <span class="project-name">{{ project.repoName }}</span>
+              <span>
+                <el-link
+                  :href="'/#/software-details?repoName=' + project.repoName"
+                  target="_blank"
+                  :underline="false"
+                  :title="project.repoName"
+                >
+                  {{ project.repoName }}
+                </el-link>
+              </span>
               <span class="project-desc">{{ project.description }}</span>
             </div>
           </div>
@@ -232,11 +241,19 @@ defineExpose({ addProject });
             flex-direction: column;
             padding: 10px 10px 10px 0px;
 
-            .project-name {
-              height: 30px;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              font-weight: bolder;
+            :deep(.el-link) {
+              display: inline-block;
+              width: 100%;
+
+              .el-link__inner {
+                display: inline-block;
+                width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                font-weight: bolder;
+                font-size: 16px;
+                text-wrap: nowrap;
+              }
             }
 
             .project-desc {
