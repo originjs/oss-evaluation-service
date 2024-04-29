@@ -31,7 +31,7 @@
   "keywords": [],
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.7.2",
-    "@types/node": "^18.11.12",
+    "@types/node": "^20.12.7",
     "@typescript-eslint/eslint-plugin": "^7.2.0",
     "@typescript-eslint/parser": "^7.2.0",
     "@vue/eslint-config-prettier": "^9.0.0",
