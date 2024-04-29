@@ -30,7 +30,7 @@ const onSelectMenu = (path: string) => {
   <div class="nav" :class="{ top: route.path === '/' ? y : true }">
     <div class="nav-wrapper">
       <div class="logo-wrapper cursor-pointer" @click="() => router.push('/')">
-        <img class="logo" src="/logo.png" alt="logo" />
+        <img class="logo" :src="'/logo2.png'" onerror="this.src='/logo.png';this.className='logo2'" alt="logo" />
         <span class="desc">山海社区 - 前端先进性评估</span>
       </div>
 
@@ -89,6 +89,10 @@ const onSelectMenu = (path: string) => {
   align-items: center;
 
   .logo {
+    height: 55px;
+    width: 55px;
+  }
+  .logo2 {
     height: 40px;
     width: 40px;
   }
