@@ -31,7 +31,7 @@ const onSelectMenu = (path: string) => {
     <div class="nav-wrapper">
       <div class="logo-wrapper cursor-pointer" @click="() => router.push('/')">
         <img class="logo" src="/logo.png" alt="logo" />
-        <span class="desc">前端先进性评估</span>
+        <span class="desc">山海社区 - 前端先进性评估</span>
       </div>
 
       <div class="search-wrapper"><SearchSoftware @change="goSoftwareDetails" /></div>
