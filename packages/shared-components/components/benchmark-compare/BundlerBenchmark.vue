@@ -26,39 +26,41 @@ getProjectsByTechStack('构建工具', '构建工具').then(response => {
 });
 
 const removeProject = (project: SoftwareBaseInfo) => {
-  projects.value = projects.value.filter(
-    item => {
-      if(project.projectId === item.projectId){
-        return item.selectedVersions.length > 1 && item.selectedVersions.some(v => project.version !== v)
-      }      
-      return true;
-    }    
-  );
+  projects.value = projects.value.filter(item => {
+    if (project.projectId === item.projectId) {
+      return (
+        item.selectedVersions.length > 1 && item.selectedVersions.some(v => project.version !== v)
+      );
+    }
+    return true;
+  });
   chooseProjectsRef.value?.cancelSelectedProject(project);
 };
 
 const changeSelectedProjects = () => {
-  projects.value = projectsRaw.value.filter(item => item.selected)
+  projects.value = projectsRaw.value.filter(item => item.selected);
 };
 
-let benchmarksRaw = ref<BenchmarkIndex[]>([]); // 原始数据
+let benchmarkIndexRaw = ref<BenchmarkIndex[]>([]); // 原始数据
 const benchmarkIndex = ref<Array<BenchmarkIndex>>([]); // 选中的 benchmark 指标，修改其值改变展示的表格行(指标项)
 getIndexByTechStack('构建工具').then(response => {
-  response.data.unshift({
-    indexName: 'score',
-    displayName: '得分',
-    unit: '',
-    category: '',
-    description: '',    
-  });
-  response.data.unshift({
-    indexName: 'version',
-    displayName: '版本',
-    unit: '',
-    category: '',
-    description: '',    
-  });
-  benchmarksRaw.value = [...response.data];
+  benchmarkIndexRaw.value = [
+    {
+      indexName: 'score',
+      displayName: '得分',
+      unit: '',
+      category: '',
+      description: '',
+    },
+    {
+      indexName: 'version',
+      displayName: '版本',
+      unit: '',
+      category: '',
+      description: '',
+    },
+    ...response.data,
+  ];
   benchmarkIndex.value = response.data;
 });
 
@@ -74,9 +76,9 @@ const getMappingKey = project => {
 
 let benchmarksResultTableDataRaw = ref<any[]>([]); // 表格原始数据，在接口返回数据后只计算(更新)一次
 let benchmarkResultProjectsRaw = ref<BenchmarkResult[]>([]); // 表格列原始数据，按照项目分组后的 benchmarkResult 数据
-watch([benchmarkIndex, benchmarkResult], () => {
+watch([benchmarkIndexRaw, benchmarkResult], () => {
   // 待异步数据返回后才往下执行
-  if (!benchmarkResult.value.length || !benchmarkIndex.value.length) {
+  if (!benchmarkResult.value.length || !benchmarkIndexRaw.value.length) {
     return [];
   }
 
@@ -110,14 +112,14 @@ watch([benchmarkIndex, benchmarkResult], () => {
   let isAllEqual;
   let number1, number2;
   const tableData = [];
-  benchmarkIndex.value.forEach(benchmarkIndexItem => {
+  benchmarkIndexRaw.value.forEach(benchmarkIndexItem => {
     isAllEqual = true;
     record = {
       ...benchmarkIndexItem,
       benchmarkName: `${benchmarkIndexItem.displayName}`,
     };
 
-    if(benchmarkIndexItem.unit){
+    if (benchmarkIndexItem.unit) {
       record.benchmarkName += `(${benchmarkIndexItem.unit})`;
     }
     isGoodProjectId = getMappingKey(projectBenchmark[0]); // 初始化一个值，方便后续比较
@@ -151,7 +153,7 @@ watch([benchmarkIndex, benchmarksResultTableDataRaw], () => {
   benchmarksResultTableData.value = benchmarksResultTableDataRaw.value.filter(
     item =>
       benchmarkIndex.value.some(indexItem => indexItem.indexName === item.indexName) ||
-      item.benchmarkName === '得分',
+      ['score', 'version'].includes(item.indexName),
   );
 });
 
@@ -160,11 +162,9 @@ const sortedRow = ref('');
 const benchmarkResultProjects = ref<BenchmarkResult[]>([]); // 实际表格展示的列，根据选中的项目，并基于原始表格数据计算更新
 watch([projects, benchmarkResultProjectsRaw, sortedRow], () => {
   const res = benchmarkResultProjectsRaw.value.filter(item =>
-    projects.value.some(
-      project => {
-        return project.selectedVersions.includes(item.version);        
-      }
-    ),
+    projects.value.some(project => {
+      return project.selectedVersions.includes(item.version);
+    }),
   );
 
   sortedRow.value &&
@@ -175,7 +175,7 @@ watch([projects, benchmarkResultProjectsRaw, sortedRow], () => {
       if (!b[sortedRow.value]) {
         return -1;
       }
-      if(sortedRow.value == 'score'){
+      if (sortedRow.value == 'score') {
         return b[sortedRow.value] - a[sortedRow.value];
       }
       return a[sortedRow.value] - b[sortedRow.value];
@@ -214,10 +214,6 @@ const computeColor = (scope: { row: any; column: any; $index: number }) => {
     b = (1.0 - a) * 132 + a * 108;
   }
   return `background-color: rgb(${r.toFixed(0)}, ${g.toFixed(0)}, ${b.toFixed(0)});`;
-};
-
-const changeBenchmarks = (values: string[]) => {
-  console.log('changeBenchmarks', values);
 };
 
 const isGoodClass = (scope: { row: any; column: any; $index: number }) => {
@@ -417,7 +413,7 @@ const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
           <div class="flex flex-items-center mr-8">
             <span mr-2>Benchmarks:</span>
             <el-button text type="primary" @click="showChooseBenchmark = true"
-              >{{ benchmarkIndex.length - 2 }}项benchmark</el-button
+              >{{ benchmarkIndex.length }}项benchmark</el-button
             >
           </div>
           <div class="flex flex-items-center mr-8" style="font-size: 12px">
@@ -456,7 +452,8 @@ const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
               <el-tooltip :content="row.description || row.benchmarkName">
                 <span class="flex-1">{{ row.benchmarkName }}</span></el-tooltip
               >
-              <span v-if="row.benchmarkName != '版本'"
+              <span
+                v-if="row.benchmarkName != '版本'"
                 v-show="hoveringRow === row.indexName || sortedRow === row.indexName"
                 :class="
                   sortedRow === row.indexName ? 'i-custom:sorted-thumb' : 'i-custom:sort-thumb'
@@ -482,7 +479,7 @@ const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
               <el-link
                 :underline="false"
                 target="_blank"
-                style="font-weight: bolder;"
+                style="font-weight: bolder"
                 @click="getProjectInfoUrl(benchmarkResultProject)"
               >
                 {{ headerScope.column.label }}
@@ -502,8 +499,11 @@ const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
             </div>
           </template>
           <template #default="scope">
-            <div v-if="scope.row.benchmarkName === '得分' || scope.row.benchmarkName === '版本'" class="text-center">
-              {{ scope.row[getMappingKey(benchmarkResultProject)]}}
+            <div
+              v-if="scope.row.benchmarkName === '得分' || scope.row.benchmarkName === '版本'"
+              class="text-center"
+            >
+              {{ scope.row[getMappingKey(benchmarkResultProject)] }}
             </div>
             <div v-else text-center :style="computeColor(scope)">
               <div class="font-size-3 h4.5 font-500">
@@ -537,8 +537,8 @@ const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
     />
     <ChooseBenchmarkDialog
       v-model="showChooseBenchmark"
-      :benchmarks="benchmarkIndex"
-      @change-value="changeBenchmarks"
+      v-model:benchmark-index="benchmarkIndex"
+      :benchmark-index-raw="benchmarkIndexRaw"
     />
     <ApplyNewProjectBenchmarkDialog v-model="submitProjectBenchmark" category="构建工具" />
   </div>
