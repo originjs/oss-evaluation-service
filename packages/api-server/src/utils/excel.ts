@@ -1,13 +1,13 @@
-import XLSX from 'xlsx';
+import { utils, read, write } from 'xlsx';
 export function appendSheet(sourceBlob, appendBlob) {
-  const sourceWorkbook = XLSX.read(sourceBlob, { type: 'buffer', cellStyles: true });
-  const appendWorkbook = XLSX.read(appendBlob, { type: 'buffer', cellStyles: true });
-  XLSX.utils.book_append_sheet(
+  const sourceWorkbook = read(sourceBlob, { type: 'buffer', cellStyles: true });
+  const appendWorkbook = read(appendBlob, { type: 'buffer', cellStyles: true });
+  utils.book_append_sheet(
     sourceWorkbook,
     appendWorkbook.Sheets[appendWorkbook.SheetNames[0]],
     'benchmark',
   );
-  return XLSX.write(sourceWorkbook, {
+  return write(sourceWorkbook, {
     type: 'buffer',
     bookType: 'xlsx',
   });

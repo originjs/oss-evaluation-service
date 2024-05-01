@@ -36,6 +36,8 @@ import {
 } from '../controllers/sonarCloud.js';
 import syncProjectCodeSize from '../controllers/projectCodeSize.js';
 import { syncStargazersTrend } from '../controllers/projectStarGazersTrend.js';
+import syncProjectContributors from '../controllers/projectContributors.js';
+import syncProjectDependentCount from '../controllers/projectDependents.js';
 
 const router = express.Router();
 
@@ -671,5 +673,27 @@ router.route('/syncProjectCodeSize').get(syncProjectCodeSize);
  *
  */
 router.route('/syncStargazersTrend').post(syncStargazersTrend);
+
+/**
+ * @swagger
+ * /sync/syncProjectContributors:
+ *   get:
+ *     summary: refresh contributors of project
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/syncProjectContributors').get(syncProjectContributors);
+
+/**
+ * @swagger
+ * /sync/syncProjectDependentCount:
+ *   get:
+ *     summary: refresh dependent count of project
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/syncProjectDependentCount').get(syncProjectDependentCount);
 
 export default router;

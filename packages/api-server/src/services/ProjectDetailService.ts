@@ -15,7 +15,7 @@ import {
 } from '@orginjs/oss-evaluation-data-model';
 import ejsExcel from 'ejsexcel';
 import { readFileSync } from 'node:fs';
-import XLSX from 'xlsx';
+import { utils, write } from 'xlsx';
 import type {
   BenchmarkData,
   EcologyActivityCategory,
@@ -298,7 +298,7 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
     });
   }
   const downloadList = await PackageDownloadCount.findAll({
-    attributes: ['week', 'downloads'],
+    attributes: ['end_date', 'downloads'],
     include: [{
       model: ProjectPackage,
       where: {
@@ -307,13 +307,15 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
       attributes: []
     }],
     order: [
-      ['week', 'ASC']
-    ]
+      ['end_date', 'desc']
+    ],
+    limit: 14
   });
-  for (const download of downloadList) {
+  const sortedDownloadList = _.sortBy(downloadList, item => item.dataValues.end_date);
+  for (const download of sortedDownloadList) {
     packageDownload.push({
-      value: download.downloads,
-      date: download.week,
+      value: download.dataValues.downloads,
+      date: download.dataValues.end_date,
     });
   }
   const trend = await GithubProjectsStargazersTrend.findAll({
@@ -386,12 +388,12 @@ export async function exportBenchmarkExcel(repoName: string) {
     rows.push(row);
   }
   try {
-    const workbook = XLSX.utils.book_new();
-    const sheet = XLSX.utils.json_to_sheet([headers, ...rows], {
+    const workbook = utils.book_new();
+    const sheet = utils.json_to_sheet([headers, ...rows], {
       skipHeader: true,
     });
-    XLSX.utils.book_append_sheet(workbook, sheet, 'benchmark');
-    return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+    utils.book_append_sheet(workbook, sheet, 'benchmark');
+    return write(workbook, { type: 'buffer', bookType: 'xlsx' });
   } catch (err) {
     Logger.error(err);
   }

@@ -5,7 +5,7 @@ import { Cron } from 'croner';
 import { XMLParser } from 'fast-xml-parser'
 
 export default async function syncProjectCodeSize(req, res) {
-  debug.log('Sync Porject Code Size');
+  debug.log('Sync Project Code Size');
   // 1. get all github project
   const projectList = await GithubProjects.findAll({
     attributes: ['id', 'ownerName', 'name', 'codeSize'],
@@ -88,7 +88,7 @@ async function getProjectCodeSize(url, otherUrl) {
       },
       maxRequestsPerCrawl: 20000,
       maxRequestRetries: 1,
-      additionalMimeTypes:['image/svg+xml', 'application/octet-stream']
+      additionalMimeTypes:['image/svg+xml', 'application/octet-stream', 'text/plain']
     },
     config,
   );

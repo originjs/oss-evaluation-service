@@ -228,9 +228,11 @@ export async function evaluateBenchmark(req, res) {
   const scoreMap = {};
   if (projectId) {
     allBenchmarkVersion = await BenchmarkVersionScore.findAll({ where: { projectId } });
-  } else {
+  } else if (techStack) {
     // take all projects from specific techstack
     allBenchmarkVersion = await BenchmarkVersionScore.findAll({ where: { techStack } });
+  } else {
+    allBenchmarkVersion = await BenchmarkVersionScore.findAll();
   }
   for (const benchmarkVersion of allBenchmarkVersion) {
     const { id: bId } = benchmarkVersion;
@@ -246,7 +248,7 @@ export async function evaluateBenchmark(req, res) {
     await benchmarkVersion.save();
   }
   for (let benchmarkProjecId in scoreMap) {
-    let projectScore = await EvaluationSummary.findOne({where: {projectId: benchmarkProjecId}});
+    let projectScore = await EvaluationSummary.findOne({ where: { projectId: benchmarkProjecId } });
     projectScore.performanceScore = scoreMap[benchmarkProjecId];
     await projectScore.save();
   }
@@ -271,12 +273,6 @@ async function evaluateScore(project, model) {
   project.qualityValue = await getDimensionScore(project, 'quality', 'common', model);
   project.ecologyValue = await getDimensionScore(project, 'ecology', 'common', model);
   project.innovationValue = await getDimensionScore(project, 'innovation', 'common', model);
-  project.performanceValue = await getDimensionScore(
-    project,
-    'performance',
-    project.techStack,
-    model,
-  );
 
   let metric = await EvaluationModel.findOne({
     where: { type: MetricType.L0, dimension: 'function' },
@@ -315,15 +311,14 @@ async function getDimensionScore(project, dimension, techStack, model, bId) {
         if (rawValue == null || rawValue < 0) {
           continue;
         }
-        const { median, p10, isDesc } = fieldItem;
-        totalScore += weight * calLighthouseScore(rawValue, p10, median, isDesc);
+        const { isDesc, threshold } = fieldItem;
+        totalScore += weight * calCriticalityScore(rawValue, threshold, isDesc);
       } else {
         rawValue = project[field];
         if (!rawValue) {
           continue;
         }
-        totalScore +=
-          weight * (Math.log(1.0 + rawValue) / Math.log(1.0 + Math.max(rawValue, threshold)));
+        totalScore += weight * calCriticalityScore(rawValue, threshold, true);
       }
     }
   }
@@ -428,4 +423,17 @@ function calLighthouseScore(x, p10, m, isDesc = true) {
   // isDesc为true的时候，数据越高，得分越高，用log-normal CDF，反之用complementary log-normal CDF
   const result = (1 + descFlag * err) / 2;
   return result;
+}
+
+function calCriticalityScore(x, threshold, isDesc) {
+  if (threshold === 0) {
+    return 0;
+  }
+  if (isDesc) {
+    // Larger the data the better
+    return Math.log(1.0 + x) / Math.log(1.0 + Math.max(x, threshold));
+  } else {
+    // Smaller the data the better
+    return Math.log(1.0 + Math.min(x, threshold)) / Math.log(1.0 + x);
+  }
 }
