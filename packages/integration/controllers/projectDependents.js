@@ -38,17 +38,22 @@ async function getProjectDependentCount(url) {
   const config = new Configuration({ persistStorage: false });
   const crawler = new CheerioCrawler(
     {
+      failedRequestHandler({ request, log }) {
+        log.info(`web crawler: Request to ${request.url} failed...`);
+      },
       async requestHandler({ request, $, log }) {
-        const content = $('a:contains("Repositories")').text();
-        const dependentArrays = content.match(/\d+/g);
-        if (dependentArrays != undefined && dependentArrays.length > 0) {
-          dependentCount = dependentArrays.join('');
+        const content = $('a:contains("Repositories")');
+        if (content) {
+          const dependentArrays = content.text().match(/\d+/g);
+          dependentCount =  (dependentArrays != undefined && dependentArrays.length > 0) ? dependentArrays.join('') : "";
         }
         log.info(`dependent count of ${request.loadedUrl} is ${dependentCount}`);
       },
-      maxRequestsPerCrawl: 400000,
+      requestHandlerTimeoutSecs: 60,
+      maxRequestsPerCrawl: 10,
       maxRequestRetries: 1,
-      sameDomainDelaySecs:360000,
+      maxConcurrency: 4029,
+      sameDomainDelaySecs: 10,
     },
     config,
   );
