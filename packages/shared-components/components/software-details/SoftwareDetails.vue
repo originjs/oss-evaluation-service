@@ -224,11 +224,11 @@ function renderSoftwareRadarChart() {
         data: [
           {
             value: [
-              formatFloat(project.value?.evaluation.functionScore),
-              formatFloat(project.value?.evaluation.qualityScore),
-              formatFloat(project.value?.evaluation.ecologyScore),
-              formatFloat(project.value?.evaluation.innovationValue),
-              formatFloat(project.value?.evaluation.performanceScore),
+              formatFloat(project.value?.evaluation?.functionScore),
+              formatFloat(project.value?.evaluation?.qualityScore),
+              formatFloat(project.value?.evaluation?.ecologyScore),
+              formatFloat(project.value?.evaluation?.innovationValue),
+              formatFloat(project.value?.evaluation?.performanceScore),
             ],
             name: '分数',
           },
