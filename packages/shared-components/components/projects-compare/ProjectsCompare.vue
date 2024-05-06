@@ -270,7 +270,7 @@ const changePage = (name: string) => {
       </div>
 
       <div
-        v-show="getShowRow('evaluation.functionScore')"
+        v-show="getShowRow('evaluation?.functionScore')"
         class="row"
         @mouseover="showChooseBorder('功能', $event)"
         @mouseout="hideChooseBorder()"
@@ -284,11 +284,11 @@ const changePage = (name: string) => {
             <span
               :class="{
                 good: isGood(
-                  projects[idx - 1].evaluation.functionScore,
+                  projects[idx - 1].evaluation?.functionScore,
                   'evaluation.functionScore',
                 ),
               }"
-              >{{ formatFloat(projects[idx - 1].evaluation.functionScore) }}/100</span
+              >{{ formatFloat(projects[idx - 1].evaluation?.functionScore) }}/100</span
             >
           </div>
         </div>
