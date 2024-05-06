@@ -130,18 +130,76 @@ export async function integratingCNCFDocumentScore(startIndex) {
   }
 }
 
-export default async function syncCNCFDocumentScore(req, res) {
+export default async function syncCncfDocumentScore(req, res) {
+  const { repoUrl, startIndex } = req.body;
+  const fullIntegration = repoUrl === undefined || repoUrl === null || repoUrl === '';
+
+  if (fullIntegration) {
+    await syncFullCncfDocumentScore(startIndex);
+    res.status(200).send('Full-scale CNCF document score integration success!');
+  } else {
+    await syncSingleCncfDocumentScore(repoUrl);
+    res.status(200).json(`Project: ${repoUrl} integrating success!`);
+  }
+}
+
+async function syncSingleCncfDocumentScore(repoUrl) {
+  const project = await GithubProjects.findOne({
+    where: {
+      html_url: repoUrl,
+    },
+  });
+
+  if (project === null) {
+    debug.log('The project has no project id');
+    return;
+  }
+  const documentProject = await CncfDocumentScore.findOne({
+    where: { repoUrl: project.htmlUrl },
+  });
+  if (documentProject != null) {
+    debug.log('*** Already calculate, skip to next project ***');
+    return;
+  }
+
+  const githubToken = await getValidGithubToken();
+  const octokit = new Octokit({
+    auth: githubToken,
+  });
+
+  const { readme, filename, website, release } = await getGithubMetadata(octokit, project.htmlUrl);
+  runDocumentChecks(readme, filename, website, release);
+  const score = calculateCncfScore();
+
+  debug.log(`insert into database: ${project.htmlUrl}`);
+  await CncfDocumentScore.create({
+    id: 0,
+    projectId: project.id,
+    repoUrl: project.htmlUrl,
+    readme,
+    filename: JSON.stringify(filename),
+    website,
+    release,
+    documentScore: score,
+  });
+}
+
+async function syncFullCncfDocumentScore(startIndex) {
   debug.log('Sync CNCF Document Score');
   // 1. get all GitHub project
-  const projectList = await GithubProjects.findAll({
+  let projectList = await GithubProjects.findAll({
     attributes: ['id', 'htmlUrl'],
   });
 
-  const sumOfProject = projectList.length;
-  debug.log(`The Number of Project : ${sumOfProject}`);
-  let count = 1;
+  const projectCount = projectList.length;
+  debug.log(`The Number of Project : ${projectCount}`);
+
+  projectList = projectList.slice(startIndex);
+  debug.log(`This round needs to synchronize the total number of projects: ${projectList.length}`);
+  let count = startIndex;
+
   for (const project of projectList) {
-    debug.log('**Current Progress**: ', `${count}/${sumOfProject}`);
+    debug.log('**Current Progress**: ', `${count + 1}/${projectCount}`);
     count += 1;
 
     const documentProject = await CncfDocumentScore.findOne({
@@ -165,7 +223,6 @@ export default async function syncCNCFDocumentScore(req, res) {
     const score = calculateCncfScore();
 
     debug.log(`insert into database: ${project.htmlUrl}`);
-    debug.log('*** Insert into database ***');
     await CncfDocumentScore.create({
       id: 0,
       projectId: project.id,
@@ -178,7 +235,6 @@ export default async function syncCNCFDocumentScore(req, res) {
     });
     clearDocumentChecks();
   }
-  res.status(200).send('success');
 }
 
 async function createDocumentScore(projectId, repoUrl, score, readme, website, release, filename) {
@@ -246,8 +302,8 @@ function runDocumentChecks(readme, filename, website, release) {
   }
   // Checks changelog/contributing in readme content
   debug.log('Checks File in readme content');
-  checkItemInReadme(cncfDocumentChecksSet.changelog.id);
-  checkItemInReadme(cncfDocumentChecksSet.contributing.id);
+  checkItemInReadme(cncfDocumentChecksSet.changelog.id, readme);
+  checkItemInReadme(cncfDocumentChecksSet.contributing.id, readme);
   debug.log('Run document check success');
 }
 

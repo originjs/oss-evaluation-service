@@ -38,7 +38,7 @@ let start = 0;
 const compassIntegrateJob = new Cron(integrationTime, { timezone: 'Etc/UTC' }, async () => {
   debug.log('compass integration start!', compassIntegrateJob.getPattern());
   try {
-    await syncFullProjectCompassMetric(start);
+    await syncFullProjectCompassMetric(start, '2023-11-01');
     debug.log('Synchronous compass successful!');
   } catch (err) {
     if (err.name === 'SequelizeConnectionError') {
@@ -71,7 +71,7 @@ export async function syncCompassActivityMetric(req, res) {
   const fullIntegration = repoUrl === undefined || repoUrl === null || repoUrl === '';
 
   if (fullIntegration) {
-    await syncFullProjectCompassMetric(startIndex);
+    await syncFullProjectCompassMetric(startIndex, beginDate);
     res.status(200).send('Full-scale compass activity metrics integration success');
   } else {
     const metrics = await syncSingleProjectCompassMetric(repoUrl, beginDate);
@@ -83,7 +83,7 @@ export async function syncCompassActivityMetric(req, res) {
  * Synchronize compass data for all GitHub projects
  * @param startIndex Prevent intermediate failed checkpoints
  */
-async function syncFullProjectCompassMetric(startIndex) {
+async function syncFullProjectCompassMetric(startIndex, beginDate) {
   let projectList = await GithubProjects.findAll({
     attributes: ['id', 'htmlUrl'],
   });
@@ -101,6 +101,7 @@ async function syncFullProjectCompassMetric(startIndex) {
     debug.log('Request compass metric');
     const compassData = await request(compassUrl, query, {
       label: project.htmlUrl,
+      beginDate,
     }).catch(error => {
       debug.log('Post to compass error : ', error.message);
       throw { error, startIndex: count - 1 };

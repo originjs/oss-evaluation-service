@@ -24,7 +24,7 @@ import {
   updateScore,
 } from '../controllers/benchmark.js';
 import getDelayedMessage from '../controllers/common.js';
-import syncCNCFDocumentScore from '../controllers/documentScore.js';
+import syncCncfDocumentScore from '../controllers/documentScore.js';
 import { refreshMainPackage } from '../controllers/refreshMainPackage.js';
 import {
   collectSonarCloudData,
@@ -46,11 +46,24 @@ const router = express.Router();
  * /sync/CNCFDocumentScore:
  *   post:
  *     summary: Synchronize CNCF Document Score(checks Readme, Changelog, Contributing, and Website)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               repoUrl:
+ *                 type: string
+ *                 example: ""
+ *               startIndex:
+ *                 type: int
+ *                 example: 0
  *   responses:
  *       200:
  *         description: Compass activity metric synchronized
  */
-router.route('/CNCFDocumentScore').post(syncCNCFDocumentScore);
+router.route('/CNCFDocumentScore').post(syncCncfDocumentScore);
 
 /**
  * @swagger
