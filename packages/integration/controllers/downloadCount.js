@@ -198,17 +198,13 @@ async function dealMultiPackage(week, packageName, packageToProjectIdMap) {
   try {
     const downloadCountJson = await sendRequestByPoint(week.start, week.end, packageName);
     if (downloadCountJson.error === undefined) {
-      Object.values(downloadCountJson).forEach(element => {
-        if (element != null) {
-          downloadCountList.push({
-            projectId: packageToProjectIdMap.get(element.package),
-            packageName: element.package,
-            startDate: element.start,
-            endDate: element.end,
-            week: week.weekOfYear,
-            downloads: element.downloads,
-          });
-        }
+      downloadCountList.push({
+        projectId: packageToProjectIdMap.get(downloadCountJson.package),
+        packageName: downloadCountJson.package,
+        startDate: downloadCountJson.start,
+        endDate: downloadCountJson.end,
+        week: week.weekOfYear,
+        downloads: downloadCountJson.downloads,
       });
     }
   } catch (e) {
