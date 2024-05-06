@@ -164,7 +164,10 @@ export default sequelize.define(
     contributors: {
       type: DataTypes.INTEGER,
     },
-    dependentCount: {
+    dependentRepositories: {
+      type: DataTypes.BIGINT,
+    },
+    dependentPackages: {
       type: DataTypes.BIGINT,
     },
   },

@@ -7,7 +7,7 @@ export default async function syncProjectDependentCount(req, res) {
   debug.log('Sync Project dependent count');
   // 1. get all github project
   const projectList = await GithubProjects.findAll({
-    attributes: ['id', 'htmlUrl', 'dependentCount'],
+    attributes: ['id', 'htmlUrl', 'dependentRepositories', 'dependentPackages'],
   });
   const sumOfProject = projectList.length;
   debug.log(`The Number of Project : ${sumOfProject}`);
@@ -16,25 +16,26 @@ export default async function syncProjectDependentCount(req, res) {
     debug.log('**Current Progress**: ', `${count}/${sumOfProject}`);
     count += 1;
     // 2. get project dependent count
-    let dependentCount = await getProjectDependentCount(`${project.htmlUrl}/network/dependents`);
-    if (dependentCount == '' || dependentCount == undefined) {
-      continue;
-    }
-
-    await GithubProjects.update(
-      { dependentCount: dependentCount },
-      {
-        where: {
-          id: project.id,
+    const dependentCount = await getProjectDependentCount(`${project.htmlUrl}/network/dependents`);
+    if (dependentCount.repositories != undefined && dependentCount.packages != undefined) {
+      await GithubProjects.update(
+        { dependentRepositories: dependentCount.repositories,
+          dependentPackages: dependentCount.packages
         },
-      },
-    );
+        {
+          where: {
+            id: project.id,
+          },
+        },
+      );
+    }
   }
   res.status(200).send('success');
 }
 
 async function getProjectDependentCount(url) {
-  let dependentCount;
+  let repos;
+  let packs;
   const config = new Configuration({ persistStorage: false });
   const crawler = new CheerioCrawler(
     {
@@ -42,12 +43,18 @@ async function getProjectDependentCount(url) {
         log.info(`web crawler: Request to ${request.url} failed...`);
       },
       async requestHandler({ request, $, log }) {
-        const content = $('a:contains("Repositories")');
-        if (content) {
-          const dependentArrays = content.text().match(/\d+/g);
-          dependentCount =  (dependentArrays != undefined && dependentArrays.length > 0) ? dependentArrays.join('') : "";
+        const repositories = $('a:contains("Repositor")');
+        const packages = $('a:contains("Package")');
+        if (repositories) {
+          const repository = repositories.text().match(/\d+/g);
+          repos =  (repository != undefined && repository.length > 0) ? repository.join('') : "";
         }
-        log.info(`dependent count of ${request.loadedUrl} is ${dependentCount}`);
+        if (packages) {
+          const pack = packages.text().match(/\d+/g);
+          packs =  (pack != undefined && pack.length > 0) ? pack.join('') : "";
+        }
+        log.info(`dependent repositories of ${request.loadedUrl} is ${repos}`);
+        log.info(`dependent packages of ${request.loadedUrl} is ${packs}`);
       },
       requestHandlerTimeoutSecs: 60,
       maxRequestsPerCrawl: 10,
@@ -62,7 +69,7 @@ async function getProjectDependentCount(url) {
   } catch (e) {
     debug.log(`**Url get dependent count is failed !** :${url}`);
   }
-  return dependentCount;
+  return {"repositories":repos, "packages":packs};
 }
 
 
