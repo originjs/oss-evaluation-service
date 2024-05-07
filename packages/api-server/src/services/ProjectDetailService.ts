@@ -32,6 +32,7 @@ ProjectInfo.hasOne(SonarCloudProjectMin, { foreignKey: 'github_project_id', as: 
 ProjectInfo.hasOne(EvaluationSummary, { foreignKey: 'project_id', as: 'evaluation' });
 ProjectInfo.hasMany(StateOfJsMin, { foreignKey: 'project_id', as: 'satisfaction' });
 ProjectInfo.hasOne(CncfDocumentScoreMin, { foreignKey: 'project_id', as: 'document' });
+ProjectInfo.hasOne(GithubProjects, { foreignKey: 'id', as: 'githubProjects' });
 
 export async function getProjectDetailInfo(repoName: string): Promise<SoftwareInfo> {
   const projectId = await getProjectIdByRepoName(repoName);
@@ -62,6 +63,10 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
       {
         model: StateOfJsMin,
         as: 'satisfaction',
+      },
+      {
+        model: GithubProjects,
+        as: 'githubProjects',
       },
     ],
     where: {
@@ -218,9 +223,11 @@ export async function getMainPackageByRepoName(repoName: string) {
   return data.package;
 }
 
-
 ProjectPackage.hasMany(PackageDownloadCount, { foreignKey: 'package_name', sourceKey: 'package' });
-PackageDownloadCount.belongsTo(ProjectPackage, { foreignKey: 'package_name', targetKey: 'package' });
+PackageDownloadCount.belongsTo(ProjectPackage, {
+  foreignKey: 'package_name',
+  targetKey: 'package',
+});
 /**
  * getSoftwareCompassActivity
  *
@@ -299,17 +306,17 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
   }
   const downloadList = await PackageDownloadCount.findAll({
     attributes: ['end_date', 'downloads'],
-    include: [{
-      model: ProjectPackage,
-      where: {
-        project_name: repoName
+    include: [
+      {
+        model: ProjectPackage,
+        where: {
+          project_name: repoName,
+        },
+        attributes: [],
       },
-      attributes: []
-    }],
-    order: [
-      ['end_date', 'desc']
     ],
-    limit: 14
+    order: [['end_date', 'desc']],
+    limit: 14,
   });
   const sortedDownloadList = _.sortBy(downloadList, item => item.dataValues.end_date);
   for (const download of sortedDownloadList) {
@@ -322,7 +329,7 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
     where: {
       fullName: repoName,
     },
-    attributes: ['stargazers', 'date',],
+    attributes: ['stargazers', 'date'],
     order: [['date', 'asc']],
   });
   stargazers = _.pluck(trend, 'stargazers');
@@ -344,13 +351,26 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
   };
 }
 
-export async function exportScoreExcel(packageName: string) {
+export async function exportScoreExcel(projectName: string) {
   const excelTemplate = readFileSync('./assets/evaluation-template.xlsx');
-  const data = await EvaluationSummary.findOne({
+  const data = await getProjectDetailInfo(projectName);
+  const packageName = await getMainPackageByRepoName(projectName);
+  const packageSize = await PackageSizeDetail.findOne({
     where: {
-      project_name: packageName,
+      packageName: packageName,
     },
+    order: [['version', 'desc']],
+    attributes: ['size', 'gzipSize'],
   });
+  const resultString = _.reduce(
+    data.satisfaction,
+    function (acc, item) {
+      return acc + `${item.year}: ${item.val}\n`;
+    },
+    '',
+  );
+  data.satisfactionExport = resultString.slice(0, resultString.length - 1);
+  data.gzipSize = packageSize?.gzipSize;
   if (!data) {
     return;
   }
