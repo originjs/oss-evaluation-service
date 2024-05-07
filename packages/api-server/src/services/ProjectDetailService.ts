@@ -32,6 +32,7 @@ ProjectInfo.hasOne(SonarCloudProjectMin, { foreignKey: 'github_project_id', as: 
 ProjectInfo.hasOne(EvaluationSummary, { foreignKey: 'project_id', as: 'evaluation' });
 ProjectInfo.hasMany(StateOfJsMin, { foreignKey: 'project_id', as: 'satisfaction' });
 ProjectInfo.hasOne(CncfDocumentScoreMin, { foreignKey: 'project_id', as: 'document' });
+ProjectInfo.hasOne(GithubProjects, { foreignKey: 'id', as: 'githubProjects' });
 
 export async function getProjectDetailInfo(repoName: string): Promise<SoftwareInfo> {
   const projectId = await getProjectIdByRepoName(repoName);
@@ -62,6 +63,10 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
       {
         model: StateOfJsMin,
         as: 'satisfaction',
+      },
+      {
+        model: GithubProjects,
+        as: 'githubProjects',
       },
     ],
     where: {
@@ -348,61 +353,7 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
 
 export async function exportScoreExcel(projectName: string) {
   const excelTemplate = readFileSync('./assets/evaluation-template.xlsx');
-  const projectId = await getProjectIdByRepoName(projectName);
-  const res = await ProjectInfo.findOne({
-    include: [
-      {
-        model: EvaluationSummary,
-        as: 'evaluation',
-      },
-      {
-        model: Scorecard,
-        as: 'scorecard',
-      },
-      {
-        model: SonarCloudProjectMin,
-        as: 'sonarCloudScan',
-        required: false,
-        where: {
-          analysisDate: {
-            [Op.ne]: null,
-          },
-        },
-      },
-      {
-        model: CncfDocumentScoreMin,
-        as: 'document',
-      },
-      {
-        model: StateOfJsMin,
-        as: 'satisfaction',
-      },
-    ],
-    where: {
-      id: projectId,
-    },
-  });
-  const data = res.toJSON();
-  data.repoName = projectName;
-  data.techStack = data.evaluation?.techStack;
-
-  if (data.satisfaction?.length !== 0) {
-    const satisfaction = data.satisfaction.sort((a, b) => {
-      return a.year - b.year;
-    });
-    data.satisfaction = satisfaction?.map(item => ({
-      year: item.year,
-      val: item.satisfactionPercentage,
-    }));
-    const resultString = _.reduce(
-      data.satisfaction,
-      function (acc, item) {
-        return acc + `${item.year}: ${item.val}\n`;
-      },
-      '',
-    );
-    data.satisfaction = resultString.slice(0, resultString.length - 1);
-  }
+  const data = await getProjectDetailInfo(projectName);
   const packageName = await getMainPackageByRepoName(projectName);
   const packageSize = await PackageSizeDetail.findOne({
     where: {
@@ -411,6 +362,14 @@ export async function exportScoreExcel(projectName: string) {
     order: [['version', 'desc']],
     attributes: ['size', 'gzipSize'],
   });
+  const resultString = _.reduce(
+    data.satisfaction,
+    function (acc, item) {
+      return acc + `${item.year}: ${item.val}\n`;
+    },
+    '',
+  );
+  data.satisfactionExport = resultString.slice(0, resultString.length - 1);
   data.gzipSize = packageSize?.gzipSize;
   if (!data) {
     return;

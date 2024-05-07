@@ -81,6 +81,8 @@ export interface SoftwareInfo extends SoftwareBaseInfo {
     year: number;
     val: number;
   }[];
+  satisfactionExport?: string;
+  gzipSize?: number;
 }
 
 export interface EcologyActivity {
