@@ -178,7 +178,7 @@ watchEffect(async () => {
         has: data.document?.hasChangelog,
       },
       {
-        title: 'Governance',
+        title: 'Contributing',
         content:
           'Document that explains how the governance and committer process works in the repository.',
         has: data.document?.hasContributing,
@@ -647,7 +647,7 @@ const emits = defineEmits<{
             >
               <div flex flex-items-center font-bold mb-1>
                 <span v-if="docItem.has" i-ph-check-circle mr-1 font-size-5 color-green-300 />
-                <span v-else i-ph-minus-circle mr-1 font-size-5 color-gray-400 />
+                <span v-else i-ph-minus-circle mr-1 font-size-5 color-red-400 />
                 <span>{{ docItem.title }}</span>
               </div>
               <el-tooltip :content="docItem.content" placement="top">
