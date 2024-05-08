@@ -14,19 +14,20 @@ from github_projects project
                     from github_projects_stargazers_trend
                     where date >= :startDate) trend on project.id = project_id
 where isnull(project_id)
-  and project.id >= :projectId
+  and project.id >= :startId
+  and project.id <= :endId
 order by id;
 `;
 
 export async function syncStargazersTrend(req, res) {
-  const { startDate, projectId } = req.body;
-  await getStargazersTrend(startDate, projectId);
+  const { startDate, startId, endId } = req.body;
+  await getStargazersTrend(startDate, startId, endId);
   res.status(200).json('ok');
 }
 
-async function getStargazersTrend(startDate, projectId) {
+async function getStargazersTrend(startDate, startId, endId) {
   const needSyncProject = await sequelize.query(QUERY_SQL, {
-    replacements: { startDate, projectId },
+    replacements: { startDate, startId, endId },
     type: sequelize.QueryTypes.SELECT,
   });
 

@@ -677,7 +677,10 @@ router.route('/syncProjectCodeSize').get(syncProjectCodeSize);
  *               startDate:
  *                  type: string
  *                  example: '2024-04-01'
- *               projectId:
+ *               startId:
+ *                 type: int
+ *                 example: 1
+ *               endId:
  *                 type: int
  *                 example: 1
  *     responses:
