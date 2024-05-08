@@ -14,12 +14,10 @@ import type {
 } from '@orginjs/oss-evaluation-components-api';
 import {
   getSoftwareInfo,
-  getPerformanceModuleInfo,
   getEcologyActivityCategoryApi,
   exportFileApi,
 } from '@orginjs/oss-evaluation-components-api';
 import { CompareFavorites } from '../compare-favorites';
-import { SearchSoftware } from '../search-software';
 import {
   getLevelColor,
   getTagType,
@@ -71,6 +69,14 @@ const documentInfo = ref<{
 const developerSatisfaction = ref({
   xAxis: [] as Array<number>,
   yAxis: [] as Array<number>,
+});
+
+const performanceModuleInfo = ref<PerformanceInfo>({
+  size: 0,
+  gzipSize: 0,
+  packageName: '',
+  benchmarkScore: 0,
+  benchmarkData: { data: [], base: [] },
 });
 
 watchEffect(async () => {
@@ -191,6 +197,8 @@ watchEffect(async () => {
       yAxis: data.satisfaction.map(item => item.val),
     };
   }
+  performanceModuleInfo.value = data.performanceInfo;
+  processBenchmarkData(data.performanceInfo.benchmarkData);
   await nextTick();
   renderSoftwareRadarChart();
   renderDeveloperSatisfactionChart();
@@ -367,14 +375,6 @@ function removeUnit(str: string) {
   return Number(str.split(' ')[0]);
 }
 
-const performanceModuleInfo = ref<PerformanceInfo>({
-  size: 0,
-  gzipSize: 0,
-  packageName: '',
-  benchmarkScore: 0,
-  benchmarkData: { data: [], base: [] },
-});
-
 type BenchmarkCompareRow = Record<string, string | null>;
 type BenchmarkCompareData = Record<string, BenchmarkCompareRow>;
 type MinRowValue = Record<string, number>;
@@ -383,12 +383,6 @@ const benchmarkCompareRows = ref<BenchmarkCompareData>({});
 const benchmarkCompareColumns = ref<Set<string>>(new Set(['indexName']));
 const minRowValue = ref<MinRowValue>({});
 const benchmarkCompareTable = computed(() => Object.values(benchmarkCompareRows.value));
-
-watchEffect(async () => {
-  const { data } = await getPerformanceModuleInfo(encodedRepoName.value);
-  performanceModuleInfo.value = data;
-  processBenchmarkData(data.benchmarkData);
-});
 
 // Extract table row, min row value and column name from object array data
 function processBenchmarkData(benchmarkData?: BenchmarkData, needRetain?: boolean) {
@@ -420,13 +414,6 @@ function processBenchmarkData(benchmarkData?: BenchmarkData, needRetain?: boolea
   const minRowV: MinRowValue = needRetain ? { ...minRowValue.value } : {};
   (benchmarkData?.base || []).forEach(item => (minRowV[item.indexName] = item.bestVal));
   minRowValue.value = minRowV;
-}
-
-async function addBenchmarkCompare(info: SoftwareBaseInfo) {
-  const {
-    data: { benchmarkData },
-  } = await getPerformanceModuleInfo(encodeURIComponent(info.repoName));
-  processBenchmarkData(benchmarkData, true);
 }
 
 const computeColor: CellStyle<BenchmarkCompareRow> = function ({ row, column }) {
@@ -557,11 +544,11 @@ const emits = defineEmits<{
               </template>
             </el-tooltip>
             <el-tag
+              v-if="project?.techStack !== null && project?.techStack !== undefined"
               mr-3
               size="small"
               type="danger"
               effect="dark"
-              v-if="project?.techStack !== null && project?.techStack !== undefined"
             >
               {{ project?.techStack }}
             </el-tag>
@@ -674,11 +661,23 @@ const emits = defineEmits<{
         </div>
         <div flex flex-items-center h-86px>
           <div mr-200px>
-            <div mb-2 font-bold>{{ performanceModuleInfo?.size?(performanceModuleInfo.size / 1024).toFixed(1): '--' }} kB</div>
+            <div mb-2 font-bold>
+              {{
+                performanceModuleInfo?.size ? (performanceModuleInfo.size / 1024).toFixed(1) : '--'
+              }}
+              kB
+            </div>
             <div>MINIFIED</div>
           </div>
           <div mr-200px>
-            <div mb-2 font-bold>{{ performanceModuleInfo?.gzipSize ?(performanceModuleInfo.gzipSize / 1024).toFixed(1): '--' }} kB</div>
+            <div mb-2 font-bold>
+              {{
+                performanceModuleInfo?.gzipSize
+                  ? (performanceModuleInfo.gzipSize / 1024).toFixed(1)
+                  : '--'
+              }}
+              kB
+            </div>
             <div>MINIFIED + GZIPPED</div>
           </div>
         </div>
@@ -1005,7 +1004,9 @@ const emits = defineEmits<{
               </el-icon>
             </el-tooltip>
           </div>
-          <div mb-2 font-size-3 text-gray-500>{{ i18n.global.t(`tips.ecology.packageDownloads`) }}</div>
+          <div mb-2 font-size-3 text-gray-500>
+            {{ i18n.global.t(`tips.ecology.packageDownloads`) }}
+          </div>
           <div id="week-package-downloads-chart" h-200px />
         </el-card>
 
@@ -1081,7 +1082,7 @@ const emits = defineEmits<{
             </el-tooltip>
           </div>
           <div mb-2 font-size-3 text-gray-500>
-            {{i18n.global.t(`tips.ecology.contributor`)}}
+            {{ i18n.global.t(`tips.ecology.contributor`) }}
           </div>
           <div id="contributor-count-chart" h-200px />
         </el-card>
@@ -1095,7 +1096,7 @@ const emits = defineEmits<{
             </el-tooltip>
           </div>
           <div mb-2 font-size-3 text-gray-500>
-            {{i18n.global.t(`tips.ecology.release`)}}
+            {{ i18n.global.t(`tips.ecology.release`) }}
           </div>
           <div id="recent-releases-count-chart" h-200px />
         </el-card>

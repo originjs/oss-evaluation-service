@@ -13,6 +13,23 @@ export interface SoftwareBaseInfo {
   selectedVersions: string[];
 }
 
+export interface BenchmarkData {
+  base: { indexName: string; bestVal: number }[];
+  data: {
+    displayName: string;
+    indexName: string;
+    rawValue: null | string;
+  }[][];
+}
+
+export interface PerformanceInfo {
+  size: number;
+  packageName: string;
+  gzipSize: number;
+  benchmarkScore: number;
+  benchmarkData?: BenchmarkData;
+}
+
 export interface SoftwareInfo extends SoftwareBaseInfo {
   fork: number;
   language: string;
@@ -83,6 +100,7 @@ export interface SoftwareInfo extends SoftwareBaseInfo {
   }[];
   satisfactionExport?: string;
   gzipSize?: number;
+  performanceInfo: PerformanceInfo;
 }
 
 export interface EcologyActivity {
@@ -101,23 +119,6 @@ export interface EcologyActivityCategory {
   recentReleasesCount: EcologyActivity[];
   packageDownload: EcologyActivity[];
   starTrend: object;
-}
-
-export interface BenchmarkData {
-  base: { indexName: string; bestVal: number }[];
-  data: {
-    displayName: string;
-    indexName: string;
-    rawValue: null | string;
-  }[][];
-}
-
-export interface PerformanceInfo {
-  size: number;
-  packageName: string;
-  gzipSize: number;
-  benchmarkScore: number;
-  benchmarkData?: BenchmarkData;
 }
 
 export interface BenchmarkIndex {

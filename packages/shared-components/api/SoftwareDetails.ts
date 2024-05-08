@@ -21,10 +21,6 @@ export function getSoftwareInfo(repoName: string) {
   return HttpRequest.get<SoftwareInfo>(`/project/${repoName}`);
 }
 
-export function getPerformanceModuleInfo(repoName: string) {
-  return HttpRequest.get<PerformanceInfo>(`/project/performance/${repoName}`);
-}
-
 export function getEcologyActivityCategoryApi(repoName: string) {
   return HttpRequest.get<EcologyActivityCategory>(`/project/activity/${repoName}`);
 }

@@ -2,15 +2,10 @@ import { Controller, Path, Route, Get, Post } from 'tsoa';
 import {
   getProjectDetailInfo,
   getSoftwareActivity,
-  getPerformance,
   exportScoreExcel,
   exportBenchmarkExcel,
 } from '../services/ProjectDetailService.js';
-import type {
-  EcologyActivityCategory,
-  PerformanceInfo,
-  SoftwareInfo,
-} from '../interfaces/SoftwareInfo.js';
+import type { EcologyActivityCategory, SoftwareInfo } from '../interfaces/SoftwareInfo.js';
 import { appendSheet } from '../utils/excel.js';
 import { Result } from '../utils/result.js';
 import { Readable } from 'stream';
@@ -27,18 +22,6 @@ export class ProjectController extends Controller {
   public async getActivityData(@Path() repoName: string): Promise<Result<EcologyActivityCategory>> {
     const data = await getSoftwareActivity(repoName);
     return Result.ok(data);
-  }
-
-  @Get('performance/{repoName}')
-  public async getPerformanceData(
-    @Path() repoName: string,
-  ): Promise<Result<PerformanceInfo | unknown>> {
-    try {
-      const data = await getPerformance(repoName);
-      return Result.ok(data);
-    } catch (e) {
-      return Result.ok({});
-    }
   }
 
   @Post('export/{repoName}')

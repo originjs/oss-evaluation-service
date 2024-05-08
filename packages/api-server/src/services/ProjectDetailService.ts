@@ -87,6 +87,11 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
       val: item.satisfactionPercentage,
     }));
   }
+  try {
+    res.performanceInfo = await getPerformance(repoName);
+  } catch (e) {
+    res.performanceInfo = {};
+  }
 
   return res;
 }
@@ -354,14 +359,6 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
 export async function exportScoreExcel(projectName: string) {
   const excelTemplate = readFileSync('./assets/evaluation-template.xlsx');
   const data = await getProjectDetailInfo(projectName);
-  const packageName = await getMainPackageByRepoName(projectName);
-  const packageSize = await PackageSizeDetail.findOne({
-    where: {
-      packageName: packageName,
-    },
-    order: [['version', 'desc']],
-    attributes: ['size', 'gzipSize'],
-  });
   const resultString = _.reduce(
     data.satisfaction,
     function (acc, item) {
@@ -370,7 +367,7 @@ export async function exportScoreExcel(projectName: string) {
     '',
   );
   data.satisfactionExport = resultString.slice(0, resultString.length - 1);
-  data.gzipSize = packageSize?.gzipSize;
+  data.gzipSize = data.performanceInfo?.gzipSize;
   if (!data) {
     return;
   }
