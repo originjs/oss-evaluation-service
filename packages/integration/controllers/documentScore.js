@@ -59,7 +59,7 @@ let tokenIndex = 0;
 const basicApiUrl = 'GET /repos/{owner}/{repo}';
 
 function changeToken() {
-  const tokenArray = process.env.GITHUB_TOKEN.split(';');
+  const tokenArray = process.env.GITHUB_TOKENS.split(';');
   tokenIndex += 1;
   return tokenArray[tokenIndex % tokenArray.length];
 }

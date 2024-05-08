@@ -212,7 +212,7 @@ const changePage = (name: string) => {
                 target="_blank" :underline="false">
                   {{ projects[idx - 1]?.repoName }}
                 </el-link>
-              </span>              
+              </span>
               <el-icon
                 class="close-btn cursor-pointer hover-color-#F56C6C"
                 @click="removeSoftware(idx - 1)"
@@ -499,7 +499,7 @@ const changePage = (name: string) => {
                     font-size-5
                     color-green-300
                   />
-                  <span v-else i-ph-minus-circle mr-1 font-size-5 color-gray-400 />
+                  <span v-else i-ph-minus-circle mr-1 font-size-5 color-red-400 />
                   Readme
                 </div>
                 <div>
@@ -510,7 +510,7 @@ const changePage = (name: string) => {
                     font-size-5
                     color-green-300
                   />
-                  <span v-else i-ph-minus-circle mr-1 font-size-5 color-gray-400 />
+                  <span v-else i-ph-minus-circle mr-1 font-size-5 color-red-400 />
                   Website
                 </div>
                 <div>
@@ -521,7 +521,7 @@ const changePage = (name: string) => {
                     font-size-5
                     color-green-300
                   />
-                  <span v-else i-ph-minus-circle mr-1 font-size-5 color-gray-400 />
+                  <span v-else i-ph-minus-circle mr-1 font-size-5 color-red-400 />
                   Changelog
                 </div>
                 <div>
@@ -532,8 +532,8 @@ const changePage = (name: string) => {
                     font-size-5
                     color-green-300
                   />
-                  <span v-else i-ph-minus-circle mr-1 font-size-5 color-gray-400 />
-                  Governance
+                  <span v-else i-ph-minus-circle mr-1 font-size-5 color-red-400 />
+                  Contributing
                 </div>
               </div>
             </div>

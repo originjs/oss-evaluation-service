@@ -178,9 +178,9 @@ watchEffect(async () => {
         has: data.document?.hasChangelog,
       },
       {
-        title: 'Governance',
+        title: 'Contributing',
         content:
-          'Document that explains how the governance and committer process works in the repository.',
+          'A contributing file in your repository provides potential project contributors with a short guide to how they can help with your project.',
         has: data.document?.hasContributing,
       },
     ],
@@ -557,11 +557,11 @@ const emits = defineEmits<{
               </template>
             </el-tooltip>
             <el-tag
+              v-if="project?.techStack !== null && project?.techStack !== undefined"
               mr-3
               size="small"
               type="danger"
               effect="dark"
-              v-if="project?.techStack !== null && project?.techStack !== undefined"
             >
               {{ project?.techStack }}
             </el-tag>
@@ -647,7 +647,7 @@ const emits = defineEmits<{
             >
               <div flex flex-items-center font-bold mb-1>
                 <span v-if="docItem.has" i-ph-check-circle mr-1 font-size-5 color-green-300 />
-                <span v-else i-ph-minus-circle mr-1 font-size-5 color-gray-400 />
+                <span v-else i-ph-minus-circle mr-1 font-size-5 color-red-400 />
                 <span>{{ docItem.title }}</span>
               </div>
               <el-tooltip :content="docItem.content" placement="top">
@@ -674,11 +674,23 @@ const emits = defineEmits<{
         </div>
         <div flex flex-items-center h-86px>
           <div mr-200px>
-            <div mb-2 font-bold>{{ performanceModuleInfo?.size?(performanceModuleInfo.size / 1024).toFixed(1): '--' }} kB</div>
+            <div mb-2 font-bold>
+              {{
+                performanceModuleInfo?.size ? (performanceModuleInfo.size / 1024).toFixed(1) : '--'
+              }}
+              kB
+            </div>
             <div>MINIFIED</div>
           </div>
           <div mr-200px>
-            <div mb-2 font-bold>{{ performanceModuleInfo?.gzipSize ?(performanceModuleInfo.gzipSize / 1024).toFixed(1): '--' }} kB</div>
+            <div mb-2 font-bold>
+              {{
+                performanceModuleInfo?.gzipSize
+                  ? (performanceModuleInfo.gzipSize / 1024).toFixed(1)
+                  : '--'
+              }}
+              kB
+            </div>
             <div>MINIFIED + GZIPPED</div>
           </div>
         </div>
@@ -1005,7 +1017,9 @@ const emits = defineEmits<{
               </el-icon>
             </el-tooltip>
           </div>
-          <div mb-2 font-size-3 text-gray-500>{{ i18n.global.t(`tips.ecology.packageDownloads`) }}</div>
+          <div mb-2 font-size-3 text-gray-500>
+            {{ i18n.global.t(`tips.ecology.packageDownloads`) }}
+          </div>
           <div id="week-package-downloads-chart" h-200px />
         </el-card>
 
@@ -1081,7 +1095,7 @@ const emits = defineEmits<{
             </el-tooltip>
           </div>
           <div mb-2 font-size-3 text-gray-500>
-            {{i18n.global.t(`tips.ecology.contributor`)}}
+            {{ i18n.global.t(`tips.ecology.contributor`) }}
           </div>
           <div id="contributor-count-chart" h-200px />
         </el-card>
@@ -1095,7 +1109,7 @@ const emits = defineEmits<{
             </el-tooltip>
           </div>
           <div mb-2 font-size-3 text-gray-500>
-            {{i18n.global.t(`tips.ecology.release`)}}
+            {{ i18n.global.t(`tips.ecology.release`) }}
           </div>
           <div id="recent-releases-count-chart" h-200px />
         </el-card>
