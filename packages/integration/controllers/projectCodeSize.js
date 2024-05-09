@@ -7,8 +7,12 @@ import { XMLParser } from 'fast-xml-parser'
 export default async function syncProjectCodeSize(req, res) {
   debug.log('Sync Project Code Size');
   // 1. get all github project
+  const { projectId: projectId } = req.params;
   const projectList = await GithubProjects.findAll({
     attributes: ['id', 'ownerName', 'name', 'codeSize'],
+    where: projectId ?  {
+      id: projectId
+    } : {},
   });
   const sumOfProject = projectList.length;
   debug.log(`The Number of Project : ${sumOfProject}`);

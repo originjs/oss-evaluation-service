@@ -6,8 +6,12 @@ import { Cron } from 'croner';
 export default async function syncProjectContributors(req, res) {
   debug.log('Sync Project Contributors');
   // 1. get all github project
+  const { projectId: projectId } = req.params;
   const projectList = await GithubProjects.findAll({
     attributes: ['id', 'htmlUrl', 'fullName', 'contributors'],
+    where: projectId ?  {
+      id: projectId
+    } : {},
   });
   const sumOfProject = projectList.length;
   debug.log(`The Number of Project : ${sumOfProject}`);

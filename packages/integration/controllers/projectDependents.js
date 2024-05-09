@@ -6,8 +6,12 @@ import { Cron } from 'croner';
 export default async function syncProjectDependentCount(req, res) {
   debug.log('Sync Project dependent count');
   // 1. get all github project
+  const { projectId: projectId } = req.params;
   const projectList = await GithubProjects.findAll({
     attributes: ['id', 'htmlUrl', 'dependentRepositories', 'dependentPackages'],
+    where: projectId ?  {
+      id: projectId
+    } : {},
   });
   const sumOfProject = projectList.length;
   debug.log(`The Number of Project : ${sumOfProject}`);
@@ -17,9 +21,11 @@ export default async function syncProjectDependentCount(req, res) {
     count += 1;
     // 2. get project dependent count
     const dependentCount = await getProjectDependentCount(`${project.htmlUrl}/network/dependents`);
-    if (dependentCount.repositories != undefined && dependentCount.packages != undefined) {
+    if (dependentCount.repositories != undefined && dependentCount.packages != undefined
+      && dependentCount.repositories != "" && dependentCount.packages != "") {
       await GithubProjects.update(
-        { dependentRepositories: dependentCount.repositories,
+        {
+          dependentRepositories: dependentCount.repositories,
           dependentPackages: dependentCount.packages
         },
         {

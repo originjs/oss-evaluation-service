@@ -664,6 +664,23 @@ router.route('/syncProjectCodeSize').get(syncProjectCodeSize);
 
 /**
  * @swagger
+ * /sync/syncSingleProjectCodeSize/{projectId}:
+ *   get:
+ *     summary: refresh main package of project
+ *     parameters:
+ *      - in: path
+ *        name: projectId
+ *        type: int
+ *        required: true
+ *        example: 1
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/syncSingleProjectCodeSize/:projectId').get(syncProjectCodeSize);
+
+/**
+ * @swagger
  * /sync/syncStargazersTrend:
  *   post:
  *     summary: syncStargazersTrend
@@ -703,6 +720,23 @@ router.route('/syncProjectContributors').get(syncProjectContributors);
 
 /**
  * @swagger
+ * /sync/syncSingleProjectContributors/{projectId}:
+ *   get:
+ *     summary: refresh contributors of project
+ *     parameters:
+ *      - in: path
+ *        name: projectId
+ *        type: int
+ *        required: true
+ *        example: 1
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/syncSingleProjectContributors/:projectId').get(syncProjectContributors);
+
+/**
+ * @swagger
  * /sync/syncProjectDependentCount:
  *   get:
  *     summary: refresh dependent count of project
@@ -711,5 +745,22 @@ router.route('/syncProjectContributors').get(syncProjectContributors);
  *         description: success.
  */
 router.route('/syncProjectDependentCount').get(syncProjectDependentCount);
+
+/**
+ * @swagger
+ * /sync/syncSingleProjectDependentCount/{projectId}:
+ *   get:
+ *     summary: refresh dependent count of project
+ *     parameters:
+ *      - in: path
+ *        name: projectId
+ *        type: int
+ *        required: true
+ *        example: 1
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/syncSingleProjectDependentCount/:projectId').get(syncProjectDependentCount);
 
 export default router;
