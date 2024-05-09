@@ -76,56 +76,10 @@ export async function integratingCNCFDocumentScore(startIndex) {
   const projectCount = projectList.length;
   projectList = projectList.slice(startIndex);
 
-  const githubToken = await getValidGithubToken();
-  const octokit = new Octokit({
-    auth: githubToken,
-  });
-
   for (const project of projectList) {
     debug.log('Current document score Integration Progress: ', `${startIndex + 1}/${projectCount}`);
     startIndex += 1;
-
-    const documentProject = await CncfDocumentScore.findOne({
-      where: { repoUrl: project.htmlUrl },
-    });
-    if (documentProject == null) {
-      const githubInfo = await getGithubMetadata(octokit, project.htmlUrl)
-        .then(data => data)
-        .catch(err => {
-          if (Object.prototype.hasOwnProperty.call(err, 'status') && err.status === 404) {
-            debug.log(err);
-          } else {
-            throw { err, startIndex };
-          }
-        });
-      if (githubInfo === undefined) {
-        continue;
-      }
-      const { readme, filename, website, release } = githubInfo;
-
-      runDocumentChecks(readme, filename, website, release);
-      const score = calculateCncfScore();
-      debug.log(`**** insert into database ****: ${project.htmlUrl}`);
-      await createDocumentScore(
-        project.id,
-        project.htmlUrl,
-        score,
-        readme,
-        website,
-        release,
-        filename,
-      );
-    } else {
-      /* only calculate document score */
-      runDocumentChecks(
-        documentProject.readme,
-        JSON.parse(documentProject.filename),
-        documentProject.website,
-        documentProject.release,
-      );
-      const score = calculateCncfScore();
-      await updateDocumentScore(project.id, score);
-    }
+    await syncSingleCncfDocumentScore(project.htmlUrl);
     clearDocumentChecks();
   }
 }
@@ -158,30 +112,41 @@ async function syncSingleCncfDocumentScore(repoUrl) {
     where: { repoUrl: project.htmlUrl },
   });
   if (documentProject != null) {
-    debug.log('*** Already calculate, skip to next project ***');
-    return;
+    // update
+    debug.log('Already calculate, update project');
+    runDocumentChecks(
+      documentProject.readme,
+      JSON.parse(documentProject.filename),
+      documentProject.website,
+      documentProject.release,
+    );
+    const score = calculateCncfScore();
+    await updateDocumentScore(project.id, score);
+  } else {
+    // create
+    const githubToken = await getValidGithubToken();
+    const octokit = new Octokit({
+      auth: githubToken,
+    });
+    const githubInfo = await getGithubMetadata(octokit, project.htmlUrl);
+    if (githubInfo === undefined) {
+      return;
+    }
+    const { readme, filename, website, release } = githubInfo;
+
+    runDocumentChecks(readme, filename, website, release);
+    const score = calculateCncfScore();
+    debug.log(`**** insert into database ****: ${project.htmlUrl}`);
+    await createDocumentScore(
+      project.id,
+      project.htmlUrl,
+      score,
+      readme,
+      website,
+      release,
+      filename,
+    );
   }
-
-  const githubToken = await getValidGithubToken();
-  const octokit = new Octokit({
-    auth: githubToken,
-  });
-
-  const { readme, filename, website, release } = await getGithubMetadata(octokit, project.htmlUrl);
-  runDocumentChecks(readme, filename, website, release);
-  const score = calculateCncfScore();
-
-  debug.log(`insert into database: ${project.htmlUrl}`);
-  await CncfDocumentScore.create({
-    id: 0,
-    projectId: project.id,
-    repoUrl: project.htmlUrl,
-    readme,
-    filename: JSON.stringify(filename),
-    website,
-    release,
-    documentScore: score,
-  });
 }
 
 async function syncFullCncfDocumentScore(startIndex) {
@@ -201,38 +166,7 @@ async function syncFullCncfDocumentScore(startIndex) {
   for (const project of projectList) {
     debug.log('**Current Progress**: ', `${count + 1}/${projectCount}`);
     count += 1;
-
-    const documentProject = await CncfDocumentScore.findOne({
-      where: { repoUrl: project.htmlUrl },
-    });
-    if (documentProject != null) {
-      debug.log('*** Already calculate, skip to next project ***');
-      continue;
-    }
-
-    const githubToken = await getValidGithubToken();
-    const octokit = new Octokit({
-      auth: githubToken,
-    });
-
-    const { readme, filename, website, release } = await getGithubMetadata(
-      octokit,
-      project.htmlUrl,
-    );
-    runDocumentChecks(readme, filename, website, release);
-    const score = calculateCncfScore();
-
-    debug.log(`insert into database: ${project.htmlUrl}`);
-    await CncfDocumentScore.create({
-      id: 0,
-      projectId: project.id,
-      repoUrl: project.htmlUrl,
-      readme,
-      filename: JSON.stringify(filename),
-      website,
-      release,
-      documentScore: score,
-    });
+    await syncSingleCncfDocumentScore(project.htmlUrl);
     clearDocumentChecks();
   }
 }
