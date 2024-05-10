@@ -14,6 +14,9 @@ export default sequelize.define(
     repoName: {
       type: new DataTypes.VIRTUAL(),
     },
+    homePage: {
+      type: DataTypes.STRING(512),
+    },
     url: {
       type: DataTypes.STRING(512),
       field: 'html_url',

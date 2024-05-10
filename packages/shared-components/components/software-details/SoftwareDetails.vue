@@ -19,7 +19,6 @@ import {
   exportFileApi,
 } from '@orginjs/oss-evaluation-components-api';
 import { CompareFavorites } from '../compare-favorites';
-import { SearchSoftware } from '../search-software';
 import {
   getLevelColor,
   getTagType,
@@ -86,6 +85,10 @@ watchEffect(async () => {
     {
       label: 'Fork',
       value: `${toKilo(data.fork)} k`,
+    },
+    {
+      label: '官网地址',
+      value: data.homePage,
     },
     {
       label: '开发语言',
@@ -210,6 +213,11 @@ function renderSoftwareRadarChart() {
       trigger: 'axis',
     },
     radar: {
+      axisName: {
+        fontWeight: 'bold',
+        color: '#b3b3b3',
+        fontSize: '16',
+      },
       indicator: [
         { name: '功能', max: 100 },
         { name: '质量', max: 100 },
@@ -422,13 +430,6 @@ function processBenchmarkData(benchmarkData?: BenchmarkData, needRetain?: boolea
   minRowValue.value = minRowV;
 }
 
-async function addBenchmarkCompare(info: SoftwareBaseInfo) {
-  const {
-    data: { benchmarkData },
-  } = await getPerformanceModuleInfo(encodeURIComponent(info.repoName));
-  processBenchmarkData(benchmarkData, true);
-}
-
 const computeColor: CellStyle<BenchmarkCompareRow> = function ({ row, column }) {
   const cellVal = row[column.property];
   if (column.property === 'indexName' || !cellVal) {
@@ -584,7 +585,7 @@ const emits = defineEmits<{
             label
           }}</el-tag>
         </div>
-        <div id="software-radar-chart" float-right w-328px h-303px pt-30px bg-coolgray-50 />
+        <div id="software-radar-chart" float-right w-328px h-320px pt-30px bg-coolgray-50 />
         <el-table
           class="base-info"
           :data="baseInfoTable"
@@ -1142,8 +1143,6 @@ const emits = defineEmits<{
   float: left;
   margin-top: 8px;
   width: 935px;
-  height: 185px;
-
   .cell {
     line-height: 14px;
   }

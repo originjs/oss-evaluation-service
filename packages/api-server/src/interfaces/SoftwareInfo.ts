@@ -3,6 +3,7 @@ export interface SoftwareBaseInfo {
   projectName?: string;
   repoName: string;
   url: string;
+  homePage: string;
   description: string;
   logo: string;
   star?: number;
@@ -21,6 +22,9 @@ export interface SoftwareInfo extends SoftwareBaseInfo {
   tags: string;
   codeLines: number;
   techStack: string;
+  github: {
+    homePage: string;
+  };
   evaluation: {
     functionScore: string | number;
     qualityScore: string | number;
