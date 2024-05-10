@@ -26,11 +26,11 @@ export interface SoftwareInfo extends SoftwareBaseInfo {
     homePage: string;
   };
   evaluation: {
-    functionScore: string | number;
-    qualityScore: string | number;
-    performanceScore: string | number;
-    ecologyScore: string | number;
-    innovationScore: string | number;
+    functionScore: number;
+    qualityScore: number;
+    performanceScore: number;
+    ecologyScore: number;
+    innovationScore: number;
     npmDownloads: number;
     stargazersCount: number;
     busFactor: number;

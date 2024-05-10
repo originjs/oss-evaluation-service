@@ -62,7 +62,7 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
       {
         model: StateOfJsMin,
         as: 'satisfaction',
-      }
+      },
     ],
     where: {
       id: projectId,
@@ -346,6 +346,8 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
   };
 }
 
+const DECIMAL_PLACES = 2;
+
 export async function exportScoreExcel(projectName: string) {
   const excelTemplate = readFileSync('./assets/evaluation-template.xlsx');
   const data = await getProjectDetailInfo(projectName);
@@ -366,6 +368,15 @@ export async function exportScoreExcel(projectName: string) {
   );
   data.satisfactionExport = resultString.slice(0, resultString.length - 1);
   data.gzipSize = packageSize?.gzipSize;
+  data.evaluation.functionScore = Number(fixedRound(data.evaluation.functionScore, DECIMAL_PLACES));
+  data.evaluation.qualityScore = Number(fixedRound(data.evaluation.qualityScore, DECIMAL_PLACES));
+  data.evaluation.performanceScore = Number(
+    fixedRound(data.evaluation.performanceScore, DECIMAL_PLACES),
+  );
+  data.evaluation.ecologyScore = Number(fixedRound(data.evaluation.ecologyScore, DECIMAL_PLACES));
+  data.evaluation.innovationScore = Number(
+    fixedRound(data.evaluation.innovationScore, DECIMAL_PLACES),
+  );
   if (!data) {
     return;
   }
