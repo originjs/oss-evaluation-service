@@ -9,9 +9,11 @@ export default async function syncProjectDependentCount(req, res) {
   const { projectId: projectId } = req.params;
   const projectList = await GithubProjects.findAll({
     attributes: ['id', 'htmlUrl', 'dependentRepositories', 'dependentPackages'],
-    where: projectId ?  {
-      id: projectId
-    } : {},
+    where: projectId
+      ? {
+          id: projectId,
+        }
+      : {},
   });
   const sumOfProject = projectList.length;
   debug.log(`The Number of Project : ${sumOfProject}`);
@@ -21,12 +23,16 @@ export default async function syncProjectDependentCount(req, res) {
     count += 1;
     // 2. get project dependent count
     const dependentCount = await getProjectDependentCount(`${project.htmlUrl}/network/dependents`);
-    if (dependentCount.repositories != undefined && dependentCount.packages != undefined
-      && dependentCount.repositories != "" && dependentCount.packages != "") {
+    if (
+      dependentCount.repositories != undefined &&
+      dependentCount.packages != undefined &&
+      dependentCount.repositories != '' &&
+      dependentCount.packages != ''
+    ) {
       await GithubProjects.update(
         {
           dependentRepositories: dependentCount.repositories,
-          dependentPackages: dependentCount.packages
+          dependentPackages: dependentCount.packages,
         },
         {
           where: {
@@ -53,11 +59,11 @@ async function getProjectDependentCount(url) {
         const packages = $('a:contains("Package")');
         if (repositories) {
           const repository = repositories.text().match(/\d+/g);
-          repos =  (repository != undefined && repository.length > 0) ? repository.join('') : "";
+          repos = repository != undefined && repository.length > 0 ? repository.join('') : '';
         }
         if (packages) {
           const pack = packages.text().match(/\d+/g);
-          packs =  (pack != undefined && pack.length > 0) ? pack.join('') : "";
+          packs = pack != undefined && pack.length > 0 ? pack.join('') : '';
         }
         log.info(`dependent repositories of ${request.loadedUrl} is ${repos}`);
         log.info(`dependent packages of ${request.loadedUrl} is ${packs}`);
@@ -75,9 +81,8 @@ async function getProjectDependentCount(url) {
   } catch (e) {
     debug.log(`**Url get dependent count is failed !** :${url}`);
   }
-  return {"repositories":repos, "packages":packs};
+  return { repositories: repos, packages: packs };
 }
-
 
 const errorHandler = e => {
   debug.log(e);

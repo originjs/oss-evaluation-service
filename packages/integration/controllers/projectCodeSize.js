@@ -2,7 +2,7 @@ import debug from 'debug';
 import { GithubProjects } from '@orginjs/oss-evaluation-data-model';
 import { CheerioCrawler, Configuration } from 'crawlee';
 import { Cron } from 'croner';
-import { XMLParser } from 'fast-xml-parser'
+import { XMLParser } from 'fast-xml-parser';
 
 export default async function syncProjectCodeSize(req, res) {
   debug.log('Sync Project Code Size');
@@ -10,9 +10,11 @@ export default async function syncProjectCodeSize(req, res) {
   const { projectId: projectId } = req.params;
   const projectList = await GithubProjects.findAll({
     attributes: ['id', 'ownerName', 'name', 'codeSize'],
-    where: projectId ?  {
-      id: projectId
-    } : {},
+    where: projectId
+      ? {
+          id: projectId,
+        }
+      : {},
   });
   const sumOfProject = projectList.length;
   debug.log(`The Number of Project : ${sumOfProject}`);
@@ -21,11 +23,11 @@ export default async function syncProjectCodeSize(req, res) {
     debug.log('**Current Progress**: ', `${count}/${sumOfProject}`);
     count += 1;
     const url = `https://git-cloc.fly.dev/cloc/${project.ownerName}/${project.name}`;
-    const tokeiUrl = `https://tokei.rs/b1/github/${project.ownerName}/${project.name}`
+    const tokeiUrl = `https://tokei.rs/b1/github/${project.ownerName}/${project.name}`;
     // 2. get project code size
     let codeSize = await getProjectCodeSize(url, tokeiUrl);
     if (codeSize == '' || codeSize == undefined) {
-      codeSize = await getCodeSizeByOtherWays(project.ownerName, project.name)
+      codeSize = await getCodeSizeByOtherWays(project.ownerName, project.name);
     }
 
     if (codeSize == '' || codeSize == undefined) {
@@ -66,23 +68,23 @@ async function getProjectCodeSize(url, otherUrl) {
   );
   const crawlerOther = new CheerioCrawler(
     {
-      async requestHandler({  request, body, log}) {
-        const svgContent = body.toString()
+      async requestHandler({ request, body, log }) {
+        const svgContent = body.toString();
         // Parse SVG files
         const parser = new XMLParser();
         const jsonObj = parser.parse(svgContent);
 
         // Extract text nodes
-        const textContents = jsonObj['svg']['g'] ? jsonObj['svg']['g'][1].text[2]: [];
+        const textContents = jsonObj['svg']['g'] ? jsonObj['svg']['g'][1].text[2] : [];
 
-        log.info(`textContents is : ${textContents}`)
+        log.info(`textContents is : ${textContents}`);
         let codeTextReplace = textContents.toString();
         if (codeTextReplace.indexOf('K') > 0) {
-           codeTextReplace = codeTextReplace.replaceAll('K', '');
+          codeTextReplace = codeTextReplace.replaceAll('K', '');
           codeTextReplace = codeTextReplace * 1000;
-        } else if (codeTextReplace.indexOf('M') > 0){
-            codeTextReplace = codeTextReplace.replaceAll('M', '');
-          codeTextReplace = codeTextReplace * 1000000
+        } else if (codeTextReplace.indexOf('M') > 0) {
+          codeTextReplace = codeTextReplace.replaceAll('M', '');
+          codeTextReplace = codeTextReplace * 1000000;
         } else {
           log.info(`This value does not require special processing: ${codeTextReplace}`);
         }
@@ -92,7 +94,7 @@ async function getProjectCodeSize(url, otherUrl) {
       },
       maxRequestsPerCrawl: 20000,
       maxRequestRetries: 1,
-      additionalMimeTypes:['image/svg+xml', 'application/octet-stream', 'text/plain']
+      additionalMimeTypes: ['image/svg+xml', 'application/octet-stream', 'text/plain'],
     },
     config,
   );
@@ -112,13 +114,13 @@ async function getCodeSizeByOtherWays(ownerName, name) {
       retryOptions: {
         retryMaxDuration: 3600000, // 60 min retry duration
         retryInitialDelay: 100,
-      }
+      },
     });
 
     if (response.ok) {
       const body = await response.json();
-      const index = body.length -1;
-      if(index > 0 && body[index].language == 'Total') {
+      const index = body.length - 1;
+      if (index > 0 && body[index].language == 'Total') {
         const codeSize = body[index].linesOfCode;
         debug.log(`**codeSize of '${url} is :${codeSize}`);
         return codeSize;

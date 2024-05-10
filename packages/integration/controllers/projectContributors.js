@@ -9,9 +9,11 @@ export default async function syncProjectContributors(req, res) {
   const { projectId: projectId } = req.params;
   const projectList = await GithubProjects.findAll({
     attributes: ['id', 'htmlUrl', 'fullName', 'contributors'],
-    where: projectId ?  {
-      id: projectId
-    } : {},
+    where: projectId
+      ? {
+          id: projectId,
+        }
+      : {},
   });
   const sumOfProject = projectList.length;
   debug.log(`The Number of Project : ${sumOfProject}`);
@@ -50,11 +52,14 @@ async function getProjectContributors(url) {
         failedRequestHandler({ request, log }) {
           log.info(`web crawler: Request to ${request.url} failed...`);
         },
-        async requestHandler({ request, $, log}) {
+        async requestHandler({ request, $, log }) {
           const content = $('a:contains("Contributors")');
           if (content) {
             const contributorsArrays = content.text().match(/\d+/g);
-            contributors =  (contributorsArrays != undefined && contributorsArrays.length > 0) ? contributorsArrays.join('') : "";
+            contributors =
+              contributorsArrays != undefined && contributorsArrays.length > 0
+                ? contributorsArrays.join('')
+                : '';
           }
           log.info(`web crawler: contributors of ${request.loadedUrl} is ${contributors}`);
         },
@@ -64,7 +69,7 @@ async function getProjectContributors(url) {
         maxConcurrency: 4029,
         sameDomainDelaySecs: 10,
       },
-      config
+      config,
     );
     await crawler.run([url]);
   } catch (e) {
@@ -88,17 +93,19 @@ const syncProjectContributorsTimerTask = Cron(
 );
 
 async function getContributors(repoName, page = 1) {
-  const request = await fetch(`https://api.github.com/repos/${repoName}/contributors?per_page=100&page=${page}&anon=true`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    }
-  });
+  const request = await fetch(
+    `https://api.github.com/repos/${repoName}/contributors?per_page=100&page=${page}&anon=true`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+  );
 
   const contributorsList = await request.json();
   return contributorsList;
-};
-
+}
 
 async function getAlllContributors(repoName) {
   let contributors = [];
@@ -110,7 +117,7 @@ async function getAlllContributors(repoName) {
     page++;
   } while (list.length > 0);
   for (let i = 0; i < contributors.length; i++) {
-    if (Object.prototype.hasOwnProperty.call(contributors[i], "email")) {
+    if (Object.prototype.hasOwnProperty.call(contributors[i], 'email')) {
       contributors.splice(i, 1);
     }
   }
