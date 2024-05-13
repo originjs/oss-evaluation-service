@@ -41,7 +41,7 @@ export class Page {
 const typeMap = new Map();
 typeMap.set('star', 'stargazersCount');
 typeMap.set('fork', 'forksCount');
-typeMap.set('contributors', 'contributorCount');
+typeMap.set('contributors', 'contributors');
 
 GithubProjects.hasOne(EvaluationSummary, {
   foreignKey: 'project_id',
@@ -68,11 +68,7 @@ export async function githubTop(page: Page, type: string) {
         required: true,
       },
     ],
-    order: [
-      type === 'contributors'
-        ? [{ model: EvaluationSummary, as: 'evaluationSummary' }, typeMap.get(type), 'DESC']
-        : [typeMap.get(type), 'DESC'],
-    ],
+    order: [[typeMap.get(type), 'DESC'],],
     limit: pageSize,
     offset: offset,
   });
@@ -98,7 +94,7 @@ export async function githubTop(page: Page, type: string) {
       htmlUrl: item.htmlUrl,
       starCount: item.stargazersCount,
       forkCount: item.forksCount,
-      contributorCount: item.evaluationSummary.contributorCount,
+      contributors: item.contributors,
       trend: new ChartData(monthCount, monthDiff),
     });
   }

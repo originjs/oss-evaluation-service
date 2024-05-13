@@ -47,6 +47,7 @@ export default {
       criticality:
         'OpenSSF提供的开源项目关键度得分，定义了项目的影响力和重要性。它是一个介于0(最不关键)和1(最关键)之间的数字',
       contributor: '过去 90 天中活跃的代码提交者、Pull Request 作者、代码审查者、Issue 作者和 Issue 评论者的数量。',
+      allContributor: '项目累计活跃的代码提交者、Pull Request 作者、代码审查者、Issue 作者和 Issue 评论者的数量。',
       release: '最近版本发布次数',
       packageDownloads: '过去90天平均每周npm包下载量',
     },

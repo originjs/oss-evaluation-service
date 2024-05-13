@@ -53,7 +53,7 @@ async function getProjectContributors(url) {
           log.info(`web crawler: Request to ${request.url} failed...`);
         },
         async requestHandler({ request, $, log }) {
-          const content = $('a:contains("Contributors")');
+          const content = $('a:contains("Contributors") span');
           if (content) {
             const contributorsArrays = content.text().match(/\d+/g);
             contributors =
