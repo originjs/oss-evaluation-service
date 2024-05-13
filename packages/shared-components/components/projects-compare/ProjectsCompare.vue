@@ -1314,7 +1314,7 @@ const changePage = (name: string) => {
               </div>
 
               <div
-                v-show="getShowRow('evaluation.contributorCount')"
+                v-show="getShowRow('contributors')"
                 style="
                   width: 160px;
                   display: flex;
@@ -1327,35 +1327,35 @@ const changePage = (name: string) => {
                   style="text-align: center; font-weight: bold"
                   :class="{
                     good: isGood(
-                      projects[idx - 1].evaluation.contributorCount,
-                      'evaluation.contributorCount',
+                      projects[idx - 1].contributors,
+                      'contributors',
                     ),
                   }"
-                  >{{ formatNumber(projects[idx - 1].evaluation.contributorCount) }}</span
+                  >{{ formatNumber(projects[idx - 1].contributors) }}</span
                 >
                 <div style="display: inline-flex">
                   <div i-custom:contributor font-size-6 mr-4 />
                   <div>
-                    <el-tooltip :content="i18n.global.t(`tips.ecology.contributor`)">
-                      贡献者数量
+                    <el-tooltip :content="i18n.global.t(`tips.ecology.allContributor`)">
+                      累计贡献者数量
                     </el-tooltip>
                   </div>
                 </div>
               </div>
 
               <div
-                v-show="getShowRow('evaluation.dependentCount')"
+                v-show="getShowRow('dependentRepositories')"
                 style="width: 160px; display: flex; flex-direction: column; justify-content: center"
               >
                 <span
                   style="text-align: center; font-weight: bold"
                   :class="{
                     good: isGood(
-                      projects[idx - 1].evaluation.dependentCount,
-                      'evaluation.dependentCount',
+                      projects[idx - 1].dependentRepositories,
+                      'dependentRepositories',
                     ),
                   }"
-                  >{{ formatNumber(projects[idx - 1].evaluation.dependentCount) }}</span
+                  >{{ toKilo(projects[idx - 1].dependentRepositories)}} k</span
                 >
                 <div style="display: inline-flex">
                   <div i-custom:link font-size-6 mr-4 />

@@ -993,16 +993,16 @@ const emits = defineEmits<{
               <div i-custom:contributor font-size-14 mr-4 />
               <div>
                 <div font-bold font-size-5>
-                  {{ formatNumber(project?.evaluation?.contributorCount) }}
+                  {{ formatNumber(project?.contributors) }}
                 </div>
-                <div line-height-7>贡献者数量</div>
+                <div line-height-7>累计贡献者数量</div>
               </div>
             </div>
             <div flex w-210px>
               <div i-custom:link font-size-14 mr-4 />
               <div>
                 <div font-bold font-size-5>
-                  {{ formatNumber(project?.evaluation?.dependentCount) }}
+                  {{ formatNumber(project?.dependentRepositories / 1000) }} k
                 </div>
                 <div line-height-7>被依赖数量</div>
               </div>

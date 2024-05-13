@@ -56,6 +56,12 @@ export default sequelize.define(
       type: DataTypes.INTEGER,
       field: 'code_size',
     },
+    contributors: {
+      type: DataTypes.INTEGER,
+    },
+    dependentRepositories: {
+      type: DataTypes.BIGINT,
+    },
   },
   {
     tableName: 'github_projects',
