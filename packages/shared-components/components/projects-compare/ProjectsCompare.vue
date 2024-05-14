@@ -54,7 +54,7 @@ function isStarTop(currStar: number) {
 }
 
 function isGood(currValue: string | number, valuesKey: string) {
-  if (Number(currValue) === 0) {
+  if (!currValue || Number(currValue) === 0) {
     return false;
   }
   const keys = valuesKey.split('.');
@@ -609,9 +609,9 @@ const changePage = (name: string) => {
               <div v-for="idx in 5" :key="idx" class="param-value border">
                 <div v-if="projects[idx - 1]" class="value-div">
                   <span
-                    :class="{ good: isGood(projects[idx - 1].scorecard.score, 'scorecard.score') }"
+                    :class="{ good: isGood(projects[idx - 1].scorecard?.score, 'scorecard.score') }"
                   >
-                    {{ formatFloat(projects[idx - 1].scorecard.score) }} / 10
+                    {{ formatFloat(projects[idx - 1].scorecard?.score) }} / 10
                   </span>
                 </div>
               </div>
@@ -634,10 +634,10 @@ const changePage = (name: string) => {
                 <div v-if="projects[idx - 1]" class="value-div">
                   <span
                     :class="{
-                      good: isGood(projects[idx - 1].scorecard.codeReview, 'scorecard.codeReview'),
+                      good: isGood(projects[idx - 1].scorecard?.codeReview, 'scorecard.codeReview'),
                     }"
                   >
-                    {{ formatFloat(projects[idx - 1].scorecard.codeReview) }} / 10
+                    {{ formatFloat(projects[idx - 1].scorecard?.codeReview) }} / 10
                   </span>
                 </div>
               </div>
@@ -660,10 +660,10 @@ const changePage = (name: string) => {
                 <div v-if="projects[idx - 1]" class="value-div">
                   <span
                     :class="{
-                      good: isGood(projects[idx - 1].scorecard.maintained, 'scorecard.maintained'),
+                      good: isGood(projects[idx - 1].scorecard?.maintained, 'scorecard.maintained'),
                     }"
                   >
-                    {{ formatFloat(projects[idx - 1].scorecard.maintained) }} / 10
+                    {{ formatFloat(projects[idx - 1].scorecard?.maintained) }} / 10
                   </span>
                 </div>
               </div>
@@ -687,12 +687,12 @@ const changePage = (name: string) => {
                   <span
                     :class="{
                       good: isGood(
-                        projects[idx - 1].scorecard.ciiBestPractices,
+                        projects[idx - 1].scorecard?.ciiBestPractices,
                         'scorecard.ciiBestPractices',
                       ),
                     }"
                   >
-                    {{ formatFloat(projects[idx - 1].scorecard.ciiBestPractices) }} / 10
+                    {{ formatFloat(projects[idx - 1].scorecard?.ciiBestPractices) }} / 10
                   </span>
                 </div>
               </div>
@@ -715,10 +715,10 @@ const changePage = (name: string) => {
                 <div v-if="projects[idx - 1]" class="value-div">
                   <span
                     :class="{
-                      good: isGood(projects[idx - 1].scorecard.license, 'scorecard.license'),
+                      good: isGood(projects[idx - 1].scorecard?.license, 'scorecard.license'),
                     }"
                   >
-                    {{ formatFloat(projects[idx - 1].scorecard.license) }} / 10
+                    {{ formatFloat(projects[idx - 1].scorecard?.license) }} / 10
                   </span>
                 </div>
               </div>
@@ -742,12 +742,12 @@ const changePage = (name: string) => {
                   <span
                     :class="{
                       good: isGood(
-                        projects[idx - 1].scorecard.securityPolicy,
+                        projects[idx - 1].scorecard?.securityPolicy,
                         'scorecard.securityPolicy',
                       ),
                     }"
                   >
-                    {{ formatFloat(projects[idx - 1].scorecard.securityPolicy) }} / 10
+                    {{ formatFloat(projects[idx - 1].scorecard?.securityPolicy) }} / 10
                   </span>
                 </div>
               </div>
@@ -771,12 +771,12 @@ const changePage = (name: string) => {
                   <span
                     :class="{
                       good: isGood(
-                        projects[idx - 1].scorecard.dangerousWorkflow,
+                        projects[idx - 1].scorecard?.dangerousWorkflow,
                         'scorecard.dangerousWorkflow',
                       ),
                     }"
                   >
-                    {{ formatFloat(projects[idx - 1].scorecard.dangerousWorkflow) }} / 10
+                    {{ formatFloat(projects[idx - 1].scorecard?.dangerousWorkflow) }} / 10
                   </span>
                 </div>
               </div>
@@ -800,12 +800,12 @@ const changePage = (name: string) => {
                   <span
                     :class="{
                       good: isGood(
-                        projects[idx - 1].scorecard.branchProtection,
+                        projects[idx - 1].scorecard?.branchProtection,
                         'scorecard.branchProtection',
                       ),
                     }"
                   >
-                    {{ formatFloat(projects[idx - 1].scorecard.branchProtection) }} / 10
+                    {{ formatFloat(projects[idx - 1].scorecard?.branchProtection) }} / 10
                   </span>
                 </div>
               </div>
@@ -829,12 +829,12 @@ const changePage = (name: string) => {
                   <span
                     :class="{
                       good: isGood(
-                        projects[idx - 1].scorecard.tokenPermissions,
+                        projects[idx - 1].scorecard?.tokenPermissions,
                         'scorecard.tokenPermissions',
                       ),
                     }"
                   >
-                    {{ formatFloat(projects[idx - 1].scorecard.tokenPermissions) }} / 10
+                    {{ formatFloat(projects[idx - 1].scorecard?.tokenPermissions) }} / 10
                   </span>
                 </div>
               </div>
@@ -858,12 +858,12 @@ const changePage = (name: string) => {
                   <span
                     :class="{
                       good: isGood(
-                        projects[idx - 1].scorecard.binaryArtifacts,
+                        projects[idx - 1].scorecard?.binaryArtifacts,
                         'scorecard.binaryArtifacts',
                       ),
                     }"
                   >
-                    {{ formatFloat(projects[idx - 1].scorecard.binaryArtifacts) }} / 10
+                    {{ formatFloat(projects[idx - 1].scorecard?.binaryArtifacts) }} / 10
                   </span>
                 </div>
               </div>
@@ -886,10 +886,10 @@ const changePage = (name: string) => {
                 <div v-if="projects[idx - 1]" class="value-div">
                   <span
                     :class="{
-                      good: isGood(projects[idx - 1].scorecard.fuzzing, 'scorecard.fuzzing'),
+                      good: isGood(projects[idx - 1].scorecard?.fuzzing, 'scorecard.fuzzing'),
                     }"
                   >
-                    {{ formatFloat(projects[idx - 1].scorecard.fuzzing) }} / 10
+                    {{ formatFloat(projects[idx - 1].scorecard?.fuzzing) }} / 10
                   </span>
                 </div>
               </div>
@@ -908,9 +908,9 @@ const changePage = (name: string) => {
               <div v-for="idx in 5" :key="idx" class="param-value border">
                 <div v-if="projects[idx - 1]" class="value-div">
                   <span
-                    :class="{ good: isGood(projects[idx - 1].scorecard.sast, 'scorecard.sast') }"
+                    :class="{ good: isGood(projects[idx - 1].scorecard?.sast, 'scorecard.sast') }"
                   >
-                    {{ formatFloat(projects[idx - 1].scorecard.sast) }} / 10
+                    {{ formatFloat(projects[idx - 1].scorecard?.sast) }} / 10
                   </span>
                 </div>
               </div>
@@ -963,12 +963,12 @@ const changePage = (name: string) => {
                   <span
                     :class="{
                       good: isGood(
-                        projects[idx - 1].scorecard.pinnedDependencies,
+                        projects[idx - 1].scorecard?.pinnedDependencies,
                         'scorecard.pinnedDependencies',
                       ),
                     }"
                   >
-                    {{ formatFloat(projects[idx - 1].scorecard.pinnedDependencies) }} / 10
+                    {{ formatFloat(projects[idx - 1].scorecard?.pinnedDependencies) }} / 10
                   </span>
                 </div>
               </div>
