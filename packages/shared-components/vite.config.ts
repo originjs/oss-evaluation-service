@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
-import dts from 'vite-plugin-dts';
-import { resolve } from 'pathe';
+// import dts from 'vite-plugin-dts';
+// import { resolve } from 'pathe';
 import AutoImport from 'unplugin-auto-import/vite';
 import UnoCSS from 'unocss/vite';
 import Components from 'unplugin-vue-components/vite';

@@ -182,8 +182,7 @@ const changePage = (name: string) => {
   <div class="main">
     <div class="page-title flex justify-between items-center">
       <div>
-        <span class="menu" >开源软件对比</span
-        >
+        <span class="menu">开源软件对比</span>
       </div>
       <div v-if="pageName === 'ProjectsCompare'">
         <div class="mr-12px flex items-center">
@@ -208,8 +207,11 @@ const changePage = (name: string) => {
                 </template>
               </el-image>
               <span>
-                <el-link :href="'/#/software-details?repoName=' + projects[idx - 1]?.repoName" 
-                target="_blank" :underline="false">
+                <el-link
+                  :href="'/#/software-details?repoName=' + projects[idx - 1]?.repoName"
+                  target="_blank"
+                  :underline="false"
+                >
                   {{ projects[idx - 1]?.repoName }}
                 </el-link>
               </span>
@@ -1326,10 +1328,7 @@ const changePage = (name: string) => {
                 <span
                   style="text-align: center; font-weight: bold"
                   :class="{
-                    good: isGood(
-                      projects[idx - 1].contributors,
-                      'contributors',
-                    ),
+                    good: isGood(projects[idx - 1].contributors, 'contributors'),
                   }"
                   >{{ formatNumber(projects[idx - 1].contributors) }}</span
                 >
@@ -1350,12 +1349,9 @@ const changePage = (name: string) => {
                 <span
                   style="text-align: center; font-weight: bold"
                   :class="{
-                    good: isGood(
-                      projects[idx - 1].dependentRepositories,
-                      'dependentRepositories',
-                    ),
+                    good: isGood(projects[idx - 1].dependentRepositories, 'dependentRepositories'),
                   }"
-                  >{{ toKilo(projects[idx - 1].dependentRepositories)}} k</span
+                  >{{ toKilo(projects[idx - 1].dependentRepositories) }} k</span
                 >
                 <div style="display: inline-flex">
                   <div i-custom:link font-size-6 mr-4 />

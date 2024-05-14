@@ -68,7 +68,7 @@ export async function githubTop(page: Page, type: string) {
         required: true,
       },
     ],
-    order: [[typeMap.get(type), 'DESC'],],
+    order: [[typeMap.get(type), 'DESC']],
     limit: pageSize,
     offset: offset,
   });
@@ -81,11 +81,10 @@ export async function githubTop(page: Page, type: string) {
       order: [['date', 'asc']],
     });
 
-    const monthDiff = softwareTrend
-      .map((current, index, array) => {
-        if (index === 0) return 0;
-        return current.stargazers - array[index - 1].stargazers;
-      })
+    const monthDiff = softwareTrend.map((current, index, array) => {
+      if (index === 0) return 0;
+      return current.stargazers - array[index - 1].stargazers;
+    });
 
     const monthCount = _.pluck(softwareTrend, 'stargazers');
     data.push({

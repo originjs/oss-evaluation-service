@@ -1,4 +1,4 @@
-import type { NextFunction, Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import express from 'express';
 import morgan from 'morgan';
 import swaggerUi from 'swagger-ui-express';
@@ -30,7 +30,7 @@ app.use((req, res) => {
   });
 });
 
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+app.use((err: Error, req: Request, res: Response) => {
   let { statusCode } = res;
   // Even in error cases, status code is 200 by default
   if (!statusCode || statusCode === 200) {

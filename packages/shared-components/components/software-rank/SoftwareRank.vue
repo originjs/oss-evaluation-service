@@ -320,10 +320,7 @@ onUnmounted(() => {
                 <span class="icon" style="font-size: 20px; margin-right: 2px">
                   <img src="../../assets/svg/contributor.svg" alt="Contributor Icon" />
                 </span>
-                <span
-                  >{{ item.contributors
-                  }}<span v-if="item.contributors == null">-</span></span
-                >
+                <span>{{ item.contributors }}<span v-if="item.contributors == null">-</span></span>
               </div>
             </div>
           </div>

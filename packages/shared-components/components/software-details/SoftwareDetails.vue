@@ -1007,8 +1007,8 @@ const emits = defineEmits<{
                   {{ formatNumber(project?.contributors) }}
                 </div>
                 <div flex>
-                <div line-height-7>累计贡献者</div>
-                <el-tooltip :content="i18n.global.t(`tips.ecology.totalContributor`)">
+                  <div line-height-7>累计贡献者</div>
+                  <el-tooltip :content="i18n.global.t(`tips.ecology.totalContributor`)">
                     <el-icon size-5 color-gray-400>
                       <InfoFilled />
                     </el-icon>

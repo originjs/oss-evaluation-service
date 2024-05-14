@@ -8,6 +8,7 @@ export interface SoftwareBaseInfo {
   logo: string;
   star?: number;
   forksCount?: number;
+  contributors?: number;
   version?: string;
   versionList: string[];
   selectedVersion: string;
@@ -22,9 +23,6 @@ export interface SoftwareInfo extends SoftwareBaseInfo {
   tags: string;
   codeLines: number;
   techStack: string;
-  github: {
-    homePage: string;
-  };
   evaluation: {
     functionScore: number;
     qualityScore: number;
