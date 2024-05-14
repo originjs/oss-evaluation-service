@@ -407,6 +407,9 @@ function processBenchmarkData(benchmarkData?: BenchmarkData, needRetain?: boolea
     ? new Set([...benchmarkCompareColumns.value])
     : new Set(['indexName']);
   const data = benchmarkData?.data || [];
+  if (data.length === 0) {
+    showBenchmarkCompare.value = false;
+  }
   for (let i = 0; i < data.length; i++) {
     for (let j = 0; j < data[i].length; j++) {
       const indexName = data[i][j].indexName;
@@ -801,12 +804,12 @@ const emits = defineEmits<{
               </el-tooltip>
             </div>
             <div
-              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% text-center translate-y--50%"
+              class="position-absolute right-18px top-50% w-48px h-48px border-rd-50% text-center translate-y--50%"
               :style="{
                 backgroundColor: getLevelColor(project?.sonarCloudScan?.reliabilityRating),
               }"
             >
-              <span vertical-middle color-white>{{
+              <span vertical-middle color-white font-size-6 line-height-48px>{{
                 formatString(project?.sonarCloudScan?.reliabilityRating)
               }}</span>
             </div>
@@ -833,12 +836,12 @@ const emits = defineEmits<{
               </el-tooltip>
             </div>
             <div
-              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% text-center translate-y--50%"
+              class="position-absolute right-18px top-50% w-48px h-48px border-rd-50% text-center translate-y--50%"
               :style="{
                 backgroundColor: getLevelColor(project?.sonarCloudScan?.maintainabilityRating),
               }"
             >
-              <span vertical-middle color-white>{{
+              <span vertical-middle color-white font-size-6 line-height-48px>{{
                 formatString(project?.sonarCloudScan?.maintainabilityRating)
               }}</span>
             </div>
@@ -865,10 +868,10 @@ const emits = defineEmits<{
               </el-tooltip>
             </div>
             <div
-              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% text-center translate-y--50%"
+              class="position-absolute right-18px top-50% w-48px h-48px border-rd-50% text-center translate-y--50%"
               :style="{ backgroundColor: getLevelColor(project?.sonarCloudScan?.securityRating) }"
             >
-              <span vertical-middle color-white>{{
+              <span vertical-middle color-white font-size-6 line-height-48px>{{
                 formatString(project?.sonarCloudScan?.securityRating)
               }}</span>
             </div>
@@ -895,12 +898,12 @@ const emits = defineEmits<{
               </el-tooltip>
             </div>
             <div
-              class="position-absolute right-18px top-50% w-30px h-30px border-rd-50% text-center translate-y--50%"
+              class="position-absolute right-18px top-50% w-48px h-48px border-rd-50% text-center translate-y--50%"
               :style="{
                 backgroundColor: getLevelColor(project?.sonarCloudScan?.securityReviewRating),
               }"
             >
-              <span vertical-middle color-white>{{
+              <span vertical-middle color-white font-size-6 line-height-48px>{{
                 formatString(project?.sonarCloudScan?.securityReviewRating)
               }}</span>
             </div>
@@ -919,7 +922,7 @@ const emits = defineEmits<{
           <div mb-4 font-size-5 font-bold>成熟度</div>
           <div flex justify-between flex-items-center ml-8 h-62px>
             <div flex w-210px>
-              <div i-custom:created-at font-size-14 mr-4 />
+              <div i-custom:created-at font-size-12 mr-4 />
               <div>
                 <div font-bold font-size-5>
                   {{ dayjs(project?.firstCommit).fromNow() }}
@@ -928,7 +931,7 @@ const emits = defineEmits<{
               </div>
             </div>
             <div flex w-210px>
-              <div i-custom:star font-size-14 mr-4 />
+              <div i-custom:star font-size-12 mr-4 />
               <div>
                 <div font-bold font-size-5>
                   {{ toKilo(project?.evaluation?.stargazersCount) }} k
@@ -937,14 +940,14 @@ const emits = defineEmits<{
               </div>
             </div>
             <div flex w-210px>
-              <div i-custom:fork font-size-14 mr-4 />
+              <div i-custom:fork font-size-12 mr-4 />
               <div>
                 <div font-bold font-size-5>{{ toKilo(project?.evaluation?.forksCount) }} k</div>
                 <div line-height-7>Fork数量</div>
               </div>
             </div>
             <div flex w-210px>
-              <div i-custom:download font-size-14 mr-4 />
+              <div i-custom:download font-size-12 mr-4 />
               <div>
                 <div font-bold font-size-5>
                   {{ toKilo(project?.evaluation?.npmDownloads).split('.')[0] }} k
@@ -953,7 +956,7 @@ const emits = defineEmits<{
               </div>
             </div>
             <div flex w-210px>
-              <div i-custom:bus font-size-14 mr-4 />
+              <div i-custom:bus font-size-12 mr-4 />
               <div>
                 <div font-bold font-size-5>{{ formatFloat(project?.evaluation?.busFactor) }}</div>
                 <div flex>
@@ -971,7 +974,7 @@ const emits = defineEmits<{
           <div mb-4 font-size-5 font-bold>影响力</div>
           <div flex justify-between flex-items-center ml-8 mb-4 h-62px>
             <div flex w-210px>
-              <div i-custom:trophy font-size-14 mr-4 />
+              <div i-custom:trophy font-size-12 mr-4 />
               <div>
                 <div font-bold font-size-5>
                   {{ formatFloat(project?.evaluation?.criticalityScore) }}
@@ -987,7 +990,7 @@ const emits = defineEmits<{
               </div>
             </div>
             <div flex w-210px>
-              <div i-custom:medal font-size-14 mr-4 />
+              <div i-custom:medal font-size-12 mr-4 />
               <div>
                 <div font-bold font-size-5>{{ formatFloat(project?.evaluation?.openrank) }}</div>
                 <div flex>
@@ -1001,7 +1004,7 @@ const emits = defineEmits<{
               </div>
             </div>
             <div flex w-210px>
-              <div i-custom:contributor font-size-14 mr-4 />
+              <div i-custom:contributor font-size-12 mr-4 />
               <div>
                 <div font-bold font-size-5>
                   {{ formatNumber(project?.contributors) }}
@@ -1017,7 +1020,7 @@ const emits = defineEmits<{
               </div>
             </div>
             <div flex w-210px>
-              <div i-custom:link font-size-14 mr-4 />
+              <div i-custom:link font-size-12 mr-4 />
               <div>
                 <div font-bold font-size-5>{{ toKilo(project?.dependentRepositories) }} k</div>
                 <div flex>
@@ -1031,7 +1034,7 @@ const emits = defineEmits<{
               </div>
             </div>
             <div flex w-210px>
-              <div i-custom:organization font-size-14 mr-4 />
+              <div i-custom:organization font-size-12 mr-4 />
               <div>
                 <div font-bold font-size-5>-</div>
                 <div line-height-7>组织使用数量</div>
@@ -1041,7 +1044,7 @@ const emits = defineEmits<{
         </el-card>
         <el-card mb-6 w-626px>
           <div flex>
-            <div mb-2 font-size-5 font-bold>npm包下载量</div>
+            <div mb-2 font-size-5 font-bold>包下载量</div>
             <el-tooltip :content="i18n.global.t(`tips.ecology.packageDownloads`)">
               <el-icon size-5 color-gray-400>
                 <InfoFilled />
