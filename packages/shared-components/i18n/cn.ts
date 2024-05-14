@@ -5,8 +5,7 @@ export default {
     bestPractices:
       '最佳实践评分基于Linux Foundation建议的Best Practices检查，每个检查项都有不同的权重',
     scorecard: {
-      scorecard:
-        'OpenSSF开源安全基金会是一个跨行业合作组织，旨在提高开源软件的安全性。Scorecard为开源项目提供安全健康指标。',
+      scorecard: 'Scorecard是OpenSSF开源安全基金会提出的为开源项目提供安全健康度量的指标。',
       'Code-Review':
         'Determines if the project requires human code review before pull requests (aka merge requests) are merged.',
       Maintained: 'Determines if the project is "actively maintained".',
@@ -47,12 +46,16 @@ export default {
       criticality:
         'OpenSSF提供的开源项目关键度得分，定义了项目的影响力和重要性。它是一个介于0(最不关键)和1(最关键)之间的数字',
       totalContributor: '历史累计的代码贡献者数量',
+      dependentRepositories: 'github上依赖该软件的仓库数量',
       contributor:
         '过去 90 天中活跃的代码提交者、Pull Request 作者、代码审查者、Issue 作者和 Issue 评论者的数量。',
-      allContributor:
-        '项目累计活跃的代码提交者、Pull Request 作者、代码审查者、Issue 作者和 Issue 评论者的数量。',
-      release: '最近版本发布次数',
-      packageDownloads: '过去90天平均每周npm包下载量',
+      commitFrequency: '过去90天内平均每周代码提交次数',
+      orgCount: '过去90天内活跃的代码提交者所属组织的数目',
+      commentFrequency: '过去90天内新建 Issue 的评论平均数（不包含机器人和 Issue 作者本人评论）',
+      updatedIssuesCount: '过去90天 Issue 更新的数量。',
+      closedIssuesCount: '过去90天 Issue 解决关闭的数量。',
+      release: '过去12个月版本发布的数量。',
+      packageDownloads: '过去90天平均每周npm包下载量。',
     },
     compass:
       '数据来源于开源指南针OSS Compass，关于指标的详细说明可以查看官网: https://oss-compass.org/zh/docs/docs/metrics-models/',

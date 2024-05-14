@@ -6,9 +6,10 @@ export interface SoftwareBaseInfo {
   homePage: string;
   description: string;
   logo: string;
-  star?: number;
-  forksCount?: number;
-  contributors?: number;
+  star: number;
+  forksCount: number;
+  contributors: number;
+  dependentRepositories: number;
   version?: string;
   versionList: string[];
   selectedVersion: string;
@@ -32,11 +33,12 @@ export interface SoftwareInfo extends SoftwareBaseInfo {
     npmDownloads: number;
     stargazersCount: number;
     busFactor: number;
-    openRank: number;
+    openrank: number;
     criticalityScore: number;
     contributorCount: number;
-    dependentCount: number;
-    forksCount: number;
+    commitFrequency: number;
+    commentFrequency: number;
+    orgCount: number;
   };
   scorecard: {
     projectId: number;

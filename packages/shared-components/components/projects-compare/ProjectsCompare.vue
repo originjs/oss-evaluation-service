@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Close, Switch, ArrowDown } from '@element-plus/icons-vue';
 import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
 import type { SoftwareBaseInfo, SoftwareInfo } from '@orginjs/oss-evaluation-components-api';
 import type { ResultData } from '../../api';
 import { getSoftwareInfo } from '@orginjs/oss-evaluation-components-api';
@@ -36,6 +37,7 @@ prop.repositories.forEach(repoName => {
   const encodedname = encodeURIComponent(repoName);
   promises.push(getSoftwareInfo(encodedname));
 });
+dayjs.extend(relativeTime);
 
 Promise.all(promises)
   .then(result => {
@@ -601,7 +603,7 @@ const changePage = (name: string) => {
                   :content="i18n.global.t(`tips.scorecard.scorecard`)"
                   placement="top-start"
                 >
-                  <el-text size="small" line-clamp="3">Score</el-text>
+                  <el-text size="small" line-clamp="3">Scorecard得分</el-text>
                 </el-tooltip>
               </div>
               <div v-for="idx in 5" :key="idx" class="param-value border">
@@ -1150,7 +1152,7 @@ const changePage = (name: string) => {
           <div v-for="idx in 5" :key="idx" class="param-value border">
             <div v-if="projects[idx - 1]" class="value-div">
               <div
-                v-show="getShowRow('evaluation.npmDownloads')"
+                v-show="getShowRow('evaluation.firstCommit')"
                 style="
                   width: 160px;
                   display: flex;
@@ -1159,22 +1161,14 @@ const changePage = (name: string) => {
                   margin-bottom: 10px;
                 "
               >
-                <span
-                  style="text-align: center; font-weight: bold"
-                  :class="{
-                    good: isGood(
-                      projects[idx - 1].evaluation.npmDownloads,
-                      'evaluation.npmDownloads',
-                    ),
-                  }"
-                  >{{ toKilo(projects[idx - 1].evaluation.npmDownloads).split('.')[0] }} k</span
-                >
+                <span style="text-align: center; font-weight: bold">{{
+                  dayjs(projects[idx - 1].firstCommit).fromNow()
+                }}</span>
                 <div style="display: inline-flex">
-                  <div i-custom:download font-size-6 mr-4 />
-                  <div>npm周下载量</div>
+                  <div i-custom:created-at font-size-6 mr-4 />
+                  <div>创建时间</div>
                 </div>
               </div>
-
               <div
                 v-show="getShowRow('evaluation.stargazersCount')"
                 style="
@@ -1223,7 +1217,31 @@ const changePage = (name: string) => {
                   <div>Fork数量</div>
                 </div>
               </div>
-
+              <div
+                v-show="getShowRow('evaluation.npmDownloads')"
+                style="
+                  width: 160px;
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: center;
+                  margin-bottom: 10px;
+                "
+              >
+                <span
+                  style="text-align: center; font-weight: bold"
+                  :class="{
+                    good: isGood(
+                      projects[idx - 1].evaluation.npmDownloads,
+                      'evaluation.npmDownloads',
+                    ),
+                  }"
+                  >{{ toKilo(projects[idx - 1].evaluation.npmDownloads).split('.')[0] }} k</span
+                >
+                <div style="display: inline-flex">
+                  <div i-custom:download font-size-6 mr-4 />
+                  <div>周下载量</div>
+                </div>
+              </div>
               <div
                 v-show="getShowRow('evaluation.busFactor')"
                 style="width: 160px; display: flex; flex-direction: column; justify-content: center"
@@ -1259,33 +1277,6 @@ const changePage = (name: string) => {
           <div v-for="idx in 5" :key="idx" class="param-value border">
             <div v-if="projects[idx - 1]" class="value-div">
               <div
-                v-show="getShowRow('evaluation.openrank')"
-                style="
-                  width: 160px;
-                  display: flex;
-                  flex-direction: column;
-                  justify-content: center;
-                  margin-bottom: 10px;
-                "
-              >
-                <span
-                  style="text-align: center; font-weight: bold"
-                  :class="{
-                    good: isGood(projects[idx - 1].evaluation.openrank, 'evaluation.openrank'),
-                  }"
-                  >{{ formatFloat(projects[idx - 1].evaluation.openrank) }}</span
-                >
-                <div style="display: inline-flex">
-                  <div i-custom:medal font-size-6 mr-4 />
-                  <div>
-                    <el-tooltip :content="i18n.global.t(`tips.ecology.openRank`)">
-                      OpenRank得分
-                    </el-tooltip>
-                  </div>
-                </div>
-              </div>
-
-              <div
                 v-show="getShowRow('evaluation.criticalityScore')"
                 style="
                   width: 160px;
@@ -1316,6 +1307,33 @@ const changePage = (name: string) => {
               </div>
 
               <div
+                v-show="getShowRow('evaluation.openrank')"
+                style="
+                  width: 160px;
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: center;
+                  margin-bottom: 10px;
+                "
+              >
+                <span
+                  style="text-align: center; font-weight: bold"
+                  :class="{
+                    good: isGood(projects[idx - 1].evaluation.openrank, 'evaluation.openrank'),
+                  }"
+                  >{{ formatFloat(projects[idx - 1].evaluation.openrank) }}</span
+                >
+                <div style="display: inline-flex">
+                  <div i-custom:medal font-size-6 mr-4 />
+                  <div>
+                    <el-tooltip :content="i18n.global.t(`tips.ecology.openRank`)">
+                      OpenRank得分
+                    </el-tooltip>
+                  </div>
+                </div>
+              </div>
+
+              <div
                 v-show="getShowRow('contributors')"
                 style="
                   width: 160px;
@@ -1335,8 +1353,8 @@ const changePage = (name: string) => {
                 <div style="display: inline-flex">
                   <div i-custom:contributor font-size-6 mr-4 />
                   <div>
-                    <el-tooltip :content="i18n.global.t(`tips.ecology.allContributor`)">
-                      累计贡献者数量
+                    <el-tooltip :content="i18n.global.t(`tips.ecology.totalContributor`)">
+                      累计贡献者
                     </el-tooltip>
                   </div>
                 </div>
@@ -1355,7 +1373,11 @@ const changePage = (name: string) => {
                 >
                 <div style="display: inline-flex">
                   <div i-custom:link font-size-6 mr-4 />
-                  <div>被依赖数量</div>
+                  <div>
+                    <el-tooltip :content="i18n.global.t(`tips.ecology.dependentRepositories`)">
+                      被依赖使用
+                    </el-tooltip>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1393,7 +1415,9 @@ const changePage = (name: string) => {
                   >{{ formatFloat(projects[idx - 1].evaluation.commitFrequency) }}</span
                 >
                 <span text-center>
-                  <el-tooltip content="过去90天内平均每周代码提交次数"> 代码提交频率 </el-tooltip>
+                  <el-tooltip :content="i18n.global.t(`tips.ecology.commitFrequency`)">
+                    代码提交频率
+                  </el-tooltip>
                 </span>
               </div>
 
@@ -1415,7 +1439,7 @@ const changePage = (name: string) => {
                   >{{ formatFloat(projects[idx - 1].evaluation.orgCount) }}</span
                 >
                 <span text-center>
-                  <el-tooltip content="过去90天内活跃的代码提交者所属组织的数目">
+                  <el-tooltip :content="i18n.global.t(`tips.ecology.orgCount`)">
                     组织数量
                   </el-tooltip>
                 </span>
@@ -1442,10 +1466,28 @@ const changePage = (name: string) => {
                   >{{ formatFloat(projects[idx - 1].evaluation.commentFrequency) }}</span
                 >
                 <span text-center>
-                  <el-tooltip
-                    content="过去90天内新建 Issue 的评论平均数（不包含机器人和 Issue 作者本人评论）"
-                  >
+                  <el-tooltip :content="i18n.global.t(`tips.ecology.commentFrequency`)">
                     Issue评论频率
+                  </el-tooltip>
+                </span>
+              </div>
+              <div
+                v-show="getShowRow('evaluation.updatedIssuesCount')"
+                style="width: 160px; display: flex; flex-direction: column; justify-content: center"
+              >
+                <span
+                  style="text-align: center; font-weight: bold"
+                  :class="{
+                    good: isGood(
+                      projects[idx - 1].evaluation.updatedIssuesCount,
+                      'evaluation.updatedIssuesCount',
+                    ),
+                  }"
+                  >{{ formatNumber(projects[idx - 1].evaluation.updatedIssuesCount) }}</span
+                >
+                <span text-center>
+                  <el-tooltip :content="i18n.global.t(`tips.ecology.updatedIssuesCount`)">
+                    Issue更新数量
                   </el-tooltip>
                 </span>
               </div>
@@ -1464,7 +1506,9 @@ const changePage = (name: string) => {
                   >{{ formatNumber(projects[idx - 1].evaluation.closedIssuesCount) }}</span
                 >
                 <span text-center>
-                  <el-tooltip content="过去90天内Issue解决关闭的数量"> Issue关闭数量 </el-tooltip>
+                  <el-tooltip :content="i18n.global.t(`tips.ecology.closedIssuesCount`)">
+                    Issue关闭数量
+                  </el-tooltip>
                 </span>
               </div>
               <div
@@ -1482,7 +1526,9 @@ const changePage = (name: string) => {
                   >{{ formatNumber(projects[idx - 1].evaluation.recentReleasesCount) }}</span
                 >
                 <span text-center>
-                  <el-tooltip content="过去12个月版本发布的数量"> 最近版本发布数量 </el-tooltip>
+                  <el-tooltip :content="i18n.global.t(`tips.ecology.release`)">
+                    最近版本发布数量
+                  </el-tooltip>
                 </span>
               </div>
             </div>
