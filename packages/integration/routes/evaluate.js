@@ -1,8 +1,7 @@
 import express from 'express';
 import {
-  calculateAllMetricsHandler,
-  evaluateProjectHandler,
-  evaluateBenchmark,
+  syncProjectEvaluationHandler,
+  evaluateBenchmarkHandler,
   setAllMedianAndP10,
 } from '../controllers/evaluate.js';
 
@@ -12,41 +11,31 @@ const router = express.Router();
  * @swagger
  * tags:
  *   name: Evaluate
- * /eval/all:
+ * /eval:
  *   post:
- *     summary: Evaluate all projects
+ *     summary: Evaluate specified project or all projects
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               repoUrl:
+ *                 type: string
+ *                 example: "https://github.com/vuejs/vue"
  *     tags: [Evaluate]
  *     responses:
  *       200:
  *         description: Success
  */
-router.route('/all').post(calculateAllMetricsHandler);
+router.route('/').post(syncProjectEvaluationHandler);
 
 /**
  * @swagger
  * tags:
  *   name: Evaluate
- * /eval/project/{repoName}:
- *   get:
- *     summary: Evaluate single specified project
- *     parameters:
- *      - in: path
- *        name: repoName
- *        type: string
- *        required: true
- *        example: "vuejs/vue"
- *     tags: [Evaluate]
- *     responses:
- *       200:
- *         description: Success
- */
-router.route('/project/:repoName').get(evaluateProjectHandler);
-
-/**
- * @swagger
- * tags:
- *   name: Evaluate
- * /eval/project/evaluateBenchmark:
+ * /eval/benchmark:
  *   post:
  *     summary: Evaluate techStack performance
  *     tags: [Evaluate]
@@ -66,7 +55,7 @@ router.route('/project/:repoName').get(evaluateProjectHandler);
  *       200:
  *         description: Success
  */
-router.route('/project/evaluateBenchmark').post(evaluateBenchmark);
+router.route('/benchmark').post(evaluateBenchmarkHandler);
 
 /**
  * @swagger

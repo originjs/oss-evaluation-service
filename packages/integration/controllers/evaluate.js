@@ -15,6 +15,7 @@ import {
 } from '@orginjs/oss-evaluation-data-model';
 import sequelize from '../util/database.js';
 import { ServerError } from '../util/error.js';
+import { getProjectByUrl } from '../util/util.js';
 import BenchmarkVersionScore from '@orginjs/oss-evaluation-data-model/models/BenchmarkVersionScore.js';
 
 const MetricType = Object.freeze({
@@ -112,7 +113,35 @@ const DataSource = Object.freeze([
   },
 ]);
 
-export async function calculateAllMetricsHandler(req, res) {
+export async function syncProjectEvaluationHandler(req, res) {
+  const { repoUrl } = req.body;
+  if (!repoUrl) {
+    await syncAllProjectEvaluation();
+    res.status(200).json('ok');
+  } else {
+    const project = await getProjectByUrl(repoUrl);
+    const summary = await syncSingleProjectEvaluation(project);
+    res.status(200).json(summary);
+  }
+}
+
+async function loadModel() {
+  const metricList = await EvaluationModel.findAll({
+    where: { type: { [Op.gt]: MetricType.L0 } },
+  });
+  const model = {};
+  for (const metric of metricList) {
+    const key = metric.dimension + metric.techStack;
+    if (!model[key]) {
+      model[key] = [metric.toJSON()];
+    } else {
+      model[key].push(metric.toJSON());
+    }
+  }
+  return model;
+}
+
+async function updateAllEvaluationSummary() {
   // create all project summary
   await sequelize.query(`INSERT INTO oss_evaluation_summary(project_id,project_name) 
   SELECT id as project_id, full_name as project_name FROM github_projects WHERE id NOT IN
@@ -177,55 +206,36 @@ export async function calculateAllMetricsHandler(req, res) {
   (SELECT project_id, AVG( downloads ) AS npm_downloads FROM package_download_count a 
   WHERE end_date > '${last3month}' GROUP BY project_id) t2
   ON t1.project_id = t2.project_id SET t1.npm_downloads = t2.npm_downloads`);
+}
 
+export async function syncAllProjectEvaluation() {
+  await updateAllEvaluationSummary();
   const model = await loadModel();
-  await evaluateAllProjectScore(model);
-  res.status(200).json('ok');
-}
-
-async function loadModel() {
-  const metricList = await EvaluationModel.findAll({
-    where: { type: { [Op.gt]: MetricType.L0 } },
-  });
-  const model = {};
-  for (const metric of metricList) {
-    const key = metric.dimension + metric.techStack;
-    if (!model[key]) {
-      model[key] = [metric.toJSON()];
-    } else {
-      model[key].push(metric.toJSON());
-    }
-  }
-  return model;
-}
-
-async function evaluateAllProjectScore(model) {
   const projects = await EvaluationSummary.findAll();
   async.mapLimit(
     projects,
     10,
-    async project => {
-      await evaluateScore(project, model);
+    async summary => {
+      await doSingleProjectEvaluation(summary, model);
     },
     err => {
       if (err) throw err;
     },
   );
+  // evaluate benchmark
+  evaluateBenchmark(model, {});
 }
 
-export async function evaluateProjectHandler(req, res) {
-  const { repoName: projectName } = req.params;
-  let project = await EvaluationSummary.findOne({ where: { projectName } });
+export async function evaluateBenchmarkHandler(req, res) {
   const model = await loadModel();
-  project = await evaluateScore(project, model);
-  res.status(200).json(project);
+  await evaluateBenchmark(model, req.body);
+  res.status(200).send('Done!');
 }
 
-export async function evaluateBenchmark(req, res) {
-  const model = await loadModel();
-  let allBenchmarkVersion;
-  const { projectId, techStack } = req.body;
+export async function evaluateBenchmark(model, options) {
+  const { projectId, techStack } = options;
   const scoreMap = {};
+  let allBenchmarkVersion;
   if (projectId) {
     allBenchmarkVersion = await BenchmarkVersionScore.findAll({ where: { projectId } });
   } else if (techStack) {
@@ -252,7 +262,6 @@ export async function evaluateBenchmark(req, res) {
     projectScore.performanceScore = scoreMap[benchmarkProjecId];
     await projectScore.save();
   }
-  res.status(200).send('Done!');
 }
 
 function maxOrCreate(map, key, value) {
@@ -263,33 +272,39 @@ function maxOrCreate(map, key, value) {
   }
 }
 
-async function evaluateScore(project, model) {
+export async function syncSingleProjectEvaluation(project) {
   if (!project) {
     throw new ServerError('Project not found!');
   }
-
+  await updateAllEvaluationSummary();
+  const projectId = project.id;
+  const summary = await EvaluationSummary.findOne({ where: { projectId } });
+  const model = await loadModel();
+  return await doSingleProjectEvaluation(summary, model);
+}
+async function doSingleProjectEvaluation(summary, model) {
   /* eslint-disable no-param-reassign */
-  project.functionValue = await getDimensionScore(project, 'function', 'common', model);
-  project.qualityValue = await getDimensionScore(project, 'quality', 'common', model);
-  project.ecologyValue = await getDimensionScore(project, 'ecology', 'common', model);
-  project.innovationValue = await getDimensionScore(project, 'innovation', 'common', model);
+  summary.functionValue = await getDimensionScore(summary, 'function', 'common', model);
+  summary.qualityValue = await getDimensionScore(summary, 'quality', 'common', model);
+  summary.ecologyValue = await getDimensionScore(summary, 'ecology', 'common', model);
+  summary.innovationValue = await getDimensionScore(summary, 'innovation', 'common', model);
 
   let metric = await EvaluationModel.findOne({
     where: { type: MetricType.L0, dimension: 'function' },
   });
-  project.functionScore =
-    calLighthouseScore(project.functionValue, metric.p10, metric.median) * 100;
+  summary.functionScore =
+    calLighthouseScore(summary.functionValue, metric.p10, metric.median) * 100;
   metric = await EvaluationModel.findOne({
     where: { type: MetricType.L0, dimension: 'quality' },
   });
-  project.qualityScore = calLighthouseScore(project.qualityValue, metric.p10, metric.median) * 100;
+  summary.qualityScore = calLighthouseScore(summary.qualityValue, metric.p10, metric.median) * 100;
   metric = await EvaluationModel.findOne({
     where: { type: MetricType.L0, dimension: 'ecology' },
   });
-  project.ecologyScore = calLighthouseScore(project.ecologyValue, metric.p10, metric.median) * 100;
+  summary.ecologyScore = calLighthouseScore(summary.ecologyValue, metric.p10, metric.median) * 100;
   // update score to database
-  await project.save();
-  return project;
+  await summary.save();
+  return summary;
 }
 
 async function getDimensionScore(project, dimension, techStack, model, bId) {
