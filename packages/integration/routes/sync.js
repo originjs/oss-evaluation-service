@@ -1,6 +1,5 @@
 import express from 'express';
 
-import { syncProjectHandler } from '../controllers/sync.js';
 import { getScorecardHandler, syncScorecardHandler } from '../controllers/scorecard.js';
 import { syncOpendiggerHandler } from '../controllers/opendigger.js';
 import {
@@ -108,8 +107,9 @@ router.route('/compass').post(syncSingleProjectCompassMetricHandler);
  *           schema:
  *             type: object
  *             properties:
- *               id:
+ *               repoUrl:
  *                 type: string
+ *                 example: "https://github.com/vuejs/vue"
  *     responses:
  *       200:
  *         description: success.
@@ -259,22 +259,6 @@ router.route('/packagesize').post(syncPackageSizeHandler);
  *         description: success.
  */
 router.route('/refreshProjectMainPackage').get(refreshMainPackage);
-
-/**
- * @swagger
- * /sync/project/{projecId}:
- *   post:
- *     summary: Synchronize a single project
- *     parameters:
- *       - in: path
- *         name: projecId
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: success.
- */
-router.route('/project/:projecId').post(syncProjectHandler);
 
 /**
  * @swagger

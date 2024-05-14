@@ -13,7 +13,7 @@ export const sleep = ms =>
  */
 export async function getProjectByUrl(repoUrl) {
   const project = await GithubProjects.findOne({
-    attributes: ['id', 'htmlUrl'],
+    attributes: ['id', 'fullName', 'htmlUrl'],
     where: {
       htmlUrl: repoUrl,
     },

@@ -3,10 +3,11 @@ import debug from 'debug';
 import sequelize, { Op } from 'sequelize';
 import { OpenDigger, GithubProjects } from '@orginjs/oss-evaluation-data-model';
 import { ServerError } from '../util/error.js';
+import { getProjectByUrl } from '../util/util.js';
 
-export async function getOpenRank(projectPath) {
+async function getOpenRank(projectPath, type) {
   const response = await fetch(
-    `https://oss.x-lab.info/open_digger/github/${projectPath}/openrank.json`,
+    `https://oss.x-lab.info/open_digger/${type}/${projectPath}/openrank.json`,
   );
   if (response.ok) {
     const body = await response.json();
@@ -24,9 +25,9 @@ export async function getOpenRank(projectPath) {
   return { error: `fetch openrank.json failed: ${response.statusText}` };
 }
 
-export async function getBusFactor(projectPath) {
+async function getBusFactor(projectPath, type) {
   const response = await fetch(
-    `https://oss.x-lab.info/open_digger/github/${projectPath}/bus_factor.json`,
+    `https://oss.x-lab.info/open_digger/${type}/${projectPath}/bus_factor.json`,
   );
   if (response.ok) {
     const body = await response.json();
@@ -44,10 +45,10 @@ export async function getBusFactor(projectPath) {
   return { error: `fetch openrank.json failed: ${response.statusText}` };
 }
 
-export async function syncOpendigger(projectId, projectPath) {
-  debug.log('syncOpendigger', projectId, projectPath);
-  const rank = await getOpenRank(projectPath);
-  const bus = await getBusFactor(projectPath);
+export async function syncSingleProjectOpendigger(project) {
+  const type = project.htmlUrl.startsWith('https://gitte.com/') ? 'gitee' : 'github';
+  const rank = await getOpenRank(project.fullName, type);
+  const bus = await getBusFactor(project.fullName, type);
   // insert a record even if request fails
   const row = {
     openrank: rank.openrank,
@@ -56,7 +57,7 @@ export async function syncOpendigger(projectId, projectPath) {
     busFactorDate: bus.date,
   };
   const [data, created] = await OpenDigger.findOrCreate({
-    where: { projectId },
+    where: { projectId: project.id },
     defaults: row,
   });
   if (!created) {
@@ -65,50 +66,48 @@ export async function syncOpendigger(projectId, projectPath) {
   return row;
 }
 
-export async function syncOpendiggerHandler(req, res) {
-  // sync single project
-  if (req.body.id) {
-    const projectId = req.body.id;
-    const project = await GithubProjects.findByPk(projectId);
-    if (!project) {
-      res.status(500).json({ error: 'can not find project!' });
-      return;
-    }
-    const result = await syncOpendigger(projectId, project.fullName);
-    res.status(200).json(result);
-  } else {
-    // sync all
-    const options = {
-      attributes: ['id', 'htmlUrl'],
-      where: {
-        id: {
-          [Op.notIn]: sequelize.literal(
-            '(SELECT project_id from opendigger_info where updated_at >= DATE(NOW()) - INTERVAL 30 DAY)',
-          ),
-        },
+export async function syncAllProjectOpendigger() {
+  const options = {
+    attributes: ['id', 'fullName', 'htmlUrl'],
+    where: {
+      id: {
+        [Op.notIn]: sequelize.literal(
+          '(SELECT project_id from opendigger_info where updated_at >= DATE(NOW()) - INTERVAL 15 DAY)',
+        ),
       },
-    };
-    const projects = await GithubProjects.findAll(options);
-    // 5 concurrent requests at the same time
-    async.mapLimit(
-      projects,
-      5,
-      async project => {
-        try {
-          await syncOpendigger(project.id, project.fullName);
-        } catch (e) {
-          if (!(e instanceof ServerError)) {
-            throw e;
-          }
+    },
+  };
+  const projects = await GithubProjects.findAll(options);
+  // 5 concurrent requests at the same time
+  async.mapLimit(
+    projects,
+    5,
+    async project => {
+      try {
+        await syncSingleProjectOpendigger(project);
+      } catch (e) {
+        debug.log(e);
+        if (!(e instanceof ServerError)) {
+          throw e;
         }
-      },
-      err => {
-        if (err) throw err;
-      },
-    );
-    res.status(200).json({
-      status: 'success',
-      projects: projects.length,
-    });
+      }
+    },
+    err => {
+      if (err) throw err;
+    },
+  );
+}
+
+export async function syncOpendiggerHandler(req, res) {
+  const { repoUrl } = req.body;
+  // sync all
+  if (!repoUrl) {
+    syncAllProjectOpendigger();
+    res.status(200).json('ok');
+  } else {
+    // sync single project
+    const project = await getProjectByUrl(repoUrl);
+    const result = await syncSingleProjectOpendigger(project);
+    res.status(200).json(result);
   }
 }
