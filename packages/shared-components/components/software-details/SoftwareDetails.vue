@@ -5,6 +5,7 @@ import { ElMessage } from 'element-plus';
 import * as echarts from 'echarts';
 import { saveAs } from 'file-saver';
 import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
 import type {
   SoftwareInfo,
   SoftwareBaseInfo,
@@ -32,6 +33,7 @@ import {
 } from '@orginjs/oss-evaluation-components-utils';
 import i18n from '../../i18n';
 
+dayjs.extend(relativeTime);
 const props = defineProps<{ repoName: string }>();
 
 type TableRow = {
@@ -917,12 +919,12 @@ const emits = defineEmits<{
           <div mb-4 font-size-5 font-bold>成熟度</div>
           <div flex justify-between flex-items-center ml-8 h-62px>
             <div flex w-210px>
-              <div i-custom:download font-size-14 mr-4 />
+              <div i-custom:created-at font-size-14 mr-4 />
               <div>
                 <div font-bold font-size-5>
-                  {{ toKilo(project?.evaluation?.npmDownloads).split('.')[0] }} k
+                  {{ dayjs(project?.firstCommit).fromNow() }}
                 </div>
-                <div line-height-7>npm周下载量</div>
+                <div line-height-7>创建于</div>
               </div>
             </div>
             <div flex w-210px>
@@ -939,6 +941,15 @@ const emits = defineEmits<{
               <div>
                 <div font-bold font-size-5>{{ toKilo(project?.evaluation?.forksCount) }} k</div>
                 <div line-height-7>Fork数量</div>
+              </div>
+            </div>
+            <div flex w-210px>
+              <div i-custom:download font-size-14 mr-4 />
+              <div>
+                <div font-bold font-size-5>
+                  {{ toKilo(project?.evaluation?.npmDownloads).split('.')[0] }} k
+                </div>
+                <div line-height-7>周下载量</div>
               </div>
             </div>
             <div flex w-210px>
@@ -960,20 +971,6 @@ const emits = defineEmits<{
           <div mb-4 font-size-5 font-bold>影响力</div>
           <div flex justify-between flex-items-center ml-8 mb-4 h-62px>
             <div flex w-210px>
-              <div i-custom:medal font-size-14 mr-4 />
-              <div>
-                <div font-bold font-size-5>{{ formatFloat(project?.evaluation?.openrank) }}</div>
-                <div flex>
-                  <div line-height-7>OpenRank得分</div>
-                  <el-tooltip :content="i18n.global.t(`tips.ecology.openRank`)">
-                    <el-icon size-5 color-gray-400>
-                      <InfoFilled />
-                    </el-icon>
-                  </el-tooltip>
-                </div>
-              </div>
-            </div>
-            <div flex w-210px>
               <div i-custom:trophy font-size-14 mr-4 />
               <div>
                 <div font-bold font-size-5>
@@ -990,21 +987,47 @@ const emits = defineEmits<{
               </div>
             </div>
             <div flex w-210px>
+              <div i-custom:medal font-size-14 mr-4 />
+              <div>
+                <div font-bold font-size-5>{{ formatFloat(project?.evaluation?.openrank) }}</div>
+                <div flex>
+                  <div line-height-7>OpenRank得分</div>
+                  <el-tooltip :content="i18n.global.t(`tips.ecology.openRank`)">
+                    <el-icon size-5 color-gray-400>
+                      <InfoFilled />
+                    </el-icon>
+                  </el-tooltip>
+                </div>
+              </div>
+            </div>
+            <div flex w-210px>
               <div i-custom:contributor font-size-14 mr-4 />
               <div>
                 <div font-bold font-size-5>
                   {{ formatNumber(project?.contributors) }}
                 </div>
-                <div line-height-7>累计贡献者数量</div>
+                <div flex>
+                <div line-height-7>累计贡献者</div>
+                <el-tooltip :content="i18n.global.t(`tips.ecology.totalContributor`)">
+                    <el-icon size-5 color-gray-400>
+                      <InfoFilled />
+                    </el-icon>
+                  </el-tooltip>
+                </div>
               </div>
             </div>
             <div flex w-210px>
               <div i-custom:link font-size-14 mr-4 />
               <div>
-                <div font-bold font-size-5>
-                  {{ formatNumber(project?.dependentRepositories / 1000) }} k
-                </div>
+                <div font-bold font-size-5>{{ toKilo(project?.dependentRepositories) }} k</div>
                 <div line-height-7>被依赖数量</div>
+              </div>
+            </div>
+            <div flex w-210px>
+              <div i-custom:organization font-size-14 mr-4 />
+              <div>
+                <div font-bold font-size-5>-</div>
+                <div line-height-7>组织使用数量</div>
               </div>
             </div>
           </div>
