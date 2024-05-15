@@ -28,9 +28,7 @@ const query = gql`
 
 const compassUrl = 'https://oss-compass.org/api/graphql';
 
-export default syncSingleProjectCompassMetricHandler;
-
-export async function syncSingleProjectCompassMetricHandler(req, res) {
+export async function syncProjectCompassMetricHandler(req, res) {
   const { repoUrl, beginDate, startIndex } = req.body;
   const fullIntegration = repoUrl === undefined || repoUrl === null || repoUrl === '';
 

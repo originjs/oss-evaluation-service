@@ -1,8 +1,7 @@
 import debug from 'debug';
 import { Octokit } from '@octokit/core';
 import { GithubProjects, CncfDocumentScore } from '@orginjs/oss-evaluation-data-model';
-import { Cron } from 'croner';
-import { sleep } from '../util/util.js';
+import { getProjectByUrl } from '../util/util.js';
 
 // cncf document checks item
 const cncfDocumentChecksSet = {
@@ -55,62 +54,27 @@ const cncfDocumentChecksSet = {
   },
 };
 
-let tokenIndex = 0;
-const basicApiUrl = 'GET /repos/{owner}/{repo}';
+const BASIC_GITHUB_REPO_API = 'GET /repos/{owner}/{repo}';
 
-function changeToken() {
-  const tokenArray = process.env.GITHUB_TOKENS.split(';');
-  tokenIndex += 1;
-  return tokenArray[tokenIndex % tokenArray.length];
-}
-
-/*
-  incremental integration: GitHub Metadata does not support updating yet
- */
-export async function integratingCNCFDocumentScore(startIndex) {
-  debug.log('----- Integrate CNCF Document Score Start -------');
-  let projectList = await GithubProjects.findAll({
-    attributes: ['id', 'htmlUrl'],
-  });
-
-  const projectCount = projectList.length;
-  projectList = projectList.slice(startIndex);
-
-  for (const project of projectList) {
-    debug.log('Current document score Integration Progress: ', `${startIndex + 1}/${projectCount}`);
-    startIndex += 1;
-    await syncSingleCncfDocumentScore(project.htmlUrl);
-    clearDocumentChecks();
-  }
-}
-
-export default async function syncCncfDocumentScore(req, res) {
+export default async function syncProjectCncfDocumentScoreHandler(req, res) {
   const { repoUrl, startIndex } = req.body;
   const fullIntegration = repoUrl === undefined || repoUrl === null || repoUrl === '';
 
   if (fullIntegration) {
-    await syncFullCncfDocumentScore(startIndex);
+    await syncAllProjectCncfDocumentScore({ startIndex: startIndex });
     res.status(200).send('Full-scale CNCF document score integration success!');
   } else {
-    await syncSingleCncfDocumentScore(repoUrl);
+    const project = await getProjectByUrl(repoUrl);
+    await syncSingleProjectCncfDocumentScore(project);
     res.status(200).json(`Project: ${repoUrl} integrating success!`);
   }
 }
 
-async function syncSingleCncfDocumentScore(repoUrl) {
-  const project = await GithubProjects.findOne({
-    where: {
-      html_url: repoUrl,
-    },
-  });
-
-  if (project === null) {
-    debug.log('The project has no project id');
-    return;
-  }
+async function syncSingleProjectCncfDocumentScore(project) {
   const documentProject = await CncfDocumentScore.findOne({
     where: { repoUrl: project.htmlUrl },
   });
+
   if (documentProject != null) {
     // update
     debug.log('Already calculate, update project');
@@ -149,7 +113,14 @@ async function syncSingleCncfDocumentScore(repoUrl) {
   }
 }
 
-async function syncFullCncfDocumentScore(startIndex) {
+/**
+ *
+ * @param {Object} options
+ * @param {number} [options.startIndex]
+ * @returns {Promise<void>}
+ */
+export async function syncAllProjectCncfDocumentScore(options) {
+  const { startIndex } = options;
   debug.log('Sync CNCF Document Score');
   // 1. get all GitHub project
   let projectList = await GithubProjects.findAll({
@@ -164,11 +135,29 @@ async function syncFullCncfDocumentScore(startIndex) {
   let count = startIndex;
 
   for (const project of projectList) {
-    debug.log('**Current Progress**: ', `${count + 1}/${projectCount}`);
+    debug.log('Current document score Integration Progress: ', `${count + 1}/${projectCount}`);
     count += 1;
-    await syncSingleCncfDocumentScore(project.htmlUrl);
+    await syncSingleProjectCncfDocumentScore(project);
     clearDocumentChecks();
   }
+}
+
+async function getValidGithubToken() {
+  const tokenArray = JSON.parse(process.env.GITHUB_TOKEN);
+  for (const token of tokenArray) {
+    const octokit = new Octokit({
+      auth: token,
+    });
+    const result = await octokit.request('GET /rate_limit', {
+      headers: {
+        'X-GitHub-Api-Version': '2022-11-28',
+      },
+    });
+    if (result.data.rate.remaining > 50) {
+      return token;
+    }
+  }
+  return null;
 }
 
 async function createDocumentScore(projectId, repoUrl, score, readme, website, release, filename) {
@@ -187,6 +176,7 @@ async function createDocumentScore(projectId, repoUrl, score, readme, website, r
     hasWebsite: cncfDocumentChecksSet.website.checked,
   });
 }
+
 async function updateDocumentScore(projectId, score) {
   await CncfDocumentScore.update(
     {
@@ -254,23 +244,6 @@ function checkItemInReadme(item, readme) {
   }
 }
 
-async function getValidGithubToken() {
-  const githubTokenArray = process.env.GITHUB_TOKEN.split(';');
-  for (const token of githubTokenArray) {
-    const octokit = new Octokit({
-      auth: token,
-    });
-    const result = await octokit.request('GET /rate_limit', {
-      headers: {
-        'X-GitHub-Api-Version': '2022-11-28',
-      },
-    });
-    if (result.data.rate.remaining > 50) {
-      return token;
-    }
-  }
-  return null;
-}
 
 async function getGithubMetadata(octokit, repoUrl) {
   const [owner, repo] = repoUrl.split('/').slice(-2);
@@ -367,7 +340,7 @@ async function getRepoFileContent(octokit, owner, repo) {
 }
 
 async function getRepoContent(octokit, owner, repo) {
-  const content = await octokit.request(`${basicApiUrl}/contents`, {
+  const content = await octokit.request(`${BASIC_GITHUB_REPO_API}/contents`, {
     owner,
     repo,
     headers: {
@@ -376,7 +349,7 @@ async function getRepoContent(octokit, owner, repo) {
     },
   });
   if (content.headers['x-ratelimit-remaining'] <= 0) {
-    octokit.auth = changeToken();
+    octokit.auth = getValidGithubToken();
   }
   return content.data;
 }
@@ -385,7 +358,7 @@ async function getRepoContent(octokit, owner, repo) {
   Get the project root/path metadata, or 404 error if it doesn't exist.
  */
 async function getPathContent(octokit, path, owner, repo) {
-  const content = await octokit.request(`${basicApiUrl}/contents/{path}`, {
+  const content = await octokit.request(`${BASIC_GITHUB_REPO_API}/contents/{path}`, {
     owner,
     repo,
     path,
@@ -395,7 +368,7 @@ async function getPathContent(octokit, path, owner, repo) {
     },
   });
   if (content.headers['x-ratelimit-remaining'] <= 0) {
-    octokit.auth = changeToken();
+    octokit.auth = getValidGithubToken();
   }
   return content.data;
 }
@@ -404,7 +377,7 @@ async function getPathContent(octokit, path, owner, repo) {
   Get the project website, or null if it doesn't exist.
  */
 async function getWebsite(octokit, owner, repo) {
-  const repoContent = await octokit.request(basicApiUrl, {
+  const repoContent = await octokit.request(BASIC_GITHUB_REPO_API, {
     owner,
     repo,
     headers: {
@@ -412,7 +385,7 @@ async function getWebsite(octokit, owner, repo) {
     },
   });
   if (repoContent.headers['x-ratelimit-remaining'] <= 0) {
-    octokit.auth = changeToken();
+    octokit.auth = getValidGithubToken();
   }
   return repoContent.data.homepage;
 }
@@ -422,7 +395,7 @@ async function getWebsite(octokit, owner, repo) {
  */
 async function getRelease(octokit, owner, repo) {
   debug.log('------------- release ------------');
-  const release = await octokit.request(`${basicApiUrl}/releases`, {
+  const release = await octokit.request(`${BASIC_GITHUB_REPO_API}/releases`, {
     owner,
     repo,
     headers: {
@@ -430,28 +403,10 @@ async function getRelease(octokit, owner, repo) {
     },
   });
   if (release.headers['x-ratelimit-remaining'] <= 0) {
-    octokit.auth = changeToken();
+    octokit.auth = getValidGithubToken();
   }
   if (release.data.length === 0) {
     return '';
   }
   return release.data[0].body;
 }
-
-const integrationTime = '@weekly';
-let start = 0;
-
-const documentScoreIntegrateJob = new Cron(integrationTime, { timezone: 'Etc/UTC' }, async () => {
-  debug.log('compass integration start!', documentScoreIntegrateJob.getPattern());
-  try {
-    await integratingCNCFDocumentScore(start);
-    debug.log('Synchronous compass successful!');
-  } catch (err) {
-    const { error, startIndex } = err;
-    start = startIndex;
-    debug.log(err);
-    await sleep(10000);
-    debug.log('An error occurred, start trying again', error);
-    await documentScoreIntegrateJob.trigger();
-  }
-});
