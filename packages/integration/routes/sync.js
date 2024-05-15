@@ -7,7 +7,7 @@ import {
   syncScopedPackageDownloadCount,
 } from '../controllers/downloadCount.js';
 import { syncPackageSizeHandler } from '../controllers/packageSize.js';
-import { syncSingleProjectCompassMetricHandler } from '../controllers/compass.js';
+import { syncProjectCompassMetricHandler } from '../controllers/compass.js';
 import { syncStateOfJsData } from '../controllers/stateofjs.js';
 import { syncStackOverFlowResultData } from '../controllers/stackoverflow.js';
 import {
@@ -23,7 +23,7 @@ import {
   updateScore,
 } from '../controllers/benchmark.js';
 import getDelayedMessage from '../controllers/common.js';
-import syncCncfDocumentScore from '../controllers/documentScore.js';
+import syncProjectCncfDocumentScoreHandler from '../controllers/documentScore.js';
 import { refreshMainPackage } from '../controllers/refreshMainPackage.js';
 import {
   collectSonarCloudData,
@@ -62,7 +62,7 @@ const router = express.Router();
  *       200:
  *         description: Compass activity metric synchronized
  */
-router.route('/CNCFDocumentScore').post(syncCncfDocumentScore);
+router.route('/CNCFDocumentScore').post(syncProjectCncfDocumentScoreHandler);
 
 /**
  * @swagger
@@ -93,7 +93,7 @@ router.route('/CNCFDocumentScore').post(syncCncfDocumentScore);
  *       200:
  *         description: Compass activity metric synchronized
  */
-router.route('/compass').post(syncSingleProjectCompassMetricHandler);
+router.route('/compass').post(syncProjectCompassMetricHandler);
 
 /**
  * @swagger
