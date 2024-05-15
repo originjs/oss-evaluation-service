@@ -46,9 +46,9 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     proxy: {
-      '/api': {
+      '/oss-evaluation-api': {
         target: 'http://localhost:3000',
-        rewrite: (path: string) => path.replace(/^\/api/, ''),
+        rewrite: (path: string) => path.replace(/^\/oss-evaluation-api/, ''),
       },
     },
   },
