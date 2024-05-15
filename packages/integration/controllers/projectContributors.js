@@ -2,11 +2,36 @@ import debug from 'debug';
 import { GithubProjects } from '@orginjs/oss-evaluation-data-model';
 import { CheerioCrawler, Configuration } from 'crawlee';
 import { Cron } from 'croner';
+import { getProjectByUrl } from '../util/util.js';
 
-export default async function syncProjectContributors(req, res) {
+export async function syncSingleProjectContributorsHandler(req, res) {
+  const { repoUrl: repoUrl } = req.params;
+  const project = await getProjectByUrl(repoUrl);
+  await syncSingleProjectContributors(project);
+  res.status(200).send('success');
+}
+
+export async function syncAllProjectContributorsHandler(req, res) {
+  await syncAllProjectContributors();
+  res.status(200).send('success');
+}
+
+/**
+ * Synchronize Single Project Contributors
+ * @param {Object} project project info
+ * @returns {Promise<*>} inserted project contributors
+ */
+export async function syncSingleProjectContributors(project) {
+  await syncProjectContributors(project.id);
+}
+
+export async function syncAllProjectContributors() {
+  await syncProjectContributors();
+}
+
+export default async function syncProjectContributors(projectId) {
   debug.log('Sync Project Contributors');
   // 1. get all github project
-  const { projectId: projectId } = req.params;
   const projectList = await GithubProjects.findAll({
     attributes: ['id', 'htmlUrl', 'fullName', 'contributors'],
     where: projectId
@@ -40,7 +65,6 @@ export default async function syncProjectContributors(req, res) {
       },
     );
   }
-  res.status(200).send('success');
 }
 
 async function getProjectContributors(url) {

@@ -3,11 +3,36 @@ import { GithubProjects } from '@orginjs/oss-evaluation-data-model';
 import { CheerioCrawler, Configuration } from 'crawlee';
 import { Cron } from 'croner';
 import { XMLParser } from 'fast-xml-parser';
+import { getProjectByUrl } from '../util/util.js';
 
-export default async function syncProjectCodeSize(req, res) {
+export default async function syncSingleProjectCodeSizeHandler(req, res) {
+  const { repoUrl: repoUrl } = req.params;
+  const project = await getProjectByUrl(repoUrl);
+  await syncSingleProjectCodeSize(project);
+  res.status(200).send('success');
+}
+
+export async function syncAllProjectCodeSizeHandler(req, res) {
+  await syncAllProjectCodeSize();
+  res.status(200).send('success');
+}
+
+/**
+ * Synchronize Single Project Code Size
+ * @param {Object} project project info
+ * @returns {Promise<*>} inserted project code size
+ */
+export async function syncSingleProjectCodeSize(project) {
+  await syncProjectCodeSize(project.id);
+}
+
+export async function syncAllProjectCodeSize() {
+  await syncProjectCodeSize();
+}
+
+async function syncProjectCodeSize(projectId) {
   debug.log('Sync Project Code Size');
   // 1. get all github project
-  const { projectId: projectId } = req.params;
   const projectList = await GithubProjects.findAll({
     attributes: ['id', 'ownerName', 'name', 'codeSize'],
     where: projectId
@@ -43,7 +68,6 @@ export default async function syncProjectCodeSize(req, res) {
       },
     );
   }
-  res.status(200).send('success');
 }
 
 async function getProjectCodeSize(url, otherUrl) {
@@ -141,7 +165,7 @@ const syncProjectCodeSizeTimerTask = Cron(
   { catch: errorHandler, timezone: 'Etc/UTC' },
   async () => {
     debug.log('syncProjectCodeSize start!', syncProjectCodeSizeTimerTask.getPattern());
-    await syncProjectCodeSize();
+    await syncAllProjectCodeSize();
     debug.log('syncProjectCodeSize end!', syncProjectCodeSizeTimerTask.getPattern());
   },
 );

@@ -6,11 +6,36 @@ GithubProjects.hasMany(ProjectPackage, {
   foreignKey: 'project_id',
   as: 'projectPackage',
 });
+import { getProjectByUrl } from '../util/util.js';
 
-export default async function syncProjectDependentCount(req, res) {
+export async function syncSingleProjectDependentCountHandler(req, res) {
+  const { repoUrl: repoUrl } = req.params;
+  const project = await getProjectByUrl(repoUrl);
+  await syncSingleProjectDependentCount(project);
+  res.status(200).send('success');
+}
+
+export async function syncAllProjectDependentCountHandler(req, res) {
+  await syncAllProjectDependentCount();
+  res.status(200).send('success');
+}
+
+/**
+ * Synchronize Single Project Dependent Count
+ * @param {Object} project project info
+ * @returns {Promise<*>} inserted project dependent count
+ */
+export async function syncSingleProjectDependentCount(project) {
+  await syncProjectDependentCount(project.id);
+}
+
+export async function syncAllProjectDependentCount() {
+  await syncProjectDependentCount();
+}
+
+export default async function syncProjectDependentCount(projectId) {
   debug.log('Sync Project dependent count');
   // 1. get all github project
-  const { projectId: projectId } = req.params;
   const projectList = await GithubProjects.findAll({
     include: [
       {
@@ -18,7 +43,7 @@ export default async function syncProjectDependentCount(req, res) {
         as: 'projectPackage',
         required: false,
         where: {
-          main_package: 1
+          main_package: true
         }
       },
     ],
@@ -58,7 +83,6 @@ export default async function syncProjectDependentCount(req, res) {
       );
     }
   }
-  res.status(200).send('success');
 }
 
 async function getProjectDependentCount(url) {

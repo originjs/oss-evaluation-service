@@ -6,7 +6,7 @@ import {
   syncNoneScopedPackageDownloadCount,
   syncScopedPackageDownloadCount,
 } from '../controllers/downloadCount.js';
-import { syncPackageSizeHandler } from '../controllers/packageSize.js';
+import { syncPackageSizeHandler, syncSingleProjectPackageSizeHandler } from '../controllers/packageSize.js';
 import { syncProjectCompassMetricHandler } from '../controllers/compass.js';
 import { syncStateOfJsData } from '../controllers/stateofjs.js';
 import { syncStackOverFlowResultData } from '../controllers/stackoverflow.js';
@@ -33,10 +33,10 @@ import {
   updateSonarCloudDefaultBranch,
   uploadSonarCiConfigToGitlab,
 } from '../controllers/sonarCloud.js';
-import syncProjectCodeSize from '../controllers/projectCodeSize.js';
+import syncSingleProjectCodeSizeHandler, { syncAllProjectCodeSizeHandler} from '../controllers/projectCodeSize.js';
 import { syncStargazersTrend } from '../controllers/projectStarGazersTrend.js';
-import syncProjectContributors from '../controllers/projectContributors.js';
-import syncProjectDependentCount from '../controllers/projectDependents.js';
+import { syncSingleProjectContributorsHandler, syncAllProjectContributorsHandler} from '../controllers/projectContributors.js';
+import { syncSingleProjectDependentCountHandler, syncAllProjectDependentCountHandler} from '../controllers/projectDependents.js';
 
 const router = express.Router();
 
@@ -248,6 +248,23 @@ router.route('/scorecard/getScorecardTest').post(getScorecardHandler);
  *         description: success.
  */
 router.route('/packagesize').post(syncPackageSizeHandler);
+
+/**
+ * @swagger
+ * /sync/syncSingleProjectPackageSize/{repoUrl}:
+ *   get:
+ *     summary: refresh package size of project
+ *     parameters:
+ *      - in: path
+ *        name: repoUrl
+ *        type: string
+ *        required: true
+ *        example: https://github.com/vuejs/core
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/syncSingleProjectPackageSize/:repoUrl').get(syncSingleProjectPackageSizeHandler);
 
 /**
  * @swagger
@@ -639,29 +656,29 @@ router.route('/sonarCloud/updateDefaultBranch').get(await updateSonarCloudDefaul
  * @swagger
  * /sync/syncProjectCodeSize:
  *   get:
- *     summary: refresh main package of project
+ *     summary: refresh code size of project
  *     responses:
  *       200:
  *         description: success.
  */
-router.route('/syncProjectCodeSize').get(syncProjectCodeSize);
+router.route('/syncProjectCodeSize').get(syncAllProjectCodeSizeHandler);
 
 /**
  * @swagger
- * /sync/syncSingleProjectCodeSize/{projectId}:
+ * /sync/syncSingleProjectCodeSize/{repoUrl}:
  *   get:
- *     summary: refresh main package of project
+ *     summary: refresh code size of project
  *     parameters:
  *      - in: path
- *        name: projectId
- *        type: int
+ *        name: repoUrl
+ *        type: string
  *        required: true
- *        example: 1
+ *        example: https://github.com/vuejs/core
  *     responses:
  *       200:
  *         description: success.
  */
-router.route('/syncSingleProjectCodeSize/:projectId').get(syncProjectCodeSize);
+router.route('/syncSingleProjectCodeSize/:repoUrl').get(syncSingleProjectCodeSizeHandler);
 
 /**
  * @swagger
@@ -693,58 +710,58 @@ router.route('/syncStargazersTrend').post(syncStargazersTrend);
 
 /**
  * @swagger
- * /sync/syncProjectContributors:
+ * /sync/syncAllProjectContributors:
  *   get:
  *     summary: refresh contributors of project
  *     responses:
  *       200:
  *         description: success.
  */
-router.route('/syncProjectContributors').get(syncProjectContributors);
+router.route('/syncAllProjectContributors').get(syncAllProjectContributorsHandler);
 
 /**
  * @swagger
- * /sync/syncSingleProjectContributors/{projectId}:
+ * /sync/syncSingleProjectContributors/{repoUrl}:
  *   get:
  *     summary: refresh contributors of project
  *     parameters:
  *      - in: path
- *        name: projectId
- *        type: int
+ *        name: repoUrl
+ *        type: string
  *        required: true
- *        example: 1
+ *        example: https://github.com/vuejs/router
  *     responses:
  *       200:
  *         description: success.
  */
-router.route('/syncSingleProjectContributors/:projectId').get(syncProjectContributors);
+router.route('/syncSingleProjectContributors/:repoUrl').get(syncSingleProjectContributorsHandler);
 
 /**
  * @swagger
- * /sync/syncProjectDependentCount:
+ * /sync/syncAllProjectDependentCount:
  *   get:
  *     summary: refresh dependent count of project
  *     responses:
  *       200:
  *         description: success.
  */
-router.route('/syncProjectDependentCount').get(syncProjectDependentCount);
+router.route('/syncAllProjectDependentCount').get(syncAllProjectDependentCountHandler);
 
 /**
  * @swagger
- * /sync/syncSingleProjectDependentCount/{projectId}:
+ * /sync/syncSingleProjectDependentCount/{repoUrl}:
  *   get:
  *     summary: refresh dependent count of project
  *     parameters:
  *      - in: path
- *        name: projectId
- *        type: int
+ *        name: repoUrl
+ *        type: string
  *        required: true
- *        example: 1
+ *        example: https://github.com/vuejs/router
  *     responses:
  *       200:
  *         description: success.
  */
-router.route('/syncSingleProjectDependentCount/:projectId').get(syncProjectDependentCount);
+router.route('/syncSingleProjectDependentCount/:repoUrl').get(syncSingleProjectDependentCountHandler);
 
 export default router;
