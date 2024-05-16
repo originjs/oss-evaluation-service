@@ -3,10 +3,13 @@ import express from 'express';
 import { getScorecardHandler, syncScorecardHandler } from '../controllers/scorecard.js';
 import { syncOpendiggerHandler } from '../controllers/opendigger.js';
 import {
-  syncNoneScopedPackageDownloadCount,
-  syncScopedPackageDownloadCount,
+  syncAllProjectPackageDownloadCountHandler,
+  syncSingleProjectPackageDownloadCountHandler,
 } from '../controllers/downloadCount.js';
-import { syncPackageSizeHandler, syncSingleProjectPackageSizeHandler } from '../controllers/packageSize.js';
+import {
+  syncPackageSizeHandler,
+  syncSingleProjectPackageSizeHandler,
+} from '../controllers/packageSize.js';
 import { syncProjectCompassMetricHandler } from '../controllers/compass.js';
 import { syncStateOfJsData } from '../controllers/stateofjs.js';
 import { syncStackOverFlowResultData } from '../controllers/stackoverflow.js';
@@ -33,10 +36,18 @@ import {
   updateSonarCloudDefaultBranch,
   uploadSonarCiConfigToGitlab,
 } from '../controllers/sonarCloud.js';
-import syncSingleProjectCodeSizeHandler, { syncAllProjectCodeSizeHandler} from '../controllers/projectCodeSize.js';
+import syncSingleProjectCodeSizeHandler, {
+  syncAllProjectCodeSizeHandler,
+} from '../controllers/projectCodeSize.js';
 import { syncStargazersTrend } from '../controllers/projectStarGazersTrend.js';
-import { syncSingleProjectContributorsHandler, syncAllProjectContributorsHandler} from '../controllers/projectContributors.js';
-import { syncSingleProjectDependentCountHandler, syncAllProjectDependentCountHandler} from '../controllers/projectDependents.js';
+import {
+  syncSingleProjectContributorsHandler,
+  syncAllProjectContributorsHandler,
+} from '../controllers/projectContributors.js';
+import {
+  syncSingleProjectDependentCountHandler,
+  syncAllProjectDependentCountHandler,
+} from '../controllers/projectDependents.js';
 
 const router = express.Router();
 
@@ -118,9 +129,9 @@ router.route('/opendigger').post(syncOpendiggerHandler);
 
 /**
  * @swagger
- * /sync/noneScopedPackageDownloadCount:
+ * /sync/syncAllProjectPackageDownloadCountHandler:
  *   post:
- *     summary: syncNoneScopedPackageDownloadCount
+ *     summary: syncAllProjectPackageDownloadCountHandler
  *     requestBody:
  *       required: true
  *       content:
@@ -134,24 +145,20 @@ router.route('/opendigger').post(syncOpendiggerHandler);
  *               endDate:
  *                 type: string
  *                 example: "2024-02-17"
- *               startId:
- *                 type: int
- *                 example: 1
- *               endId:
- *                 type: int
- *                 example: 100
  *     responses:
  *       200:
  *         description: The created book.
  *
  */
-router.route('/noneScopedPackageDownloadCount').post(syncNoneScopedPackageDownloadCount);
+router
+  .route('/syncAllProjectPackageDownloadCountHandler')
+  .post(syncAllProjectPackageDownloadCountHandler);
 
 /**
  * @swagger
- * /sync/scopedPackageDownloadCount:
+ * /sync/syncSingleProjectPackageDownloadCountHandler:
  *   post:
- *     summary: syncScopedPackageDownloadCount
+ *     summary: syncSingleProjectPackageDownloadCountHandler
  *     requestBody:
  *       required: true
  *       content:
@@ -165,18 +172,17 @@ router.route('/noneScopedPackageDownloadCount').post(syncNoneScopedPackageDownlo
  *               endDate:
  *                 type: string
  *                 example: "2024-02-17"
- *               startId:
- *                 type: int
- *                 example: 1
- *               endId:
- *                 type: int
- *                 example: 100
+ *               repoUrl:
+ *                 type: string
+ *                 example: "https://github.com/vuejs/core"
  *     responses:
  *       200:
  *         description: The created book.
  *
  */
-router.route('/scopedPackageDownloadCount').post(syncScopedPackageDownloadCount);
+router
+  .route('/syncSingleProjectPackageDownloadCountHandler')
+  .post(syncSingleProjectPackageDownloadCountHandler);
 
 /**
  * @swagger
@@ -762,6 +768,8 @@ router.route('/syncAllProjectDependentCount').get(syncAllProjectDependentCountHa
  *       200:
  *         description: success.
  */
-router.route('/syncSingleProjectDependentCount/:repoUrl').get(syncSingleProjectDependentCountHandler);
+router
+  .route('/syncSingleProjectDependentCount/:repoUrl')
+  .get(syncSingleProjectDependentCountHandler);
 
 export default router;
