@@ -1,7 +1,7 @@
-import { log } from 'debug';
-import { PackageSizeDetail } from '@orginjs/oss-evaluation-data-model';
+import debug, { log } from 'debug';
+import { PackageSizeDetail, ProjectPackage } from '@orginjs/oss-evaluation-data-model';
 import sequelize from '../util/database.js';
-import { sleep } from '../util/util.js';
+import { getProjectByUrl, sleep } from '../util/util.js';
 
 export async function getPackageSize(name, version) {
   const myHeaders = new Headers();
@@ -16,10 +16,8 @@ export async function getPackageSize(name, version) {
   };
 
   console.time('fetchTime');
-  const response = await fetch(
-    `https://bundlephobia.com/api/size?record=true&package=${name}${version ? `@${version}` : ''}`,
-    requestOptions,
-  );
+  const url = `https://bundlephobia.com/api/size?record=true&package=${name}${version ? `@${version}` : ''}`;
+  const response = await fetch(url, requestOptions);
   console.timeEnd('fetchTime');
   if (response.ok) {
     const body = await response.json();
@@ -34,6 +32,7 @@ export async function getPackageSize(name, version) {
   }
 
   const error = await response.text();
+  debug.log(`The project:  ${url} get package size fail: ${error}`);
   // eslint-disable-next-line prefer-promise-reject-errors
   return Promise.reject({
     packageName: name,
@@ -42,7 +41,42 @@ export async function getPackageSize(name, version) {
   });
 }
 
-export async function syncSinglePackageSize(name, version) {
+/**
+ * Synchronize Single Project Package Size
+ * @param {Object} project project info
+ * @returns {Promise<*>} inserted project package size
+ */
+export async function syncSingleProjectPackageSize(project) {
+  const packageName = await ProjectPackage.findOne({
+    where: {
+      projectId: project.id,
+    },
+    attributes: ['package'],
+  });
+  if (packageName) {
+    await syncPackageSize(packageName.package);
+  }
+}
+
+export async function syncAllProjectPackageSize() {
+  const query = `
+    select package, detail.reason
+    from project_packages packages
+         left join package_size_detail detail
+                   on packages.package = detail.package_name
+`;
+
+  const packageList = await sequelize.query(query, { type: sequelize.QueryTypes.SELECT });
+
+  for (const { package: packageName } of packageList) {
+    log(`get packageName:${packageName} size data`);
+    await syncPackageSize(packageName);
+    const randomMs = Math.floor(Math.random() * 1000) + 1000;
+    await sleep(randomMs);
+  }
+}
+
+async function syncPackageSize(name, version) {
   return getPackageSize(name, version)
     .then(row => {
       PackageSizeDetail.upsert(row);
@@ -52,39 +86,26 @@ export async function syncSinglePackageSize(name, version) {
         version: '',
         packageName: e.packageName,
         reason: `${e.status}:${e.msg?.substring(0, 1000)}`,
+        updateAt: Date.now(),
       });
       // if it fails, randomly sleep 1-5s
       sleep(Math.floor(Math.random() * 5) + 1);
     });
 }
 
-export async function syncAllPackageSize() {
-  const query = `
-    select package, detail.reason
-    from project_packages packages
-         left join package_size_detail detail
-                   on packages.package = detail.package_name
-        where detail.id is null
-        and detail.reason is null
-        and package is not null
-`;
-
-  const packageList = await sequelize.query(query, { type: sequelize.QueryTypes.SELECT });
-
-  for (const { package: packageName } of packageList) {
-    log(`get packageName:${packageName} size data`);
-    await syncSinglePackageSize(packageName);
-    const randomMs = Math.floor(Math.random() * 1000) + 1000;
-    await sleep(randomMs);
-  }
+export async function syncSingleProjectPackageSizeHandler(req, res) {
+  const { repoUrl: repoUrl } = req.params;
+  const project = await getProjectByUrl(repoUrl);
+  await syncSingleProjectPackageSize(project);
+  res.status(200).send('success');
 }
 
 export async function syncPackageSizeHandler(req, res) {
   try {
     if (req.body.name) {
-      await syncSinglePackageSize(req.body.name, req.body.version);
+      await syncPackageSize(req.body.name, req.body.version);
     } else {
-      await syncAllPackageSize();
+      await syncAllProjectPackageSize();
     }
     res.status(200);
   } catch (e) {
