@@ -218,8 +218,8 @@ export async function syncProjectByRepo(req, res) {
   }
 
   const items = [];
-  for (const projectUrl of req.body) {
-    const item = await queryProjectByRepUrl(projectUrl);
+  for (const projectUrl of req.body) {    
+    const item = await syncSingleGithubProject({ url: projectUrl });
     if (item) items.push(item);
   }
 
@@ -235,15 +235,20 @@ export async function syncProjectByRepo(req, res) {
   res.status(200).json('success');
 }
 
-async function queryProjectByRepUrl(url) {
-  const ownerRepo = getOwnerRepo(url);
+
+/**
+ * Sync single github project by repository url
+ * 
+ * @param {url:string} options 
+ */
+export async function syncSingleGithubProject(options) {
+  const ownerRepo = getOwnerRepo(options.url);
   if (!ownerRepo) {
     debug.log('Url must be the github address,eg:https://github.com/vuejs/core');
     return null;
   }
 
   const tokens = JSON.parse(process.env.GITHUB_TOKEN);
-  // const agent = new HttpsProxyAgent('http://127.0.0.1:8080');
   const response = await fetch(`https://api.github.com/repos/${ownerRepo[0]}/${ownerRepo[1]}`, {
     // agent,
     headers: {
