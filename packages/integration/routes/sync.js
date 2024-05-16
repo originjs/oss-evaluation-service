@@ -39,7 +39,10 @@ import {
 import syncSingleProjectCodeSizeHandler, {
   syncAllProjectCodeSizeHandler,
 } from '../controllers/projectCodeSize.js';
-import { syncStargazersTrend } from '../controllers/projectStarGazersTrend.js';
+import {
+  syncAllProjectStargazersTrendHandler,
+  syncSingleProjectStargazersTrendHandler,
+} from '../controllers/projectStarGazersTrend.js';
 import {
   syncSingleProjectContributorsHandler,
   syncAllProjectContributorsHandler,
@@ -688,9 +691,9 @@ router.route('/syncSingleProjectCodeSize/:repoUrl').get(syncSingleProjectCodeSiz
 
 /**
  * @swagger
- * /sync/syncStargazersTrend:
+ * /sync/syncAllProjectStargazersTrendHandler:
  *   post:
- *     summary: syncStargazersTrend
+ *     summary: syncAllProjectStargazersTrendHandler
  *     requestBody:
  *       required: true
  *       content:
@@ -700,19 +703,40 @@ router.route('/syncSingleProjectCodeSize/:repoUrl').get(syncSingleProjectCodeSiz
  *             properties:
  *               startDate:
  *                  type: string
- *                  example: '2024-04-01'
- *               startId:
- *                 type: int
- *                 example: 1
- *               endId:
- *                 type: int
- *                 example: 1
+ *                  example: '1024-04-01'
  *     responses:
  *       200:
  *         description: The created book.
  *
  */
-router.route('/syncStargazersTrend').post(syncStargazersTrend);
+router.route('/syncAllProjectStargazersTrendHandler').post(syncAllProjectStargazersTrendHandler);
+
+/**
+ * @swagger
+ * /sync/syncSingleProjectStargazersTrendHandler:
+ *   post:
+ *     summary: syncSingleProjectStargazersTrendHandler
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               startDate:
+ *                  type: string
+ *                  example: '1024-04-01'
+ *               repoUrl:
+ *                  type: string
+ *                  example: 'https://github.com/vuejs/core'
+ *     responses:
+ *       200:
+ *         description: The created book.
+ *
+ */
+router
+  .route('/syncSingleProjectStargazersTrendHandler')
+  .post(syncSingleProjectStargazersTrendHandler);
 
 /**
  * @swagger
