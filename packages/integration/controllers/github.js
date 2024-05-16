@@ -211,6 +211,7 @@ function parseProjects(items) {
     webCommitSignoffRequired: project.web_commit_signoff_required,
   }));
 }
+
 export async function syncProjectByRepo(req, res) {
   if (!process.env.GITHUB_TOKEN) {
     res.status(500).json({ error: 'User token is required.' });
@@ -218,8 +219,8 @@ export async function syncProjectByRepo(req, res) {
   }
 
   const items = [];
-  for (const projectUrl of req.body) {    
-    const item = await syncSingleGithubProject({ url: projectUrl });
+  for (const projectUrl of req.body) {
+    const item = await queryProjectByRepUrl(projectUrl);
     if (item) items.push(item);
   }
 
@@ -235,14 +236,24 @@ export async function syncProjectByRepo(req, res) {
   res.status(200).json('success');
 }
 
-
 /**
  * Sync single github project by repository url
  * 
  * @param {url:string} options 
  */
-export async function syncSingleGithubProject(options) {
-  const ownerRepo = getOwnerRepo(options.url);
+export async function syncSingleGithubProject(options){
+  const project = await queryProjectByRepUrl(options.url);
+  if (!project){
+    return null;
+  }
+
+  const projects = parseProjects([project]);
+  await savaData(projects);
+  return projects[0];
+}
+
+async function queryProjectByRepUrl(url) {
+  const ownerRepo = getOwnerRepo(url);
   if (!ownerRepo) {
     debug.log('Url must be the github address,eg:https://github.com/vuejs/core');
     return null;
