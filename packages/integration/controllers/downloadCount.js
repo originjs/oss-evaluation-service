@@ -22,6 +22,8 @@ const QUERY_PACKAGE_START = `
         and project_id <= :endId
         and isnull(package_name)
         and !isnull(package)
+        and package != ''
+        and main_package = 1
     `;
 
 const QUERY_SCOPED_PACKAGE = `
@@ -50,8 +52,7 @@ const jobSyncAllProjectPackageDownloadCount = Cron(
     );
     const queryLastDate = `
     select max(end_date) as endDate
-    from package_download_count
-    where package_name like '%/%';
+    from package_download_count;
   `;
     const lastDate = await sequelize.query(queryLastDate, {
       type: sequelize.QueryTypes.SELECT,
