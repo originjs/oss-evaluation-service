@@ -3,10 +3,10 @@ import { Cron } from 'croner';
 import Dayjs from 'dayjs';
 import fetch from '@adobe/node-fetch-retry';
 import { chunk } from 'underscore';
-import { Op } from 'sequelize';
-import { ProjectPackage, PackageDownloadCount } from '@orginjs/oss-evaluation-data-model';
+import { PackageDownloadCount, GithubProjects } from '@orginjs/oss-evaluation-data-model';
 import sequelize from '../util/database.js';
 import { getWeekOfYearList } from '../util/weekOfYearUtil.js';
+import { getProjectByUrl } from '../util/util.js';
 
 const PAGE_SIZE = 128;
 
@@ -40,17 +40,14 @@ const errorHandler = e => {
   debug.log(e);
 };
 
-const jobScopedPackageDownloadCount = Cron(
+const jobSyncAllProjectPackageDownloadCount = Cron(
   '0 0 0 ? * TUE',
   { catch: errorHandler, timezone: 'Etc/UTC' },
   async () => {
-    debug.log('jobScopedPackageDownloadCount start!', jobScopedPackageDownloadCount.getPattern());
-    const maxProjectId = await ProjectPackage.max('project_id', {
-      where: { package: { [Op.like]: '%/%' } },
-    });
-    const minProjectId = await ProjectPackage.min('project_id', {
-      where: { package: { [Op.like]: '%/%' } },
-    });
+    debug.log(
+      'jobSyncAllProjectPackageDownloadCount start!',
+      jobSyncAllProjectPackageDownloadCount.getPattern(),
+    );
     const queryLastDate = `
     select max(end_date) as endDate
     from package_download_count
@@ -61,54 +58,58 @@ const jobScopedPackageDownloadCount = Cron(
     });
     const startDate = new Dayjs(lastDate[0].endDate).add(1, 'day');
     const endDate = new Dayjs(new Date());
-    await getScopedPackageDownloadCount(startDate, endDate, minProjectId, maxProjectId);
-    debug.log('jobScopedPackageDownloadCount end!', jobScopedPackageDownloadCount.getPattern());
-  },
-);
-
-const jobNoneScopedPackageDownloadCount = Cron(
-  '0 0 0 ? * TUE',
-  { catch: errorHandler, timezone: 'Etc/UTC' },
-  async () => {
+    await syncAllProjectPackageDownloadCount('', startDate, endDate);
     debug.log(
-      'jobNoneScopedPackageDownloadCount start!',
-      jobNoneScopedPackageDownloadCount.getPattern(),
-    );
-    const maxProjectId = await ProjectPackage.max('project_id', {
-      where: { package: { [Op.notLike]: '%/%' } },
-    });
-    const minProjectId = await ProjectPackage.min('project_id', {
-      where: { package: { [Op.notLike]: '%/%' } },
-    });
-    const queryLastDate = `
-    select max(end_date) as endDate
-    from package_download_count
-    where package_name not like '%/%';
-  `;
-
-    const lastDate = await sequelize.query(queryLastDate, {
-      type: sequelize.QueryTypes.SELECT,
-    });
-    const startDate = new Dayjs(lastDate[0].endDate).add(1, 'day');
-    const endDate = new Dayjs(new Date());
-    await getNoneScopedPackageDownloadCount(startDate, endDate, minProjectId, maxProjectId);
-    debug.log(
-      'jobNoneScopedPackageDownloadCount end!',
-      jobNoneScopedPackageDownloadCount.getPattern(),
+      'jobSyncAllProjectPackageDownloadCount end!',
+      jobSyncAllProjectPackageDownloadCount.getPattern(),
     );
   },
 );
 
-export async function syncNoneScopedPackageDownloadCount(req, res) {
-  const { startDate, endDate, startId, endId } = req.body;
-  await getNoneScopedPackageDownloadCount(startDate, endDate, startId, endId);
+export async function syncAllProjectPackageDownloadCountHandler(req, res) {
+  const { startDate, endDate } = req.body;
+  await syncAllProjectPackageDownloadCount('', { startDate, endDate });
   res.status(200).json('ok');
 }
 
-export async function syncScopedPackageDownloadCount(req, res) {
-  const { startDate, endDate, startId, endId } = req.body;
-  await getScopedPackageDownloadCount(startDate, endDate, startId, endId);
+export async function syncSingleProjectPackageDownloadCountHandler(req, res) {
+  const { startDate, endDate, repoUrl } = req.body;
+  const project = await getProjectByUrl(repoUrl);
+  await syncSingleProjectPackageDownloadCount(project, { startDate, endDate });
   res.status(200).json('ok');
+}
+
+/**
+ * syncAllProjectPackageDownloadCount
+ *
+ * @param {string} project info
+ * @param {Object} options
+ * @param {string} [options.beginDate]  integrate  begin date
+ * @param {string} [options.endDate] integrate end date
+ */
+async function syncAllProjectPackageDownloadCount(project, options) {
+  const maxId = await GithubProjects.max('id');
+  const minId = await GithubProjects.min('id');
+  await getNoneScopedPackageDownloadCount(options.startDate, options.endDate, minId, maxId);
+  await getScopedPackageDownloadCount(options.startDate, options.endDate, minId, maxId);
+}
+
+/**
+ * syncAllProjectPackageDownloadCount
+ *
+ * @param {project} project info
+ * @param {Object} options
+ * @param {string} [options.beginDate]  integrate  begin date
+ * @param {string} [options.endDate] integrate end date
+ */
+async function syncSingleProjectPackageDownloadCount(project, options) {
+  await getNoneScopedPackageDownloadCount(
+    options.startDate,
+    options.endDate,
+    project.id,
+    project.id,
+  );
+  await getScopedPackageDownloadCount(options.startDate, options.endDate, project.id, project.id);
 }
 
 async function getNoneScopedPackageDownloadCount(startDate, endDate, startId, endId) {
