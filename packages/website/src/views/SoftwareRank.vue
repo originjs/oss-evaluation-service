@@ -13,7 +13,7 @@ const goSoftwareDetails = (repoName: string) => {
 </script>
 
 <template>
-  <SoftwareRank :repo-name @click="goSoftwareDetails" />
+  <SoftwareRank @click="goSoftwareDetails" />
 </template>
 
 <style scoped lang="less"></style>
