@@ -59,7 +59,7 @@ const jobSyncAllProjectPackageDownloadCount = Cron(
     });
     const startDate = new Dayjs(lastDate[0].endDate).add(1, 'day');
     const endDate = new Dayjs(new Date());
-    await syncAllProjectPackageDownloadCount('', startDate, endDate);
+    await syncAllProjectPackageDownloadCount(startDate, endDate);
     debug.log(
       'jobSyncAllProjectPackageDownloadCount end!',
       jobSyncAllProjectPackageDownloadCount.getPattern(),
@@ -69,7 +69,7 @@ const jobSyncAllProjectPackageDownloadCount = Cron(
 
 export async function syncAllProjectPackageDownloadCountHandler(req, res) {
   const { startDate, endDate } = req.body;
-  await syncAllProjectPackageDownloadCount('', { startDate, endDate });
+  await syncAllProjectPackageDownloadCount({ startDate, endDate });
   res.status(200).json('ok');
 }
 
@@ -83,12 +83,11 @@ export async function syncSingleProjectPackageDownloadCountHandler(req, res) {
 /**
  * syncAllProjectPackageDownloadCount
  *
- * @param {string} project info
  * @param {Object} options
  * @param {string} [options.beginDate]  integrate  begin date
  * @param {string} [options.endDate] integrate end date
  */
-async function syncAllProjectPackageDownloadCount(project, options) {
+async function syncAllProjectPackageDownloadCount(options) {
   const maxId = await GithubProjects.max('id');
   const minId = await GithubProjects.min('id');
   await getNoneScopedPackageDownloadCount(options.startDate, options.endDate, minId, maxId);
