@@ -1,7 +1,8 @@
-import { GithubProjectsStargazersTrend } from '@orginjs/oss-evaluation-data-model';
+import { GithubProjects, GithubProjectsStargazersTrend } from '@orginjs/oss-evaluation-data-model';
 import fetch from '@adobe/node-fetch-retry';
 import sequelize from '../util/database.js';
 import debug from 'debug';
+import { getProjectByUrl } from '../util/util.js';
 
 const QUERY_SQL = `
 select distinct project.id,
@@ -19,10 +20,40 @@ where isnull(project_id)
 order by id;
 `;
 
-export async function syncStargazersTrend(req, res) {
-  const { startDate, startId, endId } = req.body;
-  await getStargazersTrend(startDate, startId, endId);
+export async function syncAllProjectStargazersTrendHandler(req, res) {
+  const { startDate } = req.body;
+  await syncAllProjectStargazersTrend({ startDate });
   res.status(200).json('ok');
+}
+
+export async function syncSingleProjectStargazersTrendHandler(req, res) {
+  const { startDate, repoUrl } = req.body;
+  const project = await getProjectByUrl(repoUrl);
+  await syncSingleProjectStargazersTrend(project, { startDate });
+  res.status(200).json('ok');
+}
+
+/**
+ * syncAllProjectStargazersTrend
+ *
+ * @param {{startDate: *}} options
+ * @param {string} [options.beginDate]  integrate  begin date
+ */
+async function syncAllProjectStargazersTrend(options) {
+  const maxId = await GithubProjects.max('id');
+  const minId = await GithubProjects.min('id');
+  await getStargazersTrend(options.startDate, minId, maxId);
+}
+
+/**
+ * syncSingleProjectStargazersTrend
+ *
+ * @param {project} project info
+ * @param {{startDate: *}} options
+ * @param {string} [options.beginDate]  integrate  begin date
+ */
+async function syncSingleProjectStargazersTrend(project, options) {
+  await getStargazersTrend(options.startDate, project.id, project.id);
 }
 
 async function getStargazersTrend(startDate, startId, endId) {
