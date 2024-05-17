@@ -76,7 +76,8 @@ const router = express.Router();
  *       200:
  *         description: Compass activity metric synchronized
  */
-router.route('/CNCFDocumentScore').post(syncProjectCncfDocumentScoreHandler);
+router.route('/CNCFDocumentScore')
+  .post(syncProjectCncfDocumentScoreHandler);
 
 /**
  * @swagger
@@ -107,7 +108,8 @@ router.route('/CNCFDocumentScore').post(syncProjectCncfDocumentScoreHandler);
  *       200:
  *         description: Compass activity metric synchronized
  */
-router.route('/compass').post(syncProjectCompassMetricHandler);
+router.route('/compass')
+  .post(syncProjectCompassMetricHandler);
 
 /**
  * @swagger
@@ -128,7 +130,8 @@ router.route('/compass').post(syncProjectCompassMetricHandler);
  *       200:
  *         description: success.
  */
-router.route('/opendigger').post(syncOpendiggerHandler);
+router.route('/opendigger')
+  .post(syncOpendiggerHandler);
 
 /**
  * @swagger
@@ -212,7 +215,8 @@ router
  *       200:
  *         description: Success
  */
-router.route('/scorecard').post(syncScorecardHandler);
+router.route('/scorecard')
+  .post(syncScorecardHandler);
 
 /**
  * @swagger
@@ -235,7 +239,8 @@ router.route('/scorecard').post(syncScorecardHandler);
  *       200:
  *         description: Success
  */
-router.route('/scorecard/getScorecardTest').post(getScorecardHandler);
+router.route('/scorecard/getScorecardTest')
+  .post(getScorecardHandler);
 
 /**
  * @swagger
@@ -256,7 +261,8 @@ router.route('/scorecard/getScorecardTest').post(getScorecardHandler);
  *       200:
  *         description: success.
  */
-router.route('/packagesize').post(syncPackageSizeHandler);
+router.route('/packagesize')
+  .post(syncPackageSizeHandler);
 
 /**
  * @swagger
@@ -273,7 +279,8 @@ router.route('/packagesize').post(syncPackageSizeHandler);
  *       200:
  *         description: success.
  */
-router.route('/syncSingleProjectPackageSize/:repoUrl').get(syncSingleProjectPackageSizeHandler);
+router.route('/syncSingleProjectPackageSize/:repoUrl')
+  .get(syncSingleProjectPackageSizeHandler);
 
 /**
  * @swagger
@@ -284,7 +291,8 @@ router.route('/syncSingleProjectPackageSize/:repoUrl').get(syncSingleProjectPack
  *       200:
  *         description: success.
  */
-router.route('/refreshProjectMainPackage').get(refreshMainPackage);
+router.route('/refreshProjectMainPackage')
+  .get(refreshMainPackage);
 
 /**
  * @swagger
@@ -304,7 +312,8 @@ router.route('/refreshProjectMainPackage').get(refreshMainPackage);
  *       200:
  *         description: success.
  */
-router.route('/stateofjs').post(syncStateOfJsData);
+router.route('/stateofjs')
+  .post(syncStateOfJsData);
 
 /**
  * @swagger
@@ -324,7 +333,8 @@ router.route('/stateofjs').post(syncStateOfJsData);
  *       200:
  *         description: success.
  */
-router.route('/stackoverflow').post(syncStackOverFlowResultData);
+router.route('/stackoverflow')
+  .post(syncStackOverFlowResultData);
 
 /**
  * @swagger
@@ -347,7 +357,8 @@ router.route('/stackoverflow').post(syncStackOverFlowResultData);
  *       400:
  *         description: Bad Request
  */
-router.route('/github/stars/observeprojects').post(observeProjectsByStar);
+router.route('/github/stars/observeprojects')
+  .post(observeProjectsByStar);
 
 /**
  * @swagger
@@ -370,7 +381,8 @@ router.route('/github/stars/observeprojects').post(observeProjectsByStar);
  *       400:
  *         description: Bad Request
  */
-router.route('/github/stars/projects').post(syncProjectByStar);
+router.route('/github/stars/projects')
+  .post(syncProjectByStar);
 
 /**
  * @swagger
@@ -393,7 +405,8 @@ router.route('/github/stars/projects').post(syncProjectByStar);
  *       400:
  *         description: Bad Request
  */
-router.route('/github/repo/projects').post(syncProjectByRepo);
+router.route('/github/repo/projects')
+  .post(syncProjectByRepo);
 
 /**
  * @swagger
@@ -415,7 +428,8 @@ router.route('/github/repo/projects').post(syncProjectByRepo);
  *       400:
  *         description: Bad Request
  */
-router.route('/github/:userToken/stars/projects').post(syncProjectByUserStar);
+router.route('/github/:userToken/stars/projects')
+  .post(syncProjectByUserStar);
 
 /**
  * @swagger
@@ -456,7 +470,8 @@ router.route('/github/:userToken/stars/projects').post(syncProjectByUserStar);
  *       200:
  *         description: success.
  */
-router.route('/benchmark').post(syncBenchmarkHandler);
+router.route('/benchmark')
+  .post(syncBenchmarkHandler);
 
 /**
  * @swagger
@@ -476,7 +491,8 @@ router.route('/benchmark').post(syncBenchmarkHandler);
  *       200:
  *         description: success.
  */
-router.route('/benchmark/getPatchId').post(getPatchId);
+router.route('/benchmark/getPatchId')
+  .post(getPatchId);
 
 /**
  * @swagger
@@ -523,7 +539,8 @@ router.route('/benchmark/getPatchId').post(getPatchId);
  *       200:
  *         description: success.
  */
-router.route('/benchmark/bulkCreate').post(bulkAddBenchmarkHandler);
+router.route('/benchmark/bulkCreate')
+  .post(bulkAddBenchmarkHandler);
 
 /**
  * @swagger
@@ -546,7 +563,8 @@ router.route('/benchmark/bulkCreate').post(bulkAddBenchmarkHandler);
  *       200:
  *         description: success.
  */
-router.route('/benchmark/getDelayedMessage').post(getDelayedMessage);
+router.route('/benchmark/getDelayedMessage')
+  .post(getDelayedMessage);
 
 /**
  * @swagger
@@ -576,7 +594,8 @@ router.route('/benchmark/getDelayedMessage').post(getDelayedMessage);
  *       200:
  *         description: success.
  */
-router.route('/benchmark/updateScore').post(updateScore);
+router.route('/benchmark/updateScore')
+  .post(updateScore);
 
 /**
  * @swagger
@@ -588,11 +607,12 @@ router.route('/benchmark/updateScore').post(updateScore);
  *       200:
  *         description: success.
  */
-router.route('/sonarCloud/collect').get(await collectSonarCloudData);
+router.route('/sonarCloud/collect')
+  .get(await collectSonarCloudData);
 
 /**
  * @swagger
- * /sync/gitlab/importProjectFromUrl:
+ * /sync/gitlab/importProjectFromUrl/{namespaceId}:
  *  post:
  *     summary: import Github projects for github
  *     tags: [Gitlab]
@@ -603,11 +623,17 @@ router.route('/sonarCloud/collect').get(await collectSonarCloudData);
  *           schema:
  *             type: array
  *       example: [48296,298375]
+ *     parameters:
+ *       - in: path
+ *         name: namespaceId
+ *         type: string
+ *         required: true
  *     responses:
  *       200:
  *         description: success.
  */
-router.route('/gitlab/importProjectFromUrl').post(await createGitlabProject);
+router.route('/gitlab/importProjectFromUrl/:namespaceId')
+  .post(await createGitlabProject);
 
 /**
  * @swagger
@@ -619,7 +645,8 @@ router.route('/gitlab/importProjectFromUrl').post(await createGitlabProject);
  *       200:
  *         description: success.
  */
-router.route('/gitlab/updateDefaultBranchAfterImport').get(await updateDefaultBranchAfterImport);
+router.route('/gitlab/updateDefaultBranchAfterImport')
+  .get(await updateDefaultBranchAfterImport);
 
 /**
  * @swagger
@@ -631,7 +658,8 @@ router.route('/gitlab/updateDefaultBranchAfterImport').get(await updateDefaultBr
  *       200:
  *         description: success.
  */
-router.route('/sonarCloud/createSonarProjectFromGitlab').get(await createSonarProjectFromGitlab);
+router.route('/sonarCloud/createSonarProjectFromGitlab')
+  .get(await createSonarProjectFromGitlab);
 
 /**
  * @swagger
@@ -645,7 +673,8 @@ router.route('/sonarCloud/createSonarProjectFromGitlab').get(await createSonarPr
  *       200:
  *         description: success.
  */
-router.route('/gitlab/addSonarCheckPipeline').get(await uploadSonarCiConfigToGitlab);
+router.route('/gitlab/addSonarCheckPipeline')
+  .get(await uploadSonarCiConfigToGitlab);
 
 /**
  * @swagger
@@ -659,7 +688,8 @@ router.route('/gitlab/addSonarCheckPipeline').get(await uploadSonarCiConfigToGit
  *       200:
  *         description: success.
  */
-router.route('/sonarCloud/updateDefaultBranch').get(await updateSonarCloudDefaultBranch);
+router.route('/sonarCloud/updateDefaultBranch')
+  .get(await updateSonarCloudDefaultBranch);
 
 /**
  * @swagger
@@ -670,7 +700,8 @@ router.route('/sonarCloud/updateDefaultBranch').get(await updateSonarCloudDefaul
  *       200:
  *         description: success.
  */
-router.route('/syncProjectCodeSize').get(syncAllProjectCodeSizeHandler);
+router.route('/syncProjectCodeSize')
+  .get(syncAllProjectCodeSizeHandler);
 
 /**
  * @swagger
@@ -687,7 +718,8 @@ router.route('/syncProjectCodeSize').get(syncAllProjectCodeSizeHandler);
  *       200:
  *         description: success.
  */
-router.route('/syncSingleProjectCodeSize/:repoUrl').get(syncSingleProjectCodeSizeHandler);
+router.route('/syncSingleProjectCodeSize/:repoUrl')
+  .get(syncSingleProjectCodeSizeHandler);
 
 /**
  * @swagger
@@ -709,7 +741,8 @@ router.route('/syncSingleProjectCodeSize/:repoUrl').get(syncSingleProjectCodeSiz
  *         description: The created book.
  *
  */
-router.route('/syncAllProjectStargazersTrendHandler').post(syncAllProjectStargazersTrendHandler);
+router.route('/syncAllProjectStargazersTrendHandler')
+  .post(syncAllProjectStargazersTrendHandler);
 
 /**
  * @swagger
@@ -747,7 +780,8 @@ router
  *       200:
  *         description: success.
  */
-router.route('/syncAllProjectContributors').get(syncAllProjectContributorsHandler);
+router.route('/syncAllProjectContributors')
+  .get(syncAllProjectContributorsHandler);
 
 /**
  * @swagger
@@ -764,7 +798,8 @@ router.route('/syncAllProjectContributors').get(syncAllProjectContributorsHandle
  *       200:
  *         description: success.
  */
-router.route('/syncSingleProjectContributors/:repoUrl').get(syncSingleProjectContributorsHandler);
+router.route('/syncSingleProjectContributors/:repoUrl')
+  .get(syncSingleProjectContributorsHandler);
 
 /**
  * @swagger
@@ -775,7 +810,8 @@ router.route('/syncSingleProjectContributors/:repoUrl').get(syncSingleProjectCon
  *       200:
  *         description: success.
  */
-router.route('/syncAllProjectDependentCount').get(syncAllProjectDependentCountHandler);
+router.route('/syncAllProjectDependentCount')
+  .get(syncAllProjectDependentCountHandler);
 
 /**
  * @swagger
