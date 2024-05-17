@@ -68,6 +68,9 @@ function isGood(currValue: string | number, valuesKey: string) {
     parentValue = item;
     for (let key of keys) {
       parentValue = parentValue[key];
+      if (!parentValue) {
+        return false;
+      }
     }
 
     if (isAllEqual && preValue != parentValue) {
@@ -312,12 +315,12 @@ const changePage = (name: string) => {
             <span
               :class="{
                 good: isGood(
-                  projects[idx - 1].evaluation.performanceScore,
+                  projects[idx - 1].evaluation?.performanceScore,
                   'evaluation.performanceScore',
                 ),
               }"
             >
-              {{ formatFloat(projects[idx - 1].evaluation.performanceScore) }}/100
+              {{ formatFloat(projects[idx - 1].evaluation?.performanceScore) }}/100
             </span>
           </div>
         </div>
@@ -336,10 +339,10 @@ const changePage = (name: string) => {
           <div v-if="projects[idx - 1]" class="value-div">
             <span
               :class="{
-                good: isGood(projects[idx - 1].evaluation.qualityScore, 'evaluation.qualityScore'),
+                good: isGood(projects[idx - 1].evaluation?.qualityScore, 'evaluation.qualityScore'),
               }"
             >
-              {{ formatFloat(projects[idx - 1].evaluation.qualityScore) }}/100
+              {{ formatFloat(projects[idx - 1].evaluation?.qualityScore) }}/100
             </span>
           </div>
         </div>
@@ -358,10 +361,10 @@ const changePage = (name: string) => {
           <div v-if="projects[idx - 1]" class="value-div">
             <span
               :class="{
-                good: isGood(projects[idx - 1].evaluation.ecologyScore, 'evaluation.ecologyScore'),
+                good: isGood(projects[idx - 1].evaluation?.ecologyScore, 'evaluation.ecologyScore'),
               }"
             >
-              {{ formatFloat(projects[idx - 1].evaluation.ecologyScore) }}/100
+              {{ formatFloat(projects[idx - 1].evaluation?.ecologyScore) }}/100
             </span>
           </div>
         </div>
@@ -493,11 +496,11 @@ const changePage = (name: string) => {
             <div v-if="projects[idx - 1]" class="value-div">
               <div>
                 <div style="text-align: center; margin-bottom: 8px">
-                  {{ formatFloat(projects[idx - 1].document.documentScore) }}%
+                  {{ formatFloat(projects[idx - 1].document?.documentScore) }}%
                 </div>
                 <div>
                   <span
-                    v-if="projects[idx - 1].document.hasReadme"
+                    v-if="projects[idx - 1].document?.hasReadme"
                     i-ph-check-circle
                     mr-1
                     font-size-5
@@ -508,7 +511,7 @@ const changePage = (name: string) => {
                 </div>
                 <div>
                   <span
-                    v-if="projects[idx - 1].document.hasWebsite"
+                    v-if="projects[idx - 1].document?.hasWebsite"
                     i-ph-check-circle
                     mr-1
                     font-size-5
@@ -519,7 +522,7 @@ const changePage = (name: string) => {
                 </div>
                 <div>
                   <span
-                    v-if="projects[idx - 1].document.hasChangelog"
+                    v-if="projects[idx - 1].document?.hasChangelog"
                     i-ph-check-circle
                     mr-1
                     font-size-5
@@ -530,7 +533,7 @@ const changePage = (name: string) => {
                 </div>
                 <div>
                   <span
-                    v-if="projects[idx - 1].document.hasContributing"
+                    v-if="projects[idx - 1].document?.hasContributing"
                     i-ph-check-circle
                     mr-1
                     font-size-5
@@ -563,7 +566,7 @@ const changePage = (name: string) => {
           <div class="border param-name" style="height: 60px; font-size: 14px">Benchmark Score</div>
           <div v-for="idx in 5" :key="idx" class="param-value border">
             <div v-if="projects[idx - 1]" class="value-div">
-              <span>{{ formatFloat(projects[idx - 1].evaluation.performanceScore) }}</span>
+              <span>{{ formatFloat(projects[idx - 1].evaluation?.performanceScore) }}</span>
             </div>
           </div>
         </div>
@@ -934,12 +937,12 @@ const changePage = (name: string) => {
                   <span
                     :class="{
                       good: isGood(
-                        projects[idx - 1].scorecard.vulnerabilities,
+                        projects[idx - 1].scorecard?.vulnerabilities,
                         'scorecard.vulnerabilities',
                       ),
                     }"
                   >
-                    {{ formatFloat(projects[idx - 1].scorecard.vulnerabilities) }} / 10
+                    {{ formatFloat(projects[idx - 1].scorecard?.vulnerabilities) }} / 10
                   </span>
                 </div>
               </div>
@@ -1170,7 +1173,7 @@ const changePage = (name: string) => {
                 </div>
               </div>
               <div
-                v-show="getShowRow('evaluation.stargazersCount')"
+                v-show="getShowRow('star')"
                 style="
                   width: 160px;
                   display: flex;
@@ -1182,12 +1185,9 @@ const changePage = (name: string) => {
                 <span
                   style="text-align: center; font-weight: bold"
                   :class="{
-                    good: isGood(
-                      projects[idx - 1].evaluation.stargazersCount,
-                      'evaluation.stargazersCount',
-                    ),
+                    good: isGood(projects[idx - 1].star, 'star'),
                   }"
-                  >{{ toKilo(projects[idx - 1].evaluation.stargazersCount) }} k</span
+                  >{{ toKilo(projects[idx - 1].star) }} k</span
                 >
                 <div style="display: inline-flex">
                   <div i-custom:star font-size-6 mr-4 />

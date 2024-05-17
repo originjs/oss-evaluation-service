@@ -603,7 +603,7 @@ const emits = defineEmits<{
           <el-table-column
             prop="value"
             align="center"
-            :formatter="(row: TableRow) => row.value ?? 'NA'"
+            :formatter="(row: TableRow) => row.value ?? '-'"
           />
         </el-table>
       </div>
@@ -933,9 +933,7 @@ const emits = defineEmits<{
             <div flex w-210px>
               <div i-custom:star font-size-12 mr-4 />
               <div>
-                <div font-bold font-size-5>
-                  {{ toKilo(project?.evaluation?.stargazersCount) }} k
-                </div>
+                <div font-bold font-size-5>{{ toKilo(project?.star) }} k</div>
                 <div line-height-7>Star数量</div>
               </div>
             </div>
