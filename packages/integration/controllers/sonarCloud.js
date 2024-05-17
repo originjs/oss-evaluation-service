@@ -3,10 +3,14 @@ import {
   OssGitlabFork,
   SonarCloudProject,
 } from '@orginjs/oss-evaluation-data-model';
-import { Op } from 'sequelize';
+import { literal, Op } from 'sequelize';
 import SonarCloudSdk from '@orginjs/sonarCloud-sdk/src/index.js';
 import { sleep } from '../util/util.js';
 import { GitlabSdk } from '@orginjs/gitlab-sdk/src/sdk.js';
+import _ from 'underscore';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'path';
 
 const getRating = rating => {
   switch (rating) {
@@ -253,6 +257,7 @@ export async function createGitlabProject(req, res) {
     };
     await OssGitlabFork.upsert(forkResult);
     count++;
+    console.log(`create gitlab project ${count} / ${paramProjectIds.length}`);
   }
   res.status(200);
   res.send(`success ${count}/${paramProjectIds.length} projects`);
@@ -260,7 +265,13 @@ export async function createGitlabProject(req, res) {
 
 export async function createSonarProjectFromGitlab(req, res) {
   //   query all gitlab project
-  const gitlabForks = await OssGitlabFork.findAll();
+  const gitlabForks = await OssGitlabFork.findAll({
+    where: {
+      githubProjectId: {
+        [Op.notIn]: literal('(select github_project_id from sonar_cloud_project)'),
+      },
+    },
+  });
   const sonarCloudSdk = new SonarCloudSdk();
   for (const fork of gitlabForks) {
     const {
@@ -316,15 +327,39 @@ export async function createSonarProjectFromGitlab(req, res) {
   res.send('{success}');
 }
 
+function getGitlabCiConfigContent(fork, githubProject) {
+  const language = githubProject.language;
+  const templateDir = join(dirname(fileURLToPath(import.meta.url)), '../template');
+  let filePath;
+  switch (language.toUpperCase()) {
+    case 'JAVA':
+      filePath = join(templateDir, 'gitlab-ci-java.yml.template');
+      break;
+    case 'C':
+    case 'C++':
+      filePath = join(templateDir, 'gitlab-ci-c.yml.template');
+      break;
+    default:
+      filePath = join(templateDir, 'gitlab-ci-others.yml.template');
+  }
+  const configTemplate = readFileSync(filePath, 'utf-8');
+  return _.template(configTemplate)({ defaultBranch: fork.defaultBranch });
+}
+
 export async function uploadSonarCiConfigToGitlab(req, res) {
   //   query all gitlab project
   const gitlabForks = await OssGitlabFork.findAll({
     where: {
       hasSonarPipeline: false,
     },
-    attributes: ['projectId', 'defaultBranch', 'namespacePath'],
+    attributes: ['projectId', 'defaultBranch', 'namespacePath', 'githubProjectId'],
   });
   const gitlabSdk = new GitlabSdk();
+  const templateDir = join(dirname(fileURLToPath(import.meta.url)), '../template');
+  const sonarConfigTemplate = readFileSync(
+    join(templateDir, 'sonar-project.properties.template'),
+    'utf-8',
+  );
 
   for (const fork of gitlabForks) {
     const sonarProject = await SonarCloudProject.findOne({
@@ -337,39 +372,21 @@ export async function uploadSonarCiConfigToGitlab(req, res) {
       continue;
     }
 
-    const ciFileContent = `variables:
-  SONAR_USER_HOME: "\${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
-  GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
-sonarcloud-check:
-  image:
-    name: sonarsource/sonar-scanner-cli:latest
-    entrypoint: [""]
-  cache:
-    key: "\${CI_JOB_NAME}"
-    paths:
-      - .sonar/cache
-  script:
-    - sonar-scanner
-  only:
-    - ${fork.defaultBranch}
-`;
-    const sonarPropertyFileContent = `sonar.projectKey=${sonarProject.sonarProjectKey}
-sonar.organization=${fork.namespacePath}
+    const githubProject = await GithubProjects.findOne({
+      where: {
+        id: fork.githubProjectId,
+      },
+      attributes: ['language'],
+    });
+    if (!githubProject) {
+      continue;
+    }
 
-# This is the name and version displayed in the SonarCloud UI.
-#sonar.projectName=angular
-#sonar.projectVersion=1.0
-sonar.c.file.suffixes=-
-sonar.cpp.file.suffixes=-
-sonar.objc.file.suffixes=-
-
-# Path is relative to the sonar-project.properties file. Replace "\\" by "/" on Windows.
-sonar.sources=.
-sonar.exclusions=**/*.java,**/*.c,**/*.cpp
-
-# Encoding of the source code. Default is default system encoding
-sonar.sourceEncoding=UTF-8
-`;
+    const ciFileContent = getGitlabCiConfigContent(fork, githubProject);
+    const sonarPropertyFileContent = _.template(sonarConfigTemplate)({
+      sonarProjectKey: sonarProject.sonarProjectKey,
+      namespacePath: fork.namespacePath,
+    });
     const commitInfo = {
       branch: fork.defaultBranch,
       commit_message: 'ci: sonar scan',
@@ -414,7 +431,11 @@ sonar.sourceEncoding=UTF-8
 }
 
 export async function updateSonarCloudDefaultBranch(req, res) {
-  const sonarProjects = await SonarCloudProject.findAll();
+  const sonarProjects = await SonarCloudProject.findAll({
+    where: {
+      defaultBranch: '',
+    },
+  });
   if (!sonarProjects || !sonarProjects.length) {
     res.status(200);
     res.json({ msg: 'empty' });
