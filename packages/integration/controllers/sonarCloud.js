@@ -193,6 +193,7 @@ export async function updateDefaultBranchAfterImport(req, res) {
 
 export async function createGitlabProject(req, res) {
   const paramProjectIds = req.body;
+  const { namespaceId } = req.params;
   const githubProjects = await GithubProjects.findAll({
     where: {
       id: {
@@ -210,7 +211,6 @@ export async function createGitlabProject(req, res) {
   }
 
   const gitlabSdk = new GitlabSdk();
-  const namespaceId = process.env.GITLAB_FORK_NAMESPACE_ID;
   let count = 0;
   for (const project of githubProjects) {
     const projectId = project.id;
@@ -224,7 +224,7 @@ export async function createGitlabProject(req, res) {
       continue;
     }
     const val = {
-      name: project.name,
+      name: `${project.ownerName}_${project.name}`,
       import_url: project.cloneUrl,
       namespace_id: namespaceId,
       visibility: 'public',

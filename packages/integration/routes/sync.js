@@ -612,7 +612,7 @@ router.route('/sonarCloud/collect')
 
 /**
  * @swagger
- * /sync/gitlab/importProjectFromUrl:
+ * /sync/gitlab/importProjectFromUrl/{namespaceId}:
  *  post:
  *     summary: import Github projects for github
  *     tags: [Gitlab]
@@ -623,11 +623,16 @@ router.route('/sonarCloud/collect')
  *           schema:
  *             type: array
  *       example: [48296,298375]
+ *     parameters:
+ *       - in: path
+ *         name: namespaceId
+ *         type: string
+ *         required: true
  *     responses:
  *       200:
  *         description: success.
  */
-router.route('/gitlab/importProjectFromUrl')
+router.route('/gitlab/importProjectFromUrl/:namespaceId')
   .post(await createGitlabProject);
 
 /**
