@@ -36,21 +36,11 @@ import {
   updateSonarCloudDefaultBranch,
   uploadSonarCiConfigToGitlab,
 } from '../controllers/sonarCloud.js';
-import syncSingleProjectCodeSizeHandler, {
-  syncAllProjectCodeSizeHandler,
-} from '../controllers/projectCodeSize.js';
-import {
-  syncAllProjectStargazersTrendHandler,
-  syncSingleProjectStargazersTrendHandler,
-} from '../controllers/projectStarGazersTrend.js';
-import {
-  syncSingleProjectContributorsHandler,
-  syncAllProjectContributorsHandler,
-} from '../controllers/projectContributors.js';
-import {
-  syncSingleProjectDependentCountHandler,
-  syncAllProjectDependentCountHandler,
-} from '../controllers/projectDependents.js';
+import syncSingleProjectCodeSizeHandler, { syncAllProjectCodeSizeHandler} from '../controllers/projectCodeSize.js';
+import { syncSingleProjectDependentCountHandler, syncAllProjectDependentCountHandler} from '../controllers/projectDependentCount.js';
+import { syncAllProjectDependenciesHandler, syncSingleProjectDependenciesHandler } from '../controllers/projectDependencies.js';
+import { syncAllProjectStargazersTrendHandler, syncSingleProjectStargazersTrendHandler } from '../controllers/projectStarGazersTrend.js';
+import { syncSingleProjectContributorsHandler, syncAllProjectContributorsHandler } from '../controllers/projectContributors.js';
 
 const router = express.Router();
 
@@ -831,5 +821,34 @@ router.route('/syncAllProjectDependentCount')
 router
   .route('/syncSingleProjectDependentCount/:repoUrl')
   .get(syncSingleProjectDependentCountHandler);
+
+
+/**
+ * @swagger
+ * /sync/syncProjectDependencies:
+ *   get:
+ *     summary: refresh dependencies of project
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/syncProjectDependencies').get(syncAllProjectDependenciesHandler);
+
+/**
+ * @swagger
+ * /sync/syncSingleProjectDependencies/{repoUrl}:
+ *   get:
+ *     summary: refresh dependencies of project
+ *     parameters:
+ *      - in: path
+ *        name: repoUrl
+ *        type: string
+ *        required: true
+ *        example: https://github.com/vuejs/router
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/syncSingleProjectDependencies/:repoUrl').get(syncSingleProjectDependenciesHandler);
 
 export default router;
