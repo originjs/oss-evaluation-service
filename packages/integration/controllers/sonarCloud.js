@@ -80,7 +80,7 @@ export async function collectSonarCloudData(req, res) {
         metricKeys,
       },
     );
-    await sleep(Math.floor(Math.random() * 1000) + 1000);
+    await sleep(Math.floor(Math.random() * 500) + 100);
     if (!measuresResponse.ok) {
       console.log(
         `get measures of sonar project ${sonarProjectKey} error`,
@@ -119,7 +119,7 @@ export async function collectSonarCloudData(req, res) {
       },
     });
     const response = await sonarCloudSdk.listProjectBranches(sonarProjectKey);
-    await sleep(Math.floor(Math.random() * 1000) + 1000);
+    await sleep(Math.floor(Math.random() * 500) + 100);
     if (!response.ok) {
       console.log(await response.text());
       continue;
@@ -170,7 +170,7 @@ export async function updateDefaultBranchAfterImport(req, res) {
       projectId,
     );
     const response = await gitlabSdk.getProjectInfo(projectId);
-    await sleep(Math.floor(Math.random() * 2000) + 1000);
+    await sleep(Math.floor(Math.random() * 500) + 100);
     if (!response.ok) {
       continue;
     }
@@ -234,7 +234,7 @@ export async function createGitlabProject(req, res) {
       `create gitlab fork of ${project.fullName}`,
       val,
     );
-    await sleep(Math.floor(Math.random() * 5000) + 1000);
+    await sleep(Math.floor(Math.random() * 500) + 100);
     if (!response.ok) {
       console.error(`${response.status}:${await response.text()}`);
       continue;
@@ -307,7 +307,7 @@ export async function createSonarProjectFromGitlab(req, res) {
       `create sonar project from gitlab:${gitlabFullName}`,
       param,
     );
-    await sleep(Math.floor(Math.random() * 5000) + 1000);
+    await sleep(Math.floor(Math.random() * 500) + 100);
     if (!response.ok) {
       console.error(`${response.status}:${await response.text()}`);
       continue;
@@ -424,7 +424,7 @@ export async function uploadSonarCiConfigToGitlab(req, res) {
         },
       },
     );
-    await sleep(Math.floor(Math.random() * 1000) + 1000);
+    await sleep(Math.floor(Math.random() * 500) + 100);
   }
   res.status(200);
   res.send('{success}');
@@ -464,7 +464,7 @@ export async function updateSonarCloudDefaultBranch(req, res) {
       `list sonar branches of ${sonarProjectKey}`,
       sonarProjectKey,
     );
-    await sleep(Math.floor(Math.random() * 1000) + 500);
+    await sleep(Math.floor(Math.random() * 500) + 100);
     if (!response.ok) {
       console.error(`get sonar project branches info failed`, await response.text());
       continue;
@@ -480,7 +480,7 @@ export async function updateSonarCloudDefaultBranch(req, res) {
           sonarProjectKey,
           branch.name,
         );
-        await sleep(Math.floor(Math.random() * 1000) + 500);
+        await sleep(Math.floor(Math.random() * 500) + 100);
         if (!deleteResponse.ok) {
           console.error(`delete sonar project branch failed`, await response.text());
         }
@@ -506,7 +506,7 @@ export async function updateSonarCloudDefaultBranch(req, res) {
       sonarProjectKey,
       gitlabDefaultBranch,
     );
-    await sleep(Math.floor(Math.random() * 1000) + 500);
+    await sleep(Math.floor(Math.random() * 500) + 100);
     if (!renameResponse.ok) {
       console.error(
         `rename sonar project:${sonarProjectKey} branch:${mainBranch.name} to ${gitlabDefaultBranch}`,
