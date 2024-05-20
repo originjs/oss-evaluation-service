@@ -81,11 +81,11 @@ describe('toKilo', () => {
   });
 
   it('should convert number to kilo correctly', () => {
-    expect(toKilo(5000)).toEqual('5.00');
+    expect(toKilo(5000)).toEqual('5.00 k');
   });
 
   it('should convert string to kilo correctly', () => {
-    expect(toKilo('7000')).toEqual('7.00');
+    expect(toKilo('7000')).toEqual('7.00 k');
   });
 
   it('should return - when value is an empty string', () => {

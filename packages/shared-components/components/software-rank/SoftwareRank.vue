@@ -303,8 +303,7 @@ onUnmounted(() => {
                   <img src="../../assets/svg/star.svg" alt="Star Icon" />
                 </span>
                 <span
-                  >{{ toKilo(item.starCount)
-                  }}<span v-if="toKilo(item.starCount) !== '-'">k</span></span
+                  >{{ toKilo(item.starCount) }}</span
                 >
               </div>
               <div flex grid-items-center style="width: 33%">
@@ -312,15 +311,14 @@ onUnmounted(() => {
                   <img src="../../assets/svg/fork.svg" alt="Fork Icon" />
                 </span>
                 <span
-                  >{{ toKilo(item.forkCount)
-                  }}<span v-if="toKilo(item.forkCount) !== '-'">k</span></span
+                  >{{ toKilo(item.forkCount) }}</span
                 >
               </div>
               <div flex grid-items-center style="width: 33%">
                 <span class="icon" style="font-size: 20px; margin-right: 2px">
                   <img src="../../assets/svg/contributor.svg" alt="Contributor Icon" />
                 </span>
-                <span>{{ item.contributors }}<span v-if="item.contributors == null">-</span></span>
+                <span>{{ toKilo(item.contributors) }}</span>
               </div>
             </div>
           </div>

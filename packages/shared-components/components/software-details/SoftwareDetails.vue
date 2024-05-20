@@ -82,11 +82,11 @@ watchEffect(async () => {
   baseInfoTable.value = [
     {
       label: 'Stars',
-      value: `${toKilo(data.star)} k`,
+      value: `${toKilo(data.star)} `,
     },
     {
       label: 'Fork',
-      value: `${toKilo(data.fork)} k`,
+      value: `${toKilo(data.fork)} `,
     },
     {
       label: '官网地址',
@@ -933,14 +933,14 @@ const emits = defineEmits<{
             <div flex w-210px>
               <div i-custom:star font-size-12 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ toKilo(project?.star) }} k</div>
+                <div font-bold font-size-5>{{ toKilo(project?.star) }} </div>
                 <div line-height-7>Star数量</div>
               </div>
             </div>
             <div flex w-210px>
               <div i-custom:fork font-size-12 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ toKilo(project?.evaluation?.forksCount) }} k</div>
+                <div font-bold font-size-5>{{ toKilo(project?.evaluation?.forksCount) }} </div>
                 <div line-height-7>Fork数量</div>
               </div>
             </div>
@@ -948,7 +948,7 @@ const emits = defineEmits<{
               <div i-custom:download font-size-12 mr-4 />
               <div>
                 <div font-bold font-size-5>
-                  {{ toKilo(project?.evaluation?.npmDownloads).split('.')[0] }} k
+                  {{ toKilo(project?.evaluation?.npmDownloads) }}
                 </div>
                 <div line-height-7>周下载量</div>
               </div>
@@ -1005,7 +1005,7 @@ const emits = defineEmits<{
               <div i-custom:contributor font-size-12 mr-4 />
               <div>
                 <div font-bold font-size-5>
-                  {{ formatNumber(project?.contributors) }}
+                  {{ toKilo(project?.contributors) }}
                 </div>
                 <div flex>
                   <div line-height-7>累计贡献者</div>
@@ -1020,7 +1020,7 @@ const emits = defineEmits<{
             <div flex w-210px>
               <div i-custom:link font-size-12 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ toKilo(project?.dependentRepositories) }} k</div>
+                <div font-bold font-size-5>{{ toKilo(project?.dependentRepositories) }} </div>
                 <div flex>
                   <div line-height-7>被依赖使用</div>
                   <el-tooltip :content="i18n.global.t(`tips.ecology.dependentRepositories`)">
