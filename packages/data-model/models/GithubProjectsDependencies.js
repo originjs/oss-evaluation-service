@@ -8,10 +8,13 @@ export default sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true,
-      autoincrement: true
+      autoincrement: true,
+    },
+    projectId: {
+      type: DataTypes.INTEGER,
     },
     fullName: {
-      type: DataTypes.STRING(512),
+      type: DataTypes.STRING(100),
     },
     ownerName: {
       type: DataTypes.STRING(512),
@@ -22,8 +25,14 @@ export default sequelize.define(
     language: {
       type: DataTypes.STRING(10),
     },
+    ownerType: {
+      type: DataTypes.STRING(100),
+    },
+    dependentProjectId: {
+      type: DataTypes.INTEGER,
+    },
     dependentFullName: {
-      type: DataTypes.STRING(512),
+      type: DataTypes.STRING(100),
     },
     dependentOwnerName: {
       type: DataTypes.STRING(512),
@@ -33,6 +42,9 @@ export default sequelize.define(
     },
     dependentHtmlUrl: {
       type: DataTypes.STRING(512),
+    },
+    dependentOwnerType: {
+      type: DataTypes.STRING(100),
     },
     lastUpdatedDate: {
       type: DataTypes.DATE,

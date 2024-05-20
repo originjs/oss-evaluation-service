@@ -1,6 +1,6 @@
 import debug from 'debug';
 import { gql, request } from 'graphql-request';
-import { getProjectByUrl } from '../util/util.js';
+import { sleep } from '../util/util.js';
 import { authorizationHeader } from '../../api-sdk/util.js';
 import { GithubSdk } from '@orginjs/github-sdk/src/sdk.js';
 import { GithubProjects, GithubProjectsDependencies } from '@orginjs/oss-evaluation-data-model';
@@ -28,6 +28,7 @@ const queryPackageName = gql`
                   owner {
                     login
                   }
+                  isInOrganization
                   primaryLanguage {
                     name
                   }
@@ -44,7 +45,7 @@ const queryPackageName = gql`
 
 export async function syncSingleProjectDependenciesHandler(req, res) {
   const { repoUrl: repoUrl } = req.params;
-  const project = await getProjectByUrl(repoUrl);
+  const project = await getProjectInfoByUrl(repoUrl);
   await syncSingleProjectDependencies(project);
   res.status(200).send('success');
 }
@@ -60,18 +61,14 @@ export async function syncAllProjectDependenciesHandler(req, res) {
  * @returns {Promise<*>} inserted project dependencies
  */
 export async function syncSingleProjectDependencies(project) {
-  if (!project.fullName) {
-    return;
-  }
-  const fullNameArr = project.fullName.split('/');
-  await getDependencies(fullNameArr[0], fullNameArr[1], new Set());
+  await getDependencies(project, new Set());
 }
 
 export async function syncAllProjectDependencies() {
   debug.log('Sync Project Dependent');
   // 1. get all github project
   const projectList = await GithubProjects.findAll({
-    attributes: ['id', 'ownerName', 'name'],
+    attributes: ['id', 'ownerName', 'name', 'ownerType'],
   });
   const sumOfProject = projectList.length;
   debug.log(`The Number of Project : ${sumOfProject}`);
@@ -80,39 +77,41 @@ export async function syncAllProjectDependencies() {
     debug.log('**Current Progress**: ', `${count}/${sumOfProject}`);
     count += 1;
     // 2. project Dependent
-    await getDependencies(project.ownerName, project.name, new Set());
+    await getDependencies(project, new Set());
+    await sleep(20000);
   }
 }
 
-export async function getDependencies(repoOwner, repoName, seen) {
+export async function getDependencies(project, seen) {
   let githubSdk = new GithubSdk();
   const headers = authorizationHeader(githubSdk.token);
   headers.append('Accept', 'application/vnd.github.hawkgirl-preview+json');
 
   const dependenciesData = await request(graphqlUrl, queryPackageName, {
-    repoOwner: repoOwner,
-    repoName: repoName,
+    repoOwner: project.ownerName,
+    repoName: project.name,
   }, headers).catch(error => {
     debug.log('Post to dependencies error : ', error.message);
   });
   if (dependenciesData === undefined || !dependenciesData['repository']) {
     return;
   }
-  const dependenciesList = await parseDependenciesData(repoOwner, repoName, dependenciesData, seen);
+  const dependenciesList = await parseDependenciesData(project, dependenciesData, seen);
   await saveDate(dependenciesList);
 }
 
-async function parseDependenciesData(repoOwner, repoName, dependenciesData, seen) {
+async function parseDependenciesData(project, dependenciesData, seen) {
   let dependencies = dependenciesData['repository']['dependencyGraphManifests']['nodes'];
   let dependenciesList = [];
   let language;
-  dependencies.forEach(depend => {
+  for (const depend of dependencies) {
     const dependNodes = depend['dependencies']['nodes'];
     for (let i = 0; i < dependNodes.length; i++) {
       if (dependNodes[i]['repository']) {
         const dependentOwner = dependNodes[i]['repository']['owner']['login'];
         const dependentName = dependNodes[i]['repository']['name'];
         const dependentHtmlUrl = `https://github.com/${dependentOwner}/${dependentName}`;
+        const dependentOwnerType = await getOwnerType(dependNodes[i]['repository']['isInOrganization']);
         if (seen.has(dependentHtmlUrl)) {
           continue;
         }
@@ -120,21 +119,26 @@ async function parseDependenciesData(repoOwner, repoName, dependenciesData, seen
           language = dependNodes[i]['repository']['primaryLanguage'].name;
         }
         seen.add(dependentHtmlUrl);
+        const dependProject =  await getProjectInfoByUrl(dependentHtmlUrl);
         const data = {
-          fullName: `${repoOwner}/${repoName}`,
-          ownerName: repoOwner,
-          name: repoName,
+          fullName: `${project.ownerName}/${project.name}`,
+          projectId: project.id,
+          ownerName: project.ownerName,
+          name: project.name,
           language: language,
+          ownerType: project.ownerType,
+          dependentProjectId: dependProject === undefined ? null : dependProject.id,
           dependentFullName: `${dependentOwner}/${dependentName}`,
           dependentOwnerName: dependentOwner,
           dependentName: dependentName,
           dependentHtmlUrl: dependentHtmlUrl,
+          dependentOwnerType: dependentOwnerType,
           lastUpdatedDate: Date.now(),
         };
         dependenciesList.push(data);
       }
     }
-  });
+  }
   return dependenciesList;
 }
 
@@ -150,4 +154,25 @@ async function saveDate(dependenciesList) {
     .catch(error => {
       debug.log('Batch insert error: ', error.message);
     });
+}
+
+async function getProjectInfoByUrl(repoUrl) {
+  const project = await GithubProjects.findOne({
+    attributes: ['id', 'ownerName', 'name', 'ownerType'],
+    where: {
+      htmlUrl: repoUrl,
+    },
+  });
+  if (project === null) {
+    debug.log('project not exists');
+    return;
+  }
+  return project;
+}
+
+async function getOwnerType (isInOrganization) {
+  if (isInOrganization) {
+    return "Organization";
+  }
+  return "User";
 }

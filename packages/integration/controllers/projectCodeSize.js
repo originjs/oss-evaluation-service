@@ -51,11 +51,11 @@ async function syncProjectCodeSize(projectId) {
     const tokeiUrl = `https://tokei.rs/b1/github/${project.ownerName}/${project.name}`;
     // 2. get project code size
     let codeSize = await getProjectCodeSize(url, tokeiUrl);
-    if (codeSize == '' || codeSize == undefined) {
+    if (codeSize === '' || codeSize === undefined) {
       codeSize = await getCodeSizeByOtherWays(project.ownerName, project.name);
     }
 
-    if (codeSize == '' || codeSize == undefined) {
+    if (codeSize === '' || codeSize === undefined) {
       continue;
     }
 
