@@ -2,6 +2,7 @@ import debug, { log } from 'debug';
 import { PackageSizeDetail, ProjectPackage } from '@orginjs/oss-evaluation-data-model';
 import sequelize from '../util/database.js';
 import { getProjectByUrl, sleep } from '../util/util.js';
+import { Op } from 'sequelize';
 
 export async function getPackageSize(name, version) {
   const myHeaders = new Headers();
@@ -49,7 +50,11 @@ export async function getPackageSize(name, version) {
 export async function syncSingleProjectPackageSize(project) {
   const packageName = await ProjectPackage.findOne({
     where: {
-      projectId: project.id,
+      [Op.and]:[
+        {projectId: project.id},
+        {package: { [Op.ne]: null }},
+        {main_package: true}
+      ],
     },
     attributes: ['package'],
   });
