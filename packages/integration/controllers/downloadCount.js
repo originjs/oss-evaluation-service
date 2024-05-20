@@ -102,7 +102,7 @@ async function syncAllProjectPackageDownloadCount(options) {
  * @param {string} [options.beginDate]  integrate  begin date
  * @param {string} [options.endDate] integrate end date
  */
-async function syncSingleProjectPackageDownloadCount(project, options) {
+export async function syncSingleProjectPackageDownloadCount(project, options) {
   await getNoneScopedPackageDownloadCount(
     options.startDate,
     options.endDate,

@@ -238,12 +238,12 @@ export async function syncProjectByRepo(req, res) {
 
 /**
  * Sync single github project by repository url
- * 
- * @param {url:string} options 
+ *
+ * @param {url:string} options
  */
-export async function syncSingleGithubProject(options){
+export async function syncSingleGithubProject(options) {
   const project = await queryProjectByRepUrl(options.url);
-  if (!project){
+  if (!project) {
     return null;
   }
 
