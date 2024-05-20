@@ -70,7 +70,7 @@ export default async function syncProjectCncfDocumentScoreHandler(req, res) {
   }
 }
 
-async function syncSingleProjectCncfDocumentScore(project) {
+export async function syncSingleProjectCncfDocumentScore(project) {
   const documentProject = await CncfDocumentScore.findOne({
     where: { repoUrl: project.htmlUrl },
   });

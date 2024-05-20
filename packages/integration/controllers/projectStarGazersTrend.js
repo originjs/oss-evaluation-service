@@ -49,10 +49,10 @@ async function syncAllProjectStargazersTrend(options) {
  * syncSingleProjectStargazersTrend
  *
  * @param {project} project info
- * @param {{startDate: *}} options
- * @param {string} [options.beginDate]  integrate  begin date
+ * @param {{objcet}} options
+ * @param {string} [options.startDate]  integrate  begin date
  */
-async function syncSingleProjectStargazersTrend(project, options) {
+export async function syncSingleProjectStargazersTrend(project, options) {
   await getStargazersTrend(options.startDate, project.id, project.id);
 }
 
