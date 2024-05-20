@@ -389,7 +389,7 @@ const changePage = (name: string) => {
           <div v-for="idx in 5" :key="idx" class="param-value border">
             <div v-if="projects[idx - 1]" class="value-div">
               <span style="color: #409eff" :class="{ good: isStarTop(projects[idx - 1].star) }"
-                >{{ toKilo(projects[idx - 1].star) }} k</span
+                >{{ toKilo(projects[idx - 1].star) }} </span
               >
             </div>
           </div>
@@ -1187,7 +1187,7 @@ const changePage = (name: string) => {
                   :class="{
                     good: isGood(projects[idx - 1].star, 'star'),
                   }"
-                  >{{ toKilo(projects[idx - 1].star) }} k</span
+                  >{{ toKilo(projects[idx - 1].star) }} </span
                 >
                 <div style="display: inline-flex">
                   <div i-custom:star font-size-6 mr-4 />
@@ -1210,7 +1210,7 @@ const changePage = (name: string) => {
                   :class="{
                     good: isGood(projects[idx - 1].evaluation.forksCount, 'evaluation.forksCount'),
                   }"
-                  >{{ toKilo(projects[idx - 1].evaluation.forksCount) }} k</span
+                  >{{ toKilo(projects[idx - 1].evaluation.forksCount) }} </span
                 >
                 <div style="display: inline-flex">
                   <div i-custom:fork font-size-6 mr-4 />
@@ -1235,7 +1235,7 @@ const changePage = (name: string) => {
                       'evaluation.npmDownloads',
                     ),
                   }"
-                  >{{ toKilo(projects[idx - 1].evaluation.npmDownloads).split('.')[0] }} k</span
+                  >{{ toKilo(projects[idx - 1].evaluation.npmDownloads) }}</span
                 >
                 <div style="display: inline-flex">
                   <div i-custom:download font-size-6 mr-4 />
@@ -1369,7 +1369,7 @@ const changePage = (name: string) => {
                   :class="{
                     good: isGood(projects[idx - 1].dependentRepositories, 'dependentRepositories'),
                   }"
-                  >{{ toKilo(projects[idx - 1].dependentRepositories) }} k</span
+                  >{{ toKilo(projects[idx - 1].dependentRepositories) }} </span
                 >
                 <div style="display: inline-flex">
                   <div i-custom:link font-size-6 mr-4 />

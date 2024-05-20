@@ -4,7 +4,13 @@ export function toKilo(value: number | undefined | string): string {
   }
 
   const number = typeof value === 'string' ? parseFloat(value) : value;
-  return (number / 1000).toFixed(2);
+  if (number < 1000) {
+    return number.toString();
+  } else if (number < 100000) {
+    return (number / 1000).toFixed(2) + ' k';
+  } else {
+    return Math.round(number / 1000) + 'k';
+  }
 }
 
 export function formatFloat(value: number | undefined | string) {
