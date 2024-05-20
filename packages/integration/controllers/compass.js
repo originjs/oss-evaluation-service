@@ -62,28 +62,34 @@ export async function syncProjectCompassMetricHandler(req, res) {
  */
 export async function syncSingleProjectCompassMetric(project, options) {
   const { beginDate } = options;
-  const metrics = await request(compassUrl, query, {
+
+  debug.log('Request compass data');
+  const compassData = await request(compassUrl, query, {
     label: project.htmlUrl,
     beginDate,
-  })
-    .then(data => {
-      return data.metricActivity;
-    })
-    .catch(error => {
-      debug.log(error);
-      throw error;
-    });
+  }).catch(error => {
+    debug.log('Post to compass error : ', error.message);
+    throw error;
+  });
 
-  if (metrics.length === 0) {
-    debug.log(`The project:  ${project.htmlUrl} has no compass metric`);
-    return;
+  // Retrieve the latest 8 elements after deduplication
+  const activityMetrics = Array.from(
+    new Map(compassData.metricActivity.map(item => [item.grimoireCreationDate, item])).values(),
+  ).slice(-8);
+
+  // Compass metric does not exist
+  if (activityMetrics.length === 0) {
+    debug.log('compass metric is empty, project: ', project.htmlUrl);
   }
 
   const compassActivityList = await getIncrementalIntegrationArray(
     project.htmlUrl,
     project.id,
-    metrics,
+    activityMetrics,
   );
+  if (compassActivityList.length === 0) {
+    debug.log('There is no new compass data that needs to be inserted');
+  }
 
   await CompassActivity.bulkCreate(compassActivityList)
     .then(compass => {
@@ -92,7 +98,7 @@ export async function syncSingleProjectCompassMetric(project, options) {
     .catch(error => {
       debug.log('Batch insert error: ', error.message);
     });
-  return metrics;
+  return compassActivityList;
 }
 
 /**
@@ -117,46 +123,7 @@ export async function syncAllProjectCompassMetric(options) {
   for (const project of projectList) {
     debug.log('**Current Progress**: ', `${count + 1}/${projectCount}`);
     count += 1;
-
-    debug.log('Request compass metric');
-    const compassData = await request(compassUrl, query, {
-      label: project.htmlUrl,
-      beginDate,
-    }).catch(error => {
-      debug.log('Post to compass error : ', error.message);
-      throw { error, startIndex: count - 1 };
-    });
-
-    // Retrieve the latest 8 elements after deduplication
-    const activityMetrics = Array.from(
-      new Map(compassData.metricActivity.map(item => [item.grimoireCreationDate, item])).values(),
-    ).slice(-8);
-
-    // Compass metric does not exist
-    if (activityMetrics.length === 0) {
-      debug.log('compass metric is empty, project: ', project.htmlUrl);
-      continue;
-    }
-
-    const compassActivityList = await getIncrementalIntegrationArray(
-      project.htmlUrl,
-      project.id,
-      activityMetrics,
-    );
-
-    if (compassActivityList.length === 0) {
-      debug.log('There is no new compass data that needs to be inserted');
-      continue;
-    }
-
-    await CompassActivity.bulkCreate(compassActivityList)
-      .then(compass => {
-        debug.log(`Insert ${compass.length} Compass metrics`);
-      })
-      .catch(error => {
-        debug.log('Batch insert error: ', error.message);
-        throw { error, startIndex: count - 1 };
-      });
+    await syncSingleProjectCompassMetric(project, { beginDate });
   }
 }
 
