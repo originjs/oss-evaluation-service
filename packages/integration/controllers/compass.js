@@ -63,7 +63,6 @@ export async function syncProjectCompassMetricHandler(req, res) {
 export async function syncSingleProjectCompassMetric(project, options) {
   const { beginDate } = options;
 
-  debug.log('Request compass data');
   const compassData = await request(compassUrl, query, {
     label: project.htmlUrl,
     beginDate,

@@ -1,6 +1,6 @@
 import debug, { log } from 'debug';
 import { PackageSizeDetail, ProjectPackage } from '@orginjs/oss-evaluation-data-model';
-import sequelize from '../util/database.js';
+import sequelize from '@orginjs/oss-evaluation-data-model/util/database.js';
 import { getProjectByUrl, sleep } from '../util/util.js';
 import { Op } from 'sequelize';
 

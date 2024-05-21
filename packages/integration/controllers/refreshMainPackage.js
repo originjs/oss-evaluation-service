@@ -1,5 +1,5 @@
 import { PackageDownloadCount, ProjectPackage } from '@orginjs/oss-evaluation-data-model';
-import sequelize from '../util/database.js';
+import sequelize from '@orginjs/oss-evaluation-data-model/util/database.js';
 
 export async function refreshMainPackage(req, res) {
   const { week } = await PackageDownloadCount.findOne({

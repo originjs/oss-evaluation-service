@@ -4,7 +4,7 @@ import Dayjs from 'dayjs';
 import fetch from '@adobe/node-fetch-retry';
 import { chunk } from 'underscore';
 import { PackageDownloadCount, GithubProjects } from '@orginjs/oss-evaluation-data-model';
-import sequelize from '../util/database.js';
+import sequelize from '@orginjs/oss-evaluation-data-model/util/database.js';
 import { getWeekOfYearList } from '../util/weekOfYearUtil.js';
 import { getProjectByUrl } from '../util/util.js';
 
