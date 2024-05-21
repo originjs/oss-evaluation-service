@@ -1,6 +1,7 @@
 export interface RepoInfo {
   gitOwner: string;
   repoName: string;
+  language: string;
 }
 
 export interface SonarProjectInfo {

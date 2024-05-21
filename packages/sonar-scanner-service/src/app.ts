@@ -6,7 +6,6 @@ import cors from 'cors';
 import 'express-async-errors';
 import 'dotenv/config';
 import { RegisterRoutes } from './build/routes.js';
-import Logger from './utils/logger.js';
 import swaggerConfig from './build/swagger.json' assert { type: 'json' };
 
 const port = process.env.PORT || '3000';
@@ -43,5 +42,5 @@ app.use((err: Error, req: Request, res: Response) => {
 });
 
 app.listen(port, () => {
-  Logger.debug(`server started at http://localhost:${port}`);
+  console.log(`server started at http://localhost:${port}`);
 });

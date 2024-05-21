@@ -1,5 +1,5 @@
 {
-  "name": "@orginjs/oss-evaluation-api-server",
+  "name": "@orginjs/sonar-scanner-service",
   "version": "1.0.0",
   "private": false,
   "main": "index.js",

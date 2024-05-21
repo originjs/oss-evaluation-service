@@ -8,18 +8,28 @@ import shelljs from 'shelljs';
 export async function scan(info: SonarScanParam) {
   const owner = info.gitOwner;
   const repoName = info.repoName;
+  const language = info.language.toUpperCase();
   const dir = `${process.env.REPO_DIR}/${owner}/${repoName}`;
   await cloneRepoIfNotExist(owner, repoName, true);
 
   // run sonar
   shelljs.cd(dir);
+  let scanCommand = `sonar-scanner\
+     -Dsonar.organization=${info.sonarOrg}\
+     -Dsonar.projectKey=${info.sonarKey}\
+     -Dsonar.sources=.\
+     -Dsonar.host.url=${info.sonarHostUrl}`;
+  if (language !== 'JAVA') {
+    scanCommand += ' -Dsonar.exclusions=**/*.java';
+  }
+  if (language !== 'C' && language.toUpperCase() !== 'C++') {
+    scanCommand += ` -Dsonar.c.file.suffixes=-\
+    -Dsonar.cpp.file.suffixes=-\
+    -Dsonar.objc.file.suffixes=-`;
+  }
   shelljs.exec(
     // eslint-disable-next-line max-len
-    `sonar-scanner\
-       -Dsonar.organization=${info.sonarOrg}\
-       -Dsonar.projectKey=${info.sonarKey}\
-       -Dsonar.sources=.\
-       -Dsonar.host.url=${info.sonarHostUrl}`,
+    scanCommand,
   );
   return true;
 }
