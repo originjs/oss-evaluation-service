@@ -7,7 +7,7 @@ import 'express-async-errors';
 import indexRouter from './routes/index.js';
 import syncRouter from './routes/sync.js';
 import evaluateRouter from './routes/evaluate.js';
-import { logger } from '@orginjs/oss-evaluation-data-model/util/logger.js';
+import { logger } from '@orginjs/oss-evaluation-data-model';
 import morgan from 'morgan';
 
 const app = express();

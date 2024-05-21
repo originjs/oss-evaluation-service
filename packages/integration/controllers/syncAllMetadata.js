@@ -11,11 +11,11 @@ import {
   GithubProjects,
   ProjectPackage,
   ProjectTechStack,
+  sequelize,
 } from '@orginjs/oss-evaluation-data-model';
 import { syncSingleProjectPackageDownloadCount } from './downloadCount.js';
 import dayjs from 'dayjs';
 import { syncSingleProjectPackageSize } from './packageSize.js';
-import sequelize from '@orginjs/oss-evaluation-data-model/util/database.js';
 import { syncSingleProjectEvaluation } from './evaluate.js';
 
 export default async function syncSingleProjectAllMetadataHandler(req, res) {

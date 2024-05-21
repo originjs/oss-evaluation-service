@@ -3,8 +3,11 @@ import { Cron } from 'croner';
 import Dayjs from 'dayjs';
 import fetch from '@adobe/node-fetch-retry';
 import { chunk } from 'underscore';
-import { PackageDownloadCount, GithubProjects } from '@orginjs/oss-evaluation-data-model';
-import sequelize from '@orginjs/oss-evaluation-data-model/util/database.js';
+import {
+  PackageDownloadCount,
+  GithubProjects,
+  sequelize,
+} from '@orginjs/oss-evaluation-data-model';
 import { getWeekOfYearList } from '../util/weekOfYearUtil.js';
 import { getProjectByUrl } from '../util/util.js';
 
