@@ -1,5 +1,6 @@
 import { Sequelize } from 'sequelize';
 import * as mysql from 'mysql2';
+import { logger } from './logger.js';
 
 const sequelize = new Sequelize(process.env.DATABASE_URL, {
   dialectOptions: {
@@ -11,6 +12,7 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
     idle: 20000,
   },
   dialectModule: mysql,
+  logging: msg => logger.info(msg),
 });
 
 export async function checkConnection() {

@@ -13,6 +13,8 @@
   "license": "ISC",
   "dependencies": {
     "mysql2": "^3.9.1",
-    "sequelize": "^6.35.2"
+    "sequelize": "^6.35.2",
+    "winston": "^3.13.0",
+    "winston-daily-rotate-file": "^5.0.0"
   }
 }

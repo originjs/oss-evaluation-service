@@ -1,6 +1,4 @@
 import express from 'express';
-import logger from 'morgan';
-import debug from 'debug';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 import 'dotenv/config';
@@ -9,11 +7,16 @@ import 'express-async-errors';
 import indexRouter from './routes/index.js';
 import syncRouter from './routes/sync.js';
 import evaluateRouter from './routes/evaluate.js';
+import { logger } from '@orginjs/oss-evaluation-data-model/util/logger.js';
+import morgan from 'morgan';
 
 const app = express();
 
-const info = debug('info');
-app.use(logger('combined', { stream: { write: msg => info(msg) } }));
+const stream = {
+  write: message => logger.info(message),
+};
+app.use(morgan('combined', { stream }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static('public'));
