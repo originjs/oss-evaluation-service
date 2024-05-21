@@ -19,8 +19,8 @@ const goSoftwareDetails = ({ repoName }: SoftwareBaseInfo) => {
     <div class="intro">
       <div class="intro-wrapper">
         <div class="main">
-          <h1 class="name"><span class="clip">OSS Evaluation for Web Front-end</span></h1>
-          <p class="text">前端先进性评估</p>
+          <h1 class="name"><span class="clip">Open Source Software Evaluation</span></h1>
+          <p class="text">开源先进性评估</p>
           <div class="actions">
             <SearchSoftware class="w-280px" @change="goSoftwareDetails" />
           </div>
@@ -41,7 +41,7 @@ const goSoftwareDetails = ({ repoName }: SoftwareBaseInfo) => {
               <el-icon class="icon"><DataLine /></el-icon>
               <div class="title">性能 Benchmark</div>
               <div class="details">
-                10+ 前端子技术线性能 Benchmark 评测，权威对比分析，方便您更好选型
+                10+ 子技术线性能 Benchmark 评测，权威对比分析，方便您更好选型
               </div>
             </div>
           </div>
@@ -49,7 +49,7 @@ const goSoftwareDetails = ({ repoName }: SoftwareBaseInfo) => {
             <div class="item-wrapper">
               <el-icon class="icon"><MapLocation /></el-icon>
               <div class="title">Landscape</div>
-              <div class="details">包含前端 9k+ 软件，全面分类整理，数字化呈现 20+ 子技术栈</div>
+              <div class="details">包含 9k+ 软件，全面分类整理，数字化呈现 20+ 子技术栈</div>
             </div>
           </div>
           <div class="item">

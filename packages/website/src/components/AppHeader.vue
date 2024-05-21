@@ -33,10 +33,10 @@ const onSelectMenu = (path: string) => {
         <img
           class="logo"
           :src="'/logo2.png'"
-          onerror="this.src='/logo.png';this.className='logo2';document.getElementById('ossDesc').innerText = '前端先进性评估';"
+          onerror="this.src='/logo.png';this.className='logo2';document.getElementById('ossDesc').innerText = '开源先进性评估';"
           alt="logo"
         />
-        <span id="ossDesc" class="desc">{{decodeURI('%E5%B1%B1%E6%B5%B7%E7%A4%BE%E5%8C%BA')}} - 前端先进性评估</span>
+        <span id="ossDesc" class="desc">{{decodeURI('%E5%B1%B1%E6%B5%B7%E7%A4%BE%E5%8C%BA')}} - 开源先进性评估</span>
       </div>
 
       <div class="search-wrapper"><SearchSoftware @change="goSoftwareDetails" /></div>
