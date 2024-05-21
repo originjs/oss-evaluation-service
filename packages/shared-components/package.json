@@ -22,7 +22,7 @@
         "./*.d.ts",
         "./*/index.d.ts"
       ],
-      "import": "./*.mjs"
+      "import": "./*"
     },
     "./*.css": {
       "import": "./*.css"
