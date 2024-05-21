@@ -2,7 +2,7 @@ import winston from 'winston';
 import 'winston-daily-rotate-file';
 
 const logFormat = winston.format.printf(({ timestamp, level, message }) => {
-  return `${timestamp} ${level} : ${message}`;
+  return `[${timestamp}] ${level} : ${message}`;
 });
 
 const levelToUpperCase = winston.format(info => {

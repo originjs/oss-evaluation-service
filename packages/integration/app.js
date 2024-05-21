@@ -15,7 +15,11 @@ const app = express();
 const stream = {
   write: message => logger.info(message),
 };
-app.use(morgan('combined', { stream }));
+const customCombined =
+  ':remote-addr - :remote-user ":method :url HTTP/:http-version" :status :res[content-length] ":referrer"' +
+  ' ":user-agent" @:response-time ms';
+
+app.use(morgan(customCombined, { stream }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
