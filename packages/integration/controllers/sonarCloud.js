@@ -267,10 +267,12 @@ export async function createAndScanSonarProjectByGithubId(req, res) {
         githubProject.ownerName,
         githubProject.name,
       );
-      if (!branchResponse.ok) {
+      let json = await branchResponse.json();
+      if (!branchResponse.ok || !json?.ok) {
+        console.error(`get default branch failed , ${json}`);
         continue;
       }
-      const defaultBranchName = (await branchResponse.json()).data;
+      const defaultBranchName = json.data;
       const listSonarBranches = await recordTime(
         sonarCloudSdk.listProjectBranches,
         `list sonar branches of ${sonarProjectKey}`,
@@ -350,7 +352,8 @@ export async function createAndScanSonarProjectByGithubId(req, res) {
         githubProject.language,
       );
 
-      if (scanResponse.ok) {
+      const scanJson = await scanResponse.json();
+      if (scanResponse.ok && scanJson?.ok) {
         //   collect sonar data
         await collectSonarCloudDataBySonarKeys([sonarProjectKey]);
       }
