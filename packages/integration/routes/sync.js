@@ -30,6 +30,7 @@ import syncProjectCncfDocumentScoreHandler from '../controllers/documentScore.js
 import { refreshMainPackage } from '../controllers/refreshMainPackage.js';
 import {
   collectSonarCloudData,
+  createAndScanSonarProjectByGithubId,
   createGitlabProject,
   createSonarProjectFromGitlab,
   updateDefaultBranchAfterImport,
@@ -624,6 +625,13 @@ router.route('/benchmark/updateScore').post(updateScore);
  *   get:
  *     summary: collect sonarCloud data
  *     tags: [Sonar]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *       example: [392517209]
  *     responses:
  *       200:
  *         description: success.
@@ -653,6 +661,25 @@ router.route('/sonarCloud/collect').get(await collectSonarCloudData);
  *         description: success.
  */
 router.route('/gitlab/importProjectFromUrl/:namespaceId').post(await createGitlabProject);
+
+/**
+ * @swagger
+ * /sync/sonarCloud/scan:
+ *  post:
+ *     summary: create and scan github project
+ *     tags: [Sonar]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *       example: [48296,298375]
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/sonarCloud/scan').post(await createAndScanSonarProjectByGithubId);
 
 /**
  * @swagger
