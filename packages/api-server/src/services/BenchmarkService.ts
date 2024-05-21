@@ -94,7 +94,7 @@ export async function getBenchmarkResultByTechStack(
     SELECT bt.project_id AS projectId,
           bt.project_name AS projectName,
           bt.display_name AS displayName, 
-          benchmark,
+          bt.benchmark,
           bt.raw_value AS rawValue,
           bt.created_at AS createdAt,
           bt.content,
@@ -102,7 +102,7 @@ export async function getBenchmarkResultByTechStack(
           bvst.version,
           bvst.env_info AS envInfo,
           bvst.score
-      FROM BENCHMARK bt
+      FROM benchmark bt
 INNER JOIN (
     SELECT st.project_id, 
            st.VERSION, 
@@ -114,7 +114,7 @@ INNER JOIN (
   GROUP BY st.project_id, st.VERSION) bvst 
         ON bvst.b_id = bt.b_id
      WHERE bt.raw_value IS NOT NULL
-  ORDER BY bt.project_id, bt.BENCHMARK,bt.created_at;`;
+  ORDER BY bt.project_id, bt.benchmark,bt.created_at;`;
 
   const indexes = await sequelize.query(sql, {
     replacements: { techStack },
