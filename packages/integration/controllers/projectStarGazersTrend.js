@@ -1,6 +1,6 @@
 import { GithubProjects, GithubProjectsStargazersTrend } from '@orginjs/oss-evaluation-data-model';
 import fetch from '@adobe/node-fetch-retry';
-import sequelize from '../util/database.js';
+import sequelize from '@orginjs/oss-evaluation-data-model/util/database.js';
 import debug from 'debug';
 import { getProjectByUrl } from '../util/util.js';
 
