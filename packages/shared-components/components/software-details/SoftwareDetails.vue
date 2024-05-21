@@ -98,7 +98,7 @@ watchEffect(async () => {
     },
     {
       label: '代码量',
-      value: `${toKilo(data.codeLines)} kl`,
+      value: `${(data.codeLines / 1000).toFixed(2)} kl`,
     },
     {
       label: '首次提交',
@@ -933,14 +933,14 @@ const emits = defineEmits<{
             <div flex w-210px>
               <div i-custom:star font-size-12 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ toKilo(project?.star) }} </div>
+                <div font-bold font-size-5>{{ toKilo(project?.star) }}</div>
                 <div line-height-7>Star数量</div>
               </div>
             </div>
             <div flex w-210px>
               <div i-custom:fork font-size-12 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ toKilo(project?.evaluation?.forksCount) }} </div>
+                <div font-bold font-size-5>{{ toKilo(project?.evaluation?.forksCount) }}</div>
                 <div line-height-7>Fork数量</div>
               </div>
             </div>
@@ -1020,7 +1020,7 @@ const emits = defineEmits<{
             <div flex w-210px>
               <div i-custom:link font-size-12 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ toKilo(project?.dependentRepositories) }} </div>
+                <div font-bold font-size-5>{{ toKilo(project?.dependentRepositories) }}</div>
                 <div flex>
                   <div line-height-7>被依赖使用</div>
                   <el-tooltip :content="i18n.global.t(`tips.ecology.dependentRepositories`)">

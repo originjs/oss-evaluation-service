@@ -457,7 +457,7 @@ const changePage = (name: string) => {
           <div class="border param-name">代码量</div>
           <div v-for="idx in 5" :key="idx" class="param-value border">
             <div v-if="projects[idx - 1]" class="value-div">
-              <span>{{ toKilo(projects[idx - 1].codeLines) }} kl</span>
+              <span>{{ (projects[idx - 1].codeLines / 1000).toFixed(2) }} kl</span>
             </div>
           </div>
         </div>
