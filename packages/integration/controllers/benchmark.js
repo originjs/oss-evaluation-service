@@ -1,7 +1,6 @@
 import dayjs from 'dayjs';
 import debug from 'debug';
-import { Benchmark, ProjectTechStack } from '@orginjs/oss-evaluation-data-model';
-import sequelize from '@orginjs/oss-evaluation-data-model/util/database.js';
+import { Benchmark, ProjectTechStack, sequelize } from '@orginjs/oss-evaluation-data-model';
 
 export async function syncBenchmarkHandler(req, res) {
   const { projectName, benchmark, techStack, rawValue, content, platform, displayName } = req.body;

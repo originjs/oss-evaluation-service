@@ -12,8 +12,8 @@ import {
   CompassActivity,
   GithubProjects,
   CncfDocumentScoreOnly,
+  sequelize,
 } from '@orginjs/oss-evaluation-data-model';
-import sequelize from '@orginjs/oss-evaluation-data-model/util/database.js';
 import { ServerError } from '../util/error.js';
 import { getProjectByUrl } from '../util/util.js';
 import BenchmarkVersionScore from '@orginjs/oss-evaluation-data-model/models/BenchmarkVersionScore.js';

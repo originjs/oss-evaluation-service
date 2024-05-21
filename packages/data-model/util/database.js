@@ -1,6 +1,6 @@
 import { Sequelize } from 'sequelize';
 import * as mysql from 'mysql2';
-import { logger } from './logger.js';
+import logger from './logger.js';
 
 const sequelize = new Sequelize(process.env.DATABASE_URL, {
   dialectOptions: {

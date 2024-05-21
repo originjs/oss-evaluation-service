@@ -2,7 +2,7 @@ import winston from 'winston';
 import 'winston-daily-rotate-file';
 
 const logFormat = winston.format.printf(({ timestamp, level, message }) => {
-  return `${timestamp} ${level} : ${message}`;
+  return `[${timestamp}] ${level} : ${message}`;
 });
 
 const levelToUpperCase = winston.format(info => {
@@ -62,7 +62,7 @@ export function getDurationInMilliseconds(start) {
   return (diff[0] * NS_PER_SEC + diff[1]) / NS_TO_MS;
 }
 
-export const logger = winston.createLogger({
+const logger = winston.createLogger({
   level: 'info',
   transports: [transportError, transportInfo],
 });
@@ -71,3 +71,5 @@ export const logger = winston.createLogger({
 if (process.env.NODE_ENV !== 'production') {
   logger.add(consoleTransport);
 }
+
+export default logger;
