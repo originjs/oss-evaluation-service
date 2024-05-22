@@ -11,6 +11,7 @@ import _ from 'underscore';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'path';
+import fetch from 'node-fetch';
 
 const getRating = rating => {
   switch (rating) {
@@ -311,34 +312,34 @@ export async function createAndScanSonarProjectByGithubId(req, res) {
             },
           },
         );
-        continue;
-      }
-      //   change sonar primary branch name to default branch
-      const renameResponse = await recordTime(
-        sonarCloudSdk.renameMainBranch,
-        `rename sonar project:${sonarProjectKey} branch:${mainBranch.name} to ${defaultBranchName}`,
-        sonarProjectKey,
-        defaultBranchName,
-      );
-      await sleep(Math.floor(Math.random() * 500) + 100);
-      if (!renameResponse.ok) {
-        console.error(
+      } else {
+        //   change sonar primary branch name to default branch
+        const renameResponse = await recordTime(
+          sonarCloudSdk.renameMainBranch,
           `rename sonar project:${sonarProjectKey} branch:${mainBranch.name} to ${defaultBranchName}`,
-          await renameResponse.text(),
+          sonarProjectKey,
+          defaultBranchName,
         );
-        continue;
-      }
-      await SonarCloudProject.update(
-        {
-          defaultBranch: defaultBranchName,
-        },
-        {
-          where: {
-            sonarProjectKey,
+        await sleep(Math.floor(Math.random() * 500) + 100);
+        if (!renameResponse.ok) {
+          console.error(
+            `rename sonar project:${sonarProjectKey} branch:${mainBranch.name} to ${defaultBranchName}`,
+            await renameResponse.text(),
+          );
+          continue;
+        }
+        await SonarCloudProject.update(
+          {
+            defaultBranch: defaultBranchName,
           },
-        },
-      );
-      await sleep(Math.floor(Math.random() * 500) + 100);
+          {
+            where: {
+              sonarProjectKey,
+            },
+          },
+        );
+        await sleep(Math.floor(Math.random() * 500) + 100);
+      }
     }
 
     if (!sonarProject.analysisDate) {

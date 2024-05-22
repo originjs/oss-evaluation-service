@@ -622,7 +622,7 @@ router.route('/benchmark/updateScore').post(updateScore);
 /**
  * @swagger
  * /sync/sonarCloud/collect:
- *   get:
+ *   post:
  *     summary: collect sonarCloud data
  *     tags: [Sonar]
  *     requestBody:
@@ -636,7 +636,7 @@ router.route('/benchmark/updateScore').post(updateScore);
  *       200:
  *         description: success.
  */
-router.route('/sonarCloud/collect').get(await collectSonarCloudData);
+router.route('/sonarCloud/collect').post(await collectSonarCloudData);
 
 /**
  * @swagger
