@@ -4,6 +4,7 @@ import {
   Scorecard,
   Benchmark,
   sequelize,
+  sequelizeExt,
   ProjectInfo,
   CncfDocumentScoreMin,
   StateOfJsMin,
@@ -245,12 +246,39 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
                inner join compass_activity_detail compass on project.id = compass.project_id
       where full_name = :repoName
       order by grimoire_creation_date desc
-      limit 7
+      limit 15
   `;
   let softwareActivity = await sequelize.query(sql, {
     replacements: { repoName },
     type: sequelize.QueryTypes.SELECT,
   });
+  if (
+    process.env.DATABASE_EXT_URL &&
+    sequelizeExt &&
+    softwareActivity &&
+    softwareActivity.length === 0
+  ) {
+    const sql = `
+        select project_id,
+             name,
+             commit_frequency,
+             comment_frequency,
+             updated_issues_count,
+             closed_issues_count,
+             org_count,
+             contributor_count,
+             recent_releases_count,
+             date_format(grimoire_creation_date, '%Y-%m-%d') as grimoire_creation_date
+      from compass_activity_detail_substitute
+      where full_name = :repoName
+      order by grimoire_creation_date desc
+      limit 15
+  `;
+    softwareActivity = await sequelizeExt.query(sql, {
+      replacements: { repoName },
+      type: sequelize.QueryTypes.SELECT,
+    });
+  }
   softwareActivity = _.sortBy(softwareActivity, ['grimoire_creation_date']);
   const commitFrequency = [];
   const commentFrequency = [];

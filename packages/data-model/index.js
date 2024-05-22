@@ -1,5 +1,5 @@
 export { default as logger } from './util/logger.js';
-export { default as sequelize } from './util/database.js';
+export { sequelize, sequelizeExt } from './util/database.js';
 export { default as GithubProjects } from './models/GithubProjects.js';
 export { default as ProjectPackage } from './models/ProjectPackage.js';
 export { default as StateOfJs } from './models/StateOfJs.js';

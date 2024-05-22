@@ -15,6 +15,17 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
   logging: msg => logger.info(msg),
 });
 
+let sequelizeExt;
+if (process.env.DATABASE_EXT_URL) {
+  sequelizeExt = new Sequelize(process.env.DATABASE_EXT_URL, {
+    dialectOptions: {
+      ssl: false,
+    },
+    dialectModule: mysql,
+    logging: msg => logger.info(msg),
+  });
+}
+
 export async function checkConnection() {
   try {
     await sequelize.authenticate();
@@ -24,4 +35,5 @@ export async function checkConnection() {
   }
 }
 
+export { sequelize, sequelizeExt };
 export default sequelize;
