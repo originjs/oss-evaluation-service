@@ -46,10 +46,12 @@ app.use('/eval', evaluateRouter);
 
 // catch 404 and forward to error handler
 app.use((req, res) => {
-  res.status(404).json({
+  const message = {
     error: 404,
     message: 'Not found.',
-  });
+  };
+  logger.error(JSON.stringify(message));
+  res.status(404).json(message);
 });
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -59,11 +61,13 @@ app.use((err, req, res, next) => {
   if (!statusCode || statusCode === 200) {
     statusCode = 500;
   }
-  res.status(statusCode).json({
-    error: err.status,
+  const message = {
+    status: statusCode,
     message: err.message,
     stack: err.stack,
-  });
+  };
+  logger.error(JSON.stringify(message));
+  res.status(statusCode).json(message);
 });
 
 export default app;

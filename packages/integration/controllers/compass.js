@@ -1,6 +1,5 @@
 import { gql, request } from 'graphql-request';
-import debug from 'debug';
-import { CompassActivity, GithubProjects } from '@orginjs/oss-evaluation-data-model';
+import { CompassActivity, GithubProjects, logger } from '@orginjs/oss-evaluation-data-model';
 import { getProjectByUrl } from '../util/util.js';
 
 const query = gql`
@@ -38,6 +37,7 @@ export async function syncProjectCompassMetricHandler(req, res) {
         res.status(200).send('Full-scale compass activity metrics integration success');
       })
       .catch(err => {
+        logger.error(`Full-scale compass activity metrics integration failure: ${err}`);
         res.status(500).send(`Full-scale compass activity metrics integration failure: ${err}`);
       });
   } else {
@@ -48,6 +48,7 @@ export async function syncProjectCompassMetricHandler(req, res) {
         res.status(200).send('Full-scale compass activity metrics integration success');
       })
       .catch(err => {
+        logger.error(`Full-scale compass activity metrics integration failure: ${err}`);
         res.status(500).send(`Full-scale compass activity metrics integration failure: ${err}`);
       });
   }
@@ -67,7 +68,7 @@ export async function syncSingleProjectCompassMetric(project, options) {
     label: project.htmlUrl,
     beginDate,
   }).catch(error => {
-    debug.log('Post to compass error : ', error.message);
+    logger.error('Post to compass error : ' + error.message);
     throw error;
   });
 
@@ -78,7 +79,7 @@ export async function syncSingleProjectCompassMetric(project, options) {
 
   // Compass metric does not exist
   if (activityMetrics.length === 0) {
-    debug.log('compass metric is empty, project: ', project.htmlUrl);
+    logger.info(`compass metric is empty, project: ${project.htmlUrl}`);
   }
 
   const compassActivityList = await getIncrementalIntegrationArray(
@@ -87,15 +88,15 @@ export async function syncSingleProjectCompassMetric(project, options) {
     activityMetrics,
   );
   if (compassActivityList.length === 0) {
-    debug.log('There is no new compass data that needs to be inserted');
+    logger.info('There is no new compass data that needs to be inserted');
   }
 
   await CompassActivity.bulkCreate(compassActivityList)
     .then(compass => {
-      debug.log(`insert into database: ${compass.length}`);
+      logger.info(`insert into database number: ${compass.length}`);
     })
     .catch(error => {
-      debug.log('Batch insert error: ', error.message);
+      logger.info(`Batch insert error: ${error.message}`);
     });
   return compassActivityList;
 }
@@ -113,14 +114,16 @@ export async function syncAllProjectCompassMetric(options) {
     attributes: ['id', 'htmlUrl'],
   });
   const projectCount = projectList.length;
-  debug.log(`The Number of Project : ${projectCount}`);
+  logger.info(`The Number of Project : ${projectCount}`);
 
   projectList = projectList.slice(startIndex);
-  debug.log(`This round needs to synchronize the total number of projects: ${projectList.length}`);
+  logger.info(
+    `This round needs to synchronize the total number of projects: ${projectList.length}`,
+  );
   let count = startIndex;
 
   for (const project of projectList) {
-    debug.log('**Current Progress**: ', `${count + 1}/${projectCount}`);
+    logger.info(`Current Progress: ${count + 1}/${projectCount}`);
     count += 1;
     await syncSingleProjectCompassMetric(project, { beginDate });
   }

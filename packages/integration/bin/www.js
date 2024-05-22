@@ -3,12 +3,9 @@
 /**
  * Module dependencies.
  */
-
-import debugLib from 'debug';
 import http from 'http';
 import app from '../app.js';
-
-const debug = debugLib('oss-evaluation-service:server');
+import { logger } from '@orginjs/oss-evaluation-data-model';
 
 /**
  * Get port from environment and store in Express.
@@ -54,9 +51,9 @@ function normalizePort(val) {
 /**
  * Event listener for HTTP server "error" event.
  */
-
 function onError(error) {
   if (error.syscall !== 'listen') {
+    logger.error(JSON.stringify(error));
     throw error;
   }
 
@@ -65,14 +62,15 @@ function onError(error) {
   // handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
-      console.error(`${bind} requires elevated privileges`);
+      logger.error(`${bind} requires elevated privileges`);
       process.exit(1);
       break;
     case 'EADDRINUSE':
-      console.error(`${bind} is already in use`);
+      logger.error(`${bind} is already in use`);
       process.exit(1);
       break;
     default:
+      logger.error(JSON.stringify(error));
       throw error;
   }
 }
@@ -84,6 +82,6 @@ function onError(error) {
 function onListening() {
   const addr = server.address();
   const bind = typeof addr === 'string' ? `pipe ${addr}` : `port ${addr.port}`;
-  debug(`Listening on ${bind}`);
-  debug('Service is running: \x1B[4m\x1B[35m%s\x1B[0m', `http://localhost:${addr.port}/api-docs`);
+  logger.info(`Listening on ${bind}`);
+  logger.info(`Service is running: http://localhost:${addr.port}/api-docs`);
 }
