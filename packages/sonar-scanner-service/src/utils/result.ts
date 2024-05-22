@@ -10,7 +10,7 @@ export class Result<T> {
   }
 
   static ok<T>(data: T): Result<T> {
-    return new Result(true, data);
+    return new Result(true, data, null);
   }
 
   static fail(msg?: string): Result<undefined> {

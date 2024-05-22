@@ -344,7 +344,7 @@ export async function createAndScanSonarProjectByGithubId(req, res) {
 
     if (!sonarProject.analysisDate) {
       //   start sonar scanner
-      const scanResponse = await startSonarScanner(
+      await startSonarScanner(
         githubProject.ownerName,
         githubProject.name,
         process.env.SONAR_ORG_NAME,
@@ -352,12 +352,6 @@ export async function createAndScanSonarProjectByGithubId(req, res) {
         'https://sonarcloud.io',
         githubProject.language,
       );
-
-      const scanJson = await scanResponse.json();
-      if (scanResponse.ok && scanJson?.ok) {
-        //   collect sonar data
-        await collectSonarCloudDataBySonarKeys([sonarProjectKey]);
-      }
     }
   }
   res.status(200);

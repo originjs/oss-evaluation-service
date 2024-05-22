@@ -6,6 +6,7 @@ import * as process from 'node:process';
 import { WorkerPool } from '../worker/workerPool.js';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'path';
+import * as fs from 'node:fs';
 
 const workPath = join(dirname(fileURLToPath(import.meta.url)), '../worker/sonarWorks.js');
 const workerPool = new WorkerPool(workPath, 4);
@@ -13,7 +14,13 @@ const workerPool = new WorkerPool(workPath, 4);
 export async function scan(info: SonarScanParam) {
   const owner = info.gitOwner;
   const repoName = info.repoName;
-  await cloneRepoIfNotExist(owner, repoName, false);
+  const dir = `${process.env.REPO_DIR}/${owner}/${repoName}`;
+  await cloneRepoIfNotExist(owner, repoName, true);
+  // get files, if only .git folder , try to clone of pull
+  const notHiddenFileCount = getNotHiddenFileCount(dir);
+  if (notHiddenFileCount == 0) {
+    return false;
+  }
   workerPool
     .run(info)
     .then(sonarKey => {
@@ -23,6 +30,11 @@ export async function scan(info: SonarScanParam) {
       console.error(`${info.sonarKey} scan failed! , ${e}`);
     });
   return true;
+}
+
+function getNotHiddenFileCount(dir: string) {
+  const files = fs.readdirSync(dir);
+  return files.filter(file => !file.startsWith('.')).length;
 }
 
 export async function getDefaultBranch(owner: string, repoName: string) {
@@ -49,7 +61,7 @@ export async function cloneRepoIfNotExist(owner: string, repoName: string, pullI
   const cloneUrl = useGhProxy ? `https://mirror.ghproxy.com/${gitHtmlUrl}` : gitCloneUrl;
   const options: Partial<SimpleGitOptions> = {
     baseDir: dir,
-    binary: 'git',
+    binary: 'cgit',
     maxConcurrentProcesses: 6,
     trimmed: false,
   };
