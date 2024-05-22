@@ -1,5 +1,4 @@
-import { GithubProjects } from '@orginjs/oss-evaluation-data-model';
-import debug from 'debug';
+import { GithubProjects, logger } from '@orginjs/oss-evaluation-data-model';
 
 export const sleep = ms =>
   new Promise(resolve => {
@@ -19,7 +18,7 @@ export async function getProjectByUrl(repoUrl) {
     },
   });
   if (project === null) {
-    debug.log('project not exists');
+    logger.info('project not exists');
     return;
   }
   return project;
@@ -42,6 +41,7 @@ export function parseRepoUrl(repoUrl) {
       repository: match[4], // 仓库名
     };
   } else {
+    logger.error('The repoUrl is not a  valid GitHub main repository address');
     throw new Error('The repoUrl is not a  valid GitHub main repository address');
   }
 }
