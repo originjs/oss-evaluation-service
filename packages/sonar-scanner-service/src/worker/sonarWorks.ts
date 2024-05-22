@@ -3,6 +3,11 @@ import type { SonarScanParam } from '../interfaces/RepoInfo';
 import process from 'node:process';
 import shelljs from 'shelljs';
 
+const sleep = ms =>
+  new Promise(resolve => {
+    setTimeout(resolve, ms);
+  });
+
 function runSonarScanner(info: SonarScanParam) {
   const owner = info.gitOwner;
   const repoName = info.repoName;
@@ -28,17 +33,19 @@ function runSonarScanner(info: SonarScanParam) {
     // eslint-disable-next-line max-len
     scanCommand,
   );
-  //   try to trigger collect sonar cloud data
-  fetch(`${process.env.INTWGRATION_HOST}/sonarCloud/collect`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify([info.sonarKey]),
-  })
-    .then(response => response.json())
-    .then(data => console.log(data))
-    .catch(error => console.error('Error:', error));
+  sleep(5000).then(() => {
+    console.log(`try to collect sonar ${JSON.stringify([info.sonarKey])}`);
+    fetch(`${process.env.INTEGRATION_HOST}/sync/sonarCloud/collect`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify([info.sonarKey]),
+    })
+      .then(response => response.json())
+      .then(data => console.log(data))
+      .catch(error => console.error('Error:', error));
+  });
 }
 
 parentPort.on('message', info => {

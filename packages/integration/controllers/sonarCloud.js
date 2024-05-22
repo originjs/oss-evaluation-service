@@ -11,7 +11,6 @@ import _ from 'underscore';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'path';
-import fetch from 'node-fetch';
 
 const getRating = rating => {
   switch (rating) {
@@ -58,7 +57,7 @@ export async function collectSonarCloudData(req, res) {
   const sonarKeys = req.body;
   await collectSonarCloudDataBySonarKeys(sonarKeys);
   res.status(200);
-  res.send('success');
+  res.json('{"ok":true}');
 }
 
 async function collectSonarCloudDataBySonarKeys(sonarKeys) {

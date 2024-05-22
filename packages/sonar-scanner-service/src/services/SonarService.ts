@@ -41,27 +41,20 @@ export async function getDefaultBranch(owner: string, repoName: string) {
   const gitClient = await cloneRepoIfNotExist(owner, repoName, false);
   const branchSummary = await gitClient.branch();
   const branchInfos = branchSummary.branches;
-  const branchNames = new Set(Object.keys(branchInfos));
-  //   if it contains main/master,return main/master
-  if (branchNames.has('main')) {
-    return 'main';
-  } else if (branchNames.has('master')) {
-    return 'master';
-  } else {
-    //   return the default branch
-    return Object.values(branchInfos).filter(branch => branch.current)[0].name;
-  }
+  //   return the default branch
+  return Object.values(branchInfos).filter(branch => branch.current)[0].name;
 }
 
 export async function cloneRepoIfNotExist(owner: string, repoName: string, pullIfExists: boolean) {
   const dir = `${process.env.REPO_DIR}/${owner}/${repoName}`;
   const useGhProxy = JSON.parse(process.env.GH_PROXY ?? 'false');
-  const gitHtmlUrl = getGitHtmlUrl(owner, repoName);
   const gitCloneUrl = getGitCloneUrl(owner, repoName);
-  const cloneUrl = useGhProxy ? `https://mirror.ghproxy.com/${gitHtmlUrl}` : gitCloneUrl;
+  const cloneUrl = useGhProxy
+    ? `https://gitclone.com/github.com/${owner}/${repoName}.git`
+    : gitCloneUrl;
   const options: Partial<SimpleGitOptions> = {
     baseDir: dir,
-    binary: 'cgit',
+    binary: 'git',
     maxConcurrentProcesses: 6,
     trimmed: false,
   };
@@ -78,14 +71,11 @@ export async function cloneRepoIfNotExist(owner: string, repoName: string, pullI
     }
   } else {
     console.log(`${owner}/${repoName} dont exists,git clone`);
-    await gitClient.clone(cloneUrl, '.');
+    await gitClient.clone(cloneUrl, '.', ['--depth', '1']);
   }
   return gitClient;
 }
 
-function getGitHtmlUrl(owner: string, repoName: string) {
-  return `https://github.com/${owner}/${repoName}`;
-}
 
 function getGitCloneUrl(owner: string, repoName: string) {
   return `https://github.com/${owner}/${repoName}.git`;
