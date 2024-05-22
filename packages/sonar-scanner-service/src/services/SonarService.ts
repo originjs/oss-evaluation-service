@@ -9,7 +9,7 @@ import { dirname, join } from 'path';
 import * as fs from 'node:fs';
 
 const workPath = join(dirname(fileURLToPath(import.meta.url)), '../worker/sonarWorks.js');
-const workerPool = new WorkerPool(workPath, 4);
+const workerPool = new WorkerPool(workPath, 3);
 
 export async function scan(info: SonarScanParam) {
   const owner = info.gitOwner;
