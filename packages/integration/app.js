@@ -61,12 +61,13 @@ app.use((err, req, res, next) => {
   if (!statusCode || statusCode === 200) {
     statusCode = 500;
   }
-  logger.error(JSON.stringify(err));
-  res.status(statusCode).json({
-    error: err.status,
+  const message = {
+    status: statusCode,
     message: err.message,
     stack: err.stack,
-  });
+  };
+  logger.error(JSON.stringify(message));
+  res.status(statusCode).json(message);
 });
 
 export default app;

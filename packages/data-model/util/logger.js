@@ -35,6 +35,7 @@ const transportInfo = new winston.transports.DailyRotateFile({
   maxSize: '20m',
   maxFiles: '14d',
   handleExceptions: true,
+  handleRejections: true,
 });
 
 const transportError = new winston.transports.DailyRotateFile({
@@ -46,10 +47,12 @@ const transportError = new winston.transports.DailyRotateFile({
   maxFiles: '14d',
   level: 'error',
   handleExceptions: true,
+  handleRejections: true,
 });
 
 const consoleTransport = new winston.transports.Console({
   handleExceptions: true,
+  handleRejections: true,
   format: consoleFormat,
 });
 
