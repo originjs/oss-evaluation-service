@@ -3,7 +3,6 @@ import { WorkerPool } from '../worker/workerPool.js';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'path';
 import type { GitCloneResult } from '../worker/gitWorker';
-import { Promise } from 'workerpool';
 import type { SonarScanResult } from '../worker/sonarScannerWorker';
 import process from 'node:process';
 import type { SimpleGitOptions } from 'simple-git';
@@ -30,27 +29,25 @@ export async function scan(info: SonarScanParam) {
       sonarKey: info.sonarKey,
     })
     .then(result => {
-      return new Promise<GitCloneResult>((resolve, reject) => {
-        if (result.ok) {
-          resolve(result);
-        } else {
-          reject(`repo ${result?.fullRepoName} clone/pull failed , dont sonar scan`);
-        }
-      });
+      return result.ok
+        ? Promise.resolve(result)
+        : Promise.reject(`repo ${result?.fullRepoName} clone/pull failed , dont sonar scan`);
+    })
+    .then(cloneResult => {
+      return getDefaultBranchName(cloneResult.dir);
+    })
+    .then(branchName => {
+      updateDefaultBranch(info.sonarKey, branchName);
     })
     .then(() => {
       return sonarScannerThreadPool.run(info);
     })
     .then(sonarScanResult => {
-      return new Promise<SonarScanResult>((resolve, reject) => {
-        if (sonarScanResult.ok) {
-          resolve(sonarScanResult);
-        } else {
-          reject(
+      return sonarScanResult?.ok
+        ? Promise.resolve(sonarScanResult)
+        : Promise.reject(
             `sonarKey:${sonarScanResult.sonarKey} sonar scan failed , reason:${sonarScanResult.msg}`,
           );
-        }
-      });
     });
 }
 
@@ -58,39 +55,37 @@ export async function getDefaultBranch(cloneInfo: GitCloneParam) {
   gitThreadPool
     .run(cloneInfo)
     .then(cloneResult => {
-      return new Promise<GitCloneResult>((resolve, reject) => {
-        if (cloneResult.ok) {
-          resolve(cloneResult);
-        } else {
-          reject(`repo ${cloneResult.fullRepoName} clone/pull failed , dont sonar scan`);
-        }
-      });
+      return cloneResult?.ok
+        ? Promise.resolve(cloneResult)
+        : Promise.reject(`repo ${cloneResult.fullRepoName} clone/pull failed , dont sonar scan`);
     })
     .then(cloneResult => {
-      const options: Partial<SimpleGitOptions> = {
-        baseDir: cloneResult.dir,
-        binary: 'git',
-        maxConcurrentProcesses: 6,
-        trimmed: false,
-      };
-      const gitClient = simpleGit(options);
-      return gitClient.branch();
+      return getDefaultBranchName(cloneResult.dir);
     })
-    .then(branchSummary => {
-      const branchInfos = branchSummary.branches;
-      //   return the default branch
-      return Object.values(branchInfos).filter(branch => branch.current)[0].name;
-    })
-    .then(branchName => {
-      fetch(`${process.env.INTEGRATION_HOST}/sync/sonarCloud/setDefaultBranchOfSonar`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          sonarProjectKey: cloneInfo.sonarKey,
-          defaultBranch: branchName,
-        }),
-      });
-    });
+    .then(branchName => updateDefaultBranch(cloneInfo.sonarKey, branchName));
+}
+
+async function getDefaultBranchName(dir: string) {
+  const options: Partial<SimpleGitOptions> = {
+    baseDir: dir,
+    binary: 'git',
+    maxConcurrentProcesses: 6,
+    trimmed: false,
+  };
+  const gitClient = simpleGit(options);
+  const branches = (await gitClient.branch())?.branches;
+  return Object.values(branches).filter(branch => branch.current)[0].name;
+}
+
+async function updateDefaultBranch(sonarProjectKey: string, defaultBranch: string) {
+  await fetch(`${process.env.INTEGRATION_HOST}/sync/sonarCloud/setDefaultBranchOfSonar`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      sonarProjectKey,
+      defaultBranch,
+    }),
+  });
 }
