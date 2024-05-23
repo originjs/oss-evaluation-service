@@ -18,15 +18,24 @@ class CncfDocumentScoreTimer extends TimerTaskStrategy {
   execute(pattern) {
     // Task 1 的具体逻辑
     const documentScoreIntegrateJob = new Cron(pattern, { timezone: 'Etc/UTC' }, async () => {
+      logger.info(
+        '[Integration][Document Best Practice Score] Document Score Integration Job start',
+      );
+      let startTime = process.hrtime();
       try {
         await syncAllProjectCncfDocumentScore({ startIndex: this.#start });
       } catch (err) {
         const { error, startIndex } = err;
+        logger.error(error);
         this.#start = startIndex;
+        logger.info('Some error happened, wait 10s restart');
         await sleep(10000);
         await documentScoreIntegrateJob.trigger();
-        console.log(error);
       }
+      let endTime = process.hrtime(startTime);
+      logger.info(
+        `[Integration][Document Best Practice Score] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
+      );
     });
   }
 }
