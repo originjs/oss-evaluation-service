@@ -245,7 +245,7 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
                inner join compass_activity_detail compass on project.id = compass.project_id
       where full_name = :repoName
       order by grimoire_creation_date desc
-      limit 15
+      limit 52
   `;
   let softwareActivity = await sequelize.query(sql, {
     replacements: { repoName },
@@ -270,7 +270,7 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
       from compass_activity_detail_substitute
       where full_name = :repoName
       order by grimoire_creation_date desc
-      limit 15
+      limit 52
   `;
     softwareActivity = await sequelizeExt.query(sql, {
       replacements: { repoName },
