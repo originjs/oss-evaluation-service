@@ -266,6 +266,12 @@ function renderGithubStartChart() {
     xAxis: {
       type: 'category',
       data: starTrend.value.date,
+      axisLabel: {
+        showMaxLabel: true,
+      },
+      axisTick: {
+        alignWithLabel: true
+      },
     },
     yAxis: {
       type: 'value',
@@ -302,6 +308,12 @@ function renderDeveloperSatisfactionChart() {
     xAxis: {
       type: 'category',
       data: developerSatisfaction.value.xAxis,
+      axisLabel: {
+        showMaxLabel: true,
+      },
+      axisTick: {
+        alignWithLabel: true
+      },
     },
     yAxis: {
       type: 'value',
@@ -474,6 +486,12 @@ function renderLineChart(container: string, data: EcologyActivity[]) {
     xAxis: {
       type: 'category',
       data: data?.map(item => item.date),
+      axisLabel: {
+        showMaxLabel: true,
+      },
+      axisTick: {
+        alignWithLabel: true
+      },
     },
     yAxis: {
       type: 'value',
@@ -485,8 +503,8 @@ function renderLineChart(container: string, data: EcologyActivity[]) {
       },
     ],
     grid: {
-      left: '2%',
-      right: '3%',
+      left: '5%',
+      right: '5%',
       top: '8%',
       bottom: '2%',
       containLabel: true,
