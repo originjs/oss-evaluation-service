@@ -22,11 +22,6 @@ export async function cloneRepoIfNotExist(cloneInfo: GitCloneParam): Promise<Git
   const repoName = cloneInfo.repoName;
   const pullIfExists = cloneInfo.pullIfExists;
   const dir = `${process.env.REPO_DIR}/${owner}/${repoName}`;
-  const useGhProxy = JSON.parse(process.env.GH_PROXY ?? 'false');
-  const gitCloneUrl = getGitCloneUrl(owner, repoName);
-  const cloneUrl = useGhProxy
-    ? `https://gitclone.com/github.com/${owner}/${repoName}.git`
-    : gitCloneUrl;
   const options: Partial<SimpleGitOptions> = {
     baseDir: dir,
     binary: 'git',
@@ -36,6 +31,7 @@ export async function cloneRepoIfNotExist(cloneInfo: GitCloneParam): Promise<Git
   // retry 3 times for clone
   for (let i = 0; i < 3; i++) {
     const exists = existsSync(dir);
+    const cloneUrl = getCloneUrlByTime(i + 1, owner, repoName);
     if (!exists) {
       mkdirSync(dir, { recursive: true });
     }
@@ -55,17 +51,28 @@ export async function cloneRepoIfNotExist(cloneInfo: GitCloneParam): Promise<Git
     const notHiddenFileCount = getNotHiddenFileCount(dir);
     if (notHiddenFileCount === 0) {
       //   git clone failed , delete the dir
-      fs.rmSync(dir, { recursive: true, force: true });
       console.info(`clone/pull ${dir} failed , retry count: ${i + 1}`);
+      fs.rmSync(dir, { recursive: true, force: true });
     } else {
+      console.log(`${owner}/${repoName}:${cloneUrl} clone success`);
       return { ok: true, fullRepoName: `${owner}/${repoName}`, dir };
     }
   }
   return { ok: false, fullRepoName: `${owner}/${repoName}`, dir };
 }
 
-function getGitCloneUrl(owner: string, repoName: string) {
-  return `https://github.com/${owner}/${repoName}.git`;
+function getCloneUrlByTime(time: number, owner: string, repoName: string): string {
+  //   1: origin url
+  //   2: gitclone.com/github.com/xxx/xxx
+  //   3: use ssh clone
+  switch (time) {
+    case 1:
+      return `https://github.com/${owner}/${repoName}.git`;
+    case 2:
+      return `https://gitclone.com/github.com/${owner}/${repoName}.git`;
+    case 3:
+      return `git@github.com:${owner}/${repoName}.git`;
+  }
 }
 
 parentPort.on('message', gitCloneInfo => {
