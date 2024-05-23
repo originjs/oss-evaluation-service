@@ -1,16 +1,14 @@
 import { Worker } from 'worker_threads';
 
-type Task = any;
-
-interface QueueItem {
-  task: Task;
-  resolve: (value: any) => void;
+interface QueueItem<T, G> {
+  task: T;
+  resolve: (value: G) => void;
   reject: (reason: any) => void;
 }
 
-export class WorkerPool {
+export class WorkerPool<T, G> {
   private availableWorkers: Worker[];
-  private queue: QueueItem[];
+  private queue: QueueItem<T, G>[];
 
   constructor(file: string, size: number) {
     this.availableWorkers = [];
@@ -20,7 +18,7 @@ export class WorkerPool {
     }
   }
 
-  run(task: Task): Promise<any> {
+  run(task: T): Promise<G> {
     return new Promise((resolve, reject) => {
       if (this.availableWorkers.length === 0) {
         this.queue.push({ task, resolve, reject });
@@ -32,8 +30,8 @@ export class WorkerPool {
 
   private runWorker(
     worker: Worker,
-    task: Task,
-    resolve: (value: any) => void,
+    task: T,
+    resolve: (value: G) => void,
     reject: (reason: any) => void,
   ): void {
     worker.postMessage(task);

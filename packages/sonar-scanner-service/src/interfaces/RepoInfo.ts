@@ -10,4 +10,11 @@ export interface SonarProjectInfo {
   sonarHostUrl: string;
 }
 
+export interface GitCloneParam {
+  owner: string;
+  repoName: string;
+  pullIfExists: boolean;
+  sonarKey: string;
+}
+
 export type SonarScanParam = SonarProjectInfo & RepoInfo;
