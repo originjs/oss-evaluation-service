@@ -11,7 +11,7 @@ export default sequelize.define(
       primaryKey: true,
     },
     projectId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       allowNull: false,
     },
     repoUrl: {
@@ -29,18 +29,6 @@ export default sequelize.define(
     },
     hasContributing: {
       type: DataTypes.BOOLEAN,
-    },
-    readme: {
-      type: DataTypes.TEXT,
-    },
-    filename: {
-      type: DataTypes.JSON,
-    },
-    website: {
-      type: DataTypes.STRING,
-    },
-    release: {
-      type: DataTypes.TEXT,
     },
     documentScore: {
       type: DataTypes.DOUBLE,

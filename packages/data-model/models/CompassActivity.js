@@ -11,7 +11,7 @@ export default sequelize.define(
       primaryKey: true,
     },
     projectId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       allowNull: false,
     },
     repoUrl: {
