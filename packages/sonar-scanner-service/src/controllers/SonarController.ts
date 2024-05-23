@@ -6,29 +6,19 @@ import { getDefaultBranch, scan } from '../services/SonarService.js';
 @Route('sonar')
 export class SonarController extends Controller {
   @Post('scan')
-  public async scan(@Body() info: SonarScanParam): Promise<Result<boolean>> {
-    try {
-      const result = await scan(info);
-      return Result.bean(result.ok);
-    } catch (e) {
-      console.error(e);
-      return Result.fail(e);
-    }
+  public scan(@Body() info: SonarScanParam): Result<string> {
+    scan(info);
+    return Result.ok('commit task success');
   }
 
   @Get('getDefaultBranch/{owner}/{repoName}')
-  public async getDefaultBranch(@Path() owner: string, @Path() repoName: string) {
-    try {
-      const data = await getDefaultBranch({
-        owner: owner,
-        repoName: repoName,
-        sonarKey: null,
-        pullIfExists: false,
-      });
-      return Result.ok(data);
-    } catch (e) {
-      console.error(e);
-      return Result.fail(e);
-    }
+  public getDefaultBranch(@Path() owner: string, @Path() repoName: string) {
+    getDefaultBranch({
+      owner: owner,
+      repoName: repoName,
+      sonarKey: null,
+      pullIfExists: false,
+    });
+    return Result.ok('commit task success');
   }
 }

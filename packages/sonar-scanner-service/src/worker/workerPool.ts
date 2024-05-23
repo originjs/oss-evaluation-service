@@ -20,6 +20,7 @@ export class WorkerPool<T, G> {
 
   run(task: T): Promise<G> {
     return new Promise((resolve, reject) => {
+      console.log(`There are still ${this.queue.length} tasks currently in workers pool`);
       if (this.availableWorkers.length === 0) {
         this.queue.push({ task, resolve, reject });
       } else {

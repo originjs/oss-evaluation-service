@@ -40,13 +40,17 @@ export async function cloneRepoIfNotExist(cloneInfo: GitCloneParam): Promise<Git
     if (isRepo) {
       console.log(`${owner}/${repoName} exists`);
       if (pullIfExists) {
-        await gitClient.pull();
+        try {
+          await gitClient.pull();
+        } catch (e) {
+          console.warn(`${owner}/${repoName} pull failed,but it doesn't affect sonar scan.`);
+        }
       }
     } else {
       console.log(`${owner}/${repoName} dont exists,git clone`);
       try {
         await gitClient.clone(cloneUrl, '.', ['--depth', '1']);
-      } catch(e){
+      } catch (e) {
         console.error(`${owner}/${repoName}:${cloneUrl} clone failed! ${e}`);
         continue;
       }
