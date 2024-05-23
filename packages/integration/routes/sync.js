@@ -1,5 +1,6 @@
 import express from 'express';
 
+import { syncAlternativeHandler } from '../controllers/alternative.js';
 import { getScorecardHandler, syncScorecardHandler } from '../controllers/scorecard.js';
 import { syncOpendiggerHandler } from '../controllers/opendigger.js';
 import {
@@ -170,6 +171,27 @@ router.route('/compass').post(syncProjectCompassMetricHandler);
  *         description: success.
  */
 router.route('/opendigger').post(syncOpendiggerHandler);
+
+/**
+ * @swagger
+ * /sync/alernative:
+ *   post:
+ *     summary: Synchronize Alernative from AI
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               repoUrl:
+ *                 type: string
+ *                 example: "https://github.com/vuejs/vue"
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/alernative').post(syncAlternativeHandler);
 
 /**
  * @swagger

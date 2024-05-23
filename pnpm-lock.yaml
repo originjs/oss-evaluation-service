@@ -66,6 +66,8 @@ importers:
         specifier: ^2.0.6
         version: 2.0.7(typescript@5.3.3)
 
+  packages/api-sdk/coze: {}
+
   packages/api-sdk/github: {}
 
   packages/api-sdk/gitlab: {}
@@ -168,6 +170,9 @@ importers:
       '@octokit/core':
         specifier: ^5.1.0
         version: 5.1.0
+      '@orginjs/coze-sdk':
+        specifier: workspace:^
+        version: link:../api-sdk/coze
       '@orginjs/github-sdk':
         specifier: workspace:^
         version: link:../api-sdk/github

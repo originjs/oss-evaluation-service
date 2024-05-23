@@ -1,0 +1,7 @@
+{
+  "name": "@orginjs/coze-sdk",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "type": "module"
+}
