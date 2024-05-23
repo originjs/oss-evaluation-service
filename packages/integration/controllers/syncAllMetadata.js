@@ -8,7 +8,7 @@ import { syncSingleProjectContributors } from './projectContributors.js';
 import { syncSingleProjectDependentCount } from './projectDependentCount.js';
 import {
   CriticalityScore,
-  GithubProjects,
+  GithubProjects, logger,
   ProjectPackage,
   ProjectTechStack,
   sequelize,
@@ -46,6 +46,7 @@ async function syncSingleProjectAllMetadata(options) {
   // 8. scorecard
   // 9. Determining the type of software: frontend software - main package / Rust - Cargo and so on
   if (packageName !== '') {
+    logger.info('Front-end software, computing package related data');
     // 9.1 insert main package project_packages: rule is manual
     await ProjectPackage.upsert({
       projectId: project.id,
@@ -65,6 +66,7 @@ async function syncSingleProjectAllMetadata(options) {
   // 11. sonarCloud -> manual
   // 12. Evaluate the score
   await syncSingleProjectEvaluation(project);
+  logger.info(`Project ${repoUrl}: all metadata information integrated`);
 }
 
 async function createNewTechStack(repoUrl, category, subcategory) {
@@ -73,8 +75,8 @@ async function createNewTechStack(repoUrl, category, subcategory) {
       html_url: repoUrl,
     },
   });
-  if (project == null) {
-    console.log('Project not exist, please create project id first');
+  if (project === null) {
+    logger.info('Project not exist, please create project first');
     return;
   }
 
@@ -99,10 +101,10 @@ where cs.url = :repoUrl
     type: sequelize.QueryTypes.SELECT,
   });
   if (newCriticalityScore.length === 0) {
-    console.log(`Criticality Score for project: ${project.htmlUrl} does not exist`);
+    logger.info(`Criticality Score for project: ${project.htmlUrl} does not exist`);
     return;
   }
-  //插入或更新到状态表：criticality_score
+  // criticality_score
   await CriticalityScore.upsert({
     projectId: project.id,
     projectName: project.name,
