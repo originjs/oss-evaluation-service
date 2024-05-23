@@ -279,9 +279,11 @@ function renderGithubStartChart() {
       },
     ],
     grid: {
-      left: '5%',
+      left: '1%',
       right: '4%',
-      bottom: '10%',
+      top: '14%',
+      bottom: '2%',
+      containLabel: true,
     },
   };
   chart.setOption(option);
@@ -311,9 +313,11 @@ function renderDeveloperSatisfactionChart() {
       },
     ],
     grid: {
-      left: '3%',
+      left: '1%',
       right: '4%',
-      bottom: '10%',
+      top: '14%',
+      bottom: '2%',
+      containLabel: true,
     },
   };
   chart.setOption(option);
@@ -481,10 +485,11 @@ function renderLineChart(container: string, data: EcologyActivity[]) {
       },
     ],
     grid: {
-      left: '8%',
-      right: '5%',
+      left: '2%',
+      right: '3%',
       top: '8%',
-      bottom: '12%',
+      bottom: '2%',
+      containLabel: true,
     },
   };
   chart.setOption(option);
