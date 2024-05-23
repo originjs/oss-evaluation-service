@@ -15,10 +15,15 @@ const sonarScannerWorkerPath = join(
 );
 const gitWorkerPath = join(dirname(fileURLToPath(import.meta.url)), '../worker/gitWorker.js');
 const sonarScannerThreadPool = new WorkerPool<SonarScanParam, SonarScanResult>(
+  'sonar scanner workers',
   sonarScannerWorkerPath,
-  3,
+  2,
 );
-const gitThreadPool = new WorkerPool<GitCloneParam, GitCloneResult>(gitWorkerPath, 3);
+const gitThreadPool = new WorkerPool<GitCloneParam, GitCloneResult>(
+  'git clone workers',
+  gitWorkerPath,
+  1,
+);
 
 export async function scan(info: SonarScanParam) {
   return gitThreadPool
@@ -48,6 +53,9 @@ export async function scan(info: SonarScanParam) {
         : Promise.reject(
             `sonarKey:${sonarScanResult.sonarKey} sonar scan failed , reason:${sonarScanResult.msg}`,
           );
+    })
+    .catch(e => {
+      console.error(e);
     });
 }
 
@@ -62,7 +70,10 @@ export async function getDefaultBranch(cloneInfo: GitCloneParam) {
     .then(cloneResult => {
       return getDefaultBranchName(cloneResult.dir);
     })
-    .then(branchName => updateDefaultBranch(cloneInfo.sonarKey, branchName));
+    .then(branchName => updateDefaultBranch(cloneInfo.sonarKey, branchName))
+    .catch(e => {
+      console.error(e);
+    });
 }
 
 async function getDefaultBranchName(dir: string) {

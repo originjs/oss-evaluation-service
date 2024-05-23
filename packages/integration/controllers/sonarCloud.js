@@ -261,6 +261,16 @@ export async function createAndScanSonarProjectByGithubId(req, res) {
     }
 
     if (!sonarProject.analysisDate) {
+      //  try to collect sonar data
+      await collectSonarCloudDataBySonarKeys([sonarProjectKey]);
+      sonarProject = await SonarCloudProject.findOne({
+        where: {
+          githubProjectId: githubId,
+        },
+      });
+      if (sonarProject.analysisDate) {
+        continue;
+      }
       //   start sonar scanner
       await startSonarScanner(
         githubProject.ownerName,

@@ -2,6 +2,7 @@ import { parentPort } from 'worker_threads';
 import type { SonarScanParam } from '../interfaces/RepoInfo';
 import process from 'node:process';
 import shelljs from 'shelljs';
+import type { ShellString } from 'shelljs';
 
 const sleep = ms =>
   new Promise(resolve => {
@@ -35,11 +36,16 @@ function runSonarScanner(info: SonarScanParam): SonarScanResult {
     -Dsonar.cpp.file.suffixes=-\
     -Dsonar.objc.file.suffixes=-`;
   }
-  const shellResult = shelljs.exec(
-    // eslint-disable-next-line max-len
-    scanCommand,
-  );
-  if (shellResult.code === 0) {
+  let shellResult: ShellString;
+  try {
+    shellResult = shelljs.exec(
+      // eslint-disable-next-line max-len
+      scanCommand,
+    );
+  } catch (e) {
+    console.error(`shell execute failed , ${e}`);
+  }
+  if (shellResult?.code === 0) {
     // try to collect sonar data
     sleep(5000).then(() => {
       console.log(`try to collect sonar ${JSON.stringify([info.sonarKey])}`);

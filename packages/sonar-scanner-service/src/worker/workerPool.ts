@@ -9,10 +9,12 @@ interface QueueItem<T, G> {
 export class WorkerPool<T, G> {
   private availableWorkers: Worker[];
   private queue: QueueItem<T, G>[];
+  private name: string;
 
-  constructor(file: string, size: number) {
+  constructor(name: string, file: string, size: number) {
     this.availableWorkers = [];
     this.queue = [];
+    this.name = name;
     for (let i = 0; i < size; i++) {
       this.availableWorkers.push(new Worker(file));
     }
@@ -20,7 +22,6 @@ export class WorkerPool<T, G> {
 
   run(task: T): Promise<G> {
     return new Promise((resolve, reject) => {
-      console.log(`There are still ${this.queue.length} tasks currently in workers pool`);
       if (this.availableWorkers.length === 0) {
         this.queue.push({ task, resolve, reject });
       } else {
@@ -37,6 +38,9 @@ export class WorkerPool<T, G> {
   ): void {
     worker.postMessage(task);
     worker.once('message', result => {
+      console.log(
+        `There are still ${this.queue.length} tasks currently in ${this.name} workers pool`,
+      );
       resolve(result);
       if (this.queue.length > 0) {
         const { task, resolve, reject } = this.queue.shift()!;
