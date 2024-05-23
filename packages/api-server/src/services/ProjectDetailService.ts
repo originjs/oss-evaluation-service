@@ -233,7 +233,6 @@ PackageDownloadCount.belongsTo(ProjectPackage, {
 export async function getSoftwareActivity(repoName: string): Promise<EcologyActivityCategory> {
   const sql = `
         select project_id,
-             name,
              commit_frequency,
              comment_frequency,
              updated_issues_count,
@@ -260,7 +259,6 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
   ) {
     const sql = `
         select project_id,
-             name,
              commit_frequency,
              comment_frequency,
              updated_issues_count,
