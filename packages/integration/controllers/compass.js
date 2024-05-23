@@ -72,10 +72,10 @@ export async function syncSingleProjectCompassMetric(project, options) {
     throw error;
   });
 
-  // Retrieve the latest 8 elements after deduplication
+  // Retrieve compass data from a year ago
   const activityMetrics = Array.from(
     new Map(compassData.metricActivity.map(item => [item.grimoireCreationDate, item])).values(),
-  ).slice(-8);
+  );
 
   // Compass metric does not exist
   if (activityMetrics.length === 0) {
@@ -93,10 +93,10 @@ export async function syncSingleProjectCompassMetric(project, options) {
 
   await CompassActivity.bulkCreate(compassActivityList)
     .then(compass => {
-      logger.info(`insert into database number: ${compass.length}`);
+      logger.info(`insert compass metrics: ${compass.length}`);
     })
     .catch(error => {
-      logger.info(`Batch insert error: ${error.message}`);
+      logger.info(`Error occurs when batch inserting compass data: ${error.message}`);
     });
   return compassActivityList;
 }
@@ -114,18 +114,19 @@ export async function syncAllProjectCompassMetric(options) {
     attributes: ['id', 'htmlUrl'],
   });
   const projectCount = projectList.length;
-  logger.info(`The Number of Project : ${projectCount}`);
 
   projectList = projectList.slice(startIndex);
   logger.info(
-    `This round needs to synchronize the total number of projects: ${projectList.length}`,
+    `Compass: This round needs to integrate projects: ${projectList.length}, and project count: ${projectCount}`,
   );
   let count = startIndex;
 
   for (const project of projectList) {
-    logger.info(`Current Progress: ${count + 1}/${projectCount}`);
+    logger.info(`Compass integration - Current Progress: ${count + 1} / ${projectCount}`);
     count += 1;
-    await syncSingleProjectCompassMetric(project, { beginDate });
+    await syncSingleProjectCompassMetric(project, { beginDate }).catch(err => {
+      throw { error: err, startIndex: count };
+    });
   }
 }
 

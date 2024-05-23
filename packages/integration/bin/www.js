@@ -6,6 +6,7 @@
 import http from 'http';
 import app from '../app.js';
 import { logger } from '@orginjs/oss-evaluation-data-model';
+import scheduleJob from '../scheduler/job.js';
 
 /**
  * Get port from environment and store in Express.
@@ -27,6 +28,11 @@ const server = http.createServer(app);
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
+
+/**
+ * Schedule Integration Job
+ */
+scheduleJob();
 
 /**
  * Normalize a port into a number, string, or false.
