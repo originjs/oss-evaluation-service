@@ -1196,7 +1196,7 @@ const changePage = (name: string) => {
               </div>
 
               <div
-                v-show="getShowRow('forksCount')"
+                v-show="getShowRow('fork')"
                 style="
                   width: 160px;
                   display: flex;
@@ -1208,9 +1208,9 @@ const changePage = (name: string) => {
                 <span
                   style="text-align: center; font-weight: bold"
                   :class="{
-                    good: isGood(projects[idx - 1].forksCount, 'forksCount'),
+                    good: isGood(projects[idx - 1].fork, 'fork'),
                   }"
-                  >{{ toKilo(projects[idx - 1].forksCount) }}
+                  >{{ toKilo(projects[idx - 1].fork) }}
                 </span>
                 <div style="display: inline-flex">
                   <div i-custom:fork font-size-6 mr-4 />

@@ -7,7 +7,7 @@ export interface SoftwareBaseInfo {
   description: string;
   logo: string;
   star: number;
-  forksCount: number;
+  fork: number;
   contributors: number;
   dependentRepositories: number;
   version?: string;
@@ -17,7 +17,6 @@ export interface SoftwareBaseInfo {
 }
 
 export interface SoftwareInfo extends SoftwareBaseInfo {
-  fork: number;
   language: string;
   firstCommit: string;
   license: string;
