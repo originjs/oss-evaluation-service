@@ -940,7 +940,7 @@ const emits = defineEmits<{
             <div flex w-210px>
               <div i-custom:fork font-size-12 mr-4 />
               <div>
-                <div font-bold font-size-5>{{ toKilo(project?.evaluation?.forksCount) }}</div>
+                <div font-bold font-size-5>{{ toKilo(project?.forksCount) }}</div>
                 <div line-height-7>Fork数量</div>
               </div>
             </div>

@@ -39,6 +39,9 @@ export interface SoftwareInfo extends SoftwareBaseInfo {
     commitFrequency: number;
     commentFrequency: number;
     orgCount: number;
+    updatedIssuesCount: number;
+    closedIssuesCount: number;
+    recentReleasesCount: number;
   };
   scorecard: {
     projectId: number;

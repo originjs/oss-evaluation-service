@@ -69,7 +69,7 @@ function isGood(currValue: string | number, valuesKey: string) {
     for (let key of keys) {
       parentValue = parentValue[key];
       if (!parentValue) {
-        return false;
+        break;
       }
     }
 
@@ -389,8 +389,8 @@ const changePage = (name: string) => {
           <div v-for="idx in 5" :key="idx" class="param-value border">
             <div v-if="projects[idx - 1]" class="value-div">
               <span style="color: #409eff" :class="{ good: isStarTop(projects[idx - 1].star) }"
-                >{{ toKilo(projects[idx - 1].star) }} </span
-              >
+                >{{ toKilo(projects[idx - 1].star) }}
+              </span>
             </div>
           </div>
         </div>
@@ -1187,8 +1187,8 @@ const changePage = (name: string) => {
                   :class="{
                     good: isGood(projects[idx - 1].star, 'star'),
                   }"
-                  >{{ toKilo(projects[idx - 1].star) }} </span
-                >
+                  >{{ toKilo(projects[idx - 1].star) }}
+                </span>
                 <div style="display: inline-flex">
                   <div i-custom:star font-size-6 mr-4 />
                   <div>Star数量</div>
@@ -1196,7 +1196,7 @@ const changePage = (name: string) => {
               </div>
 
               <div
-                v-show="getShowRow('evaluation.forksCount')"
+                v-show="getShowRow('forksCount')"
                 style="
                   width: 160px;
                   display: flex;
@@ -1208,10 +1208,10 @@ const changePage = (name: string) => {
                 <span
                   style="text-align: center; font-weight: bold"
                   :class="{
-                    good: isGood(projects[idx - 1].evaluation.forksCount, 'evaluation.forksCount'),
+                    good: isGood(projects[idx - 1].forksCount, 'forksCount'),
                   }"
-                  >{{ toKilo(projects[idx - 1].evaluation.forksCount) }} </span
-                >
+                  >{{ toKilo(projects[idx - 1].forksCount) }}
+                </span>
                 <div style="display: inline-flex">
                   <div i-custom:fork font-size-6 mr-4 />
                   <div>Fork数量</div>
@@ -1369,8 +1369,8 @@ const changePage = (name: string) => {
                   :class="{
                     good: isGood(projects[idx - 1].dependentRepositories, 'dependentRepositories'),
                   }"
-                  >{{ toKilo(projects[idx - 1].dependentRepositories) }} </span
-                >
+                  >{{ toKilo(projects[idx - 1].dependentRepositories) }}
+                </span>
                 <div style="display: inline-flex">
                   <div i-custom:link font-size-6 mr-4 />
                   <div>
