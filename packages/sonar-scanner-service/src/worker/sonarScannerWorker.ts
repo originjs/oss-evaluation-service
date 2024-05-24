@@ -2,20 +2,14 @@ import { parentPort } from 'worker_threads';
 import type { SonarScanParam } from '../interfaces/RepoInfo';
 import process from 'node:process';
 import shelljs from 'shelljs';
-import type { ShellString } from 'shelljs';
+import { Result } from '../utils/result';
 
 const sleep = ms =>
   new Promise(resolve => {
     setTimeout(resolve, ms);
   });
 
-export interface SonarScanResult {
-  ok: boolean;
-  sonarKey: string;
-  msg: string;
-}
-
-function runSonarScanner(info: SonarScanParam): SonarScanResult {
+function runSonarScanner(info: SonarScanParam): Result<SonarScanParam> {
   const owner = info.gitOwner;
   const repoName = info.repoName;
   const language = info.language.toUpperCase();
@@ -27,7 +21,8 @@ function runSonarScanner(info: SonarScanParam): SonarScanResult {
      -Dsonar.projectKey=${info.sonarKey}\
      -Dsonar.sources=.\
      -Dsonar.host.url=${info.sonarHostUrl}\
-     -Dsonar.projectBaseDir=${dir}`;
+     -Dsonar.projectBaseDir=${dir}\
+     -DSONAR_SCANNER_OPTS="-Xmx2048m -Xms512m"`;
   if (language !== 'JAVA') {
     scanCommand += ' -Dsonar.exclusions=**/*.java';
   }
@@ -36,15 +31,7 @@ function runSonarScanner(info: SonarScanParam): SonarScanResult {
     -Dsonar.cpp.file.suffixes=-\
     -Dsonar.objc.file.suffixes=-`;
   }
-  let shellResult: ShellString;
-  try {
-    shellResult = shelljs.exec(
-      // eslint-disable-next-line max-len
-      scanCommand,
-    );
-  } catch (e) {
-    console.error(`shell execute failed , ${e}`);
-  }
+  const shellResult = shelljs.exec(scanCommand);
   if (shellResult?.code === 0) {
     // try to collect sonar data
     sleep(5000).then(() => {
@@ -60,13 +47,18 @@ function runSonarScanner(info: SonarScanParam): SonarScanResult {
         .then(data => console.log(data))
         .catch(error => console.error('Error:', error));
     });
-    return { ok: true, sonarKey: info.sonarKey, msg: null };
+    return Result.ok(info);
   } else {
-    return { ok: false, sonarKey: info.sonarKey, msg: shellResult.stderr };
+    console.error(shellResult.stderr);
+    throw new Error(`sonar scanner failed ${JSON.stringify(info)}`);
   }
 }
 
 parentPort.on('message', info => {
-  const sonarScanResult = runSonarScanner(info);
-  parentPort.postMessage(sonarScanResult);
+  try {
+    const sonarScanResult = runSonarScanner(info);
+    parentPort.postMessage(sonarScanResult);
+  } catch (e) {
+    parentPort.postMessage(Result.fail(e.messagge));
+  }
 });

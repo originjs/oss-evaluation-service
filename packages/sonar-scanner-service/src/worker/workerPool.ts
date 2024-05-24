@@ -36,7 +36,6 @@ export class WorkerPool<T, G> {
     resolve: (value: G) => void,
     reject: (reason: any) => void,
   ): void {
-    worker.postMessage(task);
     worker.once('message', result => {
       console.log(
         `There are still ${this.queue.length} tasks currently in ${this.name} workers pool`,
@@ -50,5 +49,6 @@ export class WorkerPool<T, G> {
       }
     });
     worker.once('error', reject);
+    worker.postMessage(task);
   }
 }

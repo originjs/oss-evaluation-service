@@ -5,19 +5,16 @@ import process from 'node:process';
 import type { SimpleGit, SimpleGitOptions } from 'simple-git';
 import { simpleGit } from 'simple-git';
 import { existsSync, mkdirSync } from 'fs';
+import { Result } from '../utils/result';
 
 function getNotHiddenFileCount(dir: string) {
   const files = fs.readdirSync(dir);
   return files.filter(file => !file.startsWith('.')).length;
 }
 
-export interface GitCloneResult {
-  ok: boolean;
-  fullRepoName: string;
-  dir: string;
-}
-
-export async function cloneRepoIfNotExist(cloneInfo: GitCloneParam): Promise<GitCloneResult> {
+export async function cloneRepoIfNotExist(
+  cloneInfo: GitCloneParam,
+): Promise<Result<GitCloneParam>> {
   const owner = cloneInfo.owner;
   const repoName = cloneInfo.repoName;
   const pullIfExists = cloneInfo.pullIfExists;
@@ -64,10 +61,10 @@ export async function cloneRepoIfNotExist(cloneInfo: GitCloneParam): Promise<Git
       fs.rmSync(dir, { recursive: true, force: true });
     } else {
       console.log(`${owner}/${repoName}:${cloneUrl} clone success`);
-      return { ok: true, fullRepoName: `${owner}/${repoName}`, dir };
+      return Result.ok(cloneInfo);
     }
   }
-  return { ok: false, fullRepoName: `${owner}/${repoName}`, dir };
+  throw new Error(`clone repo failed:${JSON.stringify(cloneInfo)}`);
 }
 
 function getCloneUrlByTime(time: number, owner: string, repoName: string): string {
@@ -85,7 +82,7 @@ function getCloneUrlByTime(time: number, owner: string, repoName: string): strin
 }
 
 parentPort.on('message', gitCloneInfo => {
-  cloneRepoIfNotExist(gitCloneInfo).then(cloneResult => {
-    parentPort.postMessage(cloneResult);
-  });
+  cloneRepoIfNotExist(gitCloneInfo)
+    .then(cloneResult => parentPort.postMessage(cloneResult))
+    .catch(e => parentPort.postMessage(Result.fail(e.message)));
 });

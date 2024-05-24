@@ -2,11 +2,10 @@ import type { GitCloneParam, SonarScanParam } from '../interfaces/RepoInfo';
 import { WorkerPool } from '../worker/workerPool.js';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'path';
-import type { GitCloneResult } from '../worker/gitWorker';
-import type { SonarScanResult } from '../worker/sonarScannerWorker';
 import process from 'node:process';
 import type { SimpleGitOptions } from 'simple-git';
 import { simpleGit } from 'simple-git';
+import type { Result } from '../utils/result';
 
 // thread pool for git and sonar scanner
 const sonarScannerWorkerPath = join(
@@ -14,12 +13,12 @@ const sonarScannerWorkerPath = join(
   '../worker/sonarScannerWorker.js',
 );
 const gitWorkerPath = join(dirname(fileURLToPath(import.meta.url)), '../worker/gitWorker.js');
-const sonarScannerThreadPool = new WorkerPool<SonarScanParam, SonarScanResult>(
+const sonarScannerThreadPool = new WorkerPool<SonarScanParam, Result<SonarScanParam>>(
   'sonar scanner workers',
   sonarScannerWorkerPath,
   2,
 );
-const gitThreadPool = new WorkerPool<GitCloneParam, GitCloneResult>(
+const gitThreadPool = new WorkerPool<GitCloneParam, Result<GitCloneParam>>(
   'git clone workers',
   gitWorkerPath,
   1,
@@ -33,27 +32,10 @@ export async function scan(info: SonarScanParam) {
       pullIfExists: true,
       sonarKey: info.sonarKey,
     })
-    .then(result => {
-      return result.ok
-        ? Promise.resolve(result)
-        : Promise.reject(`repo ${result?.fullRepoName} clone/pull failed , dont sonar scan`);
-    })
-    .then(cloneResult => {
-      return getDefaultBranchName(cloneResult.dir);
-    })
-    .then(branchName => {
-      updateDefaultBranch(info.sonarKey, branchName);
-    })
-    .then(() => {
-      return sonarScannerThreadPool.run(info);
-    })
-    .then(sonarScanResult => {
-      return sonarScanResult?.ok
-        ? Promise.resolve(sonarScanResult)
-        : Promise.reject(
-            `sonarKey:${sonarScanResult.sonarKey} sonar scan failed , reason:${sonarScanResult.msg}`,
-          );
-    })
+    .then(result => (result.ok ? Promise.resolve(result.data) : Promise.reject(result.msg)))
+    .then(data => getDefaultBranchName(`${process.env.REPO_DIR}/${data.owner}/${data.repoName}`))
+    .then(branchName => updateDefaultBranch(info.sonarKey, branchName))
+    .then(() => sonarScannerThreadPool.run(info))
     .catch(e => {
       console.error(e);
     });
@@ -62,14 +44,8 @@ export async function scan(info: SonarScanParam) {
 export async function getDefaultBranch(cloneInfo: GitCloneParam) {
   gitThreadPool
     .run(cloneInfo)
-    .then(cloneResult => {
-      return cloneResult?.ok
-        ? Promise.resolve(cloneResult)
-        : Promise.reject(`repo ${cloneResult.fullRepoName} clone/pull failed , dont sonar scan`);
-    })
-    .then(cloneResult => {
-      return getDefaultBranchName(cloneResult.dir);
-    })
+    .then(result => (result.ok ? Promise.resolve(result.data) : Promise.reject(result.msg)))
+    .then(data => getDefaultBranchName(`${process.env.REPO_DIR}/${data.owner}/${data.repoName}`))
     .then(branchName => updateDefaultBranch(cloneInfo.sonarKey, branchName))
     .catch(e => {
       console.error(e);
