@@ -1,89 +1,79 @@
-import type { SimpleGit, SimpleGitOptions } from 'simple-git';
+import type { GitCloneParam, SonarScanParam } from '../interfaces/RepoInfo';
+import { WorkerPool } from '../worker/workerPool.js';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'path';
+import process from 'node:process';
+import type { SimpleGitOptions } from 'simple-git';
 import { simpleGit } from 'simple-git';
-import type { SonarScanParam } from '../interfaces/RepoInfo';
-import { existsSync, mkdirSync } from 'fs';
-import * as process from 'node:process';
-import shelljs from 'shelljs';
+import type { Result } from '../utils/result';
+import { logger } from '@orginjs/oss-evaluation-data-model';
+
+// thread pool for git and sonar scanner
+const sonarScannerWorkerPath = join(
+  dirname(fileURLToPath(import.meta.url)),
+  '../worker/sonarScannerWorker.js',
+);
+const gitWorkerPath = join(dirname(fileURLToPath(import.meta.url)), '../worker/gitWorker.js');
+const sonarScannerThreadPool = new WorkerPool<SonarScanParam, Result<SonarScanParam>>(
+  'sonar scanner workers',
+  sonarScannerWorkerPath,
+  2,
+);
+const gitThreadPool = new WorkerPool<GitCloneParam, Result<GitCloneParam>>(
+  'git clone workers',
+  gitWorkerPath,
+  2,
+);
 
 export async function scan(info: SonarScanParam) {
-  const owner = info.gitOwner;
-  const repoName = info.repoName;
-  const language = info.language.toUpperCase();
-  const dir = `${process.env.REPO_DIR}/${owner}/${repoName}`;
-  await cloneRepoIfNotExist(owner, repoName, true);
-
-  // run sonar
-  shelljs.cd(dir);
-  let scanCommand = `sonar-scanner\
-     -Dsonar.organization=${info.sonarOrg}\
-     -Dsonar.projectKey=${info.sonarKey}\
-     -Dsonar.sources=.\
-     -Dsonar.host.url=${info.sonarHostUrl}`;
-  if (language !== 'JAVA') {
-    scanCommand += ' -Dsonar.exclusions=**/*.java';
-  }
-  if (language !== 'C' && language.toUpperCase() !== 'C++') {
-    scanCommand += ` -Dsonar.c.file.suffixes=-\
-    -Dsonar.cpp.file.suffixes=-\
-    -Dsonar.objc.file.suffixes=-`;
-  }
-  shelljs.exec(
-    // eslint-disable-next-line max-len
-    scanCommand,
-  );
-  return true;
+  return gitThreadPool
+    .run({
+      owner: info.gitOwner,
+      repoName: info.repoName,
+      pullIfExists: true,
+      sonarKey: info.sonarKey,
+    })
+    .then(result => (result.ok ? Promise.resolve(result.data) : Promise.reject(result.msg)))
+    .then(data => getDefaultBranchName(`${process.env.REPO_DIR}/${data.owner}/${data.repoName}`))
+    .then(branchName => updateDefaultBranch(info.sonarKey, branchName))
+    .then(() => sonarScannerThreadPool.run(info))
+    .catch(e => {
+      logger.error(e);
+    });
 }
 
-export async function getDefaultBranch(owner: string, repoName: string) {
-  const gitClient = await cloneRepoIfNotExist(owner, repoName, false);
-  const branchSummary = await gitClient.branch();
-  const branchInfos = branchSummary.branches;
-  const branchNames = new Set(Object.keys(branchInfos));
-  //   if it contains main/master,return main/master
-  if (branchNames.has('main')) {
-    return 'main';
-  } else if (branchNames.has('master')) {
-    return 'master';
-  } else {
-    //   return the default branch
-    return Object.values(branchInfos).filter(branch => branch.current)[0].name;
-  }
+export async function getDefaultBranch(cloneInfo: GitCloneParam) {
+  gitThreadPool
+    .run(cloneInfo)
+    .then(result => (result.ok ? Promise.resolve(result.data) : Promise.reject(result.msg)))
+    .then(data => getDefaultBranchName(`${process.env.REPO_DIR}/${data.owner}/${data.repoName}`))
+    .then(branchName => updateDefaultBranch(cloneInfo.sonarKey, branchName))
+    .catch(e => {
+      logger.error(e);
+    });
 }
 
-export async function cloneRepoIfNotExist(owner: string, repoName: string, pullIfExists: boolean) {
-  const dir = `${process.env.REPO_DIR}/${owner}/${repoName}`;
-  const useGhProxy = JSON.parse(process.env.GH_PROXY ?? 'false');
-  const gitHtmlUrl = getGitHtmlUrl(owner, repoName);
-  const gitCloneUrl = getGitCloneUrl(owner, repoName);
-  const cloneUrl = useGhProxy ? `https://mirror.ghproxy.com/${gitHtmlUrl}` : gitCloneUrl;
+async function getDefaultBranchName(dir: string) {
   const options: Partial<SimpleGitOptions> = {
     baseDir: dir,
     binary: 'git',
     maxConcurrentProcesses: 6,
     trimmed: false,
   };
-  const exists = existsSync(dir);
-  if (!exists) {
-    mkdirSync(dir, { recursive: true });
-  }
-  const gitClient: SimpleGit = simpleGit(options);
-  const isRepo = await gitClient.checkIsRepo();
-  if (isRepo) {
-    console.log(`${owner}/${repoName} exists`);
-    if (pullIfExists) {
-      await gitClient.pull();
-    }
-  } else {
-    console.log(`${owner}/${repoName} dont exists,git clone`);
-    await gitClient.clone(cloneUrl, '.');
-  }
-  return gitClient;
+  const gitClient = simpleGit(options);
+  const branches = (await gitClient.branch())?.branches;
+  return Object.values(branches).filter(branch => branch.current)[0].name;
 }
 
-function getGitHtmlUrl(owner: string, repoName: string) {
-  return `https://github.com/${owner}/${repoName}`;
-}
-
-function getGitCloneUrl(owner: string, repoName: string) {
-  return `https://github.com/${owner}/${repoName}.git`;
+async function updateDefaultBranch(sonarProjectKey: string, defaultBranch: string) {
+  await fetch(`${process.env.INTEGRATION_HOST}/sync/sonarCloud/setDefaultBranchOfSonar`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      sonarProjectKey,
+      defaultBranch,
+    }),
+  });
 }

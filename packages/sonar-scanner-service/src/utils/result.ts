@@ -1,19 +1,23 @@
 export class Result<T> {
-  code: number;
+  ok: boolean;
   msg: string;
   data: T;
 
-  constructor(code: number, data: T, msg?: string) {
-    this.code = code;
+  constructor(ok: boolean, data: T, msg?: string) {
+    this.ok = ok;
     this.data = data;
     this.msg = msg;
   }
 
   static ok<T>(data: T): Result<T> {
-    return new Result(200, data);
+    return new Result(true, data, null);
   }
 
-  static fail(code: number, msg?: string): Result<undefined> {
-    return new Result(code, null, msg);
+  static fail(msg?: string): Result<undefined> {
+    return new Result(false, null, msg);
+  }
+
+  static bean<T>(ok: boolean, data: T = null, msg: string = null): Result<T> {
+    return new Result<T>(ok, data, msg);
   }
 }
