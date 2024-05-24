@@ -97,6 +97,12 @@ export interface EcologyActivity {
   date: string;
 }
 
+export interface AlternativeInfo {
+  id: number;
+  fullName: string;
+  url: string;
+}
+
 export interface EcologyActivityCategory {
   commitFrequency: EcologyActivity[];
   commentFrequency: EcologyActivity[];
@@ -107,6 +113,7 @@ export interface EcologyActivityCategory {
   recentReleasesCount: EcologyActivity[];
   packageDownload: EcologyActivity[];
   starTrend: object;
+  alternatives: AlternativeInfo[];
 }
 
 export interface BenchmarkData {

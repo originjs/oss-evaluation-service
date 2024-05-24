@@ -23,6 +23,7 @@ import type {
   PerformanceInfo,
   SoftwareInfo,
 } from '../interfaces/SoftwareInfo.js';
+import { getAlternativeProjects } from './AlternativeProjectService.js';
 import { fixedRound } from '../utils/math.js';
 import Logger from '../utils/logger.js';
 import { Op } from 'sequelize';
@@ -356,6 +357,8 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
   stargazers = _.pluck(trend, 'stargazers');
   date = _.pluck(trend, 'date');
 
+  const alternatives = await getAlternativeProjects(repoName);
+
   return {
     packageDownload,
     commitFrequency,
@@ -369,6 +372,7 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
       date,
     },
     recentReleasesCount,
+    alternatives,
   };
 }
 
