@@ -1,5 +1,5 @@
 <template>
-  <div w-full id="landscape" ref="virtualRef">
+  <div w-full id="landscape">
     <div w-full v-for="(data, index) in landcapseData" :key="data.category" flex mb-16px>
       <div :style="`background-color:${getBackgroundColor(index)}`" w-32px rd-4px c-white text-14px min-h-100px flex
         justify-center items-center mr-16px>
@@ -19,49 +19,70 @@
           <div flex-1 flex flex-wrap>
             <div v-for="(project, pIndex) in subData.projects"
               :key='`${data.category}-${subData.subTechStackName}-${project.name}`'>
-              <div mr-1 mb-1 w-40px h-40px v-if="pIndex < (props.options?.maxProjects || Number.MAX_VALUE)">
+              <!-- :style="`width:${pIndex > 4 ? '40px':'80px'};height:${pIndex > 4 ? '40px':'80px'}`" -->
+              <div mr-2 mb-2 w-40px h-40px v-if="pIndex < (props.options?.maxProjects || Number.MAX_VALUE)">
                 <el-image class="project-logo" lazy :src="project.logo" bg-white fit="fill"
                   @click="clickProject(project)" @mouseenter="showProjectPopover(project, $event)"
                   @mouseleave="hideProjectPopover" />
               </div>
             </div>
-
-            <!-- <div ref="popover" style="display: none;">
-              <div
-                style="box-shadow: rgb(14 18 22 / 35%) 0px 10px 38px -10px, rgb(14 18 22 / 20%) 0px 10px 20px -15px; padding: 20px;">
-                <span>{{ popoverProject?.category }}</span>
-                <span>{{ popoverProject?.subcategory }}</span>
-                <span>{{ popoverProject?.name }}</span>
-                <span>{{ popoverProject?.description }}</span>
-                <span>{{ popoverProject?.htmlUrl }}</span>
-                <span>{{ popoverProject?.logo }}</span>
-                <span>{{ popoverProject?.starCount }}</span>
-                <span>{{ popoverProject?.forksCount }}</span>
-              </div>
-            </div> -->
           </div>
         </div>
       </div>
     </div>
-
-    <el-popover :width="300" ref="popoverRef" trigger="hover" :virtual-ref="virtualRef" virtual-triggering
-      popper-style="box-shadow: rgb(14 18 22 / 35%) 0px 10px 38px -10px, rgb(14 18 22 / 20%) 0px 10px 20px -15px; padding: 20px;">
+    <div ref="popoverRef" w-450px bg-white id="project-tooltip" role="project-tooltip" @mouseenter="clearHideTimer"
+      @mouseleave="hideProjectPopover"
+      style="box-shadow: rgb(14 18 22 / 35%) 0px 10px 38px -10px, rgb(14 18 22 / 20%) 0px 10px 20px -15px; padding: 20px;">
       <div>
-        <span>{{ popoverProject?.category }}</span>
-        <span>{{ popoverProject?.subcategory }}</span>
-        <span>{{ popoverProject?.name }}</span>
-        <span>{{ popoverProject?.description }}</span>
-        <span>{{ popoverProject?.htmlUrl }}</span>
-        <span>{{ popoverProject?.logo }}</span>
-        <span>{{ popoverProject?.starCount }}</span>
-        <span>{{ popoverProject?.forksCount }}</span>
+        <div flex>
+          <div w-70px h-90px mr-3>
+            <el-image :src="popoverProject?.logo" bg-white fit="fill" />
+          </div>
+          <div flex flex-1 flex-col>
+            <span text-lg fw-bold>
+              <el-text line-clamp="2">
+                {{ popoverProject?.name }}
+              </el-text>
+            </span>
+            <div flex items-center>
+              <div mr-3 flex items-center>
+                <span i-custom:star-active font-size-4 mr-1></span>
+                {{ numberFormat(popoverProject?.starCount || 0) }}
+              </div>
+              <div mr-3 flex items-center>
+                <span i-custom:fork-active font-size-4 mr-1></span>
+                {{ numberFormat(popoverProject?.forksCount || 0) }}
+              </div>
+              <a :href="popoverProject?.htmlUrl" target="_blank" i-custom:github font-size-4 mr-3 cursor-pointer></a>
+            </div>
+          </div>
+          <div flex>
+            <div flex flex-col mr-3 items-center v-if="props.options?.evaluation">
+              <el-tooltip effect="light" content="先进性评估" placement="bottom">
+                <span i-custom:evaluation font-size-10 @click="props.options?.evaluation(popoverProject as Project);"
+                  cursor-pointer></span>
+              </el-tooltip>
+            </div>
+            <div flex flex-col items-center v-if="popoverProject?.hasBenchmark == 'Y'">
+              <el-tooltip effect="light" content="性能Benchmark" placement="bottom">
+                <span i-custom:benchmark font-size-10 :class="{ 'cursor-pointer': props.options?.goBenchmark }"
+                  @click="props.options?.goBenchmark && props.options?.goBenchmark(popoverProject as Project);"></span>
+              </el-tooltip>
+            </div>
+          </div>
+        </div>
+        <el-text line-clamp="3">
+          {{ popoverProject?.description }}
+        </el-text>
       </div>
-    </el-popover>
+      <div id="arrow" data-popper-arrow></div>
+    </div>
   </div>
 </template>
 <script setup lang="ts">
-import { ref, unref } from 'vue'
-// import { createPopper } from '@popperjs/core';
+import { ref, onMounted } from 'vue'
+import { createPopper, type VirtualElement, type Instance } from '@popperjs/core';
+
 interface Project {
   category: string;
   subcategory: string;
@@ -71,6 +92,7 @@ interface Project {
   logo: string;
   starCount: number;
   forksCount: number;
+  hasBenchmark: string;
 }
 
 const props = defineProps<{
@@ -78,7 +100,9 @@ const props = defineProps<{
   options?: {
     colors: Array<string>,
     maxProjects?: number,
-    layout?: { [key: string]: any }
+    layout?: { [key: string]: any },
+    evaluation?: (project: Project) => void,
+    goBenchmark?: (project: Project) => void
   }
 }>();
 
@@ -90,7 +114,7 @@ const emit = defineEmits<{
 const landcapseData = ref();
 const popoverProject = ref<Project>();
 const popoverRef = ref();
-const virtualRef = ref();
+let popoverInstance: Instance;
 
 const BackgroundColors = ['#89bff6', '#89c997', '#e8dd92', '#f0b58e', '#aea3db'];
 const getBackgroundColor = (index: number) => {
@@ -100,6 +124,19 @@ const getBackgroundColor = (index: number) => {
   }
   return colors[index % colors.length];
 }
+
+const virtualElement: VirtualElement = {
+  getBoundingClientRect: () => {
+    return {
+      width: 0,
+      height: 0,
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    } as ClientRect
+  },
+};
 
 onMounted(() => {
   let width = document.getElementById("landscape")!.offsetWidth - 32;
@@ -111,7 +148,7 @@ onMounted(() => {
       {
         subTechStackName: string,
         width?: number,
-        projects: Array<Projects>
+        projects: Array<Project>
       }
     >
   }[] = [];
@@ -136,7 +173,7 @@ onMounted(() => {
     }
   }
 
-  props.projects.forEach((item: Projects) => {
+  props.projects.forEach((item: Project) => {
     if (typeof indexMapping[item.category] === 'undefined') {
       indexMapping[item.category] = {
         index: _landcapseData.length,
@@ -155,6 +192,18 @@ onMounted(() => {
     subcategory.projects.push(item);
   });
   landcapseData.value = _landcapseData;
+
+  popoverInstance = createPopper(virtualElement, popoverRef.value, {
+    modifiers: [
+      {
+        name: 'offset',
+        options: {
+          offset: [0, 8],
+        },
+      },
+    ],
+  });
+
 });
 
 function gotoMore(category: string, subTechStackName: string) {
@@ -165,17 +214,34 @@ function clickProject(project: Project) {
   emit('clickProject', project);
 }
 
+let timerNumber: NodeJS.Timeout;
+const clearHideTimer = () => {
+  clearTimeout(timerNumber);
+}
+
 const showProjectPopover = (project: Project, event: MouseEvent) => {
+  clearHideTimer();
+  popoverRef.value.setAttribute('data-show', '');
   popoverProject.value = project;
-  const popperRef = unref(popoverRef).popperRef;
-  popperRef.triggerRef = event.target;
-  //popperRef?.delayHide?.()
-
+  virtualElement.getBoundingClientRect = () => { return (event.target as Element)!.getBoundingClientRect() };
+  popoverInstance.update();
 }
-
 const hideProjectPopover = () => {
-
+  timerNumber = setTimeout(() => {
+    popoverRef.value.removeAttribute('data-show');
+  }, 500);
 }
+
+
+
+function numberFormat(num: number) {
+  if (num < 1000) {
+    return num;
+  }
+
+  return (num / 1000).toFixed(1) + 'k';
+}
+
 </script>
 <style scoped lang="less">
 .project-logo {
@@ -188,6 +254,49 @@ const hideProjectPopover = () => {
 .more-btn {
   &:hover {
     cursor: pointer;
+  }
+}
+
+#project-tooltip {
+  display: none;
+
+  #arrow,
+  #arrow::before {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: inherit;
+  }
+
+  #arrow {
+    visibility: hidden;
+  }
+
+  #arrow::before {
+    visibility: visible;
+    content: '';
+    transform: rotate(45deg);
+  }
+
+
+  &[data-popper-placement^='top']>#arrow {
+    bottom: -4px;
+  }
+
+  &[data-popper-placement^='bottom']>#arrow {
+    top: -4px;
+  }
+
+  &[data-popper-placement^='left']>#arrow {
+    right: -4px;
+  }
+
+  &[data-popper-placement^='right']>#arrow {
+    left: -4px;
+  }
+
+  &[data-show] {
+    display: block;
   }
 }
 </style>
