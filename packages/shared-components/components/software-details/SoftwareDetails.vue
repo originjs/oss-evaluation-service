@@ -270,7 +270,7 @@ function renderGithubStartChart() {
         showMaxLabel: true,
       },
       axisTick: {
-        alignWithLabel: true
+        alignWithLabel: true,
       },
     },
     yAxis: {
@@ -312,7 +312,7 @@ function renderDeveloperSatisfactionChart() {
         showMaxLabel: true,
       },
       axisTick: {
-        alignWithLabel: true
+        alignWithLabel: true,
       },
     },
     yAxis: {
@@ -490,7 +490,7 @@ function renderLineChart(container: string, data: EcologyActivity[]) {
         showMaxLabel: true,
       },
       axisTick: {
-        alignWithLabel: true
+        alignWithLabel: true,
       },
     },
     yAxis: {
@@ -552,83 +552,97 @@ const emits = defineEmits<{
 </script>
 
 <template>
-  <div ref="softwareDetailsEl" pb-50px bg-coolgray-50>
-    <div v-loading="loadingOverview" overflow-hidden p-20px bg-white shadow-md>
-      <div w-1280px m-auto>
-        <el-image :src="project?.logo" fit="contain" class="float-left w-96px h-96px mr-14px">
-          <template #error>
-            <div flex flex-justify-center flex-items-center w-full h-full bg-gray-100>
-              <el-icon font-size-7 color-gray-400>
-                <Picture />
-              </el-icon>
-            </div>
-          </template>
-        </el-image>
-        <div float-left w-825px>
-          <div position-relative flex flex-items-center>
-            <el-tooltip effect="light" :teleported="false">
-              <div
-                mt--5px
-                mr-12px
-                max-w-600px
-                font-size-7
-                font-bold
-                line-height-normal
-                class="text-over"
-              >
-                <a :href="project?.url" target="_blank" rel="noreferrer">
-                  {{ repoName }}
-                </a>
-              </div>
-
-              <template #content>
-                <div max-w-900px>{{ repoName }}</div>
-              </template>
-            </el-tooltip>
-            <el-tag
-              v-if="project?.techStack !== null && project?.techStack !== undefined"
-              mr-3
-              size="small"
-              type="danger"
-              effect="dark"
-            >
-              {{ project?.techStack }}
-            </el-tag>
-            <el-button type="primary" plain :icon="Plus" @click="addProjectToCompare"
-              >对比</el-button
-            >
-            <el-button type="primary" position-absolute right-0 @click="exportToExcel"
-              >导出评估报告</el-button
-            >
-          </div>
-          <div>
-            <el-tooltip effect="light" :teleported="false">
-              <span mb-2 font-size-3.5 class="text-over">{{ project?.description }}</span>
-              <template #content>
-                <div max-w-900px>{{ project?.description }}</div>
-              </template>
-            </el-tooltip>
-          </div>
-          <el-tag v-for="(label, idx) in tagList" :key="idx" :type="getTagType(idx)" mr-2 mb-2>{{
-            label
-          }}</el-tag>
-        </div>
-        <div id="software-radar-chart" float-right w-328px h-320px pt-30px bg-coolgray-50 />
-        <el-table
-          class="base-info"
-          :data="baseInfoTable"
-          stripe
-          border
-          :show-header="false"
-          tooltip-effect="light"
+  <div ref="softwareDetailsEl" class="software-details" bg-coolgray-50>
+    <div class="component-options">
+      <div class="btn-group">
+        <el-button
+          type="primary"
+          plain
+          :icon="Plus"
+          class="btn-compare"
+          @click="addProjectToCompare"
         >
-          <el-table-column prop="label" align="center" />
-          <el-table-column
-            prop="value"
-            align="center"
-            :formatter="(row: TableRow) => row.value ?? '-'"
-          />
-        </el-table>
+          对比
+        </el-button>
+        <el-button type="primary" class="btn-export" @click="exportToExcel">
+          导出评估报告
+        </el-button>
+      </div>
+    </div>
+    <div v-loading="loadingOverview" p-20px bg-white shadow-md>
+      <div w-1280px m-auto>
+        <div class="software-introduction">
+          <el-image :src="project?.logo" fit="contain" class="w-96px h-96px mr-14px">
+            <template #error>
+              <div flex flex-justify-center flex-items-center w-full h-full bg-gray-100>
+                <el-icon font-size-7 color-gray-400>
+                  <Picture />
+                </el-icon>
+              </div>
+            </template>
+          </el-image>
+          <div w-1170px mb-8px>
+            <div position-relative flex flex-items-center>
+              <el-tooltip effect="light" :teleported="false">
+                <div
+                  mt--5px
+                  mr-12px
+                  max-w-600px
+                  font-size-7
+                  font-bold
+                  line-height-normal
+                  class="text-over"
+                >
+                  <a :href="project?.url" target="_blank" rel="noreferrer">
+                    {{ repoName }}
+                  </a>
+                </div>
+
+                <template #content>
+                  <div max-w-900px>{{ repoName }}</div>
+                </template>
+              </el-tooltip>
+              <el-tag
+                v-if="project?.techStack !== null && project?.techStack !== undefined"
+                mr-3
+                size="small"
+                type="danger"
+                effect="dark"
+              >
+                {{ project?.techStack }}
+              </el-tag>
+            </div>
+            <div>
+              <el-tooltip effect="light" :teleported="false">
+                <span mb-2 font-size-3.5 class="text-over">{{ project?.description }}</span>
+                <template #content>
+                  <div max-w-900px>{{ project?.description }}</div>
+                </template>
+              </el-tooltip>
+            </div>
+            <el-tag v-for="(label, idx) in tagList" :key="idx" :type="getTagType(idx)" mr-2 mb-2>{{
+              label
+            }}</el-tag>
+          </div>
+        </div>
+        <div flex justify-between>
+          <el-table
+            class="table-base-info"
+            :data="baseInfoTable"
+            stripe
+            border
+            :show-header="false"
+            tooltip-effect="light"
+          >
+            <el-table-column prop="label" align="center" />
+            <el-table-column
+              prop="value"
+              align="center"
+              :formatter="(row: TableRow) => row.value ?? '-'"
+            />
+          </el-table>
+          <div id="software-radar-chart" w-328px h-280px pt-20px bg-coolgray-50 />
+        </div>
       </div>
     </div>
     <div w-1280px m-auto>
@@ -1185,6 +1199,42 @@ const emits = defineEmits<{
 </template>
 
 <style scoped lang="less">
+.software-details {
+  padding-bottom: 50px;
+  .component-options {
+    position: sticky;
+    top: 65px;
+    z-index: 99;
+    width: 100%;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0px 6px 12px -6px rgba(0, 0, 0, 0.12);
+    background-color: white;
+    .btn-group {
+      position: relative;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1280px;
+      height: 32px;
+      .btn-compare {
+        position: absolute;
+        right: 128px;
+      }
+      .btn-export {
+        position: absolute;
+        right: 0;
+      }
+    }
+  }
+  .software-introduction {
+    display: flex;
+    align-items: flex-start;
+  }
+  .table-base-info {
+    width: 935px;
+  }
+}
 .text-over {
   white-space: nowrap;
   overflow: hidden;
@@ -1197,14 +1247,5 @@ const emits = defineEmits<{
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-}
-
-:deep(.el-table.base-info) {
-  float: left;
-  margin-top: 8px;
-  width: 935px;
-  .cell {
-    line-height: 14px;
-  }
 }
 </style>
