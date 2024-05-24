@@ -101,6 +101,7 @@ export interface AlternativeInfo {
   id: number;
   fullName: string;
   url: string;
+  ai: number;
 }
 
 export interface EcologyActivityCategory {

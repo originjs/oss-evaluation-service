@@ -10,7 +10,7 @@ export async function getAlternativeProjects(repoName: string): Promise<Alternat
       fullName: repoName,
       alternativeId: { [Op.not]: null },
     },
-    attributes: ['alternativeId', 'alternativeName', 'alternativeUrl'],
+    attributes: ['alternativeId', 'alternativeName', 'alternativeUrl', 'source'],
     order: [['distance', 'asc']],
   });
   const alternatives = list.map(item => {
@@ -18,6 +18,7 @@ export async function getAlternativeProjects(repoName: string): Promise<Alternat
       id: item.alternativeId,
       fullName: item.alternativeName,
       url: item.alternativeUrl,
+      ai: item.source === 'ai' ? 1 : 0,
     };
   });
   if (alternatives.length < ALTERNATIVE_SIZE) {
@@ -31,9 +32,8 @@ ORDER BY stargazers_count DESC LIMIT ${ALTERNATIVE_SIZE + 1}`;
       type: sequelize.QueryTypes.SELECT,
     });
     for (const item of list) {
-      if (item.full_name === repoName)
-        // exclude it self
-        continue;
+      // exclude it self
+      if (item.full_name === repoName) continue;
       alternatives.push({
         id: item.id,
         fullName: item.full_name,
