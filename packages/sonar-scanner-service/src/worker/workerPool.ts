@@ -10,7 +10,7 @@ interface QueueItem<T, G> {
 export class WorkerPool<T, G> {
   private availableWorkers: Worker[];
   private queue: QueueItem<T, G>[];
-  private name: string;
+  private readonly name: string;
 
   constructor(name: string, file: string, size: number) {
     this.availableWorkers = [];

@@ -8,6 +8,11 @@ import { simpleGit } from 'simple-git';
 import type { Result } from '../utils/result';
 import { logger } from '@orginjs/oss-evaluation-data-model';
 
+const sleep = ms =>
+  new Promise(resolve => {
+    setTimeout(resolve, ms);
+  });
+
 // thread pool for git and sonar scanner
 const sonarScannerWorkerPath = join(
   dirname(fileURLToPath(import.meta.url)),
@@ -37,6 +42,26 @@ export async function scan(info: SonarScanParam) {
     .then(data => getDefaultBranchName(`${process.env.REPO_DIR}/${data.owner}/${data.repoName}`))
     .then(branchName => updateDefaultBranch(info.sonarKey, branchName))
     .then(() => sonarScannerThreadPool.run(info))
+    .then(result => (result.ok ? Promise.resolve(result.data) : Promise.reject(result.msg)))
+    .then(() => sleep(5000))
+    .then(() => {
+      logger.info(`try to collect sonar ${JSON.stringify([info.sonarKey])}`);
+      return fetch(`${process.env.INTEGRATION_HOST}/sync/sonarCloud/collect`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify([info.sonarKey]),
+      });
+    })
+    .then(collectResult => collectResult.json())
+    .then(data => {
+      if (data.ok) {
+        logger.info(`collect sonar project:${info.sonarKey} success`);
+      } else {
+        logger.error(`collect sonar project:${info.sonarKey} failed`);
+      }
+    })
     .catch(e => {
       logger.error(e);
     });

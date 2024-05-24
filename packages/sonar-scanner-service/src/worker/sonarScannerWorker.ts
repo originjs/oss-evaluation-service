@@ -5,11 +5,6 @@ import shelljs from 'shelljs';
 import { Result } from '../utils/result.js';
 import { logger } from '@orginjs/oss-evaluation-data-model';
 
-const sleep = ms =>
-  new Promise(resolve => {
-    setTimeout(resolve, ms);
-  });
-
 function runSonarScanner(info: SonarScanParam): Result<SonarScanParam> {
   const owner = info.gitOwner;
   const repoName = info.repoName;
@@ -23,6 +18,7 @@ function runSonarScanner(info: SonarScanParam): Result<SonarScanParam> {
      -Dsonar.sources=.\
      -Dsonar.host.url=${info.sonarHostUrl}\
      -Dsonar.projectBaseDir=${dir}\
+     -Dproject.home=${dir}\
      -DSONAR_SCANNER_OPTS="-Xmx2048m -Xms512m"`;
   if (language !== 'JAVA') {
     scanCommand += ' -Dsonar.exclusions=**/*.java';
@@ -35,22 +31,9 @@ function runSonarScanner(info: SonarScanParam): Result<SonarScanParam> {
   const shellResult = shelljs.exec(scanCommand);
   if (shellResult?.code === 0) {
     // try to collect sonar data
-    sleep(5000).then(() => {
-      logger.info(`try to collect sonar ${JSON.stringify([info.sonarKey])}`);
-      fetch(`${process.env.INTEGRATION_HOST}/sync/sonarCloud/collect`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify([info.sonarKey]),
-      })
-        .then(response => response.json())
-        .then(data => logger.info(JSON.stringify(data)))
-        .catch(error => logger.error('Error:', error));
-    });
     return Result.ok(info);
   } else {
-    logger.error(shellResult.stderr);
+    logger.error(shellResult?.stderr);
     throw new Error(`sonar scanner failed ${JSON.stringify(info)}`);
   }
 }
