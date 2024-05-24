@@ -1,4 +1,5 @@
 import { Worker } from 'worker_threads';
+import { logger } from '@orginjs/oss-evaluation-data-model';
 
 interface QueueItem<T, G> {
   task: T;
@@ -37,7 +38,7 @@ export class WorkerPool<T, G> {
     reject: (reason: any) => void,
   ): void {
     worker.once('message', result => {
-      console.log(
+      logger.info(
         `There are still ${this.queue.length} tasks currently in ${this.name} workers pool`,
       );
       resolve(result);

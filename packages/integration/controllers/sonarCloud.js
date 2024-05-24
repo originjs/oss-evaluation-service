@@ -57,7 +57,7 @@ export async function collectSonarCloudData(req, res) {
   const sonarKeys = req.body;
   await collectSonarCloudDataBySonarKeys(sonarKeys);
   res.status(200);
-  res.json('{"ok":true}');
+  res.json({ ok: true, msg: `collect sonar projects:${JSON.stringify(sonarKeys)} success` });
 }
 
 async function collectSonarCloudDataBySonarKeys(sonarKeys) {
@@ -361,7 +361,10 @@ export async function setDefaultBranchOfSonar(req, res) {
     }
   }
   res.status(200);
-  res.json('{"ok":true}');
+  res.json({
+    ok: true,
+    msg: `set default branch:${defaultBranch} of sonar project:${sonarProjectKey} success`,
+  });
 }
 
 async function startSonarScanner(owner, repoName, sonarOrg, sonarKey, sonarHostUrl, language) {

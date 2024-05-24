@@ -2,7 +2,8 @@ import { parentPort } from 'worker_threads';
 import type { SonarScanParam } from '../interfaces/RepoInfo';
 import process from 'node:process';
 import shelljs from 'shelljs';
-import { Result } from '../utils/result';
+import { Result } from '../utils/result.js';
+import { logger } from '@orginjs/oss-evaluation-data-model';
 
 const sleep = ms =>
   new Promise(resolve => {
@@ -14,7 +15,7 @@ function runSonarScanner(info: SonarScanParam): Result<SonarScanParam> {
   const repoName = info.repoName;
   const language = info.language.toUpperCase();
   const dir = `${process.env.REPO_DIR}/${owner}/${repoName}`;
-  console.log(`start to scan ${owner}/${repoName}`);
+  logger.info(`start to scan ${owner}/${repoName}`);
   // run sonar
   let scanCommand = `sonar-scanner\
      -Dsonar.organization=${info.sonarOrg}\
@@ -35,7 +36,7 @@ function runSonarScanner(info: SonarScanParam): Result<SonarScanParam> {
   if (shellResult?.code === 0) {
     // try to collect sonar data
     sleep(5000).then(() => {
-      console.log(`try to collect sonar ${JSON.stringify([info.sonarKey])}`);
+      logger.info(`try to collect sonar ${JSON.stringify([info.sonarKey])}`);
       fetch(`${process.env.INTEGRATION_HOST}/sync/sonarCloud/collect`, {
         method: 'POST',
         headers: {
@@ -44,12 +45,12 @@ function runSonarScanner(info: SonarScanParam): Result<SonarScanParam> {
         body: JSON.stringify([info.sonarKey]),
       })
         .then(response => response.json())
-        .then(data => console.log(data))
-        .catch(error => console.error('Error:', error));
+        .then(data => logger.info(JSON.stringify(data)))
+        .catch(error => logger.error('Error:', error));
     });
     return Result.ok(info);
   } else {
-    console.error(shellResult.stderr);
+    logger.error(shellResult.stderr);
     throw new Error(`sonar scanner failed ${JSON.stringify(info)}`);
   }
 }

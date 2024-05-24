@@ -5,7 +5,8 @@ import process from 'node:process';
 import type { SimpleGit, SimpleGitOptions } from 'simple-git';
 import { simpleGit } from 'simple-git';
 import { existsSync, mkdirSync } from 'fs';
-import { Result } from '../utils/result';
+import { Result } from '../utils/result.js';
+import { logger } from '@orginjs/oss-evaluation-data-model';
 
 function getNotHiddenFileCount(dir: string) {
   const files = fs.readdirSync(dir);
@@ -35,20 +36,20 @@ export async function cloneRepoIfNotExist(
     const gitClient: SimpleGit = simpleGit(options);
     const isRepo = await gitClient.checkIsRepo();
     if (isRepo) {
-      console.log(`${owner}/${repoName} exists`);
+      logger.info(`${owner}/${repoName} exists`);
       if (pullIfExists) {
         try {
           await gitClient.pull();
         } catch (e) {
-          console.warn(`${owner}/${repoName} pull failed,but it doesn't affect sonar scan.`);
+          logger.warn(`${owner}/${repoName} pull failed,but it doesn't affect sonar scan.`);
         }
       }
     } else {
-      console.log(`${owner}/${repoName} dont exists,git clone`);
+      logger.info(`${owner}/${repoName} dont exists,git clone`);
       try {
         await gitClient.clone(cloneUrl, '.', ['--depth', '1']);
       } catch (e) {
-        console.error(`${owner}/${repoName}:${cloneUrl} clone failed! ${e}`);
+        logger.error(`${owner}/${repoName}:${cloneUrl} clone failed! ${e}`);
         continue;
       }
     }
@@ -57,10 +58,10 @@ export async function cloneRepoIfNotExist(
     const notHiddenFileCount = getNotHiddenFileCount(dir);
     if (notHiddenFileCount === 0) {
       //   git clone failed , delete the dir
-      console.info(`clone/pull ${dir} failed , retry count: ${i + 1}`);
+      logger.info(`clone/pull ${dir} failed , retry count: ${i + 1}`);
       fs.rmSync(dir, { recursive: true, force: true });
     } else {
-      console.log(`${owner}/${repoName}:${cloneUrl} clone success`);
+      logger.info(`${owner}/${repoName}:${cloneUrl} clone success`);
       return Result.ok(cloneInfo);
     }
   }

@@ -6,6 +6,7 @@ import process from 'node:process';
 import type { SimpleGitOptions } from 'simple-git';
 import { simpleGit } from 'simple-git';
 import type { Result } from '../utils/result';
+import { logger } from '@orginjs/oss-evaluation-data-model';
 
 // thread pool for git and sonar scanner
 const sonarScannerWorkerPath = join(
@@ -21,7 +22,7 @@ const sonarScannerThreadPool = new WorkerPool<SonarScanParam, Result<SonarScanPa
 const gitThreadPool = new WorkerPool<GitCloneParam, Result<GitCloneParam>>(
   'git clone workers',
   gitWorkerPath,
-  1,
+  2,
 );
 
 export async function scan(info: SonarScanParam) {
@@ -37,7 +38,7 @@ export async function scan(info: SonarScanParam) {
     .then(branchName => updateDefaultBranch(info.sonarKey, branchName))
     .then(() => sonarScannerThreadPool.run(info))
     .catch(e => {
-      console.error(e);
+      logger.error(e);
     });
 }
 
@@ -48,7 +49,7 @@ export async function getDefaultBranch(cloneInfo: GitCloneParam) {
     .then(data => getDefaultBranchName(`${process.env.REPO_DIR}/${data.owner}/${data.repoName}`))
     .then(branchName => updateDefaultBranch(cloneInfo.sonarKey, branchName))
     .catch(e => {
-      console.error(e);
+      logger.error(e);
     });
 }
 
