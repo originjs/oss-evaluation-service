@@ -1,5 +1,6 @@
 export default {
   tips: {
+    alternatives: '带AI标记的为使用AI大模型推荐的相似软件',
     satisfaction:
       '数据来源于历年StateOfJS生态调查报告，更多结果可以查看 https://stateofjs.com/en-US',
     bestPractices:

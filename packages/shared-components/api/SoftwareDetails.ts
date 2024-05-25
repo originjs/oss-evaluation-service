@@ -6,6 +6,7 @@ import type {
   BenchmarkData,
   EcologyActivityCategory,
   EcologyActivity,
+  AlternativeInfo,
 } from '@orginjs/oss-evaluation-api-server';
 
 export {
@@ -15,6 +16,7 @@ export {
   BenchmarkData,
   EcologyActivity,
   EcologyActivityCategory,
+  AlternativeInfo,
 };
 
 export function getSoftwareInfo(repoName: string) {

@@ -12,6 +12,7 @@ import type {
   PerformanceInfo,
   EcologyActivity,
   BenchmarkData,
+  AlternativeInfo,
 } from '@orginjs/oss-evaluation-components-api';
 import {
   getSoftwareInfo,
@@ -46,6 +47,7 @@ const project = ref<SoftwareInfo>();
 const loadingOverview = ref(false);
 const baseInfoTable = ref<TableRow[]>([]);
 const tagList = ref<string[]>([]);
+const alternatives = ref<AlternativeInfo[]>();
 const starTrend = ref<
   Array<{
     date: string;
@@ -518,6 +520,7 @@ watchEffect(async () => {
   loadingEcology.value = true;
   const { data } = await getEcologyActivityCategoryApi(encodedRepoName.value);
   starTrend.value = data.starTrend;
+  alternatives.value = data.alternatives;
   renderLineChart('#week-package-downloads-chart', data.packageDownload);
   renderLineChart('#code-submit-frequency-chart', data.commitFrequency);
   renderLineChart('#issue-comment-frequency-chart', data!.commentFrequency);
@@ -540,9 +543,16 @@ async function exportToExcel() {
   }
 }
 
+function feedbackAlternative() {
+  ElMessage.info('功能建设中，敬请期待');
+}
+
 const compareFavoritesRef = ref<InstanceType<typeof CompareFavorites>>();
-function addProjectToCompare() {
-  const { repoName, logo, url, description } = project.value!;
+function addProjectToCompare(info?) {
+  if (!info) {
+    info = project.value!;
+  }
+  const { repoName, logo, url, description } = info;
   compareFavoritesRef.value?.addProject([{ repoName, logo, url, description }]);
 }
 
@@ -667,6 +677,35 @@ onBeforeUnmount(() => {
       </div>
     </div>
     <div w-1280px m-auto>
+      <div flex mt-4 mb-4>
+        <div font-size-5 font-bold>相似软件推荐</div>
+        <el-tooltip :content="i18n.global.t(`tips.alternatives`)">
+          <el-icon size-1 color-gray-400>
+            <InfoFilled />
+          </el-icon>
+        </el-tooltip>
+        <el-button round ml-3 :icon="Plus" @click="feedbackAlternative">反馈相似软件</el-button>
+      </div>
+      <div flex m-4>
+        <div v-for="item in alternatives" :key="item.id" flex ml-2>
+          <div relative>
+            <el-image :src="item.logo" class="alt-logo"></el-image>
+            <span v-if="item.ai === 1" i-custom:ai class="badge-icon" />
+          </div>
+          <div float-left>
+            <div max-w-192px class="text-over">
+              {{ item.repoName }}
+            </div>
+            <el-button
+              type="primary"
+              size="small"
+              round
+              :icon="Plus"
+              @click="addProjectToCompare(item)"
+            ></el-button>
+          </div>
+        </div>
+      </div>
       <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-custom:function mr-2 />
         <span>功能</span>
@@ -1255,5 +1294,21 @@ onBeforeUnmount(() => {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+}
+
+.alt-logo {
+  border: 2px solid #b6b6b6;
+  border-radius: 5px;
+  width: 48px;
+  height: 48px;
+  margin-right: 16px;
+}
+
+.badge-icon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 24px;
+  height: 24px;
 }
 </style>

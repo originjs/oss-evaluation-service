@@ -99,8 +99,10 @@ export interface EcologyActivity {
 
 export interface AlternativeInfo {
   id: number;
-  fullName: string;
+  repoName: string;
+  logo: string;
   url: string;
+  description: string;
   ai: number;
 }
 
