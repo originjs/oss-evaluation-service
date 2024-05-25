@@ -549,28 +549,49 @@ function addProjectToCompare() {
 const emits = defineEmits<{
   compareProjects: [projects: Array<SoftwareBaseInfo>];
 }>();
+
+const baseInfoDom = ref();
+const optionBtnsDom = ref();
+
+function setbOptionBtnsDomPos() {
+  if (!optionBtnsDom.value || !baseInfoDom.value) {
+    return;
+  }
+  optionBtnsDom.value.style.left = `${baseInfoDom.value.getBoundingClientRect().left - 160}px`;
+}
+
+onMounted(() => {
+  nextTick(() => {
+    setbOptionBtnsDomPos();
+    window.addEventListener('scroll', setbOptionBtnsDomPos);
+    window.addEventListener('resize', setbOptionBtnsDomPos);
+  });
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', setbOptionBtnsDomPos);
+  window.removeEventListener('resize', setbOptionBtnsDomPos);
+});
 </script>
 
 <template>
   <div ref="softwareDetailsEl" class="software-details" bg-coolgray-50>
-    <div class="component-options">
-      <div class="btn-group">
-        <el-button
-          type="primary"
-          plain
-          :icon="Plus"
-          class="btn-compare"
-          @click="addProjectToCompare"
-        >
-          对比
-        </el-button>
-        <el-button type="primary" class="btn-export" @click="exportToExcel">
-          导出评估报告
-        </el-button>
-      </div>
-    </div>
     <div v-loading="loadingOverview" p-20px bg-white shadow-md>
-      <div w-1280px m-auto>
+      <div ref="baseInfoDom" w-1280px m-auto>
+        <div ref="optionBtnsDom" class="btn-options-floating">
+          <el-button
+            type="primary"
+            plain
+            :icon="Plus"
+            class="btn-compare"
+            @click="addProjectToCompare"
+          >
+            对比
+          </el-button>
+          <el-button type="primary" plain class="btn-export" @click="exportToExcel">
+            导出评估报告
+          </el-button>
+        </div>
         <div class="software-introduction">
           <el-image :src="project?.logo" fit="contain" class="w-96px h-96px mr-14px">
             <template #error>
@@ -1200,31 +1221,18 @@ const emits = defineEmits<{
 
 <style scoped lang="less">
 .software-details {
+  min-width: 1680px;
   padding-bottom: 50px;
-  .component-options {
-    position: sticky;
-    top: 65px;
-    z-index: 99;
-    width: 100%;
-    height: 50px;
+  .btn-options-floating {
+    position: fixed;
+    top: 186px;
+    z-index: 4;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    box-shadow: 0px 6px 12px -6px rgba(0, 0, 0, 0.12);
-    background-color: white;
-    .btn-group {
-      position: relative;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 1280px;
-      height: 32px;
-      .btn-compare {
-        position: absolute;
-        right: 128px;
-      }
-      .btn-export {
-        position: absolute;
-        right: 0;
-      }
+    :deep(.el-button) {
+      margin: 0 0 16px;
+      width: 120px;
     }
   }
   .software-introduction {
