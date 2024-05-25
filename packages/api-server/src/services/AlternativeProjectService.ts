@@ -4,7 +4,7 @@ import type { AlternativeInfo } from '../interfaces/SoftwareInfo';
 AlternativeProjects.hasOne(GithubProjects, { foreignKey: 'alternative_id' });
 
 export async function getAlternativeProjects(fullName: string): Promise<AlternativeInfo[]> {
-  const ALTERNATIVE_SIZE = 5;
+  const ALTERNATIVE_SIZE = 6;
   // similar project by ai
   const sql = `SELECT alternative_id, alternative_name, alternative_url, source, owner_avatar_url, description 
   FROM alternative_projects a LEFT JOIN github_projects g ON a.alternative_id=g.id

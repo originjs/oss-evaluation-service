@@ -687,19 +687,19 @@ onBeforeUnmount(() => {
         <el-button round ml-3 :icon="Plus" @click="feedbackAlternative">反馈相似软件</el-button>
       </div>
       <div flex m-4>
-        <div v-for="item in alternatives" :key="item.id" flex ml-2>
+        <div v-for="item in alternatives" :key="item.id" flex ml-4>
           <div relative>
             <el-image :src="item.logo" class="alt-logo"></el-image>
             <span v-if="item.ai === 1" i-custom:ai class="badge-icon" />
           </div>
           <div float-left>
-            <div max-w-192px class="text-over">
+            <div max-w-168px class="text-over">
               {{ item.repoName }}
             </div>
             <el-button
               type="primary"
               size="small"
-              round
+              plain
               :icon="Plus"
               @click="addProjectToCompare(item)"
             ></el-button>
