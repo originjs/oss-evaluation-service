@@ -19,15 +19,16 @@ const sonarScannerWorkerPath = join(
   '../worker/sonarScannerWorker.js',
 );
 const gitWorkerPath = join(dirname(fileURLToPath(import.meta.url)), '../worker/gitWorker.js');
+// if the machine's performance is sufficient, you can try increasing the number of workers(change size param)
 const sonarScannerThreadPool = new WorkerPool<SonarScanParam, Result<SonarScanParam>>(
   'sonar scanner workers',
   sonarScannerWorkerPath,
-  2,
+  1,
 );
 const gitThreadPool = new WorkerPool<GitCloneParam, Result<GitCloneParam>>(
   'git clone workers',
   gitWorkerPath,
-  2,
+  1,
 );
 
 export async function scan(info: SonarScanParam) {

@@ -18,8 +18,7 @@ function runSonarScanner(info: SonarScanParam): Result<SonarScanParam> {
      -Dsonar.sources=.\
      -Dsonar.host.url=${info.sonarHostUrl}\
      -Dsonar.projectBaseDir=${dir}\
-     -Dproject.home=${dir}\
-     -DSONAR_SCANNER_OPTS="-Xmx2048m -Xms512m"`;
+     -Dproject.home=${dir}`;
   if (language !== 'JAVA') {
     scanCommand += ' -Dsonar.exclusions=**/*.java';
   }
