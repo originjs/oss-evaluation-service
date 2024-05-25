@@ -12,6 +12,7 @@ interface Project {
   starCount: number;
   forksCount: number;
   hasBenchmark: string;
+  bigProject: string;
 }
 
 const landscapeOptions = {
