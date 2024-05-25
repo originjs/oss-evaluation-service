@@ -16,14 +16,17 @@
                 @click="gotoMore(data.category, subData.subTechStackName)" />
             </el-tooltip>
           </div>
-          <div flex-1 flex flex-wrap>
-            <div v-for="(project, pIndex) in subData.projects"
+          <div
+            style="display: grid;grid-template-columns: repeat(auto-fit,40px);grid-auto-rows: 40px;gap: 0.3em;margin-bottom:10px;">
+            <div v-for="project in subData.projects"
+              :style="`${getProjectStyle(project)} display: flex;word-wrap: break-word;`"
               :key='`${data.category}-${subData.subTechStackName}-${project.name}`'>
-              <!-- :style="`width:${pIndex > 4 ? '40px':'80px'};height:${pIndex > 4 ? '40px':'80px'}`" -->
-              <div mr-2 mb-2 w-40px h-40px v-if="pIndex < (props.options?.maxProjects || Number.MAX_VALUE)">
-                <el-image class="project-logo" lazy :src="project.logo" bg-white fit="fill"
-                  @click="clickProject(project)" @mouseenter="showProjectPopover(project, $event)"
-                  @mouseleave="hideProjectPopover" />
+              <div flex flex-col items-center bg-white class="project-logo" @click="clickProject(project)"
+                @mouseenter="showProjectPopover(project, $event)" @mouseleave="hideProjectPopover">
+                <el-image flex-1 lazy :src="project.logo" bg-white fit="fill"
+                  :class="{ 'big-project': project.bigProject === 'Y' }" />
+                <span v-if="project.bigProject === 'Y'" truncate bg-gray-200 w-81px lh-20px h-20px text-10px
+                  text-center>{{ project.name }}</span>
               </div>
             </div>
           </div>
@@ -93,6 +96,7 @@ interface Project {
   starCount: number;
   forksCount: number;
   hasBenchmark: string;
+  bigProject: string;
 }
 
 const props = defineProps<{
@@ -148,6 +152,7 @@ onMounted(() => {
       {
         subTechStackName: string,
         width?: number,
+        hasBigProject?: boolean,
         projects: Array<Project>
       }
     >
@@ -166,7 +171,7 @@ onMounted(() => {
       subcategoryArray = [];
       for (subcategory in layout[category]) {
         indexMapping[category].subIndex[subcategory] = subcategoryArray.length;
-        subcategoryArray.push({ subTechStackName: subcategory, width: width * layout[category][subcategory] - 10, projects: [] });
+        subcategoryArray.push({ subTechStackName: subcategory, hasBigProject: false, width: width * layout[category][subcategory] - 10, projects: [] });
       }
 
       _landcapseData.push({ "category": category, "subcategory": subcategoryArray });
@@ -185,12 +190,38 @@ onMounted(() => {
 
     if (typeof indexMapping[item.category].subIndex[item.subcategory] === 'undefined') {
       indexMapping[item.category].subIndex[item.subcategory] = category.subcategory.length;
-      category.subcategory.push({ subTechStackName: item.subcategory, projects: [] });
+      category.subcategory.push({ subTechStackName: item.subcategory, hasBigProject: false, projects: [] });
     }
 
     subcategory = category.subcategory[indexMapping[item.category].subIndex[item.subcategory]];
-    subcategory.projects.push(item);
+
+    if (!subcategory.hasBigProject && item.bigProject === 'Y') {
+      subcategory.hasBigProject = true;
+    }
+
+    if (item.bigProject === 'Y' || !props.options?.maxProjects || subcategory.projects.length < props.options?.maxProjects) {
+      subcategory.projects.push(item);
+    }
   });
+
+  _landcapseData.forEach(data => {
+    data.subcategory.forEach(subcategory => {
+      if (!subcategory.hasBigProject) {
+        return;
+      }
+      subcategory.projects.sort((p1, p2) => {
+        if (p1.bigProject === 'Y' && p2.bigProject !== 'Y') {
+          return -1;
+        } else if (p1.bigProject !== 'Y' && p2.bigProject === 'Y') {
+          return 1;
+        } else {
+          return 0;
+        }
+      })
+    })
+  });
+
+
   landcapseData.value = _landcapseData;
 
   popoverInstance = createPopper(virtualElement, popoverRef.value, {
@@ -242,6 +273,14 @@ function numberFormat(num: number) {
   return (num / 1000).toFixed(1) + 'k';
 }
 
+const getProjectStyle = (project: Project) => {
+  if (project.bigProject !== 'Y') {
+    return "width: 40px;height: 40px;";
+  }
+  //40 * 2 + 5px gap
+  return "width: 85px;height: 85px;grid-column-end: span 2;grid-row-end: span 2;border: 2px solid #016bccb3;";
+}
+
 </script>
 <style scoped lang="less">
 .project-logo {
@@ -255,6 +294,11 @@ function numberFormat(num: number) {
   &:hover {
     cursor: pointer;
   }
+}
+
+.big-project {
+  width: 60px;
+  height: 60px;
 }
 
 #project-tooltip {
