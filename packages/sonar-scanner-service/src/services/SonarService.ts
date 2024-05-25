@@ -1,4 +1,4 @@
-import type { GitCloneParam, SonarScanParam } from '../interfaces/RepoInfo';
+import type { GitCloneParam, SonarScanParam } from '../interfaces/Param';
 import { WorkerPool } from '../worker/workerPool.js';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'path';

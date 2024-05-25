@@ -1,5 +1,5 @@
 import { parentPort } from 'worker_threads';
-import type { GitCloneParam } from '../interfaces/RepoInfo';
+import type { GitCloneParam } from '../interfaces/Param';
 import fs from 'node:fs';
 import process from 'node:process';
 import type { SimpleGit, SimpleGitOptions } from 'simple-git';

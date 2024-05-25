@@ -1,4 +1,4 @@
-export interface RepoInfo {
+export interface Param {
   gitOwner: string;
   repoName: string;
   language: string;
@@ -17,4 +17,4 @@ export interface GitCloneParam {
   sonarKey: string;
 }
 
-export type SonarScanParam = SonarProjectInfo & RepoInfo;
+export type SonarScanParam = SonarProjectInfo & Param;

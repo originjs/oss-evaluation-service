@@ -1,1 +1,1 @@
-export * from './src/interfaces/RepoInfo';
+export * from './src/interfaces/Param';
