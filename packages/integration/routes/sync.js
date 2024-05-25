@@ -351,9 +351,12 @@ router.route('/refreshProjectMainPackage').get(refreshMainPackage);
 
 /**
  * @swagger
+ * tags:
+ *   name: stateofjs
  * /sync/stateofjs:
  *   post:
  *     summary: Synchronize state_of_js data
+ *     tags: [stateofjs]
  *     requestBody:
  *       required: false
  *       content:
@@ -371,9 +374,12 @@ router.route('/stateofjs').post(syncStateOfJsData);
 
 /**
  * @swagger
+ * tags:
+ *   name: stackoverflow
  * /sync/stackoverflow:
  *   post:
  *     summary: Synchronize stackoverflow result data
+ *     tags: [stackoverflow]
  *     requestBody:
  *       required: false
  *       content:
