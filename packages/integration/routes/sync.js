@@ -58,6 +58,10 @@ import {
   syncSingleProjectDependentCountHandler,
 } from '../controllers/projectDependentCount.js';
 import syncSingleProjectAllMetadataHandler from '../controllers/syncAllMetadata.js';
+import {
+  syncSingleProjectPullRequestCreatorsCountriesHandler,
+  syncAllProjectPullRequestCreatorsCountriesHandler,
+} from '../controllers/ossinsight.js';
 
 const router = express.Router();
 
@@ -944,5 +948,53 @@ router.route('/syncProjectDependencies').get(syncAllProjectDependenciesHandler);
  *         description: success.
  */
 router.route('/syncSingleProjectDependencies/:repoUrl').get(syncSingleProjectDependenciesHandler);
+
+/**
+ * @swagger
+ * /sync/syncSingleProjectPrCreatorsCountries:
+ *   post:
+ *     summary: syncSingleProjectPrCreatorsCountries
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               repoUrl:
+ *                  type: string
+ *                  example: 'https://github.com/vuejs/core'
+ *     responses:
+ *       200:
+ *         description: The created book.
+ *
+ */
+router
+  .route('/syncSingleProjectPrCreatorsCountries')
+  .post(syncSingleProjectPullRequestCreatorsCountriesHandler);
+
+/**
+ * @swagger
+ * /sync/syncAllProjectPullRequestCreatorsCountries:
+ *   post:
+ *     summary: syncAllProjectPullRequestCreatorsCountries
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               startDate:
+ *                  type: string
+ *                  example: '1024-04-01'
+ *     responses:
+ *       200:
+ *         description: The created book.
+ *
+ */
+router
+  .route('/syncAllProjectPullRequestCreatorsCountries')
+  .post(syncAllProjectPullRequestCreatorsCountriesHandler);
 
 export default router;

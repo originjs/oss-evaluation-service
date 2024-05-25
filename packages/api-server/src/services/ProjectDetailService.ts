@@ -13,6 +13,7 @@ import {
   GithubProjects,
   GithubProjectsStargazersTrend,
   PackageDownloadCount,
+  OssinsightPullRequestCreatorsCountries,
 } from '@orginjs/oss-evaluation-data-model';
 import ejsExcel from 'ejsexcel';
 import { readFileSync } from 'node:fs';
@@ -33,6 +34,10 @@ ProjectInfo.hasOne(Scorecard, { foreignKey: 'project_id', as: 'scorecard' });
 ProjectInfo.hasOne(SonarCloudProjectMin, { foreignKey: 'github_project_id', as: 'sonarCloudScan' });
 ProjectInfo.hasOne(EvaluationSummary, { foreignKey: 'project_id', as: 'evaluation' });
 ProjectInfo.hasMany(StateOfJsMin, { foreignKey: 'project_id', as: 'satisfaction' });
+ProjectInfo.hasMany(OssinsightPullRequestCreatorsCountries, {
+  foreignKey: 'project_id',
+  as: 'prCountries',
+});
 ProjectInfo.hasOne(CncfDocumentScoreMin, { foreignKey: 'project_id', as: 'document' });
 
 export async function getProjectDetailInfo(repoName: string): Promise<SoftwareInfo> {
@@ -65,6 +70,10 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
         model: StateOfJsMin,
         as: 'satisfaction',
       },
+      {
+        model: OssinsightPullRequestCreatorsCountries,
+        as: 'prCountries',
+      },
     ],
     where: {
       id: projectId,
@@ -82,6 +91,17 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
     res.satisfaction = satisfaction?.map(item => ({
       year: item.year,
       val: item.satisfactionPercentage,
+    }));
+  }
+
+  if (res.prCountries?.length !== 0) {
+    const prCountries = res.prCountries.sort((a, b) => {
+      return b.pull_request_creators - a.pull_request_creators;
+    });
+    res.prCountries = prCountries?.slice(0, 10).map(item => ({
+      countryCode: item.country_code,
+      pullRequestCreators: item.pull_request_creators,
+      percentage: item.percentage,
     }));
   }
 
