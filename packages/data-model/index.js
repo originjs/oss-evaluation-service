@@ -27,3 +27,4 @@ export { default as StateOfJsMin } from './models/StateOfJsMin.js';
 export { default as SonarCloudProjectMin } from './models/SonarCloudProjectMin.js';
 export { default as GithubProjectsStargazersTrend } from './models/GithubProjectsStargazersTrend.js';
 export { default as GithubProjectsDependencies } from './models/GithubProjectsDependencies.js';
+export { default as OssinsightPullRequestCreatorsCountries } from './models/OssinsightPullRequestCreatorsCountries.js';
