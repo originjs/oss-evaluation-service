@@ -13,6 +13,7 @@ import type {
   EcologyActivity,
   BenchmarkData,
   AlternativeInfo,
+  StarTrend,
 } from '@orginjs/oss-evaluation-components-api';
 import {
   getSoftwareInfo,
@@ -48,12 +49,10 @@ const loadingOverview = ref(false);
 const baseInfoTable = ref<TableRow[]>([]);
 const tagList = ref<string[]>([]);
 const alternatives = ref<AlternativeInfo[]>();
-const starTrend = ref<
-  Array<{
-    date: string;
-    stargazers: number;
-  }>
->;
+const starTrend = ref<StarTrend>({
+  date: [],
+  stargazers: [],
+});
 const openSSFScorecard = ref<
   Array<{
     label: string;
@@ -283,7 +282,6 @@ function renderGithubStartChart() {
         data: starTrend.value.stargazers,
         type: 'line',
         showSymbol: false,
-        hoverAnimation: true,
       },
     ],
     grid: {
@@ -593,6 +591,7 @@ onBeforeUnmount(() => {
             type="primary"
             plain
             :icon="Plus"
+            :disabled="!project"
             class="btn-compare"
             @click="addProjectToCompare"
           >
@@ -850,10 +849,10 @@ onBeforeUnmount(() => {
           </div>
 
           <el-progress
-            :percentage="item.value * 10"
+            :percentage="Number(item.value) * 10"
             :stroke-width="10"
             flex-auto
-            :color="scorecardProgressColor(item.value)"
+            :color="scorecardProgressColor(Number(item.value))"
           >
             <span>{{ item.value }} / 10</span>
           </el-progress>
@@ -1254,7 +1253,7 @@ onBeforeUnmount(() => {
   <CompareFavorites
     ref="compareFavoritesRef"
     style="position: fixed; bottom: 0px; z-index: 999"
-    @compare="(...args) => emits('compareProjects', ...args)"
+    @compare="args => emits('compareProjects', args)"
   ></CompareFavorites>
 </template>
 
