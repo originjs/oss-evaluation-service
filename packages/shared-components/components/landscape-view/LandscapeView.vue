@@ -24,9 +24,14 @@
               <div flex flex-col items-center bg-white class="project-logo" @click="clickProject(project)"
                 @mouseenter="showProjectPopover(project, $event)" @mouseleave="hideProjectPopover">
                 <el-image flex-1 lazy :src="project.logo" bg-white fit="fill"
-                  :class="{ 'big-project': project.bigProject === 'Y' }" />
+                  :class="{ 'big-project': project.bigProject === 'Y' }">
+                  <template #error>
+                    <GenerateProjectAvatar v-model="project.name" :width="40" :height="40" />
+                  </template>
+                </el-image>
                 <span v-if="project.bigProject === 'Y'" truncate bg-gray-200 w-81px lh-20px h-20px text-10px
-                  text-center>{{ project.name }}</span>
+                  text-center>{{ project.name
+                  }}</span>
               </div>
             </div>
           </div>
@@ -39,7 +44,11 @@
       <div>
         <div flex>
           <div w-70px h-90px mr-3>
-            <el-image :src="popoverProject?.logo" bg-white fit="fill" />
+            <el-image :src="popoverProject?.logo" bg-white fit="fill">
+              <template #error>
+                <GenerateProjectAvatar v-model="popoverProject.name" :width="70" :height="70" />
+              </template>
+            </el-image>
           </div>
           <div flex flex-1 flex-col>
             <span text-lg fw-bold>
@@ -85,6 +94,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { createPopper, type VirtualElement, type Instance } from '@popperjs/core';
+import GenerateProjectAvatar from './GenerateProjectAvatar.vue';
 
 interface Project {
   category: string;
@@ -116,7 +126,7 @@ const emit = defineEmits<{
 }>()
 
 const landcapseData = ref();
-const popoverProject = ref<Project>();
+const popoverProject = ref<Project>(props.projects[0]);
 const popoverRef = ref();
 let popoverInstance: Instance;
 
