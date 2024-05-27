@@ -29,6 +29,7 @@ export interface SoftwareInfo extends SoftwareBaseInfo {
     performanceScore: number;
     ecologyScore: number;
     innovationScore: number;
+    innovationValue: number;
     npmDownloads: number;
     stargazersCount: number;
     busFactor: number;
@@ -111,6 +112,11 @@ export interface AlternativeInfo {
   ai: number;
 }
 
+export interface StarTrend {
+  date: Array<string>;
+  stargazers: Array<string>;
+}
+
 export interface EcologyActivityCategory {
   commitFrequency: EcologyActivity[];
   commentFrequency: EcologyActivity[];
@@ -120,7 +126,7 @@ export interface EcologyActivityCategory {
   contributorCount: EcologyActivity[];
   recentReleasesCount: EcologyActivity[];
   packageDownload: EcologyActivity[];
-  starTrend: object;
+  starTrend: StarTrend;
   alternatives: AlternativeInfo[];
 }
 
