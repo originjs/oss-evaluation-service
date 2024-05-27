@@ -1,13 +1,17 @@
 import debug from 'debug';
 import { StackOverFlow } from '@orginjs/oss-evaluation-data-model';
-import resultData2023 from '../metadata/stackoverflow/result2023.js';
+import data2023 from '../metadata/stackoverflow/result2023.js';
+import data2022 from '../metadata/stackoverflow/result2022.js';
+import data2021 from '../metadata/stackoverflow/result2021.js';
 
 import { underscoreToSmallCamelCase } from '../util/string.js';
 
 let resultYear = '2023';
 
 const RESULT_DATA_MAP = {
-  2023: resultData2023,
+  2023: data2023,
+  2022: data2022,
+  2021: data2021,
 };
 
 export default syncStackOverFlowResultData;

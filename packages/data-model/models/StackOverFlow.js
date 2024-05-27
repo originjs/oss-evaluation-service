@@ -27,12 +27,18 @@ export default sequelize.define(
       type: DataTypes.INTEGER,
     },
     admiredFrequency: {
-      type: DataTypes.FLOAT,
-    },
-    wantedPercent: {
       type: DataTypes.INTEGER,
     },
+    dreadedFrequency: {
+      type: DataTypes.INTEGER,
+    },
+    wantedPercent: {
+      type: DataTypes.FLOAT,
+    },
     admiredPercent: {
+      type: DataTypes.FLOAT,
+    },
+    dreadedPercent: {
       type: DataTypes.FLOAT,
     },
   },
