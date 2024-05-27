@@ -7,6 +7,7 @@ import type {
   EcologyActivityCategory,
   EcologyActivity,
   AlternativeInfo,
+  StarTrend,
 } from '@orginjs/oss-evaluation-api-server';
 
 export {
@@ -17,6 +18,7 @@ export {
   EcologyActivity,
   EcologyActivityCategory,
   AlternativeInfo,
+  StarTrend,
 };
 
 export function getSoftwareInfo(repoName: string) {
