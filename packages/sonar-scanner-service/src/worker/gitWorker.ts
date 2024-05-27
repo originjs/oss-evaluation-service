@@ -47,7 +47,7 @@ export async function cloneRepoIfNotExist(
     } else {
       logger.info(`${owner}/${repoName} dont exists,git clone`);
       try {
-        await gitClient.clone(cloneUrl, '.', ['--depth', '1']);
+        await gitClient.clone(cloneUrl, '.');
       } catch (e) {
         logger.error(`${owner}/${repoName}:${cloneUrl} clone failed! ${e}`);
         continue;
