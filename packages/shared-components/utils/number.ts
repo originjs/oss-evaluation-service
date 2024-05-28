@@ -34,3 +34,19 @@ export function formatString(valueString: string | null | undefined) {
     ? '-'
     : valueString;
 }
+
+export function getDependentProjectHeight(projectNumber: number) {
+  let height = 100;
+  if (projectNumber > 30) {
+    height = 500;
+  } else if (projectNumber > 20) {
+    height = 400;
+  } else if (projectNumber > 10) {
+    height = 350;
+  } else if (projectNumber > 5) {
+    height = 300;
+  } else if (projectNumber > 1) {
+    height = 200;
+  }
+  return height;
+}

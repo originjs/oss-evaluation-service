@@ -168,3 +168,16 @@ export interface BenchmarkResult {
   envInfo: string;
   score: number;
 }
+
+export interface InnovationOrganizationInfo {
+  dependentProject: {
+    fullName: string;
+    ownerName: string;
+    ownerType: string;
+    star: number;
+  };
+  dependentOrganization: {
+    ownerName: string;
+    star: number;
+  };
+}

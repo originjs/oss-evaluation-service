@@ -5,9 +5,11 @@ import {
   getPerformance,
   exportScoreExcel,
   exportBenchmarkExcel,
+  getInnovation,
 } from '../services/ProjectDetailService.js';
 import type {
   EcologyActivityCategory,
+  InnovationOrganizationInfo,
   PerformanceInfo,
   SoftwareInfo,
 } from '../interfaces/SoftwareInfo.js';
@@ -35,6 +37,18 @@ export class ProjectController extends Controller {
   ): Promise<Result<PerformanceInfo | unknown>> {
     try {
       const data = await getPerformance(repoName);
+      return Result.ok(data);
+    } catch (e) {
+      return Result.ok({});
+    }
+  }
+
+  @Get('innovation/{repoName}')
+  public async getInnovationData(
+    @Path() repoName: string,
+  ): Promise<Result<InnovationOrganizationInfo | unknown>> {
+    try {
+      const data = await getInnovation(repoName);
       return Result.ok(data);
     } catch (e) {
       return Result.ok({});

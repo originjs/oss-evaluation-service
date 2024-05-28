@@ -6,6 +6,7 @@ import type {
   BenchmarkData,
   EcologyActivityCategory,
   EcologyActivity,
+  InnovationOrganizationInfo,
   AlternativeInfo,
   StarTrend,
 } from '@orginjs/oss-evaluation-api-server';
@@ -19,6 +20,7 @@ export {
   EcologyActivityCategory,
   AlternativeInfo,
   StarTrend,
+  InnovationOrganizationInfo,
 };
 
 export function getSoftwareInfo(repoName: string) {
@@ -35,4 +37,8 @@ export function getEcologyActivityCategoryApi(repoName: string) {
 
 export function exportFileApi(repoName: string) {
   return HttpRequest.post<Blob>(`/project/export/${repoName}`, undefined, { responseType: 'blob' });
+}
+
+export function getInnovationOrganizationApi(repoName: string) {
+  return HttpRequest.get<InnovationOrganizationInfo>(`/project/innovation/${repoName}`);
 }
