@@ -110,13 +110,17 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
 
 export async function getPerformance(repoName: string): Promise<PerformanceInfo> {
   const packageName = await getMainPackageByRepoName(repoName);
-  const packageSize = await PackageSizeDetail.findOne({
-    where: {
-      packageName,
-    },
-    order: [['version', 'desc']],
-    attributes: ['size', 'gzipSize'],
-  });
+  let packageSize = null;
+  if(packageName != null) {
+    packageSize = await PackageSizeDetail.findOne({
+      where: {
+        packageName,
+      },
+      order: [['version', 'desc']],
+      attributes: ['size', 'gzipSize'],
+    });
+  }
+
 
   // benchmark
   const benchmarkData = await getPerformanceBenchmark(repoName);
@@ -235,7 +239,7 @@ export async function getMainPackageByRepoName(repoName: string) {
   if (!data) {
     const msg = `cant find main package of project:{${repoName}}!`;
     console.warn(msg);
-    throw new Error(msg);
+    return null;
   }
   return data.package;
 }
@@ -402,13 +406,16 @@ export async function exportScoreExcel(projectName: string) {
   const excelTemplate = readFileSync('./assets/evaluation-template.xlsx');
   const data = await getProjectDetailInfo(projectName);
   const packageName = await getMainPackageByRepoName(projectName);
-  const packageSize = await PackageSizeDetail.findOne({
-    where: {
-      packageName: packageName,
-    },
-    order: [['version', 'desc']],
-    attributes: ['size', 'gzipSize'],
-  });
+  let packageSize = null;
+  if(packageName != null) {
+     packageSize = await PackageSizeDetail.findOne({
+      where: {
+        packageName: packageName,
+      },
+      order: [['version', 'desc']],
+      attributes: ['size', 'gzipSize'],
+    });
+  }
   const resultString = _.reduce(
     data.satisfaction,
     function (acc, item) {
