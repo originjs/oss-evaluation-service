@@ -772,7 +772,7 @@ onBeforeUnmount(() => {
             :icon="Plus"
             :disabled="!project"
             class="btn-compare"
-            @click="addProjectToCompare"
+            @click="addProjectToCompare(project.value!)"
           >
             对比
           </el-button>
