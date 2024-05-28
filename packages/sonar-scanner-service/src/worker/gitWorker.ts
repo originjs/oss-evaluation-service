@@ -27,7 +27,7 @@ export async function cloneRepoIfNotExist(
     trimmed: false,
   };
   // retry 3 times for clone
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 2; i++) {
     const exists = existsSync(dir);
     const cloneUrl = getCloneUrlByTime(i + 1, owner, repoName);
     if (!exists) {
@@ -76,8 +76,6 @@ function getCloneUrlByTime(time: number, owner: string, repoName: string): strin
     case 1:
       return `https://github.com/${owner}/${repoName}.git`;
     case 2:
-      return `https://gitclone.com/github.com/${owner}/${repoName}.git`;
-    case 3:
       return `git@github.com:${owner}/${repoName}.git`;
   }
 }
