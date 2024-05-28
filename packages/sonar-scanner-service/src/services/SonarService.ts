@@ -36,7 +36,7 @@ export async function scan(info: SonarScanParam) {
     .run({
       owner: info.gitOwner,
       repoName: info.repoName,
-      pullIfExists: true,
+      pullIfExists: false,
       sonarKey: info.sonarKey,
     })
     .then(result => (result.ok ? Promise.resolve(result.data) : Promise.reject(result.msg)))

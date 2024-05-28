@@ -40,7 +40,8 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
       case JavaBuildType.MAVEN:
         return [
           `cd ${dir} &&\
-          mvn clean\
+          mvn -T 1C\
+          clean\
           verify sonar:sonar\
           -DskipTests\
           -Dsonar.host.url=${this.param.sonarHostUrl}\
