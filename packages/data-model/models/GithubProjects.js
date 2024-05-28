@@ -170,6 +170,9 @@ export default sequelize.define(
     dependentPackages: {
       type: DataTypes.BIGINT,
     },
+    recordDesc: {
+      type: DataTypes.STRING(255),
+    }
   },
   {
     tableName: 'github_projects',

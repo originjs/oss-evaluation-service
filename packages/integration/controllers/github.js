@@ -69,7 +69,7 @@ export async function syncProjectByUserStar(req, res) {
     }
     const projects = parseProjects(response.data);
     for (let j = 0; j < projects.length; j += 1) {
-      projects[j].integratedState = 1;
+      projects[j].recordDesc = Date.now();
     }
 
     saveCSVFile(projects, `github_projects_user_star_page${i}`);
@@ -92,7 +92,9 @@ function getStarsScope(req) {
 }
 
 async function savaData(projects) {
-  const updateOnDuplicate = Object.keys(projects[0]).slice(1);
+  let updateOnDuplicate = Object.keys(projects[0]).slice(1);
+  updateOnDuplicate = updateOnDuplicate.filter(fieldName => fieldName!='integratedState'); 
+
   const result = await GithubProjects.bulkCreate(projects, {
     updateOnDuplicate,
   });
