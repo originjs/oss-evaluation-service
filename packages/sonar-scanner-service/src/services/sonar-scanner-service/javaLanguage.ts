@@ -42,11 +42,11 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
           `cd ${dir} &&\
           mvn -T 1C\
           clean\
-          verify sonar:sonar\
-          -DskipTests\
+          compile sonar:sonar\
           -Dsonar.host.url=${this.param.sonarHostUrl}\
           -Dsonar.organization=${this.param.sonarOrg}\
-          -Dsonar.projectKey=${this.param.sonarKey} `,
+          -Dsonar.projectKey=${this.param.sonarKey}\
+          -Dsonar.token=${process.env.SONAR_TOKEN}`,
         ];
       case JavaBuildType.GRADLE:
       case JavaBuildType.GRADLE_KTS: {
@@ -62,7 +62,8 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
               ./gradlew sonar\
              -Dsonar.host.url=${this.param.sonarHostUrl}\
              -Dsonar.organization=${this.param.sonarOrg}\
-             -Dsonar.projectKey=${this.param.sonarKey}`;
+             -Dsonar.projectKey=${this.param.sonarKey}\
+             -Dsonar.token=${process.env.SONAR_TOKEN} `;
         return [writeLockCommand, buildCommand, sonarCommand];
       }
       default:

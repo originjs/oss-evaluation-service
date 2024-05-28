@@ -20,8 +20,9 @@ function runSonarScanner(info: SonarScanParam): Result<SonarScanParam> {
     if (shellResult?.code !== 0) {
       // restore changes
       shelljs.exec(restoreCommand);
-      logger.error(`${info.gitOwner}/${info.repoName} run command {${command}} failed:\
-      ${shellResult?.stderr}`);
+      logger.error(
+        `${info.gitOwner}/${info.repoName} run command {${command}} failed:${shellResult?.stderr}`,
+      );
       throw new Error(`sonar scanner failed ${JSON.stringify(info)}`);
     }
   }
@@ -35,7 +36,7 @@ parentPort.on('message', info => {
     const sonarScanResult = runSonarScanner(info);
     parentPort.postMessage(sonarScanResult);
   } catch (e) {
-    parentPort.postMessage(Result.fail(e.messagge));
+    parentPort.postMessage(Result.fail(e.message));
   }
 });
 

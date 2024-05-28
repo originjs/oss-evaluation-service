@@ -21,7 +21,8 @@ export class OthersLanguageService implements LanguageSonarScannerInterface {
      -Dsonar.organization=${this.param.sonarOrg}\
      -Dsonar.projectKey=${this.param.sonarKey}\
      -Dsonar.sources=.\
-     -Dsonar.host.url=${this.param.sonarHostUrl}`;
+     -Dsonar.host.url=${this.param.sonarHostUrl}
+     -Dsonar.token=${process.env.SONAR_TOKEN}`;
     if (language !== 'JAVA') {
       scanCommand += ' -Dsonar.exclusions=**/*.java';
     }
