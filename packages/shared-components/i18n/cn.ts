@@ -60,5 +60,10 @@ export default {
     },
     compass:
       '数据来源于开源指南针OSS Compass，关于指标的详细说明可以查看官网: https://oss-compass.org/zh/docs/docs/metrics-models/',
+    dependentOrganization: {
+      project: '将该软件作为依赖的知名项目, 范围越大表示star数越多',
+      organization:
+        '使用该软件的知名组织，排序规则为: 该组织在GitHub上所有项目的star数量总和从大到小排序',
+    },
   },
 };

@@ -474,3 +474,36 @@ export async function exportBenchmarkExcel(repoName: string) {
     Logger.error(err);
   }
 }
+
+export async function getInnovation(repoName: string) {
+  const dependentProjectSql = `
+  select pd.full_name as fullName, pd.owner_name as ownerName, pd.owner_type as ownerType, p.stargazers_count as star
+  from github_projects_dependencies pd
+         inner join github_projects p on p.id = pd.project_id
+  where dependent_full_name = :repoName
+  order by stargazers_count desc limit 50`;
+
+  const dependentProject = await sequelize.query(dependentProjectSql, {
+    type: sequelize.QueryTypes.SELECT,
+    replacements: {
+      repoName,
+    },
+  });
+
+  const dependentOrganizationSql = `
+    select pd.owner_name as ownerName, p.stargazers_count as star from github_projects_dependencies pd
+         inner join github_projects p on p.id = pd.project_id
+    where dependent_full_name = :repoName and pd.owner_type = 'Organization'
+    order by stargazers_count desc;
+  `;
+  const dependentOrganization= await sequelize.query(dependentOrganizationSql, {
+    type: sequelize.QueryTypes.SELECT,
+    replacements: {
+      repoName,
+    },
+  });
+  return {
+    dependentProject,
+    dependentOrganization,
+  };
+}

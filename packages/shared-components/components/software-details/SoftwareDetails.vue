@@ -20,9 +20,11 @@ import {
   getPerformanceModuleInfo,
   getEcologyActivityCategoryApi,
   exportFileApi,
+  getInnovationOrganizationApi,
 } from '@orginjs/oss-evaluation-components-api';
 import { CompareFavorites } from '../compare-favorites';
 import {
+  getDependentProjectHeight,
   getLevelColor,
   getTagType,
   scorecardProgressColor,
@@ -34,6 +36,7 @@ import {
   formatString,
 } from '@orginjs/oss-evaluation-components-utils';
 import i18n from '../../i18n';
+import * as d3 from 'd3';
 
 dayjs.extend(relativeTime);
 const props = defineProps<{ repoName: string }>();
@@ -255,7 +258,7 @@ function renderSoftwareRadarChart() {
 }
 
 function renderGithubStartChart() {
-  const chartDom = softwareDetailsEl.value.querySelector('#github-start-chart');
+  const chartDom = softwareDetailsEl.value?.querySelector('#github-start-chart');
   if (!chartDom) {
     return;
   }
@@ -293,6 +296,151 @@ function renderGithubStartChart() {
     },
   };
   chart.setOption(option);
+}
+
+function renderBubbleChart(container: string, data: object) {
+  const chartDom = softwareDetailsEl.value?.querySelector(container);
+  if (!chartDom) {
+    return;
+  }
+  let myChart = echarts.init(chartDom);
+  if (myChart !== null) {
+    myChart.dispose();
+    myChart = echarts.init(chartDom);
+  }
+  let count = 1;
+  let seriesData = Object.keys(data).map(key => {
+    count += 1;
+    return {
+      depth: 1,
+      id: 'option.' + data[key]['ownerName'] + count,
+      index: count,
+      value: data[key]['star'],
+      projectName: data[key]['fullName'].split('/')[1],
+    };
+  });
+  seriesData.push({
+    depth: 0,
+    id: 'option',
+    index: 0,
+    value: 0,
+    projectName: 'root',
+  });
+
+  let displayRoot = stratify();
+  function stratify() {
+    return d3
+      .stratify()
+      .parentId(function (d) {
+        return d.id.substring(0, d.id.lastIndexOf('.'));
+      })(seriesData)
+      .sum(function (d) {
+        return d.value || 0;
+      })
+      .sort(function (a, b) {
+        return b.value - a.value;
+      });
+  }
+  function overallLayout(params, api) {
+    let context = params.context;
+    d3
+      .pack()
+      .size([api.getWidth() - 2, api.getHeight() - 2])
+      .padding(0)(displayRoot);
+    context.nodes = {};
+
+    displayRoot.descendants().forEach(function (node) {
+      context.nodes[node.id] = node;
+    });
+  }
+  function renderItem(params, api) {
+    let context = params.context;
+
+    // Only do that layout once in each time `setOption` called.
+    if (!context.layout) {
+      context.layout = true;
+      overallLayout(params, api);
+    }
+
+    let nodePath = api.value('id');
+    let nodeName = api.value('projectName');
+    let node = context.nodes[nodePath];
+    if (node.id === 'option') {
+      node.r = 0;
+    }
+    if (!node) {
+      // Reder nothing.
+      return;
+    }
+
+    let z2 = api.value('depth') * 2;
+    return {
+      type: 'circle',
+      focus: focus,
+      shape: {
+        cx: node.x,
+        cy: node.y,
+        r: node.r,
+      },
+      transition: ['shape'],
+      z2: z2,
+      textContent: {
+        type: 'text',
+        style: {
+          text: nodeName,
+          fill: '#fff',
+          fontFamily: 'Arial',
+          width: node.r * 1.3,
+          overflow: 'truncate',
+          fontSize: node.r / 3,
+        },
+        emphasis: {
+          style: {
+            overflow: null,
+            fontSize: Math.max(node.r / 3, 12),
+          },
+        },
+      },
+      textConfig: {
+        position: 'inside',
+      },
+      style: {
+        fill: '#5470c6',
+      },
+      emphasis: {
+        style: {
+          fontFamily: 'Arial',
+          fontSize: 15,
+          shadowBlur: 20,
+          shadowOffsetX: 3,
+          shadowOffsetY: 5,
+          shadowColor: 'rgba(0,0,0,0.3)', // 选中时的阴影强度
+        },
+      },
+    };
+  }
+  const option = {
+    dataset: {
+      source: seriesData,
+    },
+    tooltip: {
+      trigger: 'item',
+    },
+    hoverLayerThreshold: Infinity,
+    series: [
+      {
+        type: 'custom',
+        renderItem: renderItem,
+        progressive: 0,
+        coordinateSystem: 'none',
+        encode: {
+          tooltip: ['projectName', 'value'],
+        },
+      },
+    ],
+  };
+
+  myChart.setOption(option);
 }
 
 function renderDeveloperSatisfactionChart() {
@@ -529,6 +677,37 @@ watchEffect(async () => {
   renderLineChart('#recent-releases-count-chart', data.recentReleasesCount);
   renderGithubStartChart();
   loadingEcology.value = false;
+});
+
+const loadingInnovation = ref(false);
+const organizationInfoTable = ref<TableRow[]>([]);
+const dependentProjectHeight = ref(100);
+
+watchEffect(async () => {
+  const maxProjectNumber = 50;
+  const maxOrganizationsNumber = 10;
+  loadingInnovation.value = true;
+  const innovation = await getInnovationOrganizationApi(encodedRepoName.value);
+  let { dependentProject, dependentOrganization } = innovation.data;
+  dependentProject = dependentProject.slice(0, maxProjectNumber);
+  dependentProjectHeight.value = getDependentProjectHeight(dependentProject.length);
+
+  // Star Accumulation for the same organizations
+  let topArray = Object.values(
+    dependentOrganization.reduce((acc, { ownerName, star }) => {
+      acc[ownerName] = acc[ownerName] || { ownerName, star: 0 };
+      acc[ownerName].star += star;
+      return acc;
+    }, {}),
+  );
+  // Convert to array
+  organizationInfoTable.value = topArray
+    .slice(0, maxOrganizationsNumber)
+    .map(item => ({ label: item.ownerName, value: item.star }));
+  await nextTick(() => {
+    renderBubbleChart('#dependent-project-bubble-chart', dependentProject);
+  });
+  loadingInnovation.value = false;
 });
 
 async function exportToExcel() {
@@ -1246,6 +1425,56 @@ onBeforeUnmount(() => {
             {{ i18n.global.t(`tips.ecology.release`) }}
           </div>
           <div id="recent-releases-count-chart" h-200px />
+        </el-card>
+      </div>
+
+      <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
+        <span i-gis:earth-gear mr-2 />
+        <span>创新</span>
+        <span font-size-5 float-right>-/100</span>
+      </div>
+      <div
+        v-loading="loadingInnovation"
+        flex
+        flex-wrap
+        justify-between
+        content-between
+        items-center
+      >
+        <el-card mb-6 w-926px>
+          <div flex>
+            <div font-size-5 font-bold>使用{{ repoName.split('/')[1] }}的知名项目</div>
+            <el-tooltip :content="i18n.global.t(`tips.dependentOrganization.project`)">
+              <el-icon size-5 color-gray-400>
+                <InfoFilled />
+              </el-icon>
+            </el-tooltip>
+          </div>
+          <div
+            id="dependent-project-bubble-chart"
+            :style="{ height: dependentProjectHeight + 'px' }"
+          />
+        </el-card>
+        <el-card mb-6 w-326px>
+          <div flex>
+            <div font-size-5 font-bold>依赖{{ repoName.split('/')[1] }}的Top组织</div>
+            <el-tooltip :content="i18n.global.t(`tips.dependentOrganization.organization`)">
+              <el-icon size-5 color-gray-400>
+                <InfoFilled />
+              </el-icon>
+            </el-tooltip>
+          </div>
+          <div flex>
+            <el-table
+              class="base-info"
+              :data="organizationInfoTable"
+              stripe
+              border
+              tooltip-effect="light"
+            >
+              <el-table-column prop="label" align="center" label="组织" />
+            </el-table>
+          </div>
         </el-card>
       </div>
     </div>
