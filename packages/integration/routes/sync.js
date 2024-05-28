@@ -939,6 +939,12 @@ router
  *               startDate:
  *                  type: string
  *                  example: '1024-04-01'
+ *               minId:
+ *                  type: interger
+ *                  example: 12345
+ *               maxId:
+ *                  type: interger
+ *                  example: 12346
  *     responses:
  *       200:
  *         description: The created book.

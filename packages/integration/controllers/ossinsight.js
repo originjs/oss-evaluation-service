@@ -17,6 +17,8 @@ from github_projects project
                     from ossinsight_pull_request_creators_countries
                     where updated_at >= :startDate) country on project.id = project_id
 where isnull(project_id)
+and project.id >= :startId
+and project.id <= :endId
 order by id;
 `;
 
@@ -28,9 +30,11 @@ order by id;
  * @return {Promise<void>} A promise that resolves when all the data has been synchronized.
  */
 export async function syncAllProjectPullRequestCreatorsCountriesHandler(req, res) {
-  const { startDate } = req.body;
+  const { startDate, minId, maxId } = req.body;
+  let startId = minId || (await GithubProjects.min('id'));
+  let endId = maxId || (await GithubProjects.max('id'));
   const projectList = await sequelize.query(QUERY_SQL, {
-    replacements: { startDate },
+    replacements: { startDate, startId, endId },
     type: sequelize.QueryTypes.SELECT,
   });
 
@@ -64,15 +68,7 @@ export async function syncSingleProjectPullRequestCreatorsCountriesHandler(req, 
  */
 export async function syncSingleProjectPullRequestCreatorsCountries(project) {
   const countrieyList = await getPullRequestCreatorsCountries(project);
-  if (countrieyList === null || countrieyList === undefined || countrieyList.length === 0) {
-    debug.log(
-      'sync project pull request creators countries data from ossinsight! project:{}  fullName{}',
-      project.id,
-      project.fullName,
-    );
-  } else {
-    bulkUpsertData(countrieyList);
-  }
+  await bulkUpsertData(countrieyList);
 }
 
 /**
@@ -86,30 +82,31 @@ export async function syncAllProjectPullRequestCreatorsCountries(projectList) {
   for (let project of projectList) {
     if (project && project.fullName) {
       let country = await getPullRequestCreatorsCountries(project);
-      if (country === null || country === undefined || country.length === 0) {
-        debug.log(
-          'sync project pull request creators countries data from ossinsight! project:{}  fullName{}',
-          project.id,
-          project.fullName,
-        );
+      if (country.length === 0) {
         continue;
       }
       countryLists.push(...country);
     }
-    if (countryLists.length > 500) {
-      bulkUpsertData(countryLists);
+    if (countryLists.length > 1000) {
+      await bulkUpsertData(countryLists);
       countryLists = [];
     }
   }
 
-  bulkUpsertData(countryLists);
+  await bulkUpsertData(countryLists);
 }
 
 async function getPullRequestCreatorsCountries(project) {
+  const res = [];
   const result = await sendRequestByFullName(project.fullName);
-  const countryList = result.data.rows;
-  if (countryList && countryList.length > 0) {
-    const res = [];
+  const countryList = result?.data?.rows;
+  if (countryList === null || countryList === undefined || countryList.length === 0) {
+    debug.log(
+      'sync project pull request creators countries data from ossinsight, data not found! project:{}  fullName{}',
+      project.id,
+      project.fullName,
+    );
+  } else {
     countryList.forEach(el => {
       res.push({
         project_id: project.id,
@@ -118,13 +115,11 @@ async function getPullRequestCreatorsCountries(project) {
         percentage: el.percentage,
       });
     });
-    return res;
   }
+  return res;
 }
 
 export async function sendRequestByFullName(fullName) {
-  debug.log(`https://api.ossinsight.io/v1/repos/${fullName}/pull_request_creators/countries/`);
-
   const url = `https://api.ossinsight.io/v1/repos/${fullName}/pull_request_creators/countries/`;
   const response = await fetch(url, {
     method: 'GET',
@@ -132,16 +127,27 @@ export async function sendRequestByFullName(fullName) {
       Accept: 'application/json',
     },
     retryOptions: {
-      retryMaxDuration: 7200000, // 120 min retry duration
+      retryMaxDuration: 3600000, // 60 min retry duration
       retryInitialDelay: 100,
+      retryOnHttpResponse: response => {
+        // 当接口返回的状态码为 429 时进行重试
+        return (
+          response.status === 500 || response.message === 'Rate limit exceeded, retry in 1 hour'
+        );
+      },
     },
-  });
-  if (response.ok) {
-    return response.json();
-  }
-  return {
-    error: `fetch Stargazers Trend failed:: ${response.statusText}`,
-  };
+  })
+    .then(response => {
+      return response.json();
+    })
+    .catch(error => {
+      debug.log(
+        'fetch project pull request creators countries data failed! url:{} error:{}',
+        url,
+        error,
+      );
+    });
+  return response;
 }
 
 async function bulkUpsertData(data) {
