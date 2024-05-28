@@ -61,12 +61,13 @@ export async function githubTop(page: Page, type: string) {
   const offset = page.pageSize * (page.pageNo - 1);
 
   const result = await GithubProjects.findAll({
-    include: [
-      {
-        model: EvaluationSummary,
-        as: 'evaluationSummary',
-        required: true,
-      },
+    attributes: [
+      ['full_name', 'fullName'],
+      ['owner_avatar_url', 'ownerAvatarUrl'],
+      ['html_url', 'htmlUrl'],
+      ['stargazers_count', 'stargazersCount'],
+      ['forks_count', 'forksCount'],
+      'contributors',
     ],
     order: [[typeMap.get(type), 'DESC']],
     limit: pageSize,
