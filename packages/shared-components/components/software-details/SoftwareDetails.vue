@@ -862,25 +862,31 @@ onBeforeUnmount(() => {
             <InfoFilled />
           </el-icon>
         </el-tooltip>
-        <el-button round ml-3 :icon="Plus" @click="feedbackAlternative">反馈相似软件</el-button>
+        <el-button round ml-3 :icon="Plus" size="small" @click="feedbackAlternative"
+          >反馈相似软件</el-button
+        >
       </div>
-      <div flex m-4>
-        <div v-for="item in alternatives" :key="item.id" flex ml-4>
-          <div relative>
+      <div flex my-5>
+        <div v-for="item in alternatives" :key="item.id" class="alter-item" flex>
+          <div flex items-end relative>
             <el-image :src="item.logo" class="alt-logo"></el-image>
             <span v-if="item.ai === 1" i-custom:ai class="badge-icon" />
           </div>
-          <div float-left>
-            <div max-w-168px class="text-over">
-              {{ item.repoName }}
-            </div>
+          <div flex flex-col items-start float-left>
+            <el-tooltip effect="light" :content="item.repoName" placement="top">
+              <div mb-6px w-140px class="text-over">
+                {{ item.repoName }}
+              </div>
+            </el-tooltip>
             <el-button
+              style="padding: 0 18px; height: 22px"
               type="primary"
               size="small"
-              plain
-              :icon="Plus"
+              round
               @click="addProjectToCompare(item)"
-            ></el-button>
+            >
+              <span w-10px h-10px i-custom:plus-bold />
+            </el-button>
           </div>
         </div>
       </div>
@@ -1525,7 +1531,7 @@ onBeforeUnmount(() => {
 }
 
 .alt-logo {
-  border: 2px solid #b6b6b6;
+  border: 1px solid #e4e7ed;
   border-radius: 5px;
   width: 48px;
   height: 48px;
@@ -1534,9 +1540,13 @@ onBeforeUnmount(() => {
 
 .badge-icon {
   position: absolute;
-  top: 0;
+  top: -12px;
   right: 0;
   width: 24px;
   height: 24px;
+}
+
+.alter-item + .alter-item {
+  margin-left: 8px;
 }
 </style>
