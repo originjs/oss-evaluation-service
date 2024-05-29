@@ -14,6 +14,7 @@ import type {
   SoftwareBaseInfo,
   SoftwareInfo,
   StarTrend,
+  InnovationData,
 } from '@orginjs/oss-evaluation-components-api';
 import {
   exportFileApi,
@@ -21,6 +22,7 @@ import {
   getInnovationApi,
   getPerformanceModuleInfo,
   getSoftwareInfo,
+  getGeoDistributionInfo,
 } from '@orginjs/oss-evaluation-components-api';
 import { CompareFavorites } from '../compare-favorites';
 import {
@@ -206,7 +208,6 @@ watchEffect(async () => {
   renderSoftwareRadarChart();
   renderDeveloperSatisfactionChart();
   renderDocBestPracticesChart();
-  renderCountriesChart('#star-countries-chart', project.value?.starCountries ?? []);
   isRequestingProjectInfo.value = false;
 });
 
@@ -564,8 +565,22 @@ function renderDocBestPracticesChart() {
 }
 
 const geoActiveTab = ref('star');
+const geoDistributionInfo = ref<InnovationData | null>(null);
+const geoLoading = ref(false);
 let countriesChartInstance;
 echarts.registerMap('world', worldMap);
+
+watchEffect(async () => {
+  geoActiveTab.value = 'star';
+  geoLoading.value = true;
+  try {
+    const { data } = await getGeoDistributionInfo(encodedRepoName.value);
+    geoDistributionInfo.value = data;
+    renderCountriesChart('#star-countries-chart', geoDistributionInfo.value?.starCountries ?? []);
+  } finally {
+    geoLoading.value = false;
+  }
+});
 
 function renderCountriesChart(selector, data) {
   const chartDom = softwareDetailsEl.value?.querySelector(selector);
@@ -654,13 +669,19 @@ watch(geoActiveTab, tab => {
   nextTick(() => {
     switch (tab) {
       case 'star':
-        renderCountriesChart('#star-countries-chart', project.value?.starCountries ?? []);
+        renderCountriesChart(
+          '#star-countries-chart',
+          geoDistributionInfo.value?.starCountries ?? [],
+        );
         break;
       case 'issue':
-        renderCountriesChart('#issue-countries-chart', project.value?.issueCountries ?? []);
+        renderCountriesChart(
+          '#issue-countries-chart',
+          geoDistributionInfo.value?.issueCountries ?? [],
+        );
         break;
       case 'pr':
-        renderCountriesChart('#pr-countries-chart', project.value?.prCountries ?? []);
+        renderCountriesChart('#pr-countries-chart', geoDistributionInfo.value?.prCountries ?? []);
         break;
     }
   });
@@ -908,7 +929,7 @@ const router = useRouter();
 function toBenchmarkPage() {
   const url = router.resolve({ path: '/benchmark-compare' }).href;
   window.open(url, '_blank');
-};
+}
 
 function feedbackAlternative() {
   ElMessage.info('功能建设中，敬请期待');
@@ -1694,7 +1715,7 @@ onBeforeUnmount(() => {
         <span>创新</span>
         <span font-size-5 float-right>-/100</span>
       </div>
-      <el-card v-loading="!loadingInnovation && isRequestingProjectInfo" mb-6>
+      <el-card v-loading="!loadingInnovation && geoLoading" mb-6>
         <div mb-2 font-size-5 font-bold>贡献者多样性</div>
         <span font-size-3 text-gray-500>
           {{ i18n.global.t(`tips.geoDistribution`) }}
@@ -1705,9 +1726,9 @@ onBeforeUnmount(() => {
               <div id="star-countries-chart" w-964px h-500px mr-4 />
               <el-card w-300px style="box-shadow: unset">
                 <div mb-6 font-size-5 font-bold>Top 10</div>
-                <template v-if="project?.starCountries?.length">
+                <template v-if="geoDistributionInfo?.starCountries?.length">
                   <div
-                    v-for="(country, idx) in project.starCountries.slice(0, 10)"
+                    v-for="(country, idx) in geoDistributionInfo.starCountries.slice(0, 10)"
                     :key="idx"
                     flex
                     justify-between
@@ -1721,14 +1742,7 @@ onBeforeUnmount(() => {
                     }}</span>
                   </div>
                 </template>
-                <div
-                  v-else-if="!isRequestingProjectInfo"
-                  h-300px
-                  flex
-                  justify-center
-                  items-center
-                  color-gray
-                >
+                <div v-else-if="!geoLoading" h-300px flex justify-center items-center color-gray>
                   暂无数据
                 </div>
               </el-card>
@@ -1739,9 +1753,9 @@ onBeforeUnmount(() => {
               <div id="issue-countries-chart" w-964px h-500px mr-4 />
               <el-card w-300px style="box-shadow: unset">
                 <div mb-6 font-size-5 font-bold>Top 10</div>
-                <template v-if="project?.issueCountries?.length">
+                <template v-if="geoDistributionInfo?.issueCountries?.length">
                   <div
-                    v-for="(country, idx) in project.issueCountries.slice(0, 10)"
+                    v-for="(country, idx) in geoDistributionInfo.issueCountries.slice(0, 10)"
                     :key="idx"
                     flex
                     justify-between
@@ -1755,14 +1769,7 @@ onBeforeUnmount(() => {
                     }}</span>
                   </div>
                 </template>
-                <div
-                  v-else-if="!isRequestingProjectInfo"
-                  h-300px
-                  flex
-                  justify-center
-                  items-center
-                  color-gray
-                >
+                <div v-else-if="!geoLoading" h-300px flex justify-center items-center color-gray>
                   暂无数据
                 </div>
               </el-card>
@@ -1773,9 +1780,9 @@ onBeforeUnmount(() => {
               <div id="pr-countries-chart" w-964px h-500px mr-4 />
               <el-card w-300px style="box-shadow: unset">
                 <div mb-6 font-size-5 font-bold>Top 10</div>
-                <template v-if="project?.prCountries?.length">
+                <template v-if="geoDistributionInfo?.prCountries?.length">
                   <div
-                    v-for="(country, idx) in project.prCountries.slice(0, 10)"
+                    v-for="(country, idx) in geoDistributionInfo.prCountries.slice(0, 10)"
                     :key="idx"
                     flex
                     justify-between
@@ -1789,14 +1796,7 @@ onBeforeUnmount(() => {
                     }}</span>
                   </div>
                 </template>
-                <div
-                  v-else-if="!isRequestingProjectInfo"
-                  h-300px
-                  flex
-                  justify-center
-                  items-center
-                  color-gray
-                >
+                <div v-else-if="!geoLoading" h-300px flex justify-center items-center color-gray>
                   暂无数据
                 </div>
               </el-card>

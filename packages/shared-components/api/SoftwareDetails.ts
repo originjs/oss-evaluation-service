@@ -9,6 +9,7 @@ import type {
   AlternativeInfo,
   StarTrend,
   InnovationInfo,
+  InnovationData,
 } from '@orginjs/oss-evaluation-api-server';
 
 export {
@@ -21,6 +22,7 @@ export {
   AlternativeInfo,
   StarTrend,
   InnovationInfo,
+  InnovationData,
 };
 
 export function getSoftwareInfo(repoName: string) {
@@ -41,4 +43,8 @@ export function exportFileApi(repoName: string) {
 
 export function getInnovationApi(repoName: string) {
   return HttpRequest.get<InnovationInfo>(`/project/innovation/${repoName}`);
+}
+
+export function getGeoDistributionInfo(repoName: string) {
+  return HttpRequest.get<InnovationData>(`/project/innovate/${repoName}`);
 }
