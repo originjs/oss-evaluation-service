@@ -971,7 +971,14 @@ onBeforeUnmount(() => {
           <div flex flex-col items-start float-left>
             <el-tooltip effect="light" :content="item.repoName" placement="top">
               <div mb-6px w-140px class="text-over">
-                {{ item.repoName }}
+                <el-link
+                  :href="'/#/software-details?repoName=' + item.repoName"
+                  target="_blank"
+                  :underline="false"
+                  :title="item.repoName"
+                >
+                  {{ item.repoName }}
+                </el-link>
               </div>
             </el-tooltip>
             <el-button
