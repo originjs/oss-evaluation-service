@@ -580,7 +580,7 @@ function renderCountriesChart(selector, data) {
       }
       return {
         name: countriesNameMap[countryInfo.code] ?? '',
-        value: [countryInfo.long, countryInfo.lat, country.creatorsNum],
+        value: [countryInfo.long, countryInfo.lat, country.creatorsNum, country.percentage],
       };
     })
     .filter(country => country);
@@ -621,9 +621,9 @@ function renderCountriesChart(selector, data) {
         name: props.repoName,
         type: 'scatter',
         coordinateSystem: 'geo',
-        data: countriesData.slice(1),
+        data: countriesData.slice(1, 100),
         symbolSize: function (val) {
-          return Math.log2(val[2]) * 3;
+          return Math.max(Math.sqrt(val[3] * 50000 / Math.PI), 4);
         },
       },
       {
@@ -632,7 +632,7 @@ function renderCountriesChart(selector, data) {
         coordinateSystem: 'geo',
         data: countriesData[0] ? [countriesData[0]] : [],
         symbolSize: function (val) {
-          return Math.log2(val[2]) * 3;
+          return Math.max(Math.sqrt(val[3] * 50000 / Math.PI), 4);
         },
         label: {
           formatter: '{b}',
@@ -1726,7 +1726,7 @@ onBeforeUnmount(() => {
             </el-card>
             <el-card w-300px>
               <div mb-2 font-size-5 font-bold>Top 10</div>
-              <template v-if="project?.starCountries.length">
+              <template v-if="project?.starCountries?.length">
                 <div
                   v-for="(country, idx) in project.starCountries.slice(0, 10)"
                   :key="idx"
@@ -1763,7 +1763,7 @@ onBeforeUnmount(() => {
             </el-card>
             <el-card w-300px>
               <div mb-2 font-size-5 font-bold>Top 10</div>
-              <template v-if="project?.issueCountries.length">
+              <template v-if="project?.issueCountries?.length">
                 <div
                   v-for="(country, idx) in project.issueCountries.slice(0, 10)"
                   :key="idx"
@@ -1800,7 +1800,7 @@ onBeforeUnmount(() => {
             </el-card>
             <el-card w-300px>
               <div mb-2 font-size-5 font-bold>Top 10</div>
-              <template v-if="project?.prCountries.length">
+              <template v-if="project?.prCountries?.length">
                 <div
                   v-for="(country, idx) in project.prCountries.slice(0, 10)"
                   :key="idx"
