@@ -13,5 +13,5 @@ export interface LanguageSonarScannerInterface {
   /**
    * after run handler(like clean,restore...)
    */
-  restoreCommand(): string | void;
+  restoreCommand(): string;
 }

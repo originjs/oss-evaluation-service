@@ -19,9 +19,7 @@ function runSonarScanner(info: SonarScanParam): Result<SonarScanParam> {
     logger.info(`end execution of command {${command}} , code = ${shellResult.code}`);
     if (shellResult?.code !== 0) {
       // restore changes
-      if (restoreCommand) {
-        shelljs.exec(restoreCommand);
-      }
+      shelljs.exec(restoreCommand);
       logger.error(
         `${info.gitOwner}/${info.repoName} run command {${command}} failed:${shellResult?.stderr}`,
       );
@@ -29,9 +27,7 @@ function runSonarScanner(info: SonarScanParam): Result<SonarScanParam> {
     }
   }
   // restore changes
-  if (restoreCommand) {
-    shelljs.exec(restoreCommand);
-  }
+  shelljs.exec(restoreCommand);
   return Result.ok(info);
 }
 

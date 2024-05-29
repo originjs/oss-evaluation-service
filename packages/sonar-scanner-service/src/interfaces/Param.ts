@@ -2,6 +2,7 @@ export interface Param {
   gitOwner: string;
   repoName: string;
   language: string;
+  id: number;
 }
 
 export interface SonarProjectInfo {

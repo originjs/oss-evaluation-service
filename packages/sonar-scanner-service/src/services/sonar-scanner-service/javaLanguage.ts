@@ -9,6 +9,8 @@ enum JavaBuildType {
   GRADLE_KTS,
 }
 
+const initGradleFileName = '.sonar-scanner-gradle-init.gradle';
+
 export class JavaLanguageService implements LanguageSonarScannerInterface {
   param: SonarScanParam;
   /**
@@ -23,10 +25,12 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
     this.configBuildType(param);
   }
 
-  restoreCommand(): string | void {
+  restoreCommand(): string {
     const dir = `${process.env.REPO_DIR}/${this.param.gitOwner}/${this.param.repoName}`;
     if (this.buildType === JavaBuildType.GRADLE || this.buildType === JavaBuildType.GRADLE_KTS) {
-      fs.rmSync(`${dir}/.sonar-scanner-gradle-init.gradle`);
+      return `rm ${dir}/${initGradleFileName}`;
+    } else {
+      return `echo no need to clean`;
     }
   }
 
@@ -48,9 +52,9 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
             package\
             -DskipTests\
             -Dmaven.compiler.failOnWarning=false`;
-        const instllCommand = `
+        const installCommand = `
             cd ${dir} &&\
-            ${mvnCommand} install\
+            ${mvnCommand} \
             install\
             -DskipTests`;
         const sonarCommand = `
@@ -60,7 +64,7 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
             -Dsonar.organization=${this.param.sonarOrg}\
             -Dsonar.projectKey=${this.param.sonarKey}\
             -Dsonar.token=${process.env.SONAR_TOKEN}`;
-        return [compileCommand, instllCommand, sonarCommand];
+        return [compileCommand, installCommand, sonarCommand];
       }
       case JavaBuildType.GRADLE:
       case JavaBuildType.GRADLE_KTS: {
@@ -77,13 +81,15 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
             apply plugin: org.sonarqube.gradle.SonarQubePlugin
         } 
         `;
-        fs.writeFileSync(`${dir}/.sonar-scanner-gradle-init.gradle`, initContent, 'utf-8');
-        const buildCommand = `cd ${dir} && ./gradlew --parallel build -x test`;
+        const initFilePath = `${dir}/${initGradleFileName}`;
+        fs.writeFileSync(initFilePath, initContent, 'utf-8');
+        const buildCommand = `cd ${dir} && ./gradlew --parallel build -x test -Dorg.gradle.daemon=false`;
         const sonarCommand = `
              cd ${dir} &&\
               ./gradlew\
               sonar\
-              --init-script .sonar-scanner-gradle-init.gradle\
+              --init-script ${initFilePath} \
+              -Dorg.gradle.daemon=false\
               -Dsonar.host.url=${this.param.sonarHostUrl}\
               -Dsonar.organization=${this.param.sonarOrg}\
               -Dsonar.projectKey=${this.param.sonarKey}\
