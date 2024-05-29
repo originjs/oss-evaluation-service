@@ -1722,7 +1722,7 @@ onBeforeUnmount(() => {
             <div flex>
               <div id="star-countries-chart" w-964px h-500px mr-4 />
               <el-card w-300px style="box-shadow: unset">
-                <div mb-6 font-size-5 font-bold>Top 10</div>
+                <div mb-6 font-size-5 font-bold>Top 10 地区</div>
                 <template v-if="geoDistributionInfo?.starCountries?.length">
                   <div
                     v-for="(country, idx) in geoDistributionInfo.starCountries.slice(0, 10)"
@@ -1749,7 +1749,7 @@ onBeforeUnmount(() => {
             <div flex>
               <div id="issue-countries-chart" w-964px h-500px mr-4 />
               <el-card w-300px style="box-shadow: unset">
-                <div mb-6 font-size-5 font-bold>Top 10</div>
+                <div mb-6 font-size-5 font-bold>Top 10 地区</div>
                 <template v-if="geoDistributionInfo?.issueCountries?.length">
                   <div
                     v-for="(country, idx) in geoDistributionInfo.issueCountries.slice(0, 10)"
@@ -1776,7 +1776,7 @@ onBeforeUnmount(() => {
             <div flex>
               <div id="pr-countries-chart" w-964px h-500px mr-4 />
               <el-card w-300px style="box-shadow: unset">
-                <div mb-6 font-size-5 font-bold>Top 10</div>
+                <div mb-6 font-size-5 font-bold>Top 10 地区</div>
                 <template v-if="geoDistributionInfo?.prCountries?.length">
                   <div
                     v-for="(country, idx) in geoDistributionInfo.prCountries.slice(0, 10)"
