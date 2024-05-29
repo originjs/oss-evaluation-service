@@ -563,7 +563,18 @@ function renderCountriesChart(selector, data) {
   countriesChartInstance = echarts.init(chartDom);
   const option: echarts.EChartsOption = {
     backgroundColor: 'transparent',
-    tooltip: {},
+    tooltip: {
+      formatter(data) {
+        return `
+          <div>${props.repoName}</div>
+          <div font-bold>
+            <span>${data.name}</span>
+            <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+            <span>${data.value[2]}</span>
+          </div>
+        `;
+      },
+    },
     geo: {
       map: 'world',
       roam: false,
@@ -587,7 +598,7 @@ function renderCountriesChart(selector, data) {
         coordinateSystem: 'geo',
         data: countriesData.slice(1),
         symbolSize: function (val) {
-          return Math.sqrt(val[2]) * 4;
+          return Math.log2(val[2]) * 3;
         },
       },
       {
@@ -596,7 +607,7 @@ function renderCountriesChart(selector, data) {
         coordinateSystem: 'geo',
         data: countriesData[0] ? [countriesData[0]] : [],
         symbolSize: function (val) {
-          return Math.sqrt(val[2]) * 4;
+          return Math.log2(val[2]) * 3;
         },
         label: {
           formatter: '{b}',
