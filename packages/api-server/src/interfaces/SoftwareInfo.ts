@@ -88,21 +88,6 @@ export interface SoftwareInfo extends SoftwareBaseInfo {
     year: number;
     val: number;
   }[];
-  prCountries: {
-    countryCode: string;
-    creatorsNum: number;
-    percentage: string;
-  }[];
-  issueCountries: {
-    countryCode: string;
-    creatorsNum: number;
-    percentage: string;
-  }[];
-  starCountries: {
-    countryCode: string;
-    creatorsNum: number;
-    percentage: string;
-  }[];
   satisfactionExport?: string;
   gzipSize?: number;
 }

@@ -13,7 +13,6 @@ import {
   GithubProjects,
   GithubProjectsStargazersTrend,
   PackageDownloadCount,
-  OssinsightCreatorsCountries,
 } from '@orginjs/oss-evaluation-data-model';
 import ejsExcel from 'ejsexcel';
 import { readFileSync } from 'node:fs';
@@ -35,10 +34,6 @@ ProjectInfo.hasOne(Scorecard, { foreignKey: 'project_id', as: 'scorecard' });
 ProjectInfo.hasOne(SonarCloudProjectMin, { foreignKey: 'github_project_id', as: 'sonarCloudScan' });
 ProjectInfo.hasOne(EvaluationSummary, { foreignKey: 'project_id', as: 'evaluation' });
 ProjectInfo.hasMany(StateOfJsMin, { foreignKey: 'project_id', as: 'satisfaction' });
-ProjectInfo.hasMany(OssinsightCreatorsCountries, {
-  foreignKey: 'project_id',
-  as: 'countries',
-});
 ProjectInfo.hasOne(CncfDocumentScoreMin, { foreignKey: 'project_id', as: 'document' });
 
 export async function getProjectDetailInfo(repoName: string): Promise<SoftwareInfo> {
@@ -71,10 +66,6 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
         model: StateOfJsMin,
         as: 'satisfaction',
       },
-      {
-        model: OssinsightCreatorsCountries,
-        as: 'countries',
-      },
     ],
     where: {
       id: projectId,
@@ -84,9 +75,6 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
   const res = softwareInfo.toJSON();
   res.repoName = repoName;
   res.techStack = res.evaluation?.techStack;
-  res.prCountries = [];
-  res.starCountries = [];
-  res.issueCountries = [];
 
   if (res.satisfaction?.length !== 0) {
     const satisfaction = res.satisfaction.sort((a, b) => {
@@ -97,44 +85,6 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
       val: item.satisfactionPercentage,
     }));
   }
-
-  if (res.countries?.length !== 0) {
-    const prCountries = res.countries
-      .filter(item => item.type === 0)
-      .filter(item => item.country_code !== 'UNKNOWN')
-      .sort((a, b) => {
-        return b.creators_num - a.creators_num;
-      });
-    res.prCountries = prCountries?.slice(0, 100).map(item => ({
-      countryCode: item.country_code,
-      creatorsNum: item.creators_num,
-      percentage: item.percentage,
-    }));
-
-    const issueCountries = res.countries
-      .filter(item => item.type === 2)
-      .filter(item => item.country_code !== 'UNKNOWN')
-      .sort((a, b) => {
-        return b.creators_num - a.creators_num;
-      });
-    res.issueCountries = issueCountries?.slice(0, 100).map(item => ({
-      countryCode: item.country_code,
-      creatorsNum: item.creators_num,
-      percentage: item.percentage,
-    }));
-    const starCountries = res.countries
-      .filter(item => item.type === 1)
-      .filter(item => item.country_code !== 'UNKNOWN')
-      .sort((a, b) => {
-        return b.creators_num - a.creators_num;
-      });
-    res.starCountries = starCountries?.slice(0, 100).map(item => ({
-      countryCode: item.country_code,
-      creatorsNum: item.creators_num,
-      percentage: item.percentage,
-    }));
-  }
-  res.countries = [];
 
   return res;
 }
