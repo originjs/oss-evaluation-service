@@ -23,9 +23,11 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
     this.configBuildType(param);
   }
 
-  restoreCommand(): string {
+  restoreCommand(): string | void {
     const dir = `${process.env.REPO_DIR}/${this.param.gitOwner}/${this.param.repoName}`;
-    return `cd ${dir} && git restore .`;
+    if (this.buildType === JavaBuildType.GRADLE || this.buildType === JavaBuildType.GRADLE_KTS) {
+      fs.rmSync(`${dir}/.sonar-scanner-gradle-init.gradle`);
+    }
   }
 
   /**
@@ -57,22 +59,31 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
       }
       case JavaBuildType.GRADLE:
       case JavaBuildType.GRADLE_KTS: {
-        this.addPlugin4Gradle(
-          `${
-            this.buildType === JavaBuildType.GRADLE ? 'id "org.sonarqube"' : 'id("org.sonarqube")'
-          } version '${process.env.SONAR_PLUGIN_GRADLE_VERSION}'`,
-        );
-        const writeLockCommand = `cd ${dir} && ./gradlew dependencies --write-locks  --parallel`;
-        const buildCommand = `cd ${dir} && ./gradlew --parallel build  --parallel -x test`;
+        const initContent = `
+        initscript {
+            repositories {
+                gradlePluginPortal()
+            }
+            dependencies {
+                classpath("org.sonarqube:org.sonarqube.gradle.plugin:5.0.0.4638")
+            }
+        }
+        allprojects {
+            apply plugin: org.sonarqube.gradle.SonarQubePlugin
+        } 
+        `;
+        fs.writeFileSync(`${dir}/.sonar-scanner-gradle-init.gradle`, initContent, 'utf-8');
+        const buildCommand = `cd ${dir} && ./gradlew --parallel build -x test`;
         const sonarCommand = `
              cd ${dir} &&\
               ./gradlew\
               sonar\
-             -Dsonar.host.url=${this.param.sonarHostUrl}\
-             -Dsonar.organization=${this.param.sonarOrg}\
-             -Dsonar.projectKey=${this.param.sonarKey}\
-             -Dsonar.token=${process.env.SONAR_TOKEN} `;
-        return [writeLockCommand, buildCommand, sonarCommand];
+              --init-script .sonar-scanner-gradle-init.gradle\
+              -Dsonar.host.url=${this.param.sonarHostUrl}\
+              -Dsonar.organization=${this.param.sonarOrg}\
+              -Dsonar.projectKey=${this.param.sonarKey}\
+              -Dsonar.token=${process.env.SONAR_TOKEN} `;
+        return [buildCommand, sonarCommand];
       }
       default:
         throw new Error(`unknown build type of project:${owner}/${repoName}`);
@@ -96,24 +107,6 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
   isGradleKtsProject(dir: string): boolean {
     const gradleKtsConfigFile = `${dir}/build.gradle.kts`;
     return fs.existsSync(gradleKtsConfigFile);
-  }
-
-  addPlugin4Gradle(pluginContent: string): void {
-    const fileContent = fs.readFileSync(this.buildConfigFile, 'utf8');
-    if (fileContent.match(/plugins\s*\{.*org.sonarqube.*}/gms)) {
-      //   has sonar scanner plugin
-      return;
-    }
-    const pluginRegex = /plugins\s*\{[^}]*}/gms;
-    const match = pluginRegex.exec(fileContent);
-    if (match) {
-      // add sonar plugin if it matches
-      const modifiedPluginsBlock = match[0].slice(0, -1) + `    ${pluginContent}\n}`;
-      const afterAddPlugin = fileContent.replace(pluginRegex, modifiedPluginsBlock);
-      fs.writeFileSync(this.buildConfigFile, afterAddPlugin, 'utf-8');
-    } else {
-      throw new Error(`this is no plugins in file:${this.buildConfigFile}`);
-    }
   }
 
   configBuildType(param: SonarScanParam): void {
