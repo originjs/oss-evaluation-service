@@ -11,7 +11,7 @@
           <div :style="`background-color:${getBackgroundColor(index)}`" h-32px rd-4px c-white text-14px flex
             justify-center items-center mb-10px>
             <span>{{ subData.subTechStackName }}</span>
-            <el-tooltip effect="light" content="点击查看更多项目" placement="right">
+            <el-tooltip v-if="hasMore" effect="light" content="点击查看更多项目" placement="right">
               <div class="more-btn" i-custom:more font-size-4 ml-2
                 @click="gotoMore(data.category, subData.subTechStackName)" />
             </el-tooltip>
@@ -114,6 +114,7 @@ const props = defineProps<{
   options?: {
     colors: Array<string>,
     maxProjects?: number,
+    hasMore?: boolean,
     layout?: { [key: string]: any },
     evaluation?: (project: Project) => void,
     goBenchmark?: (project: Project) => void
@@ -128,6 +129,7 @@ const emit = defineEmits<{
 const landcapseData = ref();
 const popoverProject = ref<Project>(props.projects[0]);
 const popoverRef = ref();
+const hasMore = typeof props.options?.hasMore === 'undefined' ? true : props.options.hasMore;
 let popoverInstance: Instance;
 
 const BackgroundColors = ['#89bff6', '#89c997', '#e8dd92', '#f0b58e', '#aea3db'];
