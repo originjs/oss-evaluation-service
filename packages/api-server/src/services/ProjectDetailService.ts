@@ -415,7 +415,7 @@ export async function getSoftwareInnovate(repoName: string): Promise<InnovationD
       .sort((a, b) => {
         return b.creators_num - a.creators_num;
       });
-    starCountriesRaw = issueCountries?.slice(0, 100).map(item => ({
+    issueCountriesRaw = issueCountries?.slice(0, 100).map(item => ({
       countryCode: item.country_code,
       creatorsNum: item.creators_num,
       percentage: item.percentage,
@@ -426,7 +426,7 @@ export async function getSoftwareInnovate(repoName: string): Promise<InnovationD
       .sort((a, b) => {
         return b.creators_num - a.creators_num;
       });
-    issueCountriesRaw = starCountries?.slice(0, 100).map(item => ({
+    starCountriesRaw = starCountries?.slice(0, 100).map(item => ({
       countryCode: item.country_code,
       creatorsNum: item.creators_num,
       percentage: item.percentage,
