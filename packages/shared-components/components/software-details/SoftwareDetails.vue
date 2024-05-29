@@ -1,42 +1,41 @@
 <script setup lang="ts">
 import { Plus } from '@element-plus/icons-vue';
-import type { CellStyle } from 'element-plus';
+import type { CellStyle, TabsPaneContext } from 'element-plus';
 import { ElMessage } from 'element-plus';
 import * as echarts from 'echarts';
 import { saveAs } from 'file-saver';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import type {
-  SoftwareInfo,
-  SoftwareBaseInfo,
-  PerformanceInfo,
-  EcologyActivity,
-  BenchmarkData,
   AlternativeInfo,
+  BenchmarkData,
+  EcologyActivity,
+  PerformanceInfo,
+  SoftwareBaseInfo,
+  SoftwareInfo,
   StarTrend,
 } from '@orginjs/oss-evaluation-components-api';
 import {
-  getSoftwareInfo,
-  getPerformanceModuleInfo,
-  getEcologyActivityCategoryApi,
   exportFileApi,
-  getInnovationOrganizationApi,
+  getEcologyActivityCategoryApi,
+  getInnovationApi,
+  getPerformanceModuleInfo,
+  getSoftwareInfo,
 } from '@orginjs/oss-evaluation-components-api';
 import { CompareFavorites } from '../compare-favorites';
 import {
+  formatFloat,
+  formatNumber,
+  formatString,
   getDependentProjectHeight,
   getLevelColor,
   getTagType,
   scorecardProgressColor,
-} from '@orginjs/oss-evaluation-components-utils';
-import {
   toKilo,
-  formatFloat,
-  formatNumber,
-  formatString,
 } from '@orginjs/oss-evaluation-components-utils';
 import i18n from '../../i18n';
 import * as d3 from 'd3';
+import { max } from '@popperjs/core/lib/utils/math';
 import worldMap from '../../assets/json/worldMap.json';
 import countriesNameMap from '../../assets/json/countriesNameMap.json';
 import countriesInfo from '../../assets/json/countriesInfo.json';
@@ -302,16 +301,7 @@ function renderGithubStartChart() {
   chart.setOption(option);
 }
 
-function renderBubbleChart(container: string, data: object) {
-  const chartDom = softwareDetailsEl.value?.querySelector(container);
-  if (!chartDom) {
-    return;
-  }
-  let myChart = echarts.init(chartDom);
-  if (myChart !== null) {
-    myChart.dispose();
-    myChart = echarts.init(chartDom);
-  }
+function getDependentSeriesData(data: object) {
   let count = 1;
   let seriesData = Object.keys(data).map(key => {
     count += 1;
@@ -320,7 +310,7 @@ function renderBubbleChart(container: string, data: object) {
       id: 'option.' + data[key]['ownerName'] + count,
       index: count,
       value: data[key]['star'],
-      projectName: data[key]['fullName'].split('/')[1],
+      name: data[key]['fullName'].split('/')[1],
     };
   });
   seriesData.push({
@@ -328,8 +318,43 @@ function renderBubbleChart(container: string, data: object) {
     id: 'option',
     index: 0,
     value: 0,
-    projectName: 'root',
+    name: 'root',
   });
+  return seriesData;
+}
+
+function getCompaniesSeriesData(data: any) {
+  let count = 1;
+  let seriesData = Object.keys(data).map(key => {
+    count += 1;
+    return {
+      depth: 1,
+      id: 'option.' + data[key]['projectId'] + count,
+      index: count,
+      value: data[key]['creatorsNum'],
+      name: data[key]['orgName'],
+    };
+  });
+  seriesData.push({
+    depth: 0,
+    id: 'option',
+    index: 0,
+    value: 0,
+    name: 'root',
+  });
+  return seriesData;
+}
+
+function renderBubbleChart(container: string, seriesData: Array<any>) {
+  const chartDom = softwareDetailsEl.value?.querySelector(container);
+  if (!chartDom) {
+    return;
+  }
+  let myChart = echarts.init(chartDom);
+  if (myChart) {
+    myChart.dispose();
+    myChart = echarts.init(chartDom);
+  }
 
   let displayRoot = stratify();
   function stratify() {
@@ -367,7 +392,7 @@ function renderBubbleChart(container: string, data: object) {
     }
 
     let nodePath = api.value('id');
-    let nodeName = api.value('projectName');
+    let nodeName = api.value('name');
     let node = context.nodes[nodePath];
     if (node.id === 'option') {
       node.r = 0;
@@ -438,7 +463,7 @@ function renderBubbleChart(container: string, data: object) {
         progressive: 0,
         coordinateSystem: 'none',
         encode: {
-          tooltip: ['projectName', 'value'],
+          tooltip: ['name', 'value'],
         },
       },
     ],
@@ -788,14 +813,22 @@ watchEffect(async () => {
 
 const loadingInnovation = ref(false);
 const organizationInfoTable = ref<TableRow[]>([]);
+const companiesInfoTable = ref<TableRow[]>([]);
 const dependentProjectHeight = ref(100);
+const companiesHeight = ref(100);
 
+// const companiesBaseInfo = ref<CompaniesInfo>();
+const companiesBaseInfo = ref();
 watchEffect(async () => {
   const maxProjectNumber = 50;
   const maxOrganizationsNumber = 10;
   loadingInnovation.value = true;
-  const innovation = await getInnovationOrganizationApi(encodedRepoName.value);
-  let { dependentProject, dependentOrganization } = innovation.data;
+  const innovation = (await getInnovationApi(encodedRepoName.value)).data;
+  let { organizationInfo, companiesInfo } = innovation;
+  companiesBaseInfo.value = companiesInfo;
+
+  // handle organization info
+  let { dependentProject, dependentOrganization } = organizationInfo;
   dependentProject = dependentProject.slice(0, maxProjectNumber);
   dependentProjectHeight.value = getDependentProjectHeight(dependentProject.length);
 
@@ -811,11 +844,54 @@ watchEffect(async () => {
   organizationInfoTable.value = topArray
     .slice(0, maxOrganizationsNumber)
     .map(item => ({ label: item.ownerName, value: item.star }));
+
+  // handle companies info
+  let maxCompaniesSize = max(
+    companiesInfo.stargazers.length,
+    companiesInfo.prCreators.length,
+    companiesInfo.issueCreators.length,
+  );
+  companiesHeight.value = getDependentProjectHeight(maxCompaniesSize);
+
   await nextTick(() => {
-    renderBubbleChart('#dependent-project-bubble-chart', dependentProject);
+    renderBubbleChart('#dependent-project-bubble-chart', getDependentSeriesData(dependentProject));
+    renderBubbleChart(
+      '#project-companies-bubble-chart',
+      getCompaniesSeriesData(companiesBaseInfo.value.stargazers),
+    );
+    companiesInfoTable.value = companiesInfo.stargazers
+      .slice(0, maxOrganizationsNumber)
+      .map(item => ({ label: item.orgName, value: item.percentage }));
   });
   loadingInnovation.value = false;
 });
+
+const companiesActiveName = ref('star');
+function handleCompaniesActiveClick(tab: TabsPaneContext, event: Event) {
+  const maxOrganizationsNumber = 10;
+  // console.log('tab: ', tab.props.name);
+  companiesActiveName.value = tab.props.name;
+  const { issueCreators, stargazers, prCreators } = companiesBaseInfo.value;
+
+  if (companiesActiveName.value === 'issue') {
+    renderBubbleChart('#project-companies-bubble-chart', getCompaniesSeriesData(issueCreators));
+    companiesInfoTable.value = companiesBaseInfo.value.issueCreators
+      .slice(0, maxOrganizationsNumber)
+      .map(item => ({ label: item.orgName, value: item.percentage }));
+  }
+  if (companiesActiveName.value === 'star') {
+    renderBubbleChart('#project-companies-bubble-chart', getCompaniesSeriesData(stargazers));
+    companiesInfoTable.value = companiesBaseInfo.value.stargazers
+      .slice(0, maxOrganizationsNumber)
+      .map(item => ({ label: item.orgName, value: item.percentage }));
+  }
+  if (companiesActiveName.value === 'pr') {
+    renderBubbleChart('#project-companies-bubble-chart', getCompaniesSeriesData(prCreators));
+    companiesInfoTable.value = companiesBaseInfo.value.prCreators
+      .slice(0, maxOrganizationsNumber)
+      .map(item => ({ label: item.orgName, value: item.percentage }));
+  }
+}
 
 async function exportToExcel() {
   try {
@@ -918,13 +994,7 @@ onBeforeUnmount(() => {
                   <div max-w-900px>{{ repoName }}</div>
                 </template>
               </el-tooltip>
-              <el-tag
-                v-if="project?.techStack !== null && project?.techStack !== undefined"
-                mr-3
-                size="small"
-                type="danger"
-                effect="dark"
-              >
+              <el-tag v-if="project?.techStack" mr-3 size="small" type="danger" effect="dark">
                 {{ project?.techStack }}
               </el-tag>
             </div>
@@ -982,7 +1052,14 @@ onBeforeUnmount(() => {
           <div flex flex-col items-start float-left>
             <el-tooltip effect="light" :content="item.repoName" placement="top">
               <div mb-6px w-140px class="text-over">
-                {{ item.repoName }}
+                <el-link
+                  :href="'/#/software-details?repoName=' + item.repoName"
+                  target="_blank"
+                  :underline="false"
+                  :title="item.repoName"
+                >
+                  {{ item.repoName }}
+                </el-link>
               </div>
             </el-tooltip>
             <el-button
@@ -1005,7 +1082,12 @@ onBeforeUnmount(() => {
         >
       </div>
       <el-card mb-6>
-        <div font-size-5 font-bold>Github Star 趋势</div>
+        <span font-size-5 font-bold>Github Star 趋势</span>
+        <el-tooltip :content="i18n.global.t(`tips.githubStarTrend`)">
+          <el-icon size-5 color-gray-400>
+            <InfoFilled />
+          </el-icon>
+        </el-tooltip>
         <div id="github-start-chart" h-252px />
       </el-card>
       <el-card v-if="developerSatisfaction.xAxis.length > 0" mb-6>
@@ -1539,6 +1621,48 @@ onBeforeUnmount(() => {
           </div>
           <div id="recent-releases-count-chart" h-200px />
         </el-card>
+        <el-card mb-6 w-1280px flex>
+          <div mb-2 font-size-5 font-bold>业界使用情况</div>
+          <div font-size-3 text-gray-500>
+          基于 Github 的依赖关系分析得出使用该软件的知名开源项目和组织。
+          </div>
+          <div w-1220px flex>
+            <div mb-6 w-926px mt-2>
+              <div flex>
+                <div font-size-5 font-bold>知名项目使用</div>
+                <el-tooltip :content="i18n.global.t(`tips.dependentOrganization.project`)">
+                  <el-icon size-5 color-gray-400>
+                    <InfoFilled />
+                  </el-icon>
+                </el-tooltip>
+              </div>
+              <div
+                id="dependent-project-bubble-chart"
+                :style="{ height: dependentProjectHeight + 'px' }"
+              />
+            </div>
+            <div mb-6 w-226px mt-2>
+              <div flex>
+                <div font-size-5 font-bold mb-6px>知名组织使用</div>
+                <el-tooltip :content="i18n.global.t(`tips.dependentOrganization.organization`)">
+                  <el-icon size-5 color-gray-400>
+                    <InfoFilled />
+                  </el-icon>
+                </el-tooltip>
+              </div>
+              <el-table
+                class="base-info"
+                :data="organizationInfoTable"
+                stripe
+                border
+                :show-header="false"
+                tooltip-effect="light"
+              >
+                <el-table-column prop="label" align="center" />
+              </el-table>
+            </div>
+          </div>
+        </el-card>
       </div>
 
       <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
@@ -1554,47 +1678,50 @@ onBeforeUnmount(() => {
         content-between
         items-center
       >
-        <el-card mb-6 w-926px>
-          <div flex>
-            <div font-size-5 font-bold>使用{{ repoName.split('/')[1] }}的知名项目</div>
-            <el-tooltip :content="i18n.global.t(`tips.dependentOrganization.project`)">
-              <el-icon size-5 color-gray-400>
-                <InfoFilled />
-              </el-icon>
-            </el-tooltip>
-          </div>
-          <div
-            id="dependent-project-bubble-chart"
-            :style="{ height: dependentProjectHeight + 'px' }"
-          />
-        </el-card>
-        <el-card mb-6 w-326px>
-          <div flex>
-            <div font-size-5 font-bold>依赖{{ repoName.split('/')[1] }}的Top组织</div>
-            <el-tooltip :content="i18n.global.t(`tips.dependentOrganization.organization`)">
-              <el-icon size-5 color-gray-400>
-                <InfoFilled />
-              </el-icon>
-            </el-tooltip>
-          </div>
-          <div flex>
-            <el-table
-              class="base-info"
-              :data="organizationInfoTable"
-              stripe
-              border
-              tooltip-effect="light"
-            >
-              <el-table-column prop="label" align="center" label="组织" />
-            </el-table>
-          </div>
+        <el-card mb-6 w-1280px>
+          <div mb-2 font-size-5 font-bold>组织多样性</div>
+          <span font-size-3 text-gray-500>
+            {{ i18n.global.t(`tips.companies.info`) }}
+          </span>
+          <el-tabs
+            v-model="companiesActiveName"
+            class="companies-tabs"
+            @tab-click="handleCompaniesActiveClick"
+          >
+            <el-tab-pane label="Stargazers" name="star"></el-tab-pane>
+            <el-tab-pane label="Issue Creators" name="issue"> </el-tab-pane>
+            <el-tab-pane label="Pull Requests Creators" name="pr"> </el-tab-pane>
+            <div flex>
+              <div font-size-4 font-bold>{{ repoName }}</div>
+              <div mb-6 w-926px>
+                <div
+                  id="project-companies-bubble-chart"
+                  :style="{ height: companiesHeight + 'px' }"
+                />
+              </div>
+              <div mb-6 w-326px>
+                <div font-size-4 font-bold mb-2>Top 10 组织</div>
+                <el-table
+                  class="base-info"
+                  :data="companiesInfoTable"
+                  stripe
+                  border
+                  :show-header="false"
+                  tooltip-effect="light"
+                >
+                  <el-table-column prop="label" align="center" />
+                  <el-table-column prop="value" align="center" />
+                </el-table>
+              </div>
+            </div>
+          </el-tabs>
         </el-card>
       </div>
       <el-tabs v-model="geoActiveTab" v-loading="!loadingInnovation && isRequestingProjectInfo">
-        <el-tab-pane label="star" name="star">
+        <el-tab-pane label="Star人员分布" name="star">
           <div flex flex-items-start mb-6>
             <el-card w-964px mr-4>
-              <div mb-2 font-size-5 font-bold>star人员地理分布</div>
+              <div mb-2 font-size-5 font-bold>Star人员全球地理分布</div>
               <div id="star-countries-chart" h-500px />
             </el-card>
             <el-card w-300px>
@@ -1628,10 +1755,10 @@ onBeforeUnmount(() => {
             </el-card>
           </div>
         </el-tab-pane>
-        <el-tab-pane label="issue创建" name="issue">
+        <el-tab-pane label="Issue人员分布" name="issue">
           <div flex flex-items-start mb-6>
             <el-card w-964px mr-4>
-              <div mb-2 font-size-5 font-bold>Issue创建者地理分布</div>
+              <div mb-2 font-size-5 font-bold>Issue创建者全球地理分布</div>
               <div id="issue-countries-chart" h-500px />
             </el-card>
             <el-card w-300px>
@@ -1665,10 +1792,10 @@ onBeforeUnmount(() => {
             </el-card>
           </div>
         </el-tab-pane>
-        <el-tab-pane label="PR创建" name="pr">
+        <el-tab-pane label="PR人员分布" name="pr">
           <div flex flex-items-start mb-6>
             <el-card w-964px mr-4>
-              <div mb-2 font-size-5 font-bold>PR创建者地理分布</div>
+              <div mb-2 font-size-5 font-bold>PR创建者全球地理分布</div>
               <div id="pr-countries-chart" h-500px />
             </el-card>
             <el-card w-300px>
@@ -1768,5 +1895,11 @@ onBeforeUnmount(() => {
 
 .alter-item + .alter-item {
   margin-left: 8px;
+}
+
+.companies-tabs {
+  :deep(.el-tabs__item) {
+    font-weight: bold;
+  }
 }
 </style>

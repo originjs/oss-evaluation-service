@@ -1,6 +1,7 @@
 export default {
   tips: {
     alternatives: '带AI标记的为使用AI大模型推荐的相似软件',
+    githubStarTrend: '我们仅显示star总数，并忽略开发者取消star或重新star的行为',
     satisfaction:
       '数据来源于历年StateOfJS生态调查报告，更多结果可以查看 https://stateofjs.com/en-US',
     bestPractices:
@@ -64,6 +65,9 @@ export default {
       project: '将该软件作为依赖的知名项目, 范围越大表示star数越多',
       organization:
         '使用该软件的知名组织，排序规则为: 该组织在GitHub上所有项目的star数量总和从大到小排序',
+    },
+    companies: {
+      info: '有关 Stargazers、Issue 创建者和 Pull Request 创建者的公司信息（使用公共 GitHub 信息进行分析）。',
     },
   },
 };
