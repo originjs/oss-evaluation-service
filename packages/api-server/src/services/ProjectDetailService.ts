@@ -13,7 +13,7 @@ import {
   GithubProjects,
   GithubProjectsStargazersTrend,
   PackageDownloadCount,
-  OssinsightPullRequestCreatorsCountries,
+  OssinsightCreatorsCountries,
 } from '@orginjs/oss-evaluation-data-model';
 import ejsExcel from 'ejsexcel';
 import { readFileSync } from 'node:fs';
@@ -34,9 +34,9 @@ ProjectInfo.hasOne(Scorecard, { foreignKey: 'project_id', as: 'scorecard' });
 ProjectInfo.hasOne(SonarCloudProjectMin, { foreignKey: 'github_project_id', as: 'sonarCloudScan' });
 ProjectInfo.hasOne(EvaluationSummary, { foreignKey: 'project_id', as: 'evaluation' });
 ProjectInfo.hasMany(StateOfJsMin, { foreignKey: 'project_id', as: 'satisfaction' });
-ProjectInfo.hasMany(OssinsightPullRequestCreatorsCountries, {
+ProjectInfo.hasMany(OssinsightCreatorsCountries, {
   foreignKey: 'project_id',
-  as: 'prCountries',
+  as: 'countries',
 });
 ProjectInfo.hasOne(CncfDocumentScoreMin, { foreignKey: 'project_id', as: 'document' });
 
@@ -71,8 +71,8 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
         as: 'satisfaction',
       },
       {
-        model: OssinsightPullRequestCreatorsCountries,
-        as: 'prCountries',
+        model: OssinsightCreatorsCountries,
+        as: 'countries',
       },
     ],
     where: {
@@ -94,16 +94,43 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
     }));
   }
 
-  if (res.prCountries?.length !== 0) {
-    const prCountries = res.prCountries.sort((a, b) => {
-      return b.pull_request_creators - a.pull_request_creators;
-    });
-    res.prCountries = prCountries?.slice(0, 10).map(item => ({
+  if (res.countries?.length !== 0) {
+    const prCountries = res.countries
+      .filter(item => item.type === 0)
+      .filter(item => item.country_code !== 'UNKNOWN')
+      .sort((a, b) => {
+        return b.creators_num - a.creators_num;
+      });
+    res.prCountries = prCountries?.map(item => ({
       countryCode: item.country_code,
-      pullRequestCreators: item.pull_request_creators,
+      creatorsNum: item.creators_num,
+      percentage: item.percentage,
+    }));
+
+    const issueCountries = res.countries
+      .filter(item => item.type === 2)
+      .filter(item => item.country_code !== 'UNKNOWN')
+      .sort((a, b) => {
+        return b.creators_num - a.creators_num;
+      });
+    res.issueCountries = issueCountries?.map(item => ({
+      countryCode: item.country_code,
+      creatorsNum: item.creators_num,
+      percentage: item.percentage,
+    }));
+    const starCountries = res.countries
+      .filter(item => item.type === 1)
+      .filter(item => item.country_code !== 'UNKNOWN')
+      .sort((a, b) => {
+        return b.creators_num - a.creators_num;
+      });
+    res.starCountries = starCountries?.map(item => ({
+      countryCode: item.country_code,
+      creatorsNum: item.creators_num,
       percentage: item.percentage,
     }));
   }
+  res.countries = [];
 
   return res;
 }
@@ -111,7 +138,7 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
 export async function getPerformance(repoName: string): Promise<PerformanceInfo> {
   const packageName = await getMainPackageByRepoName(repoName);
   let packageSize = null;
-  if(packageName != null) {
+  if (packageName != null) {
     packageSize = await PackageSizeDetail.findOne({
       where: {
         packageName,
@@ -120,7 +147,6 @@ export async function getPerformance(repoName: string): Promise<PerformanceInfo>
       attributes: ['size', 'gzipSize'],
     });
   }
-
 
   // benchmark
   const benchmarkData = await getPerformanceBenchmark(repoName);
@@ -407,8 +433,8 @@ export async function exportScoreExcel(projectName: string) {
   const data = await getProjectDetailInfo(projectName);
   const packageName = await getMainPackageByRepoName(projectName);
   let packageSize = null;
-  if(packageName != null) {
-     packageSize = await PackageSizeDetail.findOne({
+  if (packageName != null) {
+    packageSize = await PackageSizeDetail.findOne({
       where: {
         packageName: packageName,
       },
@@ -503,7 +529,7 @@ export async function getInnovation(repoName: string) {
     where dependent_full_name = :repoName and pd.owner_type = 'Organization'
     order by stargazers_count desc;
   `;
-  const dependentOrganization= await sequelize.query(dependentOrganizationSql, {
+  const dependentOrganization = await sequelize.query(dependentOrganizationSql, {
     type: sequelize.QueryTypes.SELECT,
     replacements: {
       repoName,
