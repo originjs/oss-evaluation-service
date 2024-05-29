@@ -37,7 +37,7 @@ ORDER BY stargazers_count DESC LIMIT ${ALTERNATIVE_SIZE + 1}`;
       // exclude it self
       if (item.full_name === fullName) continue;
       // exclude exist
-      if (alternatives.find(e => e.full_name === item.full_name)) continue;
+      if (alternatives.find(e => e.repoName === item.full_name)) continue;
       alternatives.push({
         id: item.id,
         repoName: item.full_name,
