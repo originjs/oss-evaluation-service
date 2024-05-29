@@ -37,6 +37,9 @@ import {
 } from '@orginjs/oss-evaluation-components-utils';
 import i18n from '../../i18n';
 import * as d3 from 'd3';
+import worldMap from '../../assets/json/worldMap.json';
+import countriesNameMap from '../../assets/json/countriesNameMap.json';
+import countriesInfo from '../../assets/json/countriesInfo.json';
 
 dayjs.extend(relativeTime);
 const props = defineProps<{ repoName: string }>();
@@ -48,7 +51,7 @@ type TableRow = {
 
 const encodedRepoName = computed(() => encodeURIComponent(props.repoName));
 const project = ref<SoftwareInfo>();
-const loadingOverview = ref(false);
+const isRequestingProjectInfo = ref(false);
 const baseInfoTable = ref<TableRow[]>([]);
 const tagList = ref<string[]>([]);
 const alternatives = ref<AlternativeInfo[]>();
@@ -79,7 +82,7 @@ const developerSatisfaction = ref({
 });
 
 watchEffect(async () => {
-  loadingOverview.value = true;
+  isRequestingProjectInfo.value = true;
   const { data } = await getSoftwareInfo(encodedRepoName.value);
   project.value = data;
   tagList.value = data.tags ? data.tags.split('|') : [];
@@ -204,7 +207,8 @@ watchEffect(async () => {
   renderSoftwareRadarChart();
   renderDeveloperSatisfactionChart();
   renderDocBestPracticesChart();
-  loadingOverview.value = false;
+  renderCountriesChart('#star-countries-chart', project.value?.starCountries ?? []);
+  isRequestingProjectInfo.value = false;
 });
 
 const softwareDetailsEl = ref();
@@ -534,6 +538,98 @@ function renderDocBestPracticesChart() {
   chart.setOption(option);
 }
 
+const geoActiveTab = ref('star');
+let countriesChartInstance;
+echarts.registerMap('world', worldMap);
+
+function renderCountriesChart(selector, data) {
+  const chartDom = softwareDetailsEl.value?.querySelector(selector);
+  if (!chartDom) {
+    return;
+  }
+  const countriesData = data
+    .map(country => {
+      const countryInfo = countriesInfo.find(item => item.code === country.countryCode);
+      if (!countryInfo) {
+        return;
+      }
+      return {
+        name: countriesNameMap[countryInfo.code] ?? '',
+        value: [countryInfo.long, countryInfo.lat, country.creatorsNum],
+      };
+    })
+    .filter(country => country);
+  countriesChartInstance?.dispose();
+  countriesChartInstance = echarts.init(chartDom);
+  const option: echarts.EChartsOption = {
+    backgroundColor: 'transparent',
+    tooltip: {},
+    geo: {
+      map: 'world',
+      roam: true,
+      top: 0,
+      bottom: 0,
+      left: 0,
+      right: 0,
+      itemStyle: {
+        borderColor: 'white',
+      },
+      emphasis: {
+        itemStyle: {
+          color: '#86ccf9',
+        },
+      },
+    },
+    series: [
+      {
+        name: props.repoName,
+        type: 'scatter',
+        coordinateSystem: 'geo',
+        data: countriesData.slice(1),
+        symbolSize: function (val) {
+          return Math.sqrt(val[2]) * 4;
+        },
+      },
+      {
+        name: props.repoName,
+        type: 'effectScatter',
+        coordinateSystem: 'geo',
+        data: countriesData[0] ? [countriesData[0]] : [],
+        symbolSize: function (val) {
+          return Math.sqrt(val[2]) * 4;
+        },
+        label: {
+          formatter: '{b}',
+          position: 'right',
+          show: true,
+        },
+        itemStyle: {
+          shadowBlur: 10,
+          shadowColor: '#333',
+        },
+        zlevel: 1,
+      },
+    ],
+  };
+  countriesChartInstance.setOption(option);
+}
+
+watch(geoActiveTab, tab => {
+  nextTick(() => {
+    switch (tab) {
+      case 'star':
+        renderCountriesChart('#star-countries-chart', project.value?.starCountries ?? []);
+        break;
+      case 'issue':
+        renderCountriesChart('#issue-countries-chart', project.value?.issueCountries ?? []);
+        break;
+      case 'pr':
+        renderCountriesChart('#pr-countries-chart', project.value?.prCountries ?? []);
+        break;
+    }
+  });
+});
+
 const showBenchmarkCompare = ref(true);
 
 // remove unit: `999 ms`
@@ -763,7 +859,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div ref="softwareDetailsEl" class="software-details" bg-coolgray-50>
-    <div v-loading="loadingOverview" p-20px bg-white shadow-md>
+    <div v-loading="isRequestingProjectInfo" p-20px bg-white shadow-md>
       <div ref="baseInfoDom" w-1280px m-auto>
         <div ref="optionBtnsDom" class="btn-options-floating">
           <el-button
@@ -1483,6 +1579,119 @@ onBeforeUnmount(() => {
           </div>
         </el-card>
       </div>
+      <el-tabs v-model="geoActiveTab" v-loading="!loadingInnovation && isRequestingProjectInfo">
+        <el-tab-pane label="star" name="star">
+          <div flex flex-items-start mb-6>
+            <el-card w-964px mr-4>
+              <div mb-2 font-size-5 font-bold>点赞人员地理分布</div>
+              <div id="star-countries-chart" h-500px />
+            </el-card>
+            <el-card w-300px>
+              <div mb-2 font-size-5 font-bold>Top 10</div>
+              <template v-if="project?.starCountries.length">
+                <div
+                  v-for="(country, idx) in project.starCountries.slice(0, 10)"
+                  :key="idx"
+                  flex
+                  justify-between
+                  h-40px
+                >
+                  <span class="text-over max-w-200px">{{
+                    countriesNameMap[country.countryCode]
+                  }}</span>
+                  <span>{{
+                    Math.max(Number((Number(country.percentage) * 100).toFixed(1)), 0.1) + '%'
+                  }}</span>
+                </div>
+              </template>
+              <div
+                v-else-if="!isRequestingProjectInfo"
+                h-300px
+                flex
+                justify-center
+                items-center
+                color-gray
+              >
+                暂无数据
+              </div>
+            </el-card>
+          </div>
+        </el-tab-pane>
+        <el-tab-pane label="issue创建" name="issue">
+          <div flex flex-items-start mb-6>
+            <el-card w-964px mr-4>
+              <div mb-2 font-size-5 font-bold>Issue创建者地理分布</div>
+              <div id="issue-countries-chart" h-500px />
+            </el-card>
+            <el-card w-300px>
+              <div mb-2 font-size-5 font-bold>Top 10</div>
+              <template v-if="project?.issueCountries.length">
+                <div
+                  v-for="(country, idx) in project.issueCountries.slice(0, 10)"
+                  :key="idx"
+                  flex
+                  justify-between
+                  h-40px
+                >
+                  <span class="text-over max-w-200px">{{
+                    countriesNameMap[country.countryCode]
+                  }}</span>
+                  <span>{{
+                    Math.max(Number((Number(country.percentage) * 100).toFixed(1)), 0.1) + '%'
+                  }}</span>
+                </div>
+              </template>
+              <div
+                v-else-if="!isRequestingProjectInfo"
+                h-300px
+                flex
+                justify-center
+                items-center
+                color-gray
+              >
+                暂无数据
+              </div>
+            </el-card>
+          </div>
+        </el-tab-pane>
+        <el-tab-pane label="PR创建" name="pr">
+          <div flex flex-items-start mb-6>
+            <el-card w-964px mr-4>
+              <div mb-2 font-size-5 font-bold>PR创建者地理分布</div>
+              <div id="pr-countries-chart" h-500px />
+            </el-card>
+            <el-card w-300px>
+              <div mb-2 font-size-5 font-bold>Top 10</div>
+              <template v-if="project?.prCountries.length">
+                <div
+                  v-for="(country, idx) in project.prCountries.slice(0, 10)"
+                  :key="idx"
+                  flex
+                  justify-between
+                  h-40px
+                >
+                  <span class="text-over max-w-200px">{{
+                    countriesNameMap[country.countryCode]
+                  }}</span>
+                  <span>{{
+                    Math.max(Number((Number(country.percentage) * 100).toFixed(1)), 0.1) + '%'
+                  }}</span>
+                </div>
+              </template>
+              <div
+                v-else-if="!isRequestingProjectInfo"
+                h-300px
+                flex
+                justify-center
+                items-center
+                color-gray
+              >
+                暂无数据
+              </div>
+            </el-card>
+          </div>
+        </el-tab-pane>
+      </el-tabs>
     </div>
   </div>
   <CompareFavorites
