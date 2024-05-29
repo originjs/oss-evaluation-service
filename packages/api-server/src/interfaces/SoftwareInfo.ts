@@ -140,6 +140,24 @@ export interface EcologyActivityCategory {
   alternatives: AlternativeInfo[];
 }
 
+export interface InnovationData {
+  prCountries: {
+    countryCode: string;
+    creatorsNum: number;
+    percentage: string;
+  }[];
+  issueCountries: {
+    countryCode: string;
+    creatorsNum: number;
+    percentage: string;
+  }[];
+  starCountries: {
+    countryCode: string;
+    creatorsNum: number;
+    percentage: string;
+  }[];
+}
+
 export interface BenchmarkData {
   base: { indexName: string; bestVal: number }[];
   data: {
