@@ -41,6 +41,7 @@ import { max } from '@popperjs/core/lib/utils/math';
 import worldMap from '../../assets/json/worldMap.json';
 import countriesNameMap from '../../assets/json/countriesNameMap.json';
 import countriesInfo from '../../assets/json/countriesInfo.json';
+import { useRouter } from 'vue-router';
 
 dayjs.extend(relativeTime);
 const props = defineProps<{ repoName: string }>();
@@ -774,7 +775,7 @@ const computeColor: CellStyle<BenchmarkCompareRow> = function ({ row, column }) 
   }
 };
 function renderLineChart(container: string, data: EcologyActivity[]) {
-  const chartDom = softwareDetailsEl.value.querySelector(container);
+  const chartDom = softwareDetailsEl.value?.querySelector(container);
   if (!chartDom) {
     return;
   }
