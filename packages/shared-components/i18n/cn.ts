@@ -66,5 +66,8 @@ export default {
       organization:
         '使用该软件的知名组织，排序规则为: 该组织在GitHub上所有项目的star数量总和从大到小排序',
     },
+    companies: {
+      info: '有关 Stargazers、Issue 创建者和 Pull Request 创建者的公司信息（使用公共 GitHub 信息进行分析）。',
+    },
   },
 };

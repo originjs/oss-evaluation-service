@@ -71,7 +71,9 @@ export default async function syncProjectCncfDocumentScoreHandler(req, res) {
 
 export async function syncSingleProjectCncfDocumentScore(project) {
   if (!project) {
-    logger.error('');
+    logger.error(
+      'The project does not exist in the list, please add the software to the project first!',
+    );
     return;
   }
 
@@ -96,6 +98,7 @@ export async function syncSingleProjectCncfDocumentScore(project) {
     hasContributing: cncfDocumentChecksSet.contributing.checked,
     hasWebsite: cncfDocumentChecksSet.website.checked,
   });
+  clearDocumentChecks();
   logger.info(`Project: ${project.htmlUrl} document score integrating success!`);
 }
 

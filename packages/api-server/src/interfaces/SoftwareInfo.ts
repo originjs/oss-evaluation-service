@@ -179,15 +179,31 @@ export interface BenchmarkResult {
   score: number;
 }
 
-export interface InnovationOrganizationInfo {
-  dependentProject: {
-    fullName: string;
-    ownerName: string;
-    ownerType: string;
-    star: number;
+export interface InnovationCompaniesInfo {
+  projectId: number;
+  orgName: string;
+  creatorsNum: number;
+  percentage: number;
+}
+
+export interface InnovationTableInfo {
+  label: string;
+  value: number;
+}
+
+export interface InnovationInfo {
+  organizationInfo: {
+    dependentProject: {
+      fullName: string;
+      ownerName: string;
+      ownerType: string;
+      star: number;
+    };
+    dependentOrganization: InnovationTableInfo;
   };
-  dependentOrganization: {
-    ownerName: string;
-    star: number;
+  companiesInfo: {
+    stargazers: Array<InnovationCompaniesInfo>;
+    issueCreators: Array<InnovationCompaniesInfo>;
+    prCreators: Array<InnovationCompaniesInfo>;
   };
 }
