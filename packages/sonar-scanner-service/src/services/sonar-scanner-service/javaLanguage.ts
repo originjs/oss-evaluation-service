@@ -44,19 +44,26 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
     const mvnCommand = 'mvn';
     switch (this.buildType) {
       case JavaBuildType.MAVEN: {
-        const compileCommand = `
-            cd ${dir} &&\
-            ${mvnCommand} -T 1C\
-            clean\
-            compile\
-            package\
-            -DskipTests\
-            -Dmaven.compiler.failOnWarning=false`;
         const installCommand = `
             cd ${dir} &&\
-            ${mvnCommand} \
-            install\
-            -DskipTests`;
+            ${mvnCommand} -T 1C \
+            clean\
+            package\
+            -DskipTests\
+            -Denforcer.skip=true\
+            -Drat.skip=true\
+            -Dmaven.javadoc.skip=true\
+            -Dcheckstyle.skip=true\
+            -Dpmd.skip=true\
+            -Dfindbugs.skip=true\
+            -Dcobertura.skip=true\
+            -Dspotbugs.skip=true\
+            -Dxjc.skip=true\
+            -Danimal.sniffer.skip=true\
+            -Dlicense.skip=true\
+            -Dgpg.skip=true\
+            -Djavafx.platform=linux\
+            -Dmaven.compiler.failOnWarning=false`;
         const sonarCommand = `
             cd ${dir} &&\
             ${mvnCommand} org.sonarsource.scanner.maven:sonar-maven-plugin:LATEST:sonar\
@@ -64,7 +71,7 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
             -Dsonar.organization=${this.param.sonarOrg}\
             -Dsonar.projectKey=${this.param.sonarKey}\
             -Dsonar.token=${process.env.SONAR_TOKEN}`;
-        return [compileCommand, installCommand, sonarCommand];
+        return [installCommand, sonarCommand];
       }
       case JavaBuildType.GRADLE:
       case JavaBuildType.GRADLE_KTS: {
