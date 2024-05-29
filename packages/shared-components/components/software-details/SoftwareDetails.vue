@@ -623,7 +623,7 @@ function renderCountriesChart(selector, data) {
         coordinateSystem: 'geo',
         data: countriesData.slice(1, 100),
         symbolSize: function (val) {
-          return Math.max(Math.sqrt(val[3] * 50000 / Math.PI), 4);
+          return Math.max(Math.sqrt((val[3] * 50000) / Math.PI), 4);
         },
       },
       {
@@ -632,7 +632,7 @@ function renderCountriesChart(selector, data) {
         coordinateSystem: 'geo',
         data: countriesData[0] ? [countriesData[0]] : [],
         symbolSize: function (val) {
-          return Math.max(Math.sqrt(val[3] * 50000 / Math.PI), 4);
+          return Math.max(Math.sqrt((val[3] * 50000) / Math.PI), 4);
         },
         label: {
           formatter: '{b}',
@@ -1670,120 +1670,116 @@ onBeforeUnmount(() => {
         <span>创新</span>
         <span font-size-5 float-right>-/100</span>
       </div>
-
-      <el-tabs v-model="geoActiveTab" v-loading="!loadingInnovation && isRequestingProjectInfo">
-        <el-tab-pane label="Star人员分布" name="star">
-          <div flex flex-items-start mb-6>
-            <el-card w-964px mr-4>
-              <div mb-2 font-size-5 font-bold>Star人员全球地理分布</div>
-              <div id="star-countries-chart" h-500px />
-            </el-card>
-            <el-card w-300px>
-              <div mb-2 font-size-5 font-bold>Top 10</div>
-              <template v-if="project?.starCountries?.length">
+      <el-card v-loading="!loadingInnovation && isRequestingProjectInfo" mb-6>
+        <div mb-2 font-size-5 font-bold>全球地理分布</div>
+        <span font-size-3 text-gray-500>
+          {{ i18n.global.t(`tips.geoDistribution`) }}
+        </span>
+        <el-tabs v-model="geoActiveTab">
+          <el-tab-pane label="Stargazers" name="star">
+            <div flex>
+              <div id="star-countries-chart" w-964px h-500px mr-4 />
+              <el-card w-300px style="box-shadow: unset">
+                <div mb-6 font-size-5 font-bold>Top 10</div>
+                <template v-if="project?.starCountries?.length">
+                  <div
+                    v-for="(country, idx) in project.starCountries.slice(0, 10)"
+                    :key="idx"
+                    flex
+                    justify-between
+                    mt-18px
+                  >
+                    <span class="text-over max-w-200px">{{
+                      countriesNameMap[country.countryCode]
+                    }}</span>
+                    <span>{{
+                      Math.max(Number((Number(country.percentage) * 100).toFixed(1)), 0.1) + '%'
+                    }}</span>
+                  </div>
+                </template>
                 <div
-                  v-for="(country, idx) in project.starCountries.slice(0, 10)"
-                  :key="idx"
+                  v-else-if="!isRequestingProjectInfo"
+                  h-300px
                   flex
-                  justify-between
-                  h-40px
+                  justify-center
+                  items-center
+                  color-gray
                 >
-                  <span class="text-over max-w-200px">{{
-                    countriesNameMap[country.countryCode]
-                  }}</span>
-                  <span>{{
-                    Math.max(Number((Number(country.percentage) * 100).toFixed(1)), 0.1) + '%'
-                  }}</span>
+                  暂无数据
                 </div>
-              </template>
-              <div
-                v-else-if="!isRequestingProjectInfo"
-                h-300px
-                flex
-                justify-center
-                items-center
-                color-gray
-              >
-                暂无数据
-              </div>
-            </el-card>
-          </div>
-        </el-tab-pane>
-        <el-tab-pane label="Issue人员分布" name="issue">
-          <div flex flex-items-start mb-6>
-            <el-card w-964px mr-4>
-              <div mb-2 font-size-5 font-bold>Issue创建者全球地理分布</div>
-              <div id="issue-countries-chart" h-500px />
-            </el-card>
-            <el-card w-300px>
-              <div mb-2 font-size-5 font-bold>Top 10</div>
-              <template v-if="project?.issueCountries?.length">
+              </el-card>
+            </div>
+          </el-tab-pane>
+          <el-tab-pane label="Issue 创建者" name="issue">
+            <div flex>
+              <div id="issue-countries-chart" w-964px h-500px mr-4 />
+              <el-card w-300px style="box-shadow: unset">
+                <div mb-6 font-size-5 font-bold>Top 10</div>
+                <template v-if="project?.issueCountries?.length">
+                  <div
+                    v-for="(country, idx) in project.issueCountries.slice(0, 10)"
+                    :key="idx"
+                    flex
+                    justify-between
+                    mt-18px
+                  >
+                    <span class="text-over max-w-200px">{{
+                      countriesNameMap[country.countryCode]
+                    }}</span>
+                    <span>{{
+                      Math.max(Number((Number(country.percentage) * 100).toFixed(1)), 0.1) + '%'
+                    }}</span>
+                  </div>
+                </template>
                 <div
-                  v-for="(country, idx) in project.issueCountries.slice(0, 10)"
-                  :key="idx"
+                  v-else-if="!isRequestingProjectInfo"
+                  h-300px
                   flex
-                  justify-between
-                  h-40px
+                  justify-center
+                  items-center
+                  color-gray
                 >
-                  <span class="text-over max-w-200px">{{
-                    countriesNameMap[country.countryCode]
-                  }}</span>
-                  <span>{{
-                    Math.max(Number((Number(country.percentage) * 100).toFixed(1)), 0.1) + '%'
-                  }}</span>
+                  暂无数据
                 </div>
-              </template>
-              <div
-                v-else-if="!isRequestingProjectInfo"
-                h-300px
-                flex
-                justify-center
-                items-center
-                color-gray
-              >
-                暂无数据
-              </div>
-            </el-card>
-          </div>
-        </el-tab-pane>
-        <el-tab-pane label="PR人员分布" name="pr">
-          <div flex flex-items-start mb-6>
-            <el-card w-964px mr-4>
-              <div mb-2 font-size-5 font-bold>PR创建者全球地理分布</div>
-              <div id="pr-countries-chart" h-500px />
-            </el-card>
-            <el-card w-300px>
-              <div mb-2 font-size-5 font-bold>Top 10</div>
-              <template v-if="project?.prCountries?.length">
+              </el-card>
+            </div>
+          </el-tab-pane>
+          <el-tab-pane label="Pull Request 创建者" name="pr">
+            <div flex>
+              <div id="pr-countries-chart" w-964px h-500px mr-4 />
+              <el-card w-300px style="box-shadow: unset">
+                <div mb-6 font-size-5 font-bold>Top 10</div>
+                <template v-if="project?.prCountries?.length">
+                  <div
+                    v-for="(country, idx) in project.prCountries.slice(0, 10)"
+                    :key="idx"
+                    flex
+                    justify-between
+                    mt-18px
+                  >
+                    <span class="text-over max-w-200px">{{
+                      countriesNameMap[country.countryCode]
+                    }}</span>
+                    <span>{{
+                      Math.max(Number((Number(country.percentage) * 100).toFixed(1)), 0.1) + '%'
+                    }}</span>
+                  </div>
+                </template>
                 <div
-                  v-for="(country, idx) in project.prCountries.slice(0, 10)"
-                  :key="idx"
+                  v-else-if="!isRequestingProjectInfo"
+                  h-300px
                   flex
-                  justify-between
-                  h-40px
+                  justify-center
+                  items-center
+                  color-gray
                 >
-                  <span class="text-over max-w-200px">{{
-                    countriesNameMap[country.countryCode]
-                  }}</span>
-                  <span>{{
-                    Math.max(Number((Number(country.percentage) * 100).toFixed(1)), 0.1) + '%'
-                  }}</span>
+                  暂无数据
                 </div>
-              </template>
-              <div
-                v-else-if="!isRequestingProjectInfo"
-                h-300px
-                flex
-                justify-center
-                items-center
-                color-gray
-              >
-                暂无数据
-              </div>
-            </el-card>
-          </div>
-        </el-tab-pane>
-      </el-tabs>
+              </el-card>
+            </div>
+          </el-tab-pane>
+        </el-tabs>
+      </el-card>
 
       <div
         v-loading="loadingInnovation"
