@@ -37,25 +37,30 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
     const owner = this.param.gitOwner;
     const repoName = this.param.repoName;
     const dir = `${process.env.REPO_DIR}/${owner}/${repoName}`;
+    const mvnCommand = 'mvn';
     switch (this.buildType) {
       case JavaBuildType.MAVEN: {
         const compileCommand = `
             cd ${dir} &&\
-            mvn -T 1C\
+            ${mvnCommand} -T 1C\
             clean\
             compile\
             package\
-            install\
             -DskipTests\
             -Dmaven.compiler.failOnWarning=false`;
+        const instllCommand = `
+            cd ${dir} &&\
+            ${mvnCommand} install\
+            install\
+            -DskipTests`;
         const sonarCommand = `
             cd ${dir} &&\
-            mvn org.sonarsource.scanner.maven:sonar-maven-plugin:LATEST:sonar\
+            ${mvnCommand} org.sonarsource.scanner.maven:sonar-maven-plugin:LATEST:sonar\
             -Dsonar.host.url=${this.param.sonarHostUrl}\
             -Dsonar.organization=${this.param.sonarOrg}\
             -Dsonar.projectKey=${this.param.sonarKey}\
             -Dsonar.token=${process.env.SONAR_TOKEN}`;
-        return [compileCommand, sonarCommand];
+        return [compileCommand, instllCommand, sonarCommand];
       }
       case JavaBuildType.GRADLE:
       case JavaBuildType.GRADLE_KTS: {
