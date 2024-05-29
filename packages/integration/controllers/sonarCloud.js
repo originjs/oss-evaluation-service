@@ -279,6 +279,7 @@ export async function createAndScanSonarProjectByGithubId(req, res) {
         sonarProjectKey,
         'https://sonarcloud.io',
         githubProject.language,
+        githubProject.id,
       );
     }
   }
@@ -367,7 +368,7 @@ export async function setDefaultBranchOfSonar(req, res) {
   });
 }
 
-async function startSonarScanner(owner, repoName, sonarOrg, sonarKey, sonarHostUrl, language) {
+async function startSonarScanner(owner, repoName, sonarOrg, sonarKey, sonarHostUrl, language, id) {
   const url = `${process.env.SONAR_SCAN_SERVICE_HOST}/sonar/scan`;
   const body = {
     gitOwner: owner,
@@ -376,6 +377,7 @@ async function startSonarScanner(owner, repoName, sonarOrg, sonarKey, sonarHostU
     sonarKey,
     sonarHostUrl,
     language,
+    id,
   };
   return await fetch(url, {
     method: 'post',
