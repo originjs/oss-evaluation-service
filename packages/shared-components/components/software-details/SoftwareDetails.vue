@@ -1634,12 +1634,12 @@ onBeforeUnmount(() => {
         <el-card mb-6 w-1280px flex>
           <div mb-2 font-size-5 font-bold>业界使用情况</div>
           <div font-size-3 text-gray-500>
-            基于 Github 的依赖关系分析得出使用该软件的知名开源项目和组织。
+            基于 Github 的依赖关系分析得出使用{{repoName}}的知名开源项目和组织。
           </div>
           <div w-1220px flex>
             <div mb-6 w-926px mt-2>
               <div flex>
-                <div font-size-5 font-bold>知名项目使用</div>
+                <div font-size-5 font-bold>知名项目</div>
                 <el-tooltip :content="i18n.global.t(`tips.dependentOrganization.project`)">
                   <el-icon size-5 color-gray-400>
                     <InfoFilled />
@@ -1653,7 +1653,7 @@ onBeforeUnmount(() => {
             </div>
             <div mb-6 w-226px mt-2>
               <div flex>
-                <div font-size-5 font-bold mb-6px>知名组织使用</div>
+                <div font-size-5 font-bold mb-6px>知名组织</div>
                 <el-tooltip :content="i18n.global.t(`tips.dependentOrganization.organization`)">
                   <el-icon size-5 color-gray-400>
                     <InfoFilled />
@@ -1676,7 +1676,7 @@ onBeforeUnmount(() => {
       </div>
 
       <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
-        <span i-ph:lightbulb-filament-thin mr-2 />
+        <span i-ph:lightbulb-filament-bold mr-2 />
         <span>创新</span>
         <span font-size-5 float-right>-/100</span>
       </div>
