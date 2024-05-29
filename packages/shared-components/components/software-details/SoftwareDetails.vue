@@ -1592,10 +1592,10 @@ onBeforeUnmount(() => {
         </el-card>
       </div>
       <el-tabs v-model="geoActiveTab" v-loading="!loadingInnovation && isRequestingProjectInfo">
-        <el-tab-pane label="star" name="star">
+        <el-tab-pane label="Star人员分布" name="star">
           <div flex flex-items-start mb-6>
             <el-card w-964px mr-4>
-              <div mb-2 font-size-5 font-bold>点赞人员地理分布</div>
+              <div mb-2 font-size-5 font-bold>Star人员全球地理分布</div>
               <div id="star-countries-chart" h-500px />
             </el-card>
             <el-card w-300px>
@@ -1629,10 +1629,10 @@ onBeforeUnmount(() => {
             </el-card>
           </div>
         </el-tab-pane>
-        <el-tab-pane label="issue创建" name="issue">
+        <el-tab-pane label="Issue人员分布" name="issue">
           <div flex flex-items-start mb-6>
             <el-card w-964px mr-4>
-              <div mb-2 font-size-5 font-bold>Issue创建者地理分布</div>
+              <div mb-2 font-size-5 font-bold>Issue创建者全球地理分布</div>
               <div id="issue-countries-chart" h-500px />
             </el-card>
             <el-card w-300px>
@@ -1666,10 +1666,10 @@ onBeforeUnmount(() => {
             </el-card>
           </div>
         </el-tab-pane>
-        <el-tab-pane label="PR创建" name="pr">
+        <el-tab-pane label="PR人员分布" name="pr">
           <div flex flex-items-start mb-6>
             <el-card w-964px mr-4>
-              <div mb-2 font-size-5 font-bold>PR创建者地理分布</div>
+              <div mb-2 font-size-5 font-bold>PR创建者全球地理分布</div>
               <div id="pr-countries-chart" h-500px />
             </el-card>
             <el-card w-300px>
