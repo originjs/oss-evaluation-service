@@ -90,7 +90,17 @@ export interface SoftwareInfo extends SoftwareBaseInfo {
   }[];
   prCountries: {
     countryCode: number;
-    pullRequestCreators: number;
+    creatorsNum: number;
+    percentage: number;
+  }[];
+  issueCountries: {
+    countryCode: number;
+    creatorsNum: number;
+    percentage: number;
+  }[];
+  starCountries: {
+    countryCode: number;
+    creatorsNum: number;
     percentage: number;
   }[];
   satisfactionExport?: string;

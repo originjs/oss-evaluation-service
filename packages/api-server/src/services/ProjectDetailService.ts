@@ -13,7 +13,8 @@ import {
   GithubProjects,
   GithubProjectsStargazersTrend,
   PackageDownloadCount,
-  OssinsightPullRequestCreatorsCountries,
+  OssinsightCreatorsCountries,
+  // OssinsightCreatorsOrganizations,
 } from '@orginjs/oss-evaluation-data-model';
 import ejsExcel from 'ejsexcel';
 import { readFileSync } from 'node:fs';
@@ -34,9 +35,9 @@ ProjectInfo.hasOne(Scorecard, { foreignKey: 'project_id', as: 'scorecard' });
 ProjectInfo.hasOne(SonarCloudProjectMin, { foreignKey: 'github_project_id', as: 'sonarCloudScan' });
 ProjectInfo.hasOne(EvaluationSummary, { foreignKey: 'project_id', as: 'evaluation' });
 ProjectInfo.hasMany(StateOfJsMin, { foreignKey: 'project_id', as: 'satisfaction' });
-ProjectInfo.hasMany(OssinsightPullRequestCreatorsCountries, {
+ProjectInfo.hasMany(OssinsightCreatorsCountries, {
   foreignKey: 'project_id',
-  as: 'prCountries',
+  as: 'countries',
 });
 ProjectInfo.hasOne(CncfDocumentScoreMin, { foreignKey: 'project_id', as: 'document' });
 
@@ -71,9 +72,13 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
         as: 'satisfaction',
       },
       {
-        model: OssinsightPullRequestCreatorsCountries,
-        as: 'prCountries',
+        model: OssinsightCreatorsCountries,
+        as: 'countries',
       },
+      // {
+      //   model: OssinsightCreatorsOrganizations,
+      //   as: 'organizations',
+      // },
     ],
     where: {
       id: projectId,
@@ -94,16 +99,81 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
     }));
   }
 
-  if (res.prCountries?.length !== 0) {
-    const prCountries = res.prCountries.sort((a, b) => {
-      return b.pull_request_creators - a.pull_request_creators;
-    });
+  if (res.countries?.length !== 0) {
+    const prCountries = res.countries
+      .filter(item => item.type === 0)
+      .filter(item => item.country_code !== 'UNKNOWN')
+      .sort((a, b) => {
+        return b.creators_num - a.creators_num;
+      });
     res.prCountries = prCountries?.slice(0, 10).map(item => ({
       countryCode: item.country_code,
-      pullRequestCreators: item.pull_request_creators,
+      creatorsNum: item.creators_num,
+      percentage: item.percentage,
+    }));
+
+    const issueCountries = res.countries
+      .filter(item => item.type === 2)
+      .filter(item => item.country_code !== 'UNKNOWN');
+    res.issueCountries = issueCountries?.map(item => ({
+      countryCode: item.country_code,
+      creatorsNum: item.creators_num,
+      percentage: item.percentage,
+    }));
+    const starCountries = res.countries
+      .filter(item => item.type === 1)
+      .filter(item => item.country_code !== 'UNKNOWN');
+    res.starCountries = starCountries?.map(item => ({
+      countryCode: item.country_code,
+      creatorsNum: item.creators_num,
       percentage: item.percentage,
     }));
   }
+
+  // if (res.organizations?.length !== 0) {
+  //   const organizations = res.organizations
+  //     .filter(item => item.org_name !== 'UNKNOWN')
+  //     .sort((a, b) => {
+  //       return b.creators_num - a.creators_num;
+  //     });
+  //   res.organizations = organizations?.slice(0, 10).map(item => ({
+  //     countryCode: item.country_code,
+  //     pullRequestCreators: item.creators_num,
+  //     percentage: item.percentage,
+  //   }));
+  // }
+
+  // if (res.organizations?.length !== 0) {
+  //   const prOrganizations = res.organizations
+  //     .filter(item => item.type === 0)
+  //     .filter(item => item.or !== 'UNKNOWN')
+  //     .sort((a, b) => {
+  //       return b.creators_num - a.creators_num;
+  //     });
+  //   res.prOrganizations = prOrganizations?.slice(0, 10).map(item => ({
+  //     orgName: item.org_name,
+  //     creatorsNum: item.creators_num,
+  //     percentage: item.percentage,
+  //   }));
+
+  //   const issueOrganizations = res.organizations
+  //     .filter(item => item.type === 2)
+  //     .filter(item => item.country_code !== 'UNKNOWN');
+  //   res.issueOrganizations = issueOrganizations?.map(item => ({
+  //     orgName: item.org_name,
+  //     creatorsNum: item.creators_num,
+  //     percentage: item.percentage,
+  //   }));
+  //   const starOrganizations = res.organizations
+  //     .filter(item => item.type === 1)
+  //     .filter(item => item.country_code !== 'UNKNOWN');
+  //   res.starOrganizations = starOrganizations?.map(item => ({
+  //     orgName: item.org_name,
+  //     creatorsNum: item.creators_num,
+  //     percentage: item.percentage,
+  //   }));
+  // }
+  res.countries = [];
 
   return res;
 }
