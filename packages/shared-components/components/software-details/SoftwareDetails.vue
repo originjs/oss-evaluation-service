@@ -903,6 +903,13 @@ async function exportToExcel() {
   }
 }
 
+const router = useRouter();
+
+function toBenchmarkPage() {
+  const url = router.resolve({ path: '/benchmark-compare' }).href;
+  window.open(url, '_blank');
+};
+
 function feedbackAlternative() {
   ElMessage.info('功能建设中，敬请期待');
 }
@@ -961,6 +968,9 @@ onBeforeUnmount(() => {
           </el-button>
           <el-button type="primary" plain class="btn-export" @click="exportToExcel">
             导出评估报告
+          </el-button>
+          <el-button type="primary" plain class="btn-benchmark" @click="toBenchmarkPage">
+            性能 Benchmark
           </el-button>
         </div>
         <div class="software-introduction">
