@@ -2,6 +2,7 @@ import { Controller, Path, Route, Get, Post } from 'tsoa';
 import {
   getProjectDetailInfo,
   getSoftwareActivity,
+  getSoftwareInnovate,
   getPerformance,
   exportScoreExcel,
   exportBenchmarkExcel,
@@ -9,6 +10,7 @@ import {
 } from '../services/ProjectDetailService.js';
 import type {
   EcologyActivityCategory,
+  InnovationData,
   InnovationInfo,
   PerformanceInfo,
   SoftwareInfo,
@@ -28,6 +30,12 @@ export class ProjectController extends Controller {
   @Get('activity/{repoName}')
   public async getActivityData(@Path() repoName: string): Promise<Result<EcologyActivityCategory>> {
     const data = await getSoftwareActivity(repoName);
+    return Result.ok(data);
+  }
+
+  @Get('innovate/{repoName}')
+  public async getInnovateData(@Path() repoName: string): Promise<Result<InnovationData>> {
+    const data = await getSoftwareInnovate(repoName);
     return Result.ok(data);
   }
 

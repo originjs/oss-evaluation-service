@@ -23,6 +23,7 @@ import type {
   EcologyActivityCategory,
   PerformanceInfo,
   SoftwareInfo,
+  InnovationData,
 } from '../interfaces/SoftwareInfo.js';
 import { getAlternativeProjects } from './AlternativeProjectService.js';
 import { fixedRound } from '../utils/math.js';
@@ -426,6 +427,66 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
     },
     recentReleasesCount,
     alternatives,
+  };
+}
+
+export async function getSoftwareInnovate(repoName: string): Promise<InnovationData> {
+  const sql = `
+  select con.project_id, con.country_code, con.creators_num, con.percentage, con.type
+  from ossinsight_creators_countries con
+           left join github_projects git on git.id = con.project_id
+  where git.full_name = :repoName
+  order by creators_num desc;
+  `;
+  const softwareInnovate = await sequelize.query(sql, {
+    replacements: { repoName },
+    type: sequelize.QueryTypes.SELECT,
+  });
+  let prCountriesRaw = [];
+  let starCountriesRaw = [];
+  let issueCountriesRaw = [];
+
+  if (softwareInnovate?.length !== 0) {
+    const prCountries = softwareInnovate
+      .filter(item => item.type === 0)
+      .filter(item => item.country_code !== 'UNKNOWN')
+      .sort((a, b) => {
+        return b.creators_num - a.creators_num;
+      });
+    prCountriesRaw = prCountries?.slice(0, 100).map(item => ({
+      countryCode: item.country_code,
+      creatorsNum: item.creators_num,
+      percentage: item.percentage,
+    }));
+
+    const issueCountries = softwareInnovate
+      .filter(item => item.type === 2)
+      .filter(item => item.country_code !== 'UNKNOWN')
+      .sort((a, b) => {
+        return b.creators_num - a.creators_num;
+      });
+    starCountriesRaw = issueCountries?.slice(0, 100).map(item => ({
+      countryCode: item.country_code,
+      creatorsNum: item.creators_num,
+      percentage: item.percentage,
+    }));
+    const starCountries = softwareInnovate
+      .filter(item => item.type === 1)
+      .filter(item => item.country_code !== 'UNKNOWN')
+      .sort((a, b) => {
+        return b.creators_num - a.creators_num;
+      });
+    issueCountriesRaw = starCountries?.slice(0, 100).map(item => ({
+      countryCode: item.country_code,
+      creatorsNum: item.creators_num,
+      percentage: item.percentage,
+    }));
+  }
+
+  return {
+    prCountries: prCountriesRaw,
+    issueCountries: issueCountriesRaw,
+    starCountries: starCountriesRaw,
   };
 }
 
