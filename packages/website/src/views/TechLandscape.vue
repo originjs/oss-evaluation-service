@@ -63,7 +63,7 @@ const landscapeOptions = {
     //alert(`clickProject: ${project.name} -- ${project.htmlUrl}`);
     clickProject(project);
   },
-  goBenchmark: (project: Project) => {
+  goBenchmark: () => {
     //非必填，点击详情卡片的性能Benchmark时触发
     //alert(`clickProject-Benchmark: ${project.name} -- ${project.htmlUrl}`);    
     window.open("/#/benchmark-compare", '_blank');
