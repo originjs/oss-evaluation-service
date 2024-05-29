@@ -1624,7 +1624,7 @@ onBeforeUnmount(() => {
         <el-card mb-6 w-1280px flex>
           <div mb-2 font-size-5 font-bold>业界使用情况</div>
           <div font-size-3 text-gray-500>
-          基于 Github 的依赖关系分析得出使用该软件的知名开源项目和组织。
+            基于 Github 的依赖关系分析得出使用该软件的知名开源项目和组织。
           </div>
           <div w-1220px flex>
             <div mb-6 w-926px mt-2>
@@ -1666,57 +1666,11 @@ onBeforeUnmount(() => {
       </div>
 
       <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
-        <span i-gis:earth-gear mr-2 />
+        <span i-ph:lightbulb-filament-thin mr-2 />
         <span>创新</span>
         <span font-size-5 float-right>-/100</span>
       </div>
-      <div
-        v-loading="loadingInnovation"
-        flex
-        flex-wrap
-        justify-between
-        content-between
-        items-center
-      >
-        <el-card mb-6 w-1280px>
-          <div mb-2 font-size-5 font-bold>组织多样性</div>
-          <span font-size-3 text-gray-500>
-            {{ i18n.global.t(`tips.companies.info`) }}
-          </span>
-          <el-tabs
-            v-model="companiesActiveName"
-            class="companies-tabs"
-            @tab-click="handleCompaniesActiveClick"
-          >
-            <el-tab-pane label="Stargazers" name="star"></el-tab-pane>
-            <el-tab-pane label="Issue Creators" name="issue"> </el-tab-pane>
-            <el-tab-pane label="Pull Requests Creators" name="pr"> </el-tab-pane>
-            <div flex>
-              <div font-size-4 font-bold>{{ repoName }}</div>
-              <div mb-6 w-926px>
-                <div
-                  id="project-companies-bubble-chart"
-                  :style="{ height: companiesHeight + 'px' }"
-                />
-              </div>
-              <div mb-6 w-326px>
-                <div font-size-4 font-bold mb-2>Top 10 组织</div>
-                <el-table
-                  class="base-info"
-                  :data="companiesInfoTable"
-                  stripe
-                  border
-                  :show-header="false"
-                  tooltip-effect="light"
-                >
-                  <el-table-column prop="label" align="center" />
-                  <el-table-column prop="value" align="center" />
-                </el-table>
-              </div>
-            </div>
-          </el-tabs>
-        </el-card>
-      </div>
+
       <el-tabs v-model="geoActiveTab" v-loading="!loadingInnovation && isRequestingProjectInfo">
         <el-tab-pane label="Star人员分布" name="star">
           <div flex flex-items-start mb-6>
@@ -1830,6 +1784,53 @@ onBeforeUnmount(() => {
           </div>
         </el-tab-pane>
       </el-tabs>
+
+      <div
+        v-loading="loadingInnovation"
+        flex
+        flex-wrap
+        justify-between
+        content-between
+        items-center
+      >
+        <el-card mb-6 w-1280px>
+          <div mb-2 font-size-5 font-bold>组织多样性</div>
+          <span font-size-3 text-gray-500>
+            {{ i18n.global.t(`tips.companies.info`) }}
+          </span>
+          <el-tabs
+            v-model="companiesActiveName"
+            class="companies-tabs"
+            @tab-click="handleCompaniesActiveClick"
+          >
+            <el-tab-pane label="Stargazers" name="star"></el-tab-pane>
+            <el-tab-pane label="Issue Creators" name="issue"> </el-tab-pane>
+            <el-tab-pane label="Pull Requests Creators" name="pr"> </el-tab-pane>
+            <div flex>
+              <div mb-6 w-926px>
+                <div
+                  id="project-companies-bubble-chart"
+                  :style="{ height: companiesHeight + 'px' }"
+                />
+              </div>
+              <div mb-6 w-326px>
+                <div font-size-4 font-bold mb-2>Top 10 组织</div>
+                <el-table
+                  class="base-info"
+                  :data="companiesInfoTable"
+                  stripe
+                  border
+                  :show-header="false"
+                  tooltip-effect="light"
+                >
+                  <el-table-column prop="label" align="center" />
+                  <el-table-column prop="value" align="center" />
+                </el-table>
+              </div>
+            </div>
+          </el-tabs>
+        </el-card>
+      </div>
     </div>
   </div>
   <CompareFavorites
