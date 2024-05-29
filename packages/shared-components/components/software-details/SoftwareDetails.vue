@@ -1633,13 +1633,13 @@ onBeforeUnmount(() => {
         </el-card>
         <el-card mb-6 w-1280px flex>
           <div mb-2 font-size-5 font-bold>业界使用情况</div>
-          <div font-size-3 text-gray-500>
-            基于 Github 的依赖关系分析得出使用该软件的知名开源项目和组织。
+          <div font-size-3 text-gray-500 class="custom-divide">
+            基于 Github 的依赖关系分析得出使用{{ repoName }}的知名开源项目和组织。
           </div>
           <div w-1220px flex>
             <div mb-6 w-926px mt-2>
               <div flex>
-                <div font-size-5 font-bold>知名项目使用</div>
+                <div font-size-5 font-bold>知名项目</div>
                 <el-tooltip :content="i18n.global.t(`tips.dependentOrganization.project`)">
                   <el-icon size-5 color-gray-400>
                     <InfoFilled />
@@ -1652,40 +1652,54 @@ onBeforeUnmount(() => {
               />
             </div>
             <div mb-6 w-226px mt-2>
-              <div flex>
-                <div font-size-5 font-bold mb-6px>知名组织使用</div>
-                <el-tooltip :content="i18n.global.t(`tips.dependentOrganization.organization`)">
-                  <el-icon size-5 color-gray-400>
-                    <InfoFilled />
-                  </el-icon>
-                </el-tooltip>
-              </div>
-              <el-table
-                class="base-info"
-                :data="organizationInfoTable"
-                stripe
-                border
-                :show-header="false"
-                tooltip-effect="light"
-              >
-                <el-table-column prop="label" align="center" />
-              </el-table>
+              <el-card w-300px style="box-shadow: unset">
+                <div flex>
+                  <div font-size-5 font-bold mb-6px>知名组织</div>
+                  <el-tooltip :content="i18n.global.t(`tips.dependentOrganization.organization`)">
+                    <el-icon size-5 color-gray-400>
+                      <InfoFilled />
+                    </el-icon>
+                  </el-tooltip>
+                </div>
+                <template v-if="organizationInfoTable?.length">
+                  <div
+                    v-for="(org, idx) in organizationInfoTable"
+                    :key="idx"
+                    flex
+                    justify-between
+                    mt-18px
+                  >
+                    <span class="text-over max-w-200px">{{ org.label }}</span>
+                    <!--                    <span>{{ org.value }}</span>-->
+                  </div>
+                </template>
+                <div
+                  v-else-if="!isRequestingProjectInfo"
+                  h-300px
+                  flex
+                  justify-center
+                  items-center
+                  color-gray
+                >
+                  暂无数据
+                </div>
+              </el-card>
             </div>
           </div>
         </el-card>
       </div>
 
       <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
-        <span i-ph:lightbulb-filament-thin mr-2 />
+        <span i-ph:lightbulb-filament-bold mr-2 />
         <span>创新</span>
         <span font-size-5 float-right>-/100</span>
       </div>
       <el-card v-loading="!loadingInnovation && isRequestingProjectInfo" mb-6>
-        <div mb-2 font-size-5 font-bold>全球地理分布</div>
+        <div mb-2 font-size-5 font-bold>贡献者多样性</div>
         <span font-size-3 text-gray-500>
           {{ i18n.global.t(`tips.geoDistribution`) }}
         </span>
-        <el-tabs v-model="geoActiveTab">
+        <el-tabs v-model="geoActiveTab" class="companies-tabs-bold">
           <el-tab-pane label="Stargazers" name="star">
             <div flex>
               <div id="star-countries-chart" w-964px h-500px mr-4 />
@@ -1720,7 +1734,7 @@ onBeforeUnmount(() => {
               </el-card>
             </div>
           </el-tab-pane>
-          <el-tab-pane label="Issue 创建者" name="issue">
+          <el-tab-pane label="Issue Creators" name="issue">
             <div flex>
               <div id="issue-countries-chart" w-964px h-500px mr-4 />
               <el-card w-300px style="box-shadow: unset">
@@ -1754,7 +1768,7 @@ onBeforeUnmount(() => {
               </el-card>
             </div>
           </el-tab-pane>
-          <el-tab-pane label="Pull Request 创建者" name="pr">
+          <el-tab-pane label="Pull Request Creators" name="pr">
             <div flex>
               <div id="pr-countries-chart" w-964px h-500px mr-4 />
               <el-card w-300px style="box-shadow: unset">
@@ -1806,33 +1820,44 @@ onBeforeUnmount(() => {
           </span>
           <el-tabs
             v-model="companiesActiveName"
-            class="companies-tabs"
+            class="companies-tabs-bold"
             @tab-click="handleCompaniesActiveClick"
           >
             <el-tab-pane label="Stargazers" name="star"></el-tab-pane>
             <el-tab-pane label="Issue Creators" name="issue"> </el-tab-pane>
             <el-tab-pane label="Pull Requests Creators" name="pr"> </el-tab-pane>
             <div flex>
-              <div mb-6 w-926px>
+              <div mb-6 w-964px>
                 <div
                   id="project-companies-bubble-chart"
                   :style="{ height: companiesHeight + 'px' }"
                 />
               </div>
-              <div mb-6 w-326px>
-                <div font-size-4 font-bold mb-2>Top 10 组织</div>
-                <el-table
-                  class="base-info"
-                  :data="companiesInfoTable"
-                  stripe
-                  border
-                  :show-header="false"
-                  tooltip-effect="light"
+              <el-card w-300px style="box-shadow: unset">
+                <div mb-6 font-size-5 font-bold>Top 10 公司</div>
+                <template v-if="companiesInfoTable?.length">
+                  <div
+                    v-for="(companiesItem, idx) in companiesInfoTable"
+                    :key="idx"
+                    flex
+                    justify-between
+                    mt-18px
+                  >
+                    <span class="text-over max-w-200px">{{ companiesItem.label }}</span>
+                    <span>{{ companiesItem.value }}</span>
+                  </div>
+                </template>
+                <div
+                  v-else-if="!isRequestingProjectInfo"
+                  h-300px
+                  flex
+                  justify-center
+                  items-center
+                  color-gray
                 >
-                  <el-table-column prop="label" align="center" />
-                  <el-table-column prop="value" align="center" />
-                </el-table>
-              </div>
+                  暂无数据
+                </div>
+              </el-card>
             </div>
           </el-tabs>
         </el-card>
@@ -1904,9 +1929,14 @@ onBeforeUnmount(() => {
   margin-left: 8px;
 }
 
-.companies-tabs {
+.companies-tabs-bold {
   :deep(.el-tabs__item) {
     font-weight: bold;
   }
+}
+.custom-divide {
+  border-bottom: 2px solid #e4e7ed;
+  padding-bottom: 10px;
+  margin-bottom: 6px;
 }
 </style>
