@@ -28,7 +28,7 @@ export async function getAlternativeProjects(fullName: string): Promise<Alternat
     const sql = `SELECT id, full_name, g.html_url, g.owner_avatar_url as logo, description
 FROM github_projects g JOIN project_tech_stack t ON g.id = t.project_id 
 WHERE subcategory IN ( SELECT subcategory FROM project_tech_stack WHERE html_url = :repoName ) 
-ORDER BY stargazers_count DESC LIMIT ${ALTERNATIVE_SIZE}`;
+ORDER BY stargazers_count DESC LIMIT ${ALTERNATIVE_SIZE + 1}`;
     list = await sequelize.query(sql, {
       replacements: { repoName: `https://github.com/${fullName}` },
       type: sequelize.QueryTypes.SELECT,

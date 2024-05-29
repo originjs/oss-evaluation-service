@@ -1622,14 +1622,14 @@ onBeforeUnmount(() => {
           <div id="recent-releases-count-chart" h-200px />
         </el-card>
         <el-card mb-6 w-1280px flex>
-          <div mb-2 font-size-5 font-bold>使用{{ repoName }}的业界知名项目及知名组织情况</div>
+          <div mb-2 font-size-5 font-bold>业界使用情况</div>
           <div font-size-3 text-gray-500>
-            关于使用该软件的知名的项目和组织，基于 Github 的 依赖关系图进行分析。
+          基于 Github 的依赖关系分析得出使用该软件的知名开源项目和组织。
           </div>
           <div w-1220px flex>
             <div mb-6 w-926px mt-2>
               <div flex>
-                <div font-size-5 font-bold>知名项目</div>
+                <div font-size-5 font-bold>知名项目使用</div>
                 <el-tooltip :content="i18n.global.t(`tips.dependentOrganization.project`)">
                   <el-icon size-5 color-gray-400>
                     <InfoFilled />
@@ -1643,7 +1643,7 @@ onBeforeUnmount(() => {
             </div>
             <div mb-6 w-226px mt-2>
               <div flex>
-                <div font-size-5 font-bold mb-6px>知名组织</div>
+                <div font-size-5 font-bold mb-6px>知名组织使用</div>
                 <el-tooltip :content="i18n.global.t(`tips.dependentOrganization.organization`)">
                   <el-icon size-5 color-gray-400>
                     <InfoFilled />
@@ -1679,7 +1679,7 @@ onBeforeUnmount(() => {
         items-center
       >
         <el-card mb-6 w-1280px>
-          <div mb-2 font-size-5 font-bold>公司</div>
+          <div mb-2 font-size-5 font-bold>组织多样性</div>
           <span font-size-3 text-gray-500>
             {{ i18n.global.t(`tips.companies.info`) }}
           </span>
@@ -1700,7 +1700,7 @@ onBeforeUnmount(() => {
                 />
               </div>
               <div mb-6 w-326px>
-                <div font-size-4 font-bold mb-2>Top 10 公司</div>
+                <div font-size-4 font-bold mb-2>Top 10 组织</div>
                 <el-table
                   class="base-info"
                   :data="companiesInfoTable"
