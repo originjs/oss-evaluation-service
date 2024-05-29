@@ -83,6 +83,9 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
   const res = softwareInfo.toJSON();
   res.repoName = repoName;
   res.techStack = res.evaluation?.techStack;
+  res.prCountries = [];
+  res.starCountries = [];
+  res.issueCountries = [];
 
   if (res.satisfaction?.length !== 0) {
     const satisfaction = res.satisfaction.sort((a, b) => {
