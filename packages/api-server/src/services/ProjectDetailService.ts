@@ -510,11 +510,11 @@ export async function exportBenchmarkExcel(repoName: string) {
 
 export async function getInnovation(repoName: string) {
   const dependentProjectSql = `
-  select pd.full_name as fullName, pd.owner_name as ownerName, pd.owner_type as ownerType, p.stargazers_count as star
-  from github_projects_dependencies pd
-         inner join github_projects p on p.id = pd.project_id
-  where dependent_full_name = :repoName
-  order by stargazers_count desc limit 50`;
+    select pd.full_name as fullName, pd.owner_name as ownerName, pd.owner_type as ownerType, p.stargazers_count as star
+    from github_projects_dependencies pd
+           inner join github_projects p on p.id = pd.project_id
+    where dependent_full_name = :repoName
+    order by stargazers_count desc limit 50`;
 
   const dependentProject = await sequelize.query(dependentProjectSql, {
     type: sequelize.QueryTypes.SELECT,
@@ -524,10 +524,12 @@ export async function getInnovation(repoName: string) {
   });
 
   const dependentOrganizationSql = `
-    select pd.owner_name as ownerName, p.stargazers_count as star from github_projects_dependencies pd
-         inner join github_projects p on p.id = pd.project_id
-    where dependent_full_name = :repoName and pd.owner_type = 'Organization'
-    order by stargazers_count desc;
+    select pd.owner_name as ownerName, p.stargazers_count as star
+    from github_projects_dependencies pd
+           inner join github_projects p on p.id = pd.project_id
+    where dependent_full_name = :repoName
+      and pd.owner_type = 'Organization'
+    order by stargazers_count desc limit 50;
   `;
   const dependentOrganization = await sequelize.query(dependentOrganizationSql, {
     type: sequelize.QueryTypes.SELECT,
@@ -535,8 +537,60 @@ export async function getInnovation(repoName: string) {
       repoName,
     },
   });
+
+  const companiesSql = `
+    select ocr.project_id   as projectId,
+           ocr.org_name     as orgName,
+           ocr.creators_num as creatorsNum,
+           ocr.percentage   as percentage,
+           ocr.type
+    from ossinsight_creators_organizations ocr
+           inner join github_projects gp on gp.id = ocr.project_id
+    where gp.full_name = :repoName 
+    order by ocr.percentage desc;
+  `;
+
+  const filterCharacter = ['.', '...', '-', 'none', 'null', 'no', 'china'];
+
+  let companiesData = await sequelize.query(companiesSql, {
+    type: sequelize.QueryTypes.SELECT,
+    replacements: {
+      repoName,
+    },
+  });
+  companiesData = companiesData.filter(obj => !filterCharacter.includes(obj.orgName));
+
+  const prCreators = companiesData
+    .filter(item => item.type === 0)
+    .slice(0, 50)
+    .map(obj => ({
+      ...obj,
+      percentage: (obj.percentage * 100).toFixed(2) + '%',
+    }));
+  const stargazers = companiesData
+    .filter(item => item.type === 1)
+    .slice(0, 50)
+    .map(obj => ({
+      ...obj,
+      percentage: (obj.percentage * 100).toFixed(2) + '%',
+    }));
+  const issueCreators = companiesData
+    .filter(item => item.type === 2)
+    .slice(0, 50)
+    .map(obj => ({
+      ...obj,
+      percentage: (obj.percentage * 100).toFixed(2) + '%',
+    }));
+
   return {
-    dependentProject,
-    dependentOrganization,
+    organizationInfo: {
+      dependentProject,
+      dependentOrganization,
+    },
+    companiesInfo: {
+      stargazers,
+      issueCreators,
+      prCreators,
+    },
   };
 }

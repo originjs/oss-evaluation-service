@@ -9,7 +9,7 @@ import {
 } from '../services/ProjectDetailService.js';
 import type {
   EcologyActivityCategory,
-  InnovationOrganizationInfo,
+  InnovationInfo,
   PerformanceInfo,
   SoftwareInfo,
 } from '../interfaces/SoftwareInfo.js';
@@ -46,7 +46,7 @@ export class ProjectController extends Controller {
   @Get('innovation/{repoName}')
   public async getInnovationData(
     @Path() repoName: string,
-  ): Promise<Result<InnovationOrganizationInfo | unknown>> {
+  ): Promise<Result<InnovationInfo | unknown>> {
     try {
       const data = await getInnovation(repoName);
       return Result.ok(data);
