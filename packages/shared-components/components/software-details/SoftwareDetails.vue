@@ -892,7 +892,12 @@ onBeforeUnmount(() => {
         >
       </div>
       <el-card mb-6>
-        <div font-size-5 font-bold>Github Star 趋势</div>
+        <span font-size-5 font-bold>Github Star 趋势</span>
+        <el-tooltip :content="i18n.global.t(`tips.githubStarTrend`)">
+          <el-icon size-5 color-gray-400>
+            <InfoFilled />
+          </el-icon>
+        </el-tooltip>
         <div id="github-start-chart" h-252px />
       </el-card>
       <el-card v-if="developerSatisfaction.xAxis.length > 0" mb-6>
