@@ -59,7 +59,7 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
         this.addPlugin4Gradle(
           `${
             this.buildType === JavaBuildType.GRADLE ? 'id "org.sonarqube"' : 'id("org.sonarqube")'
-          } version 'latest.release'`,
+          } version '${process.env.SONAR_PLUGIN_GRADLE_VERSION}'`,
         );
         const writeLockCommand = `cd ${dir} && ./gradlew dependencies --write-locks`;
         const buildCommand = `cd ${dir} && ./gradlew --parallel build -x test`;
