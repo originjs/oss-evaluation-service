@@ -41,7 +41,6 @@ import { max } from '@popperjs/core/lib/utils/math';
 import worldMap from '../../assets/json/worldMap.json';
 import countriesNameMap from '../../assets/json/countriesNameMap.json';
 import countriesInfo from '../../assets/json/countriesInfo.json';
-import { useRouter } from 'vue-router';
 
 dayjs.extend(relativeTime);
 const props = defineProps<{ repoName: string }>();
@@ -925,11 +924,8 @@ async function exportToExcel() {
   }
 }
 
-const router = useRouter();
-
 function toBenchmarkPage() {
-  const url = router.resolve({ path: '/benchmark-compare' }).href;
-  window.open(url, '_blank');
+  window.open(location.origin + '/#/benchmark-compare', '_blank');
 }
 
 function feedbackAlternative() {
