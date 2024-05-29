@@ -14,7 +14,6 @@ import {
   GithubProjectsStargazersTrend,
   PackageDownloadCount,
   OssinsightCreatorsCountries,
-  // OssinsightCreatorsOrganizations,
 } from '@orginjs/oss-evaluation-data-model';
 import ejsExcel from 'ejsexcel';
 import { readFileSync } from 'node:fs';
@@ -75,10 +74,6 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
         model: OssinsightCreatorsCountries,
         as: 'countries',
       },
-      // {
-      //   model: OssinsightCreatorsOrganizations,
-      //   as: 'organizations',
-      // },
     ],
     where: {
       id: projectId,
@@ -106,7 +101,7 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
       .sort((a, b) => {
         return b.creators_num - a.creators_num;
       });
-    res.prCountries = prCountries?.slice(0, 10).map(item => ({
+    res.prCountries = prCountries?.map(item => ({
       countryCode: item.country_code,
       creatorsNum: item.creators_num,
       percentage: item.percentage,
@@ -114,7 +109,10 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
 
     const issueCountries = res.countries
       .filter(item => item.type === 2)
-      .filter(item => item.country_code !== 'UNKNOWN');
+      .filter(item => item.country_code !== 'UNKNOWN')
+      .sort((a, b) => {
+        return b.creators_num - a.creators_num;
+      });
     res.issueCountries = issueCountries?.map(item => ({
       countryCode: item.country_code,
       creatorsNum: item.creators_num,
@@ -122,57 +120,16 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
     }));
     const starCountries = res.countries
       .filter(item => item.type === 1)
-      .filter(item => item.country_code !== 'UNKNOWN');
+      .filter(item => item.country_code !== 'UNKNOWN')
+      .sort((a, b) => {
+        return b.creators_num - a.creators_num;
+      });
     res.starCountries = starCountries?.map(item => ({
       countryCode: item.country_code,
       creatorsNum: item.creators_num,
       percentage: item.percentage,
     }));
   }
-
-  // if (res.organizations?.length !== 0) {
-  //   const organizations = res.organizations
-  //     .filter(item => item.org_name !== 'UNKNOWN')
-  //     .sort((a, b) => {
-  //       return b.creators_num - a.creators_num;
-  //     });
-  //   res.organizations = organizations?.slice(0, 10).map(item => ({
-  //     countryCode: item.country_code,
-  //     pullRequestCreators: item.creators_num,
-  //     percentage: item.percentage,
-  //   }));
-  // }
-
-  // if (res.organizations?.length !== 0) {
-  //   const prOrganizations = res.organizations
-  //     .filter(item => item.type === 0)
-  //     .filter(item => item.or !== 'UNKNOWN')
-  //     .sort((a, b) => {
-  //       return b.creators_num - a.creators_num;
-  //     });
-  //   res.prOrganizations = prOrganizations?.slice(0, 10).map(item => ({
-  //     orgName: item.org_name,
-  //     creatorsNum: item.creators_num,
-  //     percentage: item.percentage,
-  //   }));
-
-  //   const issueOrganizations = res.organizations
-  //     .filter(item => item.type === 2)
-  //     .filter(item => item.country_code !== 'UNKNOWN');
-  //   res.issueOrganizations = issueOrganizations?.map(item => ({
-  //     orgName: item.org_name,
-  //     creatorsNum: item.creators_num,
-  //     percentage: item.percentage,
-  //   }));
-  //   const starOrganizations = res.organizations
-  //     .filter(item => item.type === 1)
-  //     .filter(item => item.country_code !== 'UNKNOWN');
-  //   res.starOrganizations = starOrganizations?.map(item => ({
-  //     orgName: item.org_name,
-  //     creatorsNum: item.creators_num,
-  //     percentage: item.percentage,
-  //   }));
-  // }
   res.countries = [];
 
   return res;
@@ -181,7 +138,7 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
 export async function getPerformance(repoName: string): Promise<PerformanceInfo> {
   const packageName = await getMainPackageByRepoName(repoName);
   let packageSize = null;
-  if(packageName != null) {
+  if (packageName != null) {
     packageSize = await PackageSizeDetail.findOne({
       where: {
         packageName,
@@ -190,7 +147,6 @@ export async function getPerformance(repoName: string): Promise<PerformanceInfo>
       attributes: ['size', 'gzipSize'],
     });
   }
-
 
   // benchmark
   const benchmarkData = await getPerformanceBenchmark(repoName);
@@ -477,8 +433,8 @@ export async function exportScoreExcel(projectName: string) {
   const data = await getProjectDetailInfo(projectName);
   const packageName = await getMainPackageByRepoName(projectName);
   let packageSize = null;
-  if(packageName != null) {
-     packageSize = await PackageSizeDetail.findOne({
+  if (packageName != null) {
+    packageSize = await PackageSizeDetail.findOne({
       where: {
         packageName: packageName,
       },
@@ -573,7 +529,7 @@ export async function getInnovation(repoName: string) {
     where dependent_full_name = :repoName and pd.owner_type = 'Organization'
     order by stargazers_count desc;
   `;
-  const dependentOrganization= await sequelize.query(dependentOrganizationSql, {
+  const dependentOrganization = await sequelize.query(dependentOrganizationSql, {
     type: sequelize.QueryTypes.SELECT,
     replacements: {
       repoName,
