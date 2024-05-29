@@ -2,6 +2,7 @@ export default {
   tips: {
     开发者满意度:
       '数据来源于历年StateOfJS生态调查报告，更多结果可以查看 https://stateofjs.com/en-US',
+    githubStarTrend: 'We only display the total number of stars and ignore developers\' unstarring or restarring behaviors.',
     文档最佳实践:
       '最佳实践评分基于Linux Foundation建议的Best Practices检查，每个检查项都有不同的权重',
     'OpenSSF Scorecard': {
