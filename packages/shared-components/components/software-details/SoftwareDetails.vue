@@ -566,7 +566,7 @@ function renderCountriesChart(selector, data) {
     tooltip: {},
     geo: {
       map: 'world',
-      roam: true,
+      roam: false,
       top: 0,
       bottom: 0,
       left: 0,
