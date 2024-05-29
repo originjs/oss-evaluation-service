@@ -2,7 +2,6 @@ import type { SonarScanParam } from '../../interfaces/Param';
 import type { LanguageSonarScannerInterface } from '../../interfaces/language';
 import process from 'node:process';
 import fs from 'node:fs';
-// ts-ignore
 
 enum JavaBuildType {
   MAVEN,
@@ -37,23 +36,25 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
     const repoName = this.param.repoName;
     const dir = `${process.env.REPO_DIR}/${owner}/${repoName}`;
     switch (this.buildType) {
-      case JavaBuildType.MAVEN:
-        return [
-          `cd ${dir} &&\
-          mvn -T 1C\
-          clean\
-          compile\
-          package\
-          install\
-          org.sonarsource.scanner.maven:sonar-maven-plugin:LATEST:sonar\
-          -DskipTests\
-          -Dmaven.compiler.failOnWarning=false\
-          -Dsonar.host.url=${this.param.sonarHostUrl}\
-          -Dsonar.organization=${this.param.sonarOrg}\
-          -Dsonar.projectKey=${this.param.sonarKey}\
-          -Dsonar.token=${process.env.SONAR_TOKEN}
-          `,
-        ];
+      case JavaBuildType.MAVEN: {
+        const compileCommand = `
+            cd ${dir} &&\
+            mvn -T 1C\
+            clean\
+            compile\
+            package\
+            install\
+            -DskipTests\
+            -Dmaven.compiler.failOnWarning=false`;
+        const sonarCommand = `
+            cd ${dir} &&\
+            mvn org.sonarsource.scanner.maven:sonar-maven-plugin:LATEST:sonar\
+            -Dsonar.host.url=${this.param.sonarHostUrl}\
+            -Dsonar.organization=${this.param.sonarOrg}\
+            -Dsonar.projectKey=${this.param.sonarKey}\
+            -Dsonar.token=${process.env.SONAR_TOKEN}`;
+        return [compileCommand, sonarCommand];
+      }
       case JavaBuildType.GRADLE:
       case JavaBuildType.GRADLE_KTS: {
         this.addPlugin4Gradle(
@@ -61,11 +62,12 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
             this.buildType === JavaBuildType.GRADLE ? 'id "org.sonarqube"' : 'id("org.sonarqube")'
           } version '${process.env.SONAR_PLUGIN_GRADLE_VERSION}'`,
         );
-        const writeLockCommand = `cd ${dir} && ./gradlew dependencies --write-locks`;
-        const buildCommand = `cd ${dir} && ./gradlew --parallel build -x test`;
+        const writeLockCommand = `cd ${dir} && ./gradlew dependencies --write-locks  --parallel`;
+        const buildCommand = `cd ${dir} && ./gradlew --parallel build  --parallel -x test`;
         const sonarCommand = `
              cd ${dir} &&\
-              ./gradlew sonar\
+              ./gradlew\
+              sonar\
              -Dsonar.host.url=${this.param.sonarHostUrl}\
              -Dsonar.organization=${this.param.sonarOrg}\
              -Dsonar.projectKey=${this.param.sonarKey}\
