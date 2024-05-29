@@ -104,7 +104,7 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
       .sort((a, b) => {
         return b.creators_num - a.creators_num;
       });
-    res.prCountries = prCountries?.map(item => ({
+    res.prCountries = prCountries?.slice(0, 100).map(item => ({
       countryCode: item.country_code,
       creatorsNum: item.creators_num,
       percentage: item.percentage,
@@ -116,7 +116,7 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
       .sort((a, b) => {
         return b.creators_num - a.creators_num;
       });
-    res.issueCountries = issueCountries?.map(item => ({
+    res.issueCountries = issueCountries?.slice(0, 100).map(item => ({
       countryCode: item.country_code,
       creatorsNum: item.creators_num,
       percentage: item.percentage,
@@ -127,7 +127,7 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
       .sort((a, b) => {
         return b.creators_num - a.creators_num;
       });
-    res.starCountries = starCountries?.map(item => ({
+    res.starCountries = starCountries?.slice(0, 100).map(item => ({
       countryCode: item.country_code,
       creatorsNum: item.creators_num,
       percentage: item.percentage,
