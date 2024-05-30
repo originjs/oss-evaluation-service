@@ -35,55 +35,31 @@ const integrationInfo = {
 };
 
 /**
- * Handles the request to synchronize all project pull request creators organizations.
+ * Synchronizes the countries data for all projects.
  *
- * @param {Object} req - The request object containing the body with the startDate, minId, and maxId.
+ * @param {Object} req - The request object.
  * @param {Object} res - The response object.
  * @return {Promise<void>} A promise that resolves when the synchronization is complete.
  */
-export async function syncAllProjectPullRequestCreatorsCountriesHandler(req, res) {
-  const option = integrationInfo.prCountries;
+export async function syncAllProjectCreatorsCountriesHandler(req, res) {
+  for (let option of Object.values(integrationInfo)) {
+    await syncAllProjectCreatorsCountries(req, option);
+  }
 
-  await syncAllProjectCreatorsCountries(req, option);
-  res.status(200).json('ok');
-}
-
-export async function syncAllProjectIssueCreatorsCountriesHandler(req, res) {
-  const option = integrationInfo.issueCountries;
-
-  await syncAllProjectCreatorsCountries(req, option);
-  res.status(200).json('ok');
-}
-
-export async function syncAllProjectStarCreatorsCountriesHandler(req, res) {
-  const option = integrationInfo.starCountries;
-
-  await syncAllProjectCreatorsCountries(req, option);
   res.status(200).json('ok');
 }
 
 /**
- * Handles the request to synchronize the pull request creators organizations data for a single project.
+ * Synchronizes the creators countries data for a single project.
  *
- * @param {Object} req - The request object containing the body with the repoUrl.
+ * @param {Object} req - The request object.
  * @param {Object} res - The response object.
  * @return {Promise<void>} A promise that resolves when the synchronization is complete.
  */
-export async function syncSingleProjectPullRequestCreatorsCountriesHandler(req, res) {
-  const option = integrationInfo.prCountries;
-  await syncSingleProjectPullRequestCreatorsCountries(req, option);
-  res.status(200).json('ok');
-}
-
-export async function syncSingleProjectIssueCreatorsCountriesHandler(req, res) {
-  const option = integrationInfo.issueCountries;
-  await syncSingleProjectPullRequestCreatorsCountries(req, option);
-  res.status(200).json('ok');
-}
-
-export async function syncSingleProjectStarCreatorsCountriesHandler(req, res) {
-  const option = integrationInfo.starCountries;
-  await syncSingleProjectPullRequestCreatorsCountries(req, option);
+export async function syncSingleProjectCreatorsCountriesHandler(req, res) {
+  for (let option of Object.values(integrationInfo)) {
+    await syncSingleProjectCreatorsCountries(req, option);
+  }
   res.status(200).json('ok');
 }
 
@@ -94,7 +70,7 @@ export async function syncSingleProjectStarCreatorsCountriesHandler(req, res) {
  * @param {Object} option - The options for getting the creators organizations.
  * @return {Promise<void>} A promise that resolves when the synchronization is complete.
  */
-export async function syncSingleProjectPullRequestCreatorsCountries(req, option) {
+export async function syncSingleProjectCreatorsCountries(req, option) {
   const { repoUrl } = req.body;
   let project = await GithubProjects.findOne({
     where: {
@@ -171,7 +147,7 @@ function getCreatorsNum(el, type) {
   }
 }
 
-export async function sendRequestByFullName(fullName, url) {
+async function sendRequestByFullName(fullName, url) {
   const fetchUrl = url.replace(':owner/:repo', fullName);
   const response = await fetch(fetchUrl, {
     method: 'GET',

@@ -17,8 +17,6 @@ const QUERY_SQL = `
 select distinct project.id,
                 project.name,
                 project.full_name as fullName,
-                project.html_url  as htmlUrl,
-                project_id        as projectId
 from github_projects project
          left join (select *
                     from ossinsight_creators_organizations
@@ -28,7 +26,6 @@ and project.id >= :startId
 and project.id <= :endId
 order by id;
 `;
-
 const integrationInfo = {
   prOrganizations: { type: 0, url: prOrganizationsUrl },
   starOrganizations: { type: 1, url: starOrganizationsUrl },
@@ -36,55 +33,35 @@ const integrationInfo = {
 };
 
 /**
- * Handles the request to synchronize all project pull request creators organizations.
+ * Synchronizes the pull request creators organizations data for all projects.
  *
- * @param {Object} req - The request object containing the body with the startDate, minId, and maxId.
+ * @param {Object} req - The request object.
  * @param {Object} res - The response object.
  * @return {Promise<void>} A promise that resolves when the synchronization is complete.
  */
-export async function syncAllProjectPullRequestCreatorsOrgHandler(req, res) {
-  const option = integrationInfo.prOrganizations;
+export async function syncAllProjectCreatorsOrgHandler(req, res) {
+  const options = Object.values(integrationInfo);
+  for (const option of options) {
+    await syncAllProjectCreatorsOrg(req, option);
+  }
 
-  await syncAllProjectCreatorsOrg(req, option);
-  res.status(200).json('ok');
-}
-
-export async function syncAllProjectIssueCreatorsOrgHandler(req, res) {
-  const option = integrationInfo.issueOrganizations;
-
-  await syncAllProjectCreatorsOrg(req, option);
-  res.status(200).json('ok');
-}
-
-export async function syncAllProjectStarCreatorsOrgHandler(req, res) {
-  const option = integrationInfo.starOrganizations;
-
-  await syncAllProjectCreatorsOrg(req, option);
   res.status(200).json('ok');
 }
 
 /**
- * Handles the request to synchronize the pull request creators organizations data for a single project.
+ * Synchronizes the creators organizations data for a single project.
  *
- * @param {Object} req - The request object containing the body with the repoUrl.
+ * @param {Object} req - The request object.
  * @param {Object} res - The response object.
  * @return {Promise<void>} A promise that resolves when the synchronization is complete.
  */
-export async function syncSingleProjectPullRequestCreatorsOrgHandler(req, res) {
-  const option = integrationInfo.prOrganizations;
-  await syncSingleProjectPullRequestCreatorsOrg(req, option);
-  res.status(200).json('ok');
-}
+export async function syncSingleProjectCreatorsOrgHandler(req, res) {
+  const options = Object.values(integrationInfo);
 
-export async function syncSingleProjectIssueCreatorsOrgHandler(req, res) {
-  const option = integrationInfo.issueOrganizations;
-  await syncSingleProjectPullRequestCreatorsOrg(req, option);
-  res.status(200).json('ok');
-}
+  for (const option of options) {
+    await syncSingleProjectCreatorsOrg(req, option);
+  }
 
-export async function syncSingleProjectStarCreatorsOrgHandler(req, res) {
-  const option = integrationInfo.starOrganizations;
-  await syncSingleProjectPullRequestCreatorsOrg(req, option);
   res.status(200).json('ok');
 }
 
@@ -95,7 +72,7 @@ export async function syncSingleProjectStarCreatorsOrgHandler(req, res) {
  * @param {Object} option - The options for getting the creators organizations.
  * @return {Promise<void>} A promise that resolves when the synchronization is complete.
  */
-export async function syncSingleProjectPullRequestCreatorsOrg(req, option) {
+export async function syncSingleProjectCreatorsOrg(req, option) {
   const { repoUrl } = req.body;
   let project = await GithubProjects.findOne({
     where: {
