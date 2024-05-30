@@ -40,6 +40,9 @@ export default sequelize.define(
     dependentName: {
       type: DataTypes.STRING(512),
     },
+    dependentRequirements: {
+      type: DataTypes.STRING(100),
+    },
     dependentHtmlUrl: {
       type: DataTypes.STRING(512),
     },
@@ -48,6 +51,11 @@ export default sequelize.define(
     },
     lastUpdatedDate: {
       type: DataTypes.DATE,
+    },
+    deleted: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
     },
   },
   {
