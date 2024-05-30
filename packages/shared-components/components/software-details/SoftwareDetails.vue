@@ -724,9 +724,7 @@ function processBenchmarkData(benchmarkData?: BenchmarkData, needRetain?: boolea
     ? new Set([...benchmarkCompareColumns.value])
     : new Set(['indexName']);
   const data = benchmarkData?.data || [];
-  if (data.length === 0) {
-    showBenchmarkCompare.value = false;
-  }
+  showBenchmarkCompare.value = data.length !== 0;
   for (let i = 0; i < data.length; i++) {
     for (let j = 0; j < data[i].length; j++) {
       const indexName = data[i][j].indexName;
