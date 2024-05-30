@@ -15,9 +15,7 @@ const starCountriesUrl = 'https://api.ossinsight.io/v1/repos/:owner/:repo/starga
 const QUERY_SQL = `
   select distinct project.id,
                   project.name,
-                  project.full_name as fullName,
-                  project.html_url  as htmlUrl,
-                  project_id        as projectId
+                  project.full_name as fullName
   from github_projects project
            left join (select *
                       from ossinsight_creators_countries
@@ -42,8 +40,16 @@ const integrationInfo = {
  * @return {Promise<void>} A promise that resolves when the synchronization is complete.
  */
 export async function syncAllProjectCreatorsCountriesHandler(req, res) {
+  const { startDate, minId, maxId } = req.body;
+  let startId = minId || (await GithubProjects.min('id'));
+  let endId = maxId || (await GithubProjects.max('id'));
+
   for (let option of Object.values(integrationInfo)) {
-    await syncAllProjectCreatorsCountries(req, option);
+    const projectList = await sequelize.query(QUERY_SQL, {
+      replacements: { startDate, startId, endId, type: option.type },
+      type: sequelize.QueryTypes.SELECT,
+    });
+    await syncAllProjectCreatorsCountries(projectList, option);
   }
 
   res.status(200).json('ok');
@@ -57,8 +63,15 @@ export async function syncAllProjectCreatorsCountriesHandler(req, res) {
  * @return {Promise<void>} A promise that resolves when the synchronization is complete.
  */
 export async function syncSingleProjectCreatorsCountriesHandler(req, res) {
+  const { repoUrl } = req.body;
+  let project = await GithubProjects.findOne({
+    where: {
+      htmlUrl: repoUrl,
+    },
+    attributes: ['id', 'fullName'],
+  });
   for (let option of Object.values(integrationInfo)) {
-    await syncSingleProjectCreatorsCountries(req, option);
+    await syncSingleProjectCreatorsCountries(project, option);
   }
   res.status(200).json('ok');
 }
@@ -70,14 +83,7 @@ export async function syncSingleProjectCreatorsCountriesHandler(req, res) {
  * @param {Object} option - The options for getting the creators organizations.
  * @return {Promise<void>} A promise that resolves when the synchronization is complete.
  */
-export async function syncSingleProjectCreatorsCountries(req, option) {
-  const { repoUrl } = req.body;
-  let project = await GithubProjects.findOne({
-    where: {
-      htmlUrl: repoUrl,
-    },
-    attributes: ['id', 'fullName'],
-  });
+export async function syncSingleProjectCreatorsCountries(project, option) {
   const countryList = await getCreatorsCountries(project, option);
   await bulkUpsertData(countryList);
 }
@@ -89,15 +95,8 @@ export async function syncSingleProjectCreatorsCountries(req, option) {
  * @param {Object} option - The options for getting the creators organizations.
  * @return {Promise<void>} A promise that resolves when all the data has been synchronized.
  */
-export async function syncAllProjectCreatorsCountries(req, option) {
-  const { startDate, minId, maxId } = req.body;
+export async function syncAllProjectCreatorsCountries(projectList, option) {
   let countryLists = [];
-  let startId = minId || (await GithubProjects.min('id'));
-  let endId = maxId || (await GithubProjects.max('id'));
-  const projectList = await sequelize.query(QUERY_SQL, {
-    replacements: { startDate, startId, endId, type: option.type },
-    type: sequelize.QueryTypes.SELECT,
-  });
   for (let project of projectList) {
     if (project && project.fullName) {
       let country = await getCreatorsCountries(project, option);
