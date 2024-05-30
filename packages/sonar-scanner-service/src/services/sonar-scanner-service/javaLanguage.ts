@@ -41,7 +41,11 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
     const owner = this.param.gitOwner;
     const repoName = this.param.repoName;
     const dir = `${process.env.REPO_DIR}/${owner}/${repoName}`;
-    const mvnCommand = 'mvn';
+    let mvnCommand = 'mvn';
+    // if exists './mvnw' wrapper, using wrapper instead of mvn
+    if (fs.existsSync(`${dir}/mvnw`)) {
+      mvnCommand = './mvnw';
+    }
     switch (this.buildType) {
       case JavaBuildType.MAVEN: {
         const installCommand = `
@@ -94,7 +98,11 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
         const sonarCommand = `
              cd ${dir} &&\
               ./gradlew\
+              clean\
+              build\
               sonar\
+              -x test\
+              -x check\
               --init-script ${initFilePath} \
               -Dorg.gradle.daemon=false\
               -Dsonar.host.url=${this.param.sonarHostUrl}\

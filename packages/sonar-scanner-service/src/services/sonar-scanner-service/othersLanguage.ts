@@ -12,25 +12,21 @@ export class OthersLanguageService implements LanguageSonarScannerInterface {
   sonarCommands(): string[] {
     const owner = this.param.gitOwner;
     const repoName = this.param.repoName;
-    const language = this.param.language.toUpperCase();
     const dir = `${process.env.REPO_DIR}/${owner}/${repoName}`;
+    const sonarCommand = 'sonar-scanner';
     // run sonar
-    let scanCommand = `
+    const scanCommand = `
       cd ${dir} &&\
-      sonar-scanner\
-     -Dsonar.organization=${this.param.sonarOrg}\
-     -Dsonar.projectKey=${this.param.sonarKey}\
-     -Dsonar.sources=.\
-     -Dsonar.host.url=${this.param.sonarHostUrl}
-     -Dsonar.token=${process.env.SONAR_TOKEN}`;
-    if (language !== 'JAVA') {
-      scanCommand += ' -Dsonar.exclusions=**/*.java';
-    }
-    if (language !== 'C' && language !== 'C++') {
-      scanCommand += ` -Dsonar.c.file.suffixes=-\
-    -Dsonar.cpp.file.suffixes=-\
-    -Dsonar.objc.file.suffixes=-`;
-    }
+      ${sonarCommand}\
+      -Dsonar.exclusions='**/*.java'\
+      -Dsonar.c.file.suffixes=-\
+      -Dsonar.cpp.file.suffixes=-\
+      -Dsonar.objc.file.suffixes=-\
+      -Dsonar.organization=${this.param.sonarOrg}\
+      -Dsonar.projectKey=${this.param.sonarKey}\
+      -Dsonar.sources=.\
+      -Dsonar.host.url=${this.param.sonarHostUrl}\
+      -Dsonar.token=${process.env.SONAR_TOKEN}`;
     return [scanCommand];
   }
   restoreCommand(): string {
