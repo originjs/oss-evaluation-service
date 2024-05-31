@@ -62,9 +62,14 @@ export default sequelize.define(
     },
     sast: {
       type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: null,
     },
     vulnerabilities: {
       type: DataTypes.INTEGER,
+    },
+    isLocal: {
+      type: DataTypes.BOOLEAN,
     },
   },
   {

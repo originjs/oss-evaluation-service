@@ -1,7 +1,11 @@
 import express from 'express';
-
 import { syncAlternativeHandler } from '../controllers/alternative.js';
-import { getScorecardHandler, syncScorecardHandler } from '../controllers/scorecard.js';
+import {
+  getScorecardHandler,
+  syncScorecardHandler,
+  syncScorecardSpecial,
+  syncSingleProjectScorecardHandler,
+} from '../controllers/scorecard.js';
 import { syncOpendiggerHandler } from '../controllers/opendigger.js';
 import {
   syncAllProjectPackageDownloadCountHandler,
@@ -74,6 +78,7 @@ import {
   syncSingleProjectIssueCreatorsCountriesHandler,
   syncSingleProjectStarCreatorsCountriesHandler,
 } from '../controllers/ossinsightCreatorsCountry.js';
+import syncCriticalityScoreHandler from '../controllers/criticalitryScore.js';
 
 const router = express.Router();
 
@@ -297,6 +302,56 @@ router.route('/scorecard').post(syncScorecardHandler);
  * @swagger
  * tags:
  *   name: Scorecard
+ * /sync/scorecard/syncSingleProjectScorecard:
+ *   post:
+ *     summary: 获取Scorecard单个项目数据
+ *     tags: [Scorecard]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               url:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Success
+ */
+router.route('/scorecard/syncSingleProjectScorecard').post(syncSingleProjectScorecardHandler);
+
+/**
+ * @swagger
+ * tags:
+ *   name: Scorecard
+ * /sync/scorecardSpecial:
+ *   post:
+ *     summary: 获取Scorecard数据
+ *     tags: [Scorecard]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *               category:
+ *                 type: string
+ *               complementary:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Success
+ */
+router.route('/scorecardSpecial').post(syncScorecardSpecial);
+
+/**
+ * @swagger
+ * tags:
+ *   name: Scorecard
  * /sync/scorecard/getScorecardTest:
  *   post:
  *     summary: 获取Scorecard单个数据
@@ -315,6 +370,29 @@ router.route('/scorecard').post(syncScorecardHandler);
  *         description: Success
  */
 router.route('/scorecard/getScorecardTest').post(getScorecardHandler);
+
+/**
+ * @swagger
+ * tags:
+ *   name: Criticality Score
+ * /sync/criticalityScore/syncAllCriticalityScore:
+ *   post:
+ *     summary: 根据github_project同步全量criticality_score数据，输入表名
+ *     tags: [Scorecard]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               tableName:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Success
+ */
+router.route('/criticalityScore/syncAllCriticalityScore').post(syncCriticalityScoreHandler);
 
 /**
  * @swagger
@@ -519,6 +597,9 @@ router.route('/github/:userToken/stars/projects').post(syncProjectByUserStar);
  *               projectName:
  *                 type: string
  *                 example: "vue"
+ *               displayName:
+ *                 type: string
+ *                 example: "vue-pinia-v3.4.11 + 2.1.7-keyed"
  *               benchmark:
  *                 type: string
  *                 example: "speed"
@@ -537,6 +618,9 @@ router.route('/github/:userToken/stars/projects').post(syncProjectByUserStar);
  *               platform:
  *                 type: string
  *                 example: "windows"
+ *               envInfo:
+ *                 type: string
+ *                 example: "The benchmark was run on a MacBook Pro 14 (16 GB RAM, 6/10 Cores, OSX 14.9), Chrome 123.0.6312.59 (arm64)"
  *     responses:
  *       200:
  *         description: success.
