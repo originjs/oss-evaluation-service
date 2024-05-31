@@ -29,7 +29,7 @@
     }
   },
   "scripts": {
-    "build": "vite build",
+    "build": "vue-tsc && vite build",
     "test": "vitest run"
   },
   "peerDependencies": {
