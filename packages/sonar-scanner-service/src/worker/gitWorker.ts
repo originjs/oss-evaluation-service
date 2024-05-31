@@ -1,5 +1,5 @@
 import { parentPort } from 'worker_threads';
-import type { GitCloneParam } from '../interfaces/RepoInfo';
+import type { GitCloneParam } from '../interfaces/Param';
 import fs from 'node:fs';
 import process from 'node:process';
 import type { SimpleGit, SimpleGitOptions } from 'simple-git';
@@ -27,7 +27,7 @@ export async function cloneRepoIfNotExist(
     trimmed: false,
   };
   // retry 3 times for clone
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 2; i++) {
     const exists = existsSync(dir);
     const cloneUrl = getCloneUrlByTime(i + 1, owner, repoName);
     if (!exists) {
@@ -47,7 +47,7 @@ export async function cloneRepoIfNotExist(
     } else {
       logger.info(`${owner}/${repoName} dont exists,git clone`);
       try {
-        await gitClient.clone(cloneUrl, '.', ['--depth', '1']);
+        await gitClient.clone(cloneUrl, '.');
       } catch (e) {
         logger.error(`${owner}/${repoName}:${cloneUrl} clone failed! ${e}`);
         continue;
@@ -76,8 +76,6 @@ function getCloneUrlByTime(time: number, owner: string, repoName: string): strin
     case 1:
       return `https://github.com/${owner}/${repoName}.git`;
     case 2:
-      return `https://gitclone.com/github.com/${owner}/${repoName}.git`;
-    case 3:
       return `git@github.com:${owner}/${repoName}.git`;
   }
 }
