@@ -68,7 +68,7 @@ export default sequelize.define(
     vulnerabilities: {
       type: DataTypes.INTEGER,
     },
-    isLatest: {
+    isLocal: {
       type: DataTypes.BOOLEAN,
     },
   },

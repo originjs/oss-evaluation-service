@@ -4,6 +4,7 @@ import {
   getScorecardHandler,
   syncScorecardHandler,
   syncScorecardSpecial,
+  syncSingleProjectScorecardHandler,
 } from '../controllers/scorecard.js';
 import { syncOpendiggerHandler } from '../controllers/opendigger.js';
 import {
@@ -77,6 +78,7 @@ import {
   syncSingleProjectIssueCreatorsCountriesHandler,
   syncSingleProjectStarCreatorsCountriesHandler,
 } from '../controllers/ossinsightCreatorsCountry.js';
+import syncCriticalityScoreHandler from '../controllers/criticalitryScore.js';
 
 const router = express.Router();
 
@@ -300,6 +302,29 @@ router.route('/scorecard').post(syncScorecardHandler);
  * @swagger
  * tags:
  *   name: Scorecard
+ * /sync/scorecard/syncSingleProjectScorecard:
+ *   post:
+ *     summary: 获取Scorecard单个项目数据
+ *     tags: [Scorecard]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               url:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Success
+ */
+router.route('/scorecard/syncSingleProjectScorecard').post(syncSingleProjectScorecardHandler);
+
+/**
+ * @swagger
+ * tags:
+ *   name: Scorecard
  * /sync/scorecardSpecial:
  *   post:
  *     summary: 获取Scorecard数据
@@ -345,6 +370,29 @@ router.route('/scorecardSpecial').post(syncScorecardSpecial);
  *         description: Success
  */
 router.route('/scorecard/getScorecardTest').post(getScorecardHandler);
+
+/**
+ * @swagger
+ * tags:
+ *   name: Criticality Score
+ * /sync/criticalityScore/syncAllCriticalityScore:
+ *   post:
+ *     summary: 根据github_project同步全量criticality_score数据，输入表名
+ *     tags: [Scorecard]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               tableName:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Success
+ */
+router.route('/criticalityScore/syncAllCriticalityScore').post(syncCriticalityScoreHandler);
 
 /**
  * @swagger

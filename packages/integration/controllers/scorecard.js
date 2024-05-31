@@ -1,15 +1,21 @@
-import fs from 'fs';
 import { exec } from 'node:child_process';
 import util from 'node:util';
 import {
-  ScorecardComplem,
   ProjectTechStack,
   Scorecard,
   sequelize,
   GithubProjects,
 } from '@orginjs/oss-evaluation-data-model';
 import { ServerError, BadRequestError } from '../util/error.js';
+import { parseRepoUrl } from '../util/util.js';
 
+/**
+ * Sync scorecard by id or by tech_stack from table:project_stack
+ *
+ * @param {*} req input including id and tech_stack(tech_stack will be ignored if id is present)
+ * @param {*} res return result state
+ * @returns
+ */
 export async function syncScorecardHandler(req, res) {
   try {
     // sync single project
@@ -26,25 +32,17 @@ export async function syncScorecardHandler(req, res) {
     } else if (req.body.category) {
       // sync a category
       const options = req.body.category === 'all' ? {} : { where: { category: req.body.category } };
-      let projects;
-      if (req.body.complementary) {
-        console.log('Starting complementary mode. Only integrate data of "is_latest = 0"');
-        projects = await ScorecardComplem.findAll(options);
-      } else {
-        if (req.body.category === 'all') {
-          console.log('Starting full integration mode. Integrate all data from scratch!');
-          await Scorecard.update({ isLatest: false }, { where: {} });
-        }
-        projects = await ProjectTechStack.findAll(options);
+      let projects = await ProjectTechStack.findAll(options);
+      if (req.body.category === 'all') {
+        console.log('Starting full integration mode. Integrate all data from scratch!');
       }
-      let retryList = fetchData(projects);
-      let retryChance = 0;
-      // Retry for less than 3 times
-      while (retryChance < 3) {
-        retryChance += 1;
-        retryList = fetchData(retryList);
+      for (let project of projects) {
+        await syncScorecard(project.projectId, project.html_url.substring('https://'.length)).catch(
+          e => {
+            console.log(`Integration Failed! Failure from project ${e.message}`);
+          },
+        );
       }
-      fs.writeFileSync('errorList.txt', JSON.stringify(retryList));
       res.status(200).json({
         status: 'success',
         projects: projects.map(item => item.name),
@@ -56,11 +54,16 @@ export async function syncScorecardHandler(req, res) {
   }
 }
 
+/**
+ * Sync scorecard by input condition from table:github_projects
+ * @param {*} req input including sql of searching table:github_projects, starting by 'select * from github_projects'
+ * @param {*} res return result state
+ */
 export async function syncScorecardSpecial(req, res) {
   try {
+    const sql = req.body.sql;
     let jobList = [];
-    const [projectList,] = await sequelize.query(`SELECT * FROM github_projects WHERE integrated_state = 2
-    AND id NOT IN (SELECT DISTINCT project_id FROM scorecard_info)`); //GithubProjects.findAll({ where: { integratedState: 2 } });
+    const [projectList] = await sequelize.query(sql);
     for (const project of projectList) {
       const projectPath = project.html_url.substring('https://'.length);
       const projectId = project.id;
@@ -77,25 +80,15 @@ export async function syncScorecardSpecial(req, res) {
   }
 }
 
-function fetchData(projects) {
-  let index = 0;
-  const interval = 5;
-  const retryList = [];
-  setInterval(async () => {
-    const chunk = projects.slice(index, index + interval);
-    for (const project of chunk) {
-      console.log(`Start integrating project from ${project.htmlUrl}`);
-      const projectPath = project.htmlUrl.substring('https://'.length);
-      await syncScorecard(project.projectId, projectPath).catch(e => {
-        console.log(`Integration Failed! Failure from project ${e.message}`);
-        retryList.push(e.message);
-      });
-    }
-    index += interval;
-  }, 5000);
-  return retryList;
-}
-
+/**
+ * Sync scorecard to mysql(run locally if no data online)
+ * @param {string} projectId projectId of the project
+ * @param {string} address project address（url of github without 'https://'）
+ * @param {string} platform platform name，like 'github.com'
+ * @param {string} org organization name
+ * @param {string} repo repo name
+ * @returns inserted data
+ */
 export async function syncScorecard(projectId, address, platform, org, repo) {
   let url = '';
   if (address && address.length > 0) {
@@ -105,12 +98,23 @@ export async function syncScorecard(projectId, address, platform, org, repo) {
   } else {
     throw new BadRequestError();
   }
+
+  if (!projectId) {
+    const tempProject = await GithubProjects.findOne({ where: { htmlUrl: `https://${url}` } });
+    projectId = tempProject.id;
+  }
+  // Obtain scorecard data
   let score;
   try {
     score = await getScorecard(url);
   } catch (e) {
     console.error(e);
   }
+  if (JSON.stringify(score) === '{}') {
+    return;
+  }
+
+  // save scorecard score to sql
   const row = { ...score, projectId };
   const [data, created] = await Scorecard.findOrCreate({
     where: { projectId: row.projectId },
@@ -122,20 +126,27 @@ export async function syncScorecard(projectId, address, platform, org, repo) {
   return row;
 }
 
+/**
+ * Get scorecard data
+ * @param {string} url address of project without 'https://'
+ * @returns score, score details, collection date, repo name, commit no., run locally or not
+ */
 export async function getScorecard(url) {
   try {
     const apiUrl = `https://api.securityscorecards.dev/projects/${url}`;
     const response = await fetch(apiUrl);
     let body;
+    let isLocal;
     if (response.ok) {
       console.log(`Fetching data of project ${url} online...`);
       body = await response.json();
+      isLocal = false;
     } else {
       console.log(`Fetching data of project ${url} failed! Running scorecard locally...`);
       let buffer;
       const execPromise = util.promisify(exec);
       await execPromise(`"scorecard-windows-amd64.exe" --repo=${url} --format=json`, {
-        env: { GITHUB_AUTH_TOKEN: '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' },
+        env: { GITHUB_AUTH_TOKEN: process.env.GITHUB_AUTH_TOKEN },
       })
         .then(value => {
           buffer = value.stdout;
@@ -145,6 +156,7 @@ export async function getScorecard(url) {
           console.error(error);
         });
       body = JSON.parse(buffer);
+      isLocal = true;
     }
     const { checks } = body;
     const scoreMap = {};
@@ -169,7 +181,7 @@ export async function getScorecard(url) {
       score: body.score,
       commit: body.repo.commit,
       ...scoreMap,
-      isLatest: true,
+      isLocal,
     };
   } catch (e) {
     throw new ServerError(e);
@@ -181,6 +193,27 @@ export async function getScorecardHandler(req, res) {
   try {
     const result = await getScorecard(url);
     res.status(200).send(result);
+  } catch (e) {
+    res.status(500).send(e.toString());
+  }
+}
+
+/**
+ * Synchronize scorecard score for single project
+ * @param project string html path for the project
+ */
+export async function syncSingleProjectScorecard(projectUrl) {
+  const project = await GithubProjects.findOne({ where: { htmlUrl: projectUrl } });
+  const projectId = project.id;
+  const { address, owner, repository } = parseRepoUrl(projectUrl);
+  await syncScorecard(projectId, null, address, owner, repository);
+}
+
+export async function syncSingleProjectScorecardHandler(req, res) {
+  try {
+    const url = req.body.url;
+    await syncSingleProjectScorecard(url);
+    res.status(200).send('Sync Success!');
   } catch (e) {
     res.status(500).send(e.toString());
   }
