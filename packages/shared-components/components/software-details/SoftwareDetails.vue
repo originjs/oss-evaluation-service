@@ -333,7 +333,7 @@ function getCompaniesSeriesData(data: any) {
       id: 'option.' + data[key]['projectId'] + count,
       index: count,
       value: data[key]['creatorsNum'],
-      name: data[key]['orgName'],
+      name: '-' + data[key]['orgName'],
     };
   });
   seriesData.push({
@@ -393,13 +393,13 @@ function renderBubbleChart(container: string, seriesData: Array<any>) {
     }
 
     let nodePath = api.value('id');
-    let nodeName = api.value('name');
+    let nodeName = api.value('name').slice(1);
     let node = context.nodes[nodePath];
     if (node.id === 'option') {
       node.r = 0;
     }
     if (!node) {
-      // Reder nothing.
+      // Render nothing.
       return;
     }
 
@@ -435,7 +435,7 @@ function renderBubbleChart(container: string, seriesData: Array<any>) {
         position: 'inside',
       },
       style: {
-        fill: '#5470c6',
+        fill: '#738ace',
       },
       emphasis: {
         style: {
@@ -469,7 +469,12 @@ function renderBubbleChart(container: string, seriesData: Array<any>) {
       },
     ],
   };
-
+  if (container === '#dependent-project-bubble-chart') {
+    option.tooltip.valueFormatter = obj => obj[0] + ' : ' + toKilo(obj[1]) + ' stars';
+  }
+  if (container === '#project-companies-bubble-chart') {
+    option.tooltip.valueFormatter = obj => obj[0].slice(1) + ' ' + obj[1];
+  }
   myChart.setOption(option);
 }
 
