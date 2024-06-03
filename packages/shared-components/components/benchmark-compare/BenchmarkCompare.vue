@@ -7,6 +7,7 @@ import TestFrameworkBenchmark from './TestFrameworkBenchmark.vue';
 const activeName = ref('frameworks');
 
 const handleClick = (tab: TabsPaneContext, event: Event) => {
+  /* eslint-disable no-console */
   console.log(tab, event);
 };
 </script>

@@ -888,7 +888,6 @@ watchEffect(async () => {
 const companiesActiveName = ref('star');
 function handleCompaniesActiveClick(tab: TabsPaneContext, event: Event) {
   const maxOrganizationsNumber = 10;
-  // console.log('tab: ', tab.props.name);
   companiesActiveName.value = tab.props.name;
   const { issueCreators, stargazers, prCreators } = companiesBaseInfo.value;
 

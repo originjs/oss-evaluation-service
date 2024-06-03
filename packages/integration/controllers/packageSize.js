@@ -19,10 +19,8 @@ export async function getPackageSize(name, version) {
     redirect: 'follow',
   };
 
-  console.time('fetchTime');
   const url = `https://bundlephobia.com/api/size?record=true&package=${name}${version ? `@${version}` : ''}`;
   const response = await fetch(url, requestOptions);
-  console.timeEnd('fetchTime');
   if (response.ok) {
     const body = await response.json();
     return {

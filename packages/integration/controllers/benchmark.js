@@ -114,7 +114,7 @@ function updateThreshold(dataList, weightMap, isDesc) {
       }
     }
     if (threshold === null) {
-      console.warn(`No data content match the benchmark of ${name}`);
+      logger.info(`No data content match the benchmark of ${name}`);
       continue;
     } else {
       result.push({ ...weightItem, threshold });
@@ -142,7 +142,7 @@ async function calScore(weightMap, param) {
     if (Object.prototype.hasOwnProperty.call(param, name)) {
       score += calScoreSection(param[name], weight, threshold);
     } else {
-      console.warn(`Weight name ${name} not found in input data!`);
+      logger.info(`Weight name ${name} not found in input data!`);
     }
   }
   return score;

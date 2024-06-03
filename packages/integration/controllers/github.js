@@ -97,7 +97,7 @@ async function savaData(projects) {
   const result = await GithubProjects.bulkCreate(projects, {
     updateOnDuplicate,
   });
-  console.log(`Batch insert/update success,${result.length} rows.`);
+  logger.info(`Batch insert/update success,${result.length} rows.`);
 }
 
 function saveCSVFile(projects, fileName) {
@@ -137,7 +137,7 @@ async function pagingQuery(url) {
           }
           const links = parseLinks(res.headers.link);
           const resultBody = JSON.parse(result.toString());
-          console.log(
+          logger.info(
             `Integrate the total rows of records: ${resultBody.total_count},Rows of this integration:${resultBody.items.length}`,
           );
 

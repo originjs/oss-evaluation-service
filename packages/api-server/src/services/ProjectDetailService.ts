@@ -197,7 +197,7 @@ export async function getProjectIdByRepoName(repoName: string) {
   });
   if (!data) {
     const msg = `cant find repo named {${repoName}}!`;
-    console.warn(msg);
+    logger.info(msg);
     throw new Error(msg);
   }
   return data.id;
@@ -218,7 +218,7 @@ export async function getMainPackageByRepoName(repoName: string) {
   });
   if (!data) {
     const msg = `cant find main package of project:{${repoName}}!`;
-    console.warn(msg);
+    logger.info(msg);
     return null;
   }
   return data.package;

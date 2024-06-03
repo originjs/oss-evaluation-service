@@ -5,6 +5,7 @@ import {
   Scorecard,
   sequelize,
   GithubProjects,
+  logger,
 } from '@orginjs/oss-evaluation-data-model';
 import { ServerError, BadRequestError } from '../util/error.js';
 import { parseRepoUrl } from '../util/util.js';
@@ -34,12 +35,12 @@ export async function syncScorecardHandler(req, res) {
       const options = req.body.category === 'all' ? {} : { where: { category: req.body.category } };
       let projects = await ProjectTechStack.findAll(options);
       if (req.body.category === 'all') {
-        console.log('Starting full integration mode. Integrate all data from scratch!');
+        logger.info('Starting full integration mode. Integrate all data from scratch!');
       }
       for (let project of projects) {
         await syncScorecard(project.projectId, project.html_url.substring('https://'.length)).catch(
           e => {
-            console.log(`Integration Failed! Failure from project ${e.message}`);
+            logger.error(`Integration Failed! Failure from project ${e.message}`);
           },
         );
       }
@@ -48,7 +49,7 @@ export async function syncScorecardHandler(req, res) {
         projects: projects.map(item => item.name),
       });
     }
-    console.log('Scorecard integration ends without error!');
+    logger.info('Scorecard integration ends without error!');
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -71,7 +72,7 @@ export async function syncScorecardSpecial(req, res) {
         await syncScorecard(projectId, projectPath);
         jobList.push(`Success for ${project.html_url}`);
       } catch (e) {
-        console.log(e);
+        logger.info(e);
         jobList.push(`Failure for ${project.html_url}`);
       }
     }
@@ -108,7 +109,7 @@ export async function syncScorecard(projectId, address, platform, org, repo) {
   try {
     score = await getScorecard(url);
   } catch (e) {
-    console.error(e);
+    logger.error(e);
   }
   if (JSON.stringify(score) === '{}') {
     return;
@@ -138,11 +139,11 @@ export async function getScorecard(url) {
     let body;
     let isLocal;
     if (response.ok) {
-      console.log(`Fetching data of project ${url} online...`);
+      logger.info(`Fetching data of project ${url} online...`);
       body = await response.json();
       isLocal = false;
     } else {
-      console.log(`Fetching data of project ${url} failed! Running scorecard locally...`);
+      logger.info(`Fetching data of project ${url} failed! Running scorecard locally...`);
       let buffer;
       const execPromise = util.promisify(exec);
       await execPromise(`"scorecard-windows-amd64.exe" --repo=${url} --format=json`, {
@@ -153,7 +154,7 @@ export async function getScorecard(url) {
         })
         .catch(error => {
           buffer = error.stdout;
-          console.error(error);
+          logger.error(error);
         });
       body = JSON.parse(buffer);
       isLocal = true;
