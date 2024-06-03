@@ -37,7 +37,7 @@ import {
   collectSonarCloudData,
   createAndScanSonarProjectByGithubId,
   createGitlabProject,
-  createSonarProjectFromGitlab, setDefaultBranchOfSonar,
+  createSonarProjectFromGitlab, createSonarProjectsFromGithub, setDefaultBranchOfSonar,
   updateDefaultBranchAfterImport,
   updateSonarCloudDefaultBranch,
   uploadSonarCiConfigToGitlab,
@@ -759,7 +759,8 @@ router.route('/benchmark/updateScore').post(updateScore);
  *         application/json:
  *           schema:
  *             type: array
- *       example: [392517209]
+ *             items: string
+ *       example: ['sonar_key']
  *     responses:
  *       200:
  *         description: success.
@@ -823,6 +824,12 @@ router.route('/gitlab/importProjectFromUrl/:namespaceId').post(await createGitla
  *  post:
  *     summary: create and scan github project
  *     tags: [Sonar]
+ *     parameters:
+ *       - name: force
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: boolean
  *     requestBody:
  *       required: true
  *       content:
@@ -835,6 +842,26 @@ router.route('/gitlab/importProjectFromUrl/:namespaceId').post(await createGitla
  *         description: success.
  */
 router.route('/sonarCloud/scan').post(await createAndScanSonarProjectByGithubId);
+
+
+/**
+ * @swagger
+ * /sync/sonarCloud/createGithubProjects:
+ *  post:
+ *     summary: create github project but not scan
+ *     tags: [Sonar]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *       example: [48296,298375]
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/sonarCloud/createGithubProjects').post(await createSonarProjectsFromGithub);
 
 /**
  * @swagger

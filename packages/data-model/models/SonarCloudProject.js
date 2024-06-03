@@ -28,6 +28,11 @@ export default sequelize.define(
       allowNull: false,
       defaultValue: '',
     },
+    sonarOrg: {
+      type: DataTypes.STRING(512),
+      allowNull: false,
+      defaultValue: '',
+    },
     sonarProjectKey: {
       type: DataTypes.STRING(512),
       allowNull: false,

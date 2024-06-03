@@ -75,3 +75,11 @@ export function activeAutoScanInternalApi(projectKey, token) {
     },
   );
 }
+
+export function deleteProject(projectKey, token) {
+  const url = `https://sonarcloud.io/api/projects/delete?project=${projectKey}`;
+  return fetch(url, {
+    method: 'POST',
+    headers: authorizationHeader(token),
+  });
+}
