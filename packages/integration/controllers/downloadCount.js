@@ -1,4 +1,3 @@
-import debug from 'debug';
 import { Cron } from 'croner';
 import Dayjs from 'dayjs';
 import fetch from '@adobe/node-fetch-retry';
@@ -7,6 +6,7 @@ import {
   PackageDownloadCount,
   GithubProjects,
   sequelize,
+  logger,
 } from '@orginjs/oss-evaluation-data-model';
 import { getWeekOfYearList } from '../util/weekOfYearUtil.js';
 import { getProjectByUrl } from '../util/util.js';
@@ -42,14 +42,14 @@ const QUERY_PACKAGE_END = `
     `;
 
 const errorHandler = e => {
-  debug.log(e);
+  logger.error(e);
 };
 
 const jobSyncAllProjectPackageDownloadCount = Cron(
   '0 0 0 ? * TUE',
   { catch: errorHandler, timezone: 'Etc/UTC' },
   async () => {
-    debug.log(
+    logger.info(
       'jobSyncAllProjectPackageDownloadCount start!',
       jobSyncAllProjectPackageDownloadCount.getPattern(),
     );
@@ -63,7 +63,7 @@ const jobSyncAllProjectPackageDownloadCount = Cron(
     const startDate = new Dayjs(lastDate[0].endDate).add(1, 'day');
     const endDate = new Dayjs(new Date());
     await syncAllProjectPackageDownloadCount(startDate, endDate);
-    debug.log(
+    logger.info(
       'jobSyncAllProjectPackageDownloadCount end!',
       jobSyncAllProjectPackageDownloadCount.getPattern(),
     );
@@ -142,7 +142,7 @@ async function getNoneScopedPackageDownloadCount(startDate, endDate, startId, en
       if (downloadCountList.length > 0) {
         for (const downloadCount of downloadCountList) {
           PackageDownloadCount.upsert(downloadCount).catch(err => {
-            debug.log('Error creating DownloadCount:', err);
+            logger.error('Error creating DownloadCount:', err);
           });
         }
       }
@@ -159,7 +159,7 @@ async function getScopedPackageDownloadCount(startDate, endDate, startId, endId)
   );
   let current = 0;
   for (const packageInfo of needSyncPackage) {
-    debug.log(
+    logger.info(
       '---------------getScopedPackageDownloadCount---------------package:%s, projectId:%s, total:%s, current:%s',
       packageInfo.package,
       packageInfo.projectId,
@@ -186,12 +186,12 @@ async function dealSinglePackage(week, packageInfo) {
         week: week.weekOfYear,
         downloads: downloadCountJson.downloads,
       }).catch(err => {
-        debug.log('Error insert DownloadCount:', err);
+        logger.error('Error insert DownloadCount:', err);
       });
     }
   } catch (e) {
-    debug.log(`${packageInfo.package} sendRequest error!!`);
-    debug.log(e);
+    logger.error(`${packageInfo.package} sendRequest error!!`);
+    logger.error(e);
     return true;
   }
   return false;
@@ -227,8 +227,8 @@ async function dealMultiPackage(week, packageName, packageToProjectIdMap) {
       }
     }
   } catch (e) {
-    debug.log(`${packageName} sendRequest error!!`);
-    debug.log(e);
+    logger.error(`${packageName} sendRequest error!!`);
+    logger.error(e);
   }
   return downloadCountList;
 }

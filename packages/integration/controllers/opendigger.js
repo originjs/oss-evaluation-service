@@ -1,7 +1,6 @@
 import async from 'async';
-import debug from 'debug';
 import sequelize, { Op } from 'sequelize';
-import { OpenDigger, GithubProjects } from '@orginjs/oss-evaluation-data-model';
+import { OpenDigger, GithubProjects, logger } from '@orginjs/oss-evaluation-data-model';
 import { ServerError } from '../util/error.js';
 import { getProjectByUrl } from '../util/util.js';
 
@@ -86,7 +85,7 @@ export async function syncAllProjectOpendigger() {
       try {
         await syncSingleProjectOpendigger(project);
       } catch (e) {
-        debug.log(e);
+        logger.info(e);
         if (!(e instanceof ServerError)) {
           throw e;
         }

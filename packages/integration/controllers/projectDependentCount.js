@@ -1,5 +1,4 @@
-import debug from 'debug';
-import { GithubProjects, ProjectPackage} from '@orginjs/oss-evaluation-data-model';
+import { GithubProjects, logger, ProjectPackage } from '@orginjs/oss-evaluation-data-model';
 import { CheerioCrawler, Configuration } from 'crawlee';
 import { Cron } from 'croner';
 GithubProjects.hasMany(ProjectPackage, {
@@ -34,7 +33,7 @@ export async function syncAllProjectDependentCount() {
 }
 
 export default async function syncProjectDependentCount(projectId) {
-  debug.log('Sync Project dependent count');
+  logger.info('Sync Project dependent count');
   // 1. get all github project
   const projectList = await GithubProjects.findAll({
     include: [
@@ -43,8 +42,8 @@ export default async function syncProjectDependentCount(projectId) {
         as: 'projectPackage',
         required: false,
         where: {
-          main_package: true
-        }
+          main_package: true,
+        },
       },
     ],
     attributes: ['id', 'htmlUrl', 'dependentRepositories', 'dependentPackages'],
@@ -55,14 +54,17 @@ export default async function syncProjectDependentCount(projectId) {
       : {},
   });
   const sumOfProject = projectList.length;
-  debug.log(`The Number of Project : ${sumOfProject}`);
+  logger.info(`The Number of Project : ${sumOfProject}`);
   let count = 1;
   for (const project of projectList) {
-    debug.log('**Current Progress**: ', `${count}/${sumOfProject}`);
+    logger.info('**Current Progress**: ', `${count}/${sumOfProject}`);
     count += 1;
     // 2. get project dependent count
     let url = `${project.htmlUrl}/network/dependents`;
-    url = await getProjectMainPackageUrl(url, project.projectPackage.length > 0 ? project.projectPackage[0].package : "");
+    url = await getProjectMainPackageUrl(
+      url,
+      project.projectPackage.length > 0 ? project.projectPackage[0].package : '',
+    );
     const dependentCount = await getProjectDependentCount(url);
     if (
       dependentCount.repositories != undefined &&
@@ -119,13 +121,13 @@ async function getProjectDependentCount(url) {
   try {
     await crawler.run([url]);
   } catch (e) {
-    debug.log(`**Url get dependent count is failed !** :${url}`);
+    logger.error(`**Url get dependent count is failed !** :${url}`);
   }
   return { repositories: repos, packages: packs };
 }
 
 async function getProjectMainPackageUrl(url, packageName) {
-  if (packageName === "" || packageName === undefined) {
+  if (packageName === '' || packageName === undefined) {
     return url;
   }
   let urlResult = url;
@@ -135,19 +137,19 @@ async function getProjectMainPackageUrl(url, packageName) {
       failedRequestHandler({ request, log }) {
         log.info(`Get project main package url: Request to ${request.url} failed...`);
       },
-      requestHandler: async function({$, log }) {
+      requestHandler: async function ({ $, log }) {
         const context = $(`.select-menu-item span:contains(" ${packageName}\n")`);
         const selectContext = context.text().replaceAll('\n', '').replaceAll(' ', '');
         if (context.length > 0 && selectContext === packageName) {
           const attrs = context.get(0).parent.attributes;
           attrs.forEach(attr => {
-            if (attr.name === "href") {
+            if (attr.name === 'href') {
               const href = attr.value;
-              const index = href.indexOf("?");
+              const index = href.indexOf('?');
               const urlSuffix = href.substring(index);
               urlResult = urlResult.concat(urlSuffix);
             }
-          })
+          });
         }
         log.info(`Get project main package url: ${urlResult} `);
       },
@@ -162,21 +164,24 @@ async function getProjectMainPackageUrl(url, packageName) {
   try {
     await crawler.run([url]);
   } catch (e) {
-    debug.log(`**Get project main package url is failed !** :${url}`);
+    logger.error(`**Get project main package url is failed !** :${url}`);
   }
   return urlResult;
 }
 
 const errorHandler = e => {
-  debug.log(e);
+  logger.error(e);
 };
 
 const syncProjectDependentCountTimerTask = Cron(
   '0 0 0 ? * FRI',
   { catch: errorHandler, timezone: 'Etc/UTC' },
   async () => {
-    debug.log('syncProjectDependentCount start!', syncProjectDependentCountTimerTask.getPattern());
+    logger.info(
+      'syncProjectDependentCount start!',
+      syncProjectDependentCountTimerTask.getPattern(),
+    );
     await syncProjectDependentCount();
-    debug.log('syncProjectDependentCount end!', syncProjectDependentCountTimerTask.getPattern());
+    logger.info('syncProjectDependentCount end!', syncProjectDependentCountTimerTask.getPattern());
   },
 );

@@ -78,7 +78,7 @@ import {
   syncSingleProjectIssueCreatorsCountriesHandler,
   syncSingleProjectStarCreatorsCountriesHandler,
 } from '../controllers/ossinsightCreatorsCountry.js';
-import syncCriticalityScoreHandler from '../controllers/criticalitryScore.js';
+import { syncCriticalityScoreHandler } from '../controllers/criticalitryScore.js';
 
 const router = express.Router();
 

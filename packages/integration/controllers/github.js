@@ -1,8 +1,7 @@
-import debug from 'debug';
 import https from 'node:https';
 import * as fs from 'node:fs';
 import { Octokit } from '@octokit/core';
-import { GithubProjects } from '@orginjs/oss-evaluation-data-model';
+import { GithubProjects, logger } from '@orginjs/oss-evaluation-data-model';
 
 /**
  *  There are 952 github projects between 1000 and 1130 stars.
@@ -93,7 +92,7 @@ function getStarsScope(req) {
 
 async function savaData(projects) {
   let updateOnDuplicate = Object.keys(projects[0]).slice(1);
-  updateOnDuplicate = updateOnDuplicate.filter(fieldName => fieldName!='integratedState'); 
+  updateOnDuplicate = updateOnDuplicate.filter(fieldName => fieldName != 'integratedState');
 
   const result = await GithubProjects.bulkCreate(projects, {
     updateOnDuplicate,
@@ -152,7 +151,7 @@ async function pagingQuery(url) {
         });
       })
       .on('error', e => {
-        debug.log(e);
+        logger.error(e);
         resolve({
           hasNext: false,
           nextPageUrl: '',
@@ -257,7 +256,7 @@ export async function syncSingleGithubProject(options) {
 async function queryProjectByRepUrl(url) {
   const ownerRepo = getOwnerRepo(url);
   if (!ownerRepo) {
-    debug.log('Url must be the github address,eg:https://github.com/vuejs/core');
+    logger.info('Url must be the github address,eg:https://github.com/vuejs/core');
     return null;
   }
 
@@ -276,7 +275,7 @@ async function queryProjectByRepUrl(url) {
   if (response.ok) {
     project = await response.json();
   } else {
-    debug.log(await response.text());
+    logger.info(await response.text());
   }
   return project;
 }

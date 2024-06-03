@@ -1,5 +1,9 @@
-import debug, { log } from 'debug';
-import { PackageSizeDetail, ProjectPackage, sequelize } from '@orginjs/oss-evaluation-data-model';
+import {
+  logger,
+  PackageSizeDetail,
+  ProjectPackage,
+  sequelize,
+} from '@orginjs/oss-evaluation-data-model';
 import { getProjectByUrl, sleep } from '../util/util.js';
 import { Op } from 'sequelize';
 
@@ -32,7 +36,7 @@ export async function getPackageSize(name, version) {
   }
 
   const error = await response.text();
-  debug.log(`The project:  ${url} get package size fail: ${error}`);
+  logger.error(`The project:  ${url} get package size fail: ${error}`);
   // eslint-disable-next-line prefer-promise-reject-errors
   return Promise.reject({
     packageName: name,
@@ -69,7 +73,7 @@ export async function syncAllProjectPackageSize() {
   const packageList = await sequelize.query(query, { type: sequelize.QueryTypes.SELECT });
 
   for (const { package: packageName } of packageList) {
-    log(`get packageName:${packageName} size data`);
+    logger.info(`get packageName:${packageName} size data`);
     await syncPackageSize(packageName);
     const randomMs = Math.floor(Math.random() * 1000) + 1000;
     await sleep(randomMs);
