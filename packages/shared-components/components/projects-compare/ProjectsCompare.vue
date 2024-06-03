@@ -46,6 +46,7 @@ Promise.all(promises)
     });
   })
   .catch((error: any) => {
+    /* eslint-disable no-console */
     console.error('Failed to get data, try again later.', error);
   });
 

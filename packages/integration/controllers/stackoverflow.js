@@ -1,5 +1,4 @@
-import debug from 'debug';
-import { StackOverFlow } from '@orginjs/oss-evaluation-data-model';
+import { logger, StackOverFlow } from '@orginjs/oss-evaluation-data-model';
 import data2023 from '../metadata/stackoverflow/result2023.js';
 import data2022 from '../metadata/stackoverflow/result2022.js';
 import data2021 from '../metadata/stackoverflow/result2021.js';
@@ -40,7 +39,7 @@ async function syncFullDetailData() {
   // data is empty
   if (!resultData || !Object.keys(resultData).length) {
     const errMsg = 'metadata is empty.';
-    debug.log(errMsg);
+    logger.error(errMsg);
     return errMsg;
   }
 
@@ -67,7 +66,7 @@ async function updateDetailData(dataArray, technologyStack) {
     softwareMap[key].year = Number(resultYear);
     softwareMap[key].technologyStack = technologyStack;
     await StackOverFlow.upsert(softwareMap[key]).catch(error => {
-      debug.log('upsert error: ', error.message);
+      logger.error('upsert error: ', error.message);
     });
   });
 }

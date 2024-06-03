@@ -172,7 +172,7 @@ export default sequelize.define(
     },
     recordDesc: {
       type: DataTypes.STRING(255),
-    }
+    },
   },
   {
     tableName: 'github_projects',

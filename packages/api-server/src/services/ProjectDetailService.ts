@@ -13,6 +13,7 @@ import {
   GithubProjects,
   GithubProjectsStargazersTrend,
   PackageDownloadCount,
+  logger,
 } from '@orginjs/oss-evaluation-data-model';
 import ejsExcel from 'ejsexcel';
 import { readFileSync } from 'node:fs';
@@ -26,7 +27,6 @@ import type {
 } from '../interfaces/SoftwareInfo.js';
 import { getAlternativeProjects } from './AlternativeProjectService.js';
 import { fixedRound } from '../utils/math.js';
-import Logger from '../utils/logger.js';
 import { Op } from 'sequelize';
 import _ from 'underscore';
 
@@ -197,7 +197,7 @@ export async function getProjectIdByRepoName(repoName: string) {
   });
   if (!data) {
     const msg = `cant find repo named {${repoName}}!`;
-    console.warn(msg);
+    logger.info(msg);
     throw new Error(msg);
   }
   return data.id;
@@ -218,7 +218,7 @@ export async function getMainPackageByRepoName(repoName: string) {
   });
   if (!data) {
     const msg = `cant find main package of project:{${repoName}}!`;
-    console.warn(msg);
+    logger.info(msg);
     return null;
   }
   return data.package;
@@ -480,7 +480,7 @@ export async function exportScoreExcel(projectName: string) {
   try {
     return ejsExcel.renderExcel(excelTemplate, data);
   } catch (err) {
-    Logger.error(err);
+    logger.error(err);
   }
 }
 
@@ -518,7 +518,7 @@ export async function exportBenchmarkExcel(repoName: string) {
     utils.book_append_sheet(workbook, sheet, 'benchmark');
     return write(workbook, { type: 'buffer', bookType: 'xlsx' });
   } catch (err) {
-    Logger.error(err);
+    logger.error(err);
   }
 }
 

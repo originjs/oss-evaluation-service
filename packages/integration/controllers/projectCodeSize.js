@@ -1,5 +1,4 @@
-import debug from 'debug';
-import { GithubProjects } from '@orginjs/oss-evaluation-data-model';
+import { GithubProjects, logger } from '@orginjs/oss-evaluation-data-model';
 import { CheerioCrawler, Configuration } from 'crawlee';
 import { Cron } from 'croner';
 import { XMLParser } from 'fast-xml-parser';
@@ -31,7 +30,7 @@ export async function syncAllProjectCodeSize() {
 }
 
 async function syncProjectCodeSize(projectId) {
-  debug.log('Sync Project Code Size');
+  logger.info('Sync Project Code Size');
   // 1. get all github project
   const projectList = await GithubProjects.findAll({
     attributes: ['id', 'ownerName', 'name', 'codeSize'],
@@ -42,10 +41,10 @@ async function syncProjectCodeSize(projectId) {
       : {},
   });
   const sumOfProject = projectList.length;
-  debug.log(`The Number of Project : ${sumOfProject}`);
+  logger.info(`The Number of Project : ${sumOfProject}`);
   let count = 1;
   for (const project of projectList) {
-    debug.log('**Current Progress**: ', `${count}/${sumOfProject}`);
+    logger.info('**Current Progress**: ', `${count}/${sumOfProject}`);
     count += 1;
     const url = `https://git-cloc.fly.dev/cloc/${project.ownerName}/${project.name}`;
     const tokeiUrl = `https://tokei.rs/b1/github/${project.ownerName}/${project.name}`;
@@ -133,7 +132,7 @@ async function getProjectCodeSize(url, otherUrl) {
 async function getCodeSizeByOtherWays(ownerName, name) {
   const url = `https://api.codetabs.com/v1/loc?github=${ownerName}/${name}`;
   try {
-    debug.log(`**loadUrl is** :${url}`);
+    logger.info(`**loadUrl is** :${url}`);
     const response = await fetch(url, {
       retryOptions: {
         retryMaxDuration: 3600000, // 60 min retry duration
@@ -146,26 +145,26 @@ async function getCodeSizeByOtherWays(ownerName, name) {
       const index = body.length - 1;
       if (index > 0 && body[index].language == 'Total') {
         const codeSize = body[index].linesOfCode;
-        debug.log(`**codeSize of '${url} is :${codeSize}`);
+        logger.info(`**codeSize of '${url} is :${codeSize}`);
         return codeSize;
       }
     }
     return '';
   } catch (e) {
-    debug.log(`**Url get code size is failed !** :${url}`);
+    logger.error(`**Url get code size is failed !** :${url}`);
   }
 }
 
 const errorHandler = e => {
-  debug.log(e);
+  logger.error(e);
 };
 
 const syncProjectCodeSizeTimerTask = Cron(
   '0 0 0 ? * WED',
   { catch: errorHandler, timezone: 'Etc/UTC' },
   async () => {
-    debug.log('syncProjectCodeSize start!', syncProjectCodeSizeTimerTask.getPattern());
+    logger.info('syncProjectCodeSize start!', syncProjectCodeSizeTimerTask.getPattern());
     await syncAllProjectCodeSize();
-    debug.log('syncProjectCodeSize end!', syncProjectCodeSizeTimerTask.getPattern());
+    logger.info('syncProjectCodeSize end!', syncProjectCodeSizeTimerTask.getPattern());
   },
 );

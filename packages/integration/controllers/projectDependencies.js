@@ -1,8 +1,11 @@
-import debug from 'debug';
 import { gql, request } from 'graphql-request';
 import { authorizationHeader } from '../../api-sdk/util.js';
 import { GithubSdk } from '@orginjs/github-sdk/src/sdk.js';
-import { GithubProjects, GithubProjectsDependencies } from '@orginjs/oss-evaluation-data-model';
+import {
+  GithubProjects,
+  GithubProjectsDependencies,
+  logger,
+} from '@orginjs/oss-evaluation-data-model';
 
 const graphqlUrl = 'https://api.github.com/graphql';
 
@@ -62,16 +65,16 @@ export async function syncSingleProjectDependencies(project) {
 }
 
 export async function syncAllProjectDependencies() {
-  debug.log('Sync Project Dependent');
+  logger.info('Sync Project Dependent');
   // 1. get all github project
   const projectList = await GithubProjects.findAll({
     attributes: ['id', 'ownerName', 'name', 'ownerType'],
   });
   const sumOfProject = projectList.length;
-  debug.log(`The Number of Project : ${sumOfProject}`);
+  logger.info(`The Number of Project : ${sumOfProject}`);
   let count = 1;
   for (const project of projectList) {
-    debug.log('**Current Progress**: ', `${count}/${sumOfProject}`);
+    logger.info('**Current Progress**: ', `${count}/${sumOfProject}`);
     count += 1;
     // 2. project Dependent
     await getDependencies(project, new Set());
@@ -92,7 +95,7 @@ export async function getDependencies(project, seen) {
     },
     headers,
   ).catch(error => {
-    debug.log('Post to dependencies error : ', error.message);
+    logger.error('Post to dependencies error : ', error.message);
   });
   if (dependenciesData === undefined || !dependenciesData['repository']) {
     return;
@@ -182,10 +185,10 @@ async function saveDate(dependenciesList) {
   const updateOnDuplicate = Object.keys(dependenciesList[0]).slice(1);
   await GithubProjectsDependencies.bulkCreate(dependenciesList, { updateOnDuplicate })
     .then(dependent => {
-      debug.log(`Insert ${dependent.length} dependent data`);
+      logger.info(`Insert ${dependent.length} dependent data`);
     })
     .catch(error => {
-      debug.log('Batch insert error: ', error.message);
+      logger.error('Batch insert error: ', error.message);
     });
 }
 
@@ -197,7 +200,7 @@ async function getProjectInfoByUrl(repoUrl) {
     },
   });
   if (project === null) {
-    debug.log('project not exists');
+    logger.info('project not exists');
     return;
   }
   return project;

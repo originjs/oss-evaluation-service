@@ -59,7 +59,7 @@ function normalizePort(val) {
  */
 function onError(error) {
   if (error.syscall !== 'listen') {
-    logger.error(JSON.stringify(error));
+    logger.error(error);
     throw error;
   }
 
@@ -76,7 +76,7 @@ function onError(error) {
       process.exit(1);
       break;
     default:
-      logger.error(JSON.stringify(error));
+      logger.error(error);
       throw error;
   }
 }

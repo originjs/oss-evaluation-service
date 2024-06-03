@@ -25,7 +25,7 @@ for (let e of eg)
     }
     Rs.push({ framework: v8[e.f].name, benchmark: cn[t.b].id, results: n });
   }
-console.log(Rs);
+logger.info(Rs);
 const Ac = Lm(Rs);
 function n3({
   frameworks: e,

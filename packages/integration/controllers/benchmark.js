@@ -1,6 +1,5 @@
 import dayjs from 'dayjs';
-import debug from 'debug';
-import { Benchmark, ProjectTechStack, sequelize } from '@orginjs/oss-evaluation-data-model';
+import { Benchmark, logger, ProjectTechStack, sequelize } from '@orginjs/oss-evaluation-data-model';
 import BenchmarkVersionScore from '@orginjs/oss-evaluation-data-model/models/BenchmarkVersionScore.js';
 import { ServerError } from '../util/error.js';
 
@@ -34,8 +33,7 @@ export async function insertBenchmarkVersion(input) {
     description: patchId,
     envInfo: envInfo,
   });
-  const versionId = response.null;
-  return versionId;
+  return response.null;
 }
 
 export async function insertBenchmark(input, versionId) {
@@ -116,7 +114,7 @@ function updateThreshold(dataList, weightMap, isDesc) {
       }
     }
     if (threshold === null) {
-      console.warn(`No data content match the benchmark of ${name}`);
+      logger.info(`No data content match the benchmark of ${name}`);
       continue;
     } else {
       result.push({ ...weightItem, threshold });
@@ -144,7 +142,7 @@ async function calScore(weightMap, param) {
     if (Object.prototype.hasOwnProperty.call(param, name)) {
       score += calScoreSection(param[name], weight, threshold);
     } else {
-      console.warn(`Weight name ${name} not found in input data!`);
+      logger.info(`Weight name ${name} not found in input data!`);
     }
   }
   return score;
@@ -191,10 +189,10 @@ export async function bulkAddBenchmarkHandler(req, res) {
   const benchmarkList = await genBenchmarkList(projectName, techStack, platform, patchId, list);
   await Benchmark.bulkCreate(benchmarkList)
     .then(compass => {
-      debug.log('insert into database: ', compass.length);
+      logger.info('insert into database: ', compass.length);
     })
     .catch(error => {
-      debug.log('Batch insert error: ', error.message);
+      logger.error('Batch insert error: ', error.message);
     });
   res.status(200).send('Bulk create benchmark success!');
 }

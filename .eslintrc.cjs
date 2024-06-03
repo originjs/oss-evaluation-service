@@ -46,6 +46,7 @@ module.exports = {
     'no-restricted-syntax': 'off',
     'no-continue': 'off',
     '@typescript-eslint/consistent-type-imports': 'error',
+    "no-console": "error",
   },
   noInlineConfig : false,
   globals: {},

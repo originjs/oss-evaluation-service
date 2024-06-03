@@ -1,10 +1,10 @@
 import {
   GithubProjects,
+  logger,
   OssinsightCreatorsCountries,
   sequelize,
 } from '@orginjs/oss-evaluation-data-model';
 import fetch from '@adobe/node-fetch-retry';
-import debug from 'debug';
 
 const issueCountriesUrl =
   'https://api.ossinsight.io/v1/repos/:owner/:repo/issue_creators/countries/';
@@ -144,7 +144,7 @@ async function getCreatorsCountries(project, option) {
   const result = await sendRequestByFullName(project.fullName, option.url);
   const countryList = result?.data?.rows;
   if (countryList === null || countryList === undefined || countryList.length === 0) {
-    debug.log('sync project data from ossinsight, data not found!', project.fullName, option.url);
+    logger.info('sync project data from ossinsight, data not found!', project.fullName, option.url);
   } else {
     countryList.forEach(el => {
       res.push({
@@ -192,7 +192,7 @@ export async function sendRequestByFullName(fullName, url) {
       return response.json();
     })
     .catch(error => {
-      debug.log('fetch project data from ossinsight failed! url:{} error:{}', url, error);
+      logger.error('fetch project data from ossinsight failed! url:{} error:{}', url, error);
     });
   return response;
 }
@@ -209,8 +209,8 @@ async function bulkUpsertData(data) {
         'updated_at',
       ],
     });
-    debug.log('Batch insertion or update succeeded.');
+    logger.info('Batch insertion or update succeeded.');
   } catch (error) {
-    debug.log(`Batch insertion or update failed: ${error}`);
+    logger.error(`Batch insertion or update failed: ${error}`);
   }
 }

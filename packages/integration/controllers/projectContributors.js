@@ -1,5 +1,4 @@
-import debug from 'debug';
-import { GithubProjects } from '@orginjs/oss-evaluation-data-model';
+import { GithubProjects, logger } from '@orginjs/oss-evaluation-data-model';
 import { CheerioCrawler, Configuration } from 'crawlee';
 import { Cron } from 'croner';
 import { getProjectByUrl } from '../util/util.js';
@@ -30,7 +29,7 @@ export async function syncAllProjectContributors() {
 }
 
 export default async function syncProjectContributors(projectId) {
-  debug.log('Sync Project Contributors');
+  logger.info('Sync Project Contributors');
   // 1. get all github project
   const projectList = await GithubProjects.findAll({
     attributes: ['id', 'htmlUrl', 'fullName', 'contributors'],
@@ -41,16 +40,16 @@ export default async function syncProjectContributors(projectId) {
       : {},
   });
   const sumOfProject = projectList.length;
-  debug.log(`The Number of Project : ${sumOfProject}`);
+  logger.info(`The Number of Project : ${sumOfProject}`);
   let count = 1;
   for (const project of projectList) {
-    debug.log('**Current Progress**: ', `${count}/${sumOfProject}`);
+    logger.info('**Current Progress**: ', `${count}/${sumOfProject}`);
     count += 1;
     // 2. get project contributors
     let contributors = await getProjectContributors(project.htmlUrl);
     if (contributors == '' || contributors == undefined) {
       contributors = (await getAlllContributors(project.fullName)).length;
-      debug.log(`GitHub API : contributors of ${project.htmlUrl} is ${contributors}`);
+      logger.info(`GitHub API : contributors of ${project.htmlUrl} is ${contributors}`);
     }
     if (contributors == '' || contributors == undefined) {
       continue;
@@ -97,22 +96,22 @@ async function getProjectContributors(url) {
     );
     await crawler.run([url]);
   } catch (e) {
-    debug.log(`**web crawler: Url get contributors is failed !** :${url}`);
+    logger.error(`**web crawler: Url get contributors is failed !** :${url}`);
   }
   return contributors;
 }
 
 const errorHandler = e => {
-  debug.log(e);
+  logger.error(e);
 };
 
 const syncProjectContributorsTimerTask = Cron(
   '0 0 0 ? * THU',
   { catch: errorHandler, timezone: 'Etc/UTC' },
   async () => {
-    debug.log('syncProjectContributors start!', syncProjectContributorsTimerTask.getPattern());
+    logger.info('syncProjectContributors start!', syncProjectContributorsTimerTask.getPattern());
     await syncProjectContributors();
-    debug.log('syncProjectContributors end!', syncProjectContributorsTimerTask.getPattern());
+    logger.info('syncProjectContributors end!', syncProjectContributorsTimerTask.getPattern());
   },
 );
 
