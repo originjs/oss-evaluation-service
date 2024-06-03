@@ -1,4 +1,9 @@
-import { activeAutoScanInternalApi, createProject, createProjectInternalApi } from './projects.js';
+import {
+  activeAutoScanInternalApi,
+  createProject,
+  createProjectInternalApi,
+  deleteProject,
+} from './projects.js';
 import { deleteBranch, listProjectBranches, renameMainBranch } from './projectBranches.js';
 import { getMeasures } from './measures.js';
 
@@ -22,6 +27,10 @@ export class SonarCloudSdk {
    */
   createProject = param => {
     return createProject(param, this.token);
+  };
+
+  deleteProject = projectKey => {
+    return deleteProject(projectKey, this.token);
   };
 
   createProjectInternalApi = param => {
