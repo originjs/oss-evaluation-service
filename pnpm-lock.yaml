@@ -115,9 +115,6 @@ importers:
       underscore:
         specifier: ^1.13.6
         version: 1.13.6
-      winston:
-        specifier: ^3.13.0
-        version: 3.13.0
       xlsx:
         specifier: ^0.18.5
         version: 0.18.5
