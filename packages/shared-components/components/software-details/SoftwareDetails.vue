@@ -1256,13 +1256,9 @@ onBeforeUnmount(() => {
         </div>
       </el-card>
       <el-card>
-        <div
-          mb-4
-          font-size-5
-          font-bold
-          :class="project?.sonarCloudScan?.sonarProjectKey ? 'color-blue underline' : ''"
-        >
+        <div mb-4 font-size-5 font-bold>
           <a
+            :class="project?.sonarCloudScan?.sonarProjectKey ? 'color-blue underline' : ''"
             :href="
               project?.sonarCloudScan?.sonarProjectKey
                 ? `https://sonarcloud.io/summary/overall?id=${project.sonarCloudScan.sonarProjectKey}`
@@ -1271,9 +1267,14 @@ onBeforeUnmount(() => {
             target="_blank"
           >
             SonarCloud
-            <span i-material-symbols-file-open />
           </a>
+          <el-tooltip :content="i18n.global.t(`tips.sonarCloud.languageSupportTips`)">
+            <el-icon size-5 color-gray-400>
+              <InfoFilled />
+            </el-icon>
+          </el-tooltip>
         </div>
+
         <div h-207px flex flex-wrap justify-between content-between>
           <div position-relative pt-3 pd-3 pl-4 pr-4 w-607px h-92px bg-coolgray-50>
             <div mb-4 font-bold>

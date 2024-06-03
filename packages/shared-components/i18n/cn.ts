@@ -41,6 +41,7 @@ export default {
       codeSmells: '代码混乱且难以维护。',
       vulnerabilities: '可以被黑客利用的代码。',
       securityHotspots: '需要手动检查以评估是否存在漏洞的安全敏感代码。',
+      languageSupportTips: '当前支持JS/TS/Java/C/C++/Go/Python等语言，Rust语言SonarCloud暂不支持。',
     },
     ecology: {
       busFactor: '一个项目失去多少贡献者参与（“被巴士撞了”）将导致项目停滞的成员数量',
