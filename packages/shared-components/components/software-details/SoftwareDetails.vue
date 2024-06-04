@@ -29,7 +29,7 @@ import {
   formatFloat,
   formatNumber,
   formatString,
-  getDependentProjectHeight,
+  getBubbleChartHeightByCount,
   getLevelColor,
   getTagType,
   scorecardProgressColor,
@@ -333,7 +333,7 @@ function getCompaniesSeriesData(data: any) {
       id: 'option.' + data[key]['projectId'] + count,
       index: count,
       value: data[key]['creatorsNum'],
-      name: data[key]['orgName'],
+      name: '-' + data[key]['orgName'],
     };
   });
   seriesData.push({
@@ -393,13 +393,13 @@ function renderBubbleChart(container: string, seriesData: Array<any>) {
     }
 
     let nodePath = api.value('id');
-    let nodeName = api.value('name');
+    let nodeName = api.value('name').slice(1);
     let node = context.nodes[nodePath];
     if (node.id === 'option') {
       node.r = 0;
     }
     if (!node) {
-      // Reder nothing.
+      // Render nothing.
       return;
     }
 
@@ -435,7 +435,7 @@ function renderBubbleChart(container: string, seriesData: Array<any>) {
         position: 'inside',
       },
       style: {
-        fill: '#5470c6',
+        fill: '#738ace',
       },
       emphasis: {
         style: {
@@ -469,7 +469,12 @@ function renderBubbleChart(container: string, seriesData: Array<any>) {
       },
     ],
   };
-
+  if (container === '#dependent-project-bubble-chart') {
+    option.tooltip.valueFormatter = obj => obj[0] + ' : ' + toKilo(obj[1]) + ' stars';
+  }
+  if (container === '#project-companies-bubble-chart') {
+    option.tooltip.valueFormatter = obj => obj[0].slice(1) + ' ' + obj[1];
+  }
   myChart.setOption(option);
 }
 
@@ -849,7 +854,6 @@ watchEffect(async () => {
   // handle organization info
   let { dependentProject, dependentOrganization } = organizationInfo;
   dependentProject = dependentProject.slice(0, maxProjectNumber);
-  dependentProjectHeight.value = getDependentProjectHeight(dependentProject.length);
 
   // Star Accumulation for the same organizations
   let topArray = Object.values(
@@ -864,14 +868,17 @@ watchEffect(async () => {
     .slice(0, maxOrganizationsNumber)
     .map(item => ({ label: item.ownerName, value: item.star }));
 
+  dependentProjectHeight.value = max(
+    getBubbleChartHeightByCount(dependentProject.length),
+    organizationInfoTable.value.length * 50,
+  );
   // handle companies info
   let maxCompaniesSize = max(
     companiesInfo.stargazers.length,
     companiesInfo.prCreators.length,
     companiesInfo.issueCreators.length,
   );
-  companiesHeight.value = getDependentProjectHeight(maxCompaniesSize);
-
+  companiesHeight.value = getBubbleChartHeightByCount(maxCompaniesSize);
   await nextTick(() => {
     renderBubbleChart('#dependent-project-bubble-chart', getDependentSeriesData(dependentProject));
     renderBubbleChart(
@@ -886,9 +893,8 @@ watchEffect(async () => {
 });
 
 const companiesActiveName = ref('star');
-function handleCompaniesActiveClick(tab: TabsPaneContext, event: Event) {
+function handleCompaniesActiveClick() {
   const maxOrganizationsNumber = 10;
-  companiesActiveName.value = tab.props.name;
   const { issueCreators, stargazers, prCreators } = companiesBaseInfo.value;
 
   if (companiesActiveName.value === 'issue') {
@@ -1687,7 +1693,7 @@ onBeforeUnmount(() => {
               </template>
               <div
                 v-else-if="!isRequestingProjectInfo"
-                h-300px
+                :style="{ height: dependentProjectHeight + 'px' }"
                 flex
                 justify-center
                 items-center
@@ -1759,7 +1765,7 @@ onBeforeUnmount(() => {
                     }}</span>
                   </div>
                 </template>
-                <div v-else-if="!geoLoading" h-300px flex justify-center items-center color-gray>
+                <div v-else-if="!geoLoading" flex justify-center items-center color-gray>
                   暂无数据
                 </div>
               </el-card>
@@ -1811,7 +1817,7 @@ onBeforeUnmount(() => {
           <el-tabs
             v-model="companiesActiveName"
             class="companies-tabs-bold"
-            @tab-click="handleCompaniesActiveClick"
+            @update:model-value="handleCompaniesActiveClick"
           >
             <el-tab-pane label="Stargazers" name="star"></el-tab-pane>
             <el-tab-pane label="Issue Creators" name="issue"> </el-tab-pane>
@@ -1839,7 +1845,7 @@ onBeforeUnmount(() => {
                 </template>
                 <div
                   v-else-if="!loadingInnovation"
-                  h-300px
+                  :style="{ height: companiesHeight + 'px' }"
                   flex
                   justify-center
                   items-center
