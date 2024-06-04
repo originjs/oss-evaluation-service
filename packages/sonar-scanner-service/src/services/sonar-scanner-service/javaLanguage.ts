@@ -90,14 +90,31 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
         }
         allprojects {
             apply plugin: org.sonarqube.gradle.SonarQubePlugin
+            tasks.withType(Tar).configureEach {
+              duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+            }
+            tasks.withType(Copy).configureEach {
+              duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+            }
+             tasks.withType(Zip).configureEach {
+              duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+            }
+            tasks.matching { it.name.toLowerCase().contains("style") }.configureEach {
+              enabled = false
+            }
+            tasks.matching { it.name.toLowerCase().contains("doc") }.configureEach {
+              enabled = false
+            }
+            tasks.matching { it.name.toLowerCase().contains("dist") }.configureEach {
+              enabled = false
+            }
         } 
         `;
         const initFilePath = `${dir}/${initGradleFileName}`;
         fs.writeFileSync(initFilePath, initContent, 'utf-8');
-        const buildCommand = `cd ${dir} && ./gradlew --parallel build -x test -Dorg.gradle.daemon=false`;
         const sonarCommand = `
              cd ${dir} &&\
-              ./gradlew\
+              ./gradlew --parallel\
               clean\
               build\
               sonar\
@@ -109,7 +126,7 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
               -Dsonar.organization=${this.param.sonarOrg}\
               -Dsonar.projectKey=${this.param.sonarKey}\
               -Dsonar.token=${process.env.SONAR_TOKEN} `;
-        return [buildCommand, sonarCommand];
+        return [sonarCommand];
       }
       default:
         throw new Error(`unknown build type of project:${owner}/${repoName}`);
