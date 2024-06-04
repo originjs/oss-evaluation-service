@@ -35,7 +35,7 @@ export function formatString(valueString: string | null | undefined) {
     : valueString;
 }
 
-export function getDependentProjectHeight(projectNumber: number) {
+export function getBubbleChartHeightByCount(projectNumber: number) {
   let height = 100;
   if (projectNumber > 30) {
     height = 500;
