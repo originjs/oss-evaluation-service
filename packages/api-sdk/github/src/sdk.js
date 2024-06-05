@@ -1,4 +1,5 @@
 import { createFork, deleteFork } from './fork.js';
+import { getProjectInfo } from './project.js';
 
 export class GithubSdk {
   constructor(token) {
@@ -13,4 +14,8 @@ export class GithubSdk {
   deleteFork = (owner, repo) => {
     return deleteFork(owner, repo, this.token);
   };
+
+  projectInfo(owner, repo) {
+    return getProjectInfo(owner, repo, this.token);
+  }
 }
