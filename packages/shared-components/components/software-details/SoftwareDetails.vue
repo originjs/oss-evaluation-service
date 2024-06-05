@@ -120,55 +120,55 @@ watchEffect(async () => {
   openSSFScorecard.value = [
     {
       label: 'Code-Review',
-      value: formatFloat(data.scorecard?.codeReview),
+      value: data.scorecard?.codeReview,
     },
     {
       label: 'Maintained',
-      value: formatFloat(data.scorecard?.maintained),
+      value: data.scorecard?.maintained,
     },
     {
       label: 'CII-Best-Practices',
-      value: formatFloat(data.scorecard?.ciiBestPractices),
+      value: data.scorecard?.ciiBestPractices,
     },
     {
       label: 'License',
-      value: formatFloat(data.scorecard?.license),
+      value: data.scorecard?.license,
     },
     {
       label: 'Security-Policy',
-      value: formatFloat(data.scorecard?.securityPolicy),
+      value: data.scorecard?.securityPolicy,
     },
     {
       label: 'Dangerous-Workflow',
-      value: formatFloat(data.scorecard?.dangerousWorkflow),
+      value: data.scorecard?.dangerousWorkflow,
     },
     {
       label: 'Branch-Protection',
-      value: formatFloat(data.scorecard?.branchProtection),
+      value: data.scorecard?.branchProtection,
     },
     {
       label: 'Token-Permissions',
-      value: formatFloat(data.scorecard?.tokenPermissions),
+      value: data.scorecard?.tokenPermissions,
     },
     {
       label: 'Binary-Artifacts',
-      value: formatFloat(data.scorecard?.binaryArtifacts),
+      value: data.scorecard?.binaryArtifacts,
     },
     {
       label: 'Fuzzing',
-      value: formatFloat(data.scorecard?.fuzzing),
+      value: data.scorecard?.fuzzing,
     },
     {
       label: 'SAST',
-      value: formatFloat(data.scorecard?.sast),
+      value: data.scorecard?.sast,
     },
     {
       label: 'Vulnerabilities',
-      value: formatFloat(data.scorecard?.vulnerabilities),
+      value: data.scorecard?.vulnerabilities,
     },
     {
       label: 'Pinned-Dependencies',
-      value: formatFloat(data.scorecard?.pinnedDependencies),
+      value: data.scorecard?.pinnedDependencies,
     },
   ];
   documentInfo.value = {
@@ -1246,12 +1246,12 @@ onBeforeUnmount(() => {
           </div>
 
           <el-progress
-            :percentage="Number(item.value) * 10"
+            :percentage="Math.max(Number(item.value ?? 0), 0) * 10"
             :stroke-width="10"
             flex-auto
-            :color="scorecardProgressColor(Number(item.value))"
+            :color="scorecardProgressColor(Math.max(Number(item.value ?? 0), 0))"
           >
-            <span>{{ item.value }} / 10</span>
+            <span>{{ formatFloat(item.value) }} / 10</span>
           </el-progress>
         </div>
       </el-card>
