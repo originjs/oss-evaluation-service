@@ -201,7 +201,7 @@ export async function getScorecardHandler(req, res) {
 
 /**
  * Synchronize scorecard score for single project
- * @param project string html path for the project
+ * @param projectUrl string html path for the project
  */
 export async function syncSingleProjectScorecard(projectUrl) {
   const project = await GithubProjects.findOne({ where: { htmlUrl: projectUrl } });

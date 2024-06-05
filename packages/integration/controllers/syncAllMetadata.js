@@ -18,6 +18,11 @@ import { syncSingleProjectPackageDownloadCount } from './downloadCount.js';
 import dayjs from 'dayjs';
 import { syncSingleProjectPackageSize } from './packageSize.js';
 import { syncSingleProjectEvaluation } from './evaluate.js';
+import { syncSingleProjectScorecard } from './scorecard.js';
+import { syncSingleProjectCompassMetric } from './compass.js';
+import { syncSingleProjectDependencies } from './projectDependencies.js';
+import {syncSingleProjectCreatorsCountries} from "./ossinsightCreatorsCountry.js";
+import {syncSingleProjectCreatorsOrg} from "./ossinsightCreatorsOrg.js";
 
 export default async function syncSingleProjectAllMetadataHandler(req, res) {
   const options = req.body;
@@ -25,12 +30,28 @@ export default async function syncSingleProjectAllMetadataHandler(req, res) {
   res.status(200).send(`Project Integration Successful!: ${options.repoUrl}`);
 }
 
+export async function syncBatchProjectAllMetadataHandler(req, res) {
+  const projectList = await getBatchProject();
+  let count = 1;
+  for (const project of projectList) {
+    logger.info(
+      `[Batch Integration Process] Process: ${count} / ${projectList.length}, project: ${project.html_url}`,
+    );
+    await syncSingleProjectAllMetadata({ repoUrl: project.html_url });
+    count += 1;
+  }
+  logger.info(`[Batch Integrated], total project: ${projectList.length}`);
+  res.status(200).send('Batch project integrate success');
+}
+
 async function syncSingleProjectAllMetadata(options) {
   const { repoUrl, category, subcategory, packageName } = options;
   // 1. GitHub Info
   await syncSingleGithubProject({ url: repoUrl });
   // 2. insert techStack
-  await createNewTechStack(repoUrl, category, subcategory);
+  if (category && subcategory) {
+    await createNewTechStack(repoUrl, category, subcategory);
+  }
   // 3. Cncf document best practice
   const project = await getProjectByUrl(repoUrl);
   await syncSingleProjectCncfDocumentScore(project);
@@ -45,6 +66,8 @@ async function syncSingleProjectAllMetadata(options) {
   // 7. critical score
   await createNewCriticalityScore(project);
   // 8. scorecard
+  await syncSingleProjectScorecard(project.htmlUrl);
+
   // 9. Determining the type of software: frontend software - main package / Rust - Cargo and so on
   if (packageName !== '') {
     logger.info('Front-end software, computing package related data');
@@ -64,8 +87,14 @@ async function syncSingleProjectAllMetadata(options) {
     await syncSingleProjectPackageSize(project);
   }
   // 10. compass  -> manual
+  await syncSingleProjectCompassMetric(project, { beginDate: '2023-04-01' });
   // 11. sonarCloud -> manual
-  // 12. Evaluate the score
+  // 12. sync project dependency graph
+  await syncSingleProjectDependencies(project);
+  // 13. oss-insight geology/companies data
+  await syncSingleProjectCreatorsCountries(project);
+  await syncSingleProjectCreatorsOrg(project);
+  // 14. Evaluate the score
   await syncSingleProjectEvaluation(project);
   logger.info(`Project ${repoUrl}: all metadata information integrated`);
 }
@@ -112,5 +141,13 @@ where cs.url = :repoUrl
     repoUrl: project.htmlUrl,
     score: newCriticalityScore.defaultScore,
     collectionDate: newCriticalityScore.collectionDate,
+  });
+}
+
+async function getBatchProject() {
+  // criticality_score_20240401
+  const QUERY_SQL = `SELECT *  from github_projects limit 100`;
+  return await sequelize.query(QUERY_SQL, {
+    type: sequelize.QueryTypes.SELECT,
   });
 }
