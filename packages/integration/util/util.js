@@ -45,3 +45,17 @@ export function parseRepoUrl(repoUrl) {
     throw new Error('The repoUrl is not a  valid GitHub main repository address');
   }
 }
+
+export function getCurrentDate() {
+  let date = new Date();
+  let year = date.getFullYear();
+  let month = date.getMonth() + 1;
+  let day = date.getDate();
+
+  month = month < 10 ? '0' + month : month;
+  day = day < 10 ? '0' + day : day;
+
+  let formattedDate = `${year}-${month}-${day}`;
+
+  return formattedDate;
+}

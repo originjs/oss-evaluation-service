@@ -5,6 +5,7 @@ import {
   sequelize,
 } from '@orginjs/oss-evaluation-data-model';
 import fetch from '@adobe/node-fetch-retry';
+import { getCurrentDate } from '../util/util.js';
 
 const prOrganizationsUrl =
   'https://api.ossinsight.io/q/analyze-pull-request-creators-company?repoId=:repoId&limit=50';
@@ -41,14 +42,12 @@ const integrationInfo = {
  */
 export async function syncAllProjectCreatorsOrgHandler(req, res) {
   const { startDate, minId, maxId } = req.body;
-  let startId = minId || (await GithubProjects.min('id'));
-  let endId = maxId || (await GithubProjects.max('id'));
-
-  const projectList = await sequelize.query(QUERY_SQL, {
-    replacements: { startDate, startId, endId },
-    type: sequelize.QueryTypes.SELECT,
-  });
-  await syncAllProjectCreatorsOrg(projectList);
+  const options = {
+    startDate: startDate,
+    minId: minId,
+    maxId: maxId,
+  };
+  await syncAllProjectCreatorsOrg(options);
 
   res.status(200).json('ok');
 }
@@ -92,10 +91,21 @@ export async function syncSingleProjectCreatorsOrg(project) {
 /**
  * Synchronizes the pull request creators organizations data for all projects.
  *
- * @param {Array} projectList - An array of Github project data.
- * @return {Promise<void>} A promise that resolves when all the data has been synchronized.
+ * @param {Object} options - The options for the synchronization.
+ * @param {number} [options.minId] - The minimum project ID to start the synchronization from.
+ * @param {number} [options.maxId] - The maximum project ID to end the synchronization at.
+ * @param {string} [options.startDate='2020-01-01'] - The start date for the synchronization.
+ * @return {Promise<void>} A promise that resolves when the synchronization is complete.
  */
-export async function syncAllProjectCreatorsOrg(projectList) {
+export async function syncAllProjectCreatorsOrg(options) {
+  const startId = options?.minId || (await GithubProjects.min('id'));
+  const endId = options?.maxId || (await GithubProjects.max('id'));
+  const startDate = options?.startDate || getCurrentDate();
+
+  const projectList = await sequelize.query(QUERY_SQL, {
+    replacements: { startDate, startId, endId },
+    type: sequelize.QueryTypes.SELECT,
+  });
   for (let project of projectList) {
     if (project && project.id) {
       await syncSingleProjectCreatorsOrg(project);

@@ -5,6 +5,7 @@ import {
   sequelize,
 } from '@orginjs/oss-evaluation-data-model';
 import fetch from '@adobe/node-fetch-retry';
+import { getCurrentDate } from '../util/util.js';
 
 const prCountriesUrl =
   'https://api.ossinsight.io/q/analyze-pull-request-creators-map?repoId=:repoId';
@@ -41,14 +42,12 @@ const integrationInfo = {
  */
 export async function syncAllProjectCreatorsCountriesHandler(req, res) {
   const { startDate, minId, maxId } = req.body;
-  let startId = minId || (await GithubProjects.min('id'));
-  let endId = maxId || (await GithubProjects.max('id'));
-
-  const projectList = await sequelize.query(QUERY_SQL, {
-    replacements: { startDate, startId, endId },
-    type: sequelize.QueryTypes.SELECT,
-  });
-  await syncAllProjectCreatorsCountries(projectList);
+  const options = {
+    startDate: startDate,
+    minId: minId,
+    maxId: maxId,
+  };
+  await syncAllProjectCreatorsCountries(options);
 
   res.status(200).json('ok');
 }
@@ -91,10 +90,21 @@ export async function syncSingleProjectCreatorsCountries(project) {
 /**
  * Synchronizes the pull request creators countries data for all projects.
  *
- * @param {Array} projectList - An array of Github project data.
+ * @param {Object} options - The options for synchronization.
+ * @param {number} [options.minId] - The minimum ID of the Github project.
+ * @param {number} [options.maxId] - The maximum ID of the Github project.
+ * @param {string} [options.startDate] - The start date for synchronization. Defaults to '2020-01-01'.
  * @return {Promise<void>} A promise that resolves when all the data has been synchronized.
  */
-export async function syncAllProjectCreatorsCountries(projectList) {
+export async function syncAllProjectCreatorsCountries(options) {
+  const startId = options?.minId || (await GithubProjects.min('id'));
+  const endId = options?.maxId || (await GithubProjects.max('id'));
+  const startDate = options?.startDate || getCurrentDate();
+
+  const projectList = await sequelize.query(QUERY_SQL, {
+    replacements: { startDate, startId, endId },
+    type: sequelize.QueryTypes.SELECT,
+  });
   for (let project of projectList) {
     if (project && project.id) {
       await syncSingleProjectCreatorsCountries(project);
