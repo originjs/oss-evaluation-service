@@ -50,7 +50,7 @@ app.use((req, res) => {
     error: 404,
     message: 'Not found.',
   };
-  logger.error(JSON.stringify(message));
+  logger.error(message);
   res.status(404).json(message);
 });
 
@@ -66,7 +66,7 @@ app.use((err, req, res, next) => {
     message: err.message,
     stack: err.stack,
   };
-  logger.error(JSON.stringify(message));
+  logger.error(message);
   res.status(statusCode).json(message);
 });
 

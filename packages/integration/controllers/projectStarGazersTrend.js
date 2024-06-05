@@ -1,10 +1,10 @@
 import {
   GithubProjects,
   GithubProjectsStargazersTrend,
+  logger,
   sequelize,
 } from '@orginjs/oss-evaluation-data-model';
 import fetch from '@adobe/node-fetch-retry';
-import debug from 'debug';
 import { getProjectByUrl } from '../util/util.js';
 
 const QUERY_SQL = `
@@ -70,7 +70,7 @@ async function getStargazersTrend(startDate, startId, endId) {
     const trendList = response.data.rows;
     let resTrend = [];
     if (trendList === null || trendList === undefined || trendList.length === 0) {
-      debug.log('sync error! project:{}  fullName{}', project.id, project.fullName);
+      logger.info('sync error! project:{}  fullName{}', project.id, project.fullName);
       continue;
     }
     for (let trend of trendList) {
@@ -85,7 +85,7 @@ async function getStargazersTrend(startDate, startId, endId) {
         });
       }
     }
-    debug.log(
+    logger.info(
       'total:' +
         needSyncProject.length +
         ' cur:' +
@@ -100,7 +100,7 @@ async function getStargazersTrend(startDate, startId, endId) {
 }
 
 export async function sendRequestByFullName(fullName) {
-  debug.log(`https://api.ossinsight.io/v1/repos/${fullName}/stargazers/history`);
+  logger.info(`https://api.ossinsight.io/v1/repos/${fullName}/stargazers/history`);
   const response = await fetch(
     `https://api.ossinsight.io/v1/repos/${fullName}/stargazers/history`,
     {

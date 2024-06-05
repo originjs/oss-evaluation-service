@@ -1,5 +1,4 @@
 import dayjs from 'dayjs';
-import debug from 'debug';
 import async from 'async';
 import { Op } from 'sequelize';
 import {
@@ -13,6 +12,7 @@ import {
   GithubProjects,
   CncfDocumentScoreOnly,
   sequelize,
+  logger,
 } from '@orginjs/oss-evaluation-data-model';
 import { ServerError } from '../util/error.js';
 import { getProjectByUrl } from '../util/util.js';
@@ -316,7 +316,7 @@ async function getDimensionScore(project, dimension, techStack, model, bId) {
     totalWeight += weight;
     if (type === MetricType.MAIN) {
       const fieldScore = await getDimensionScore(project, field, subTechStack, model, bId);
-      debug.log(`------ ${field}  weight = ${weight} ------`);
+      logger.info(`------ ${field}  weight = ${weight} ------`);
       totalScore += weight * fieldScore;
     } else {
       let rawValue;
@@ -337,7 +337,7 @@ async function getDimensionScore(project, dimension, techStack, model, bId) {
       }
     }
   }
-  debug.log(`dimension=${dimension} score=${totalScore / totalWeight}`);
+  logger.info(`dimension=${dimension} score=${totalScore / totalWeight}`);
   return totalWeight == 0 ? null : totalScore / totalWeight;
 }
 
@@ -346,7 +346,7 @@ async function getPerformanceRawValue(projectId, field, techStack, bId) {
     where: { benchmark: field, projectId, techStack, bId },
   });
   if (rawData == null) {
-    debug.log(`Project ${projectId} data not found`);
+    logger.info(`Project ${projectId} data not found`);
     return null;
   }
   return rawData.rawValue;

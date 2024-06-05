@@ -16,7 +16,7 @@ export async function searchProject(
     where projects.full_name like concat('%',:keyword,'%') 
     ${techStack ? 'and projects.id in (select distinct project_id from project_tech_stack where subcategory = :techStack)' : ''}
     order by stargazers_count desc
-    limit 10`;
+    limit 20`;
   return sequelize.query<SoftwareBaseInfo>(searchSql, {
     type: QueryTypes.SELECT,
     replacements: { keyword, techStack },

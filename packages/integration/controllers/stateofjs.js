@@ -1,6 +1,5 @@
 import { request, gql } from 'graphql-request';
-import debug from 'debug';
-import { StateOfJs } from '@orginjs/oss-evaluation-data-model';
+import { logger, StateOfJs } from '@orginjs/oss-evaluation-data-model';
 
 import { underscoreToSmallCamelCase } from '../util/string.js';
 
@@ -302,13 +301,13 @@ async function syncFullDetailData() {
   // request
   const query = getQuery();
   const res = await request(GRAPHIQL_API_URL, query, {}).catch(error => {
-    debug.log('Post to state_of_js error : ', error.message);
+    logger.error('Post to state_of_js error : ', error.message);
   });
 
   // data is empty
   if (!res || !Object.keys(res).length) {
     const errMsg = 'response data is empty.';
-    debug.log(errMsg);
+    logger.error(errMsg);
     return errMsg;
   }
 
@@ -384,7 +383,7 @@ async function updateDetailData(experiences, sections, technologyStack) {
     // exclude item whose percent data is null
     if (softwareMap[key].usageRank && softwareMap[key].usagePercentage) {
       await StateOfJs.upsert(softwareMap[key]).catch(error => {
-        debug.log('upsert error: ', error.message);
+        logger.error('upsert error: ', error.message);
       });
     }
   });

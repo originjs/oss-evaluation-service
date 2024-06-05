@@ -29,7 +29,7 @@ import {
   formatFloat,
   formatNumber,
   formatString,
-  getDependentProjectHeight,
+  getBubbleChartHeightByCount,
   getLevelColor,
   getTagType,
   scorecardProgressColor,
@@ -333,7 +333,7 @@ function getCompaniesSeriesData(data: any) {
       id: 'option.' + data[key]['projectId'] + count,
       index: count,
       value: data[key]['creatorsNum'],
-      name: data[key]['orgName'],
+      name: '-' + data[key]['orgName'],
     };
   });
   seriesData.push({
@@ -393,13 +393,13 @@ function renderBubbleChart(container: string, seriesData: Array<any>) {
     }
 
     let nodePath = api.value('id');
-    let nodeName = api.value('name');
+    let nodeName = api.value('name').slice(1);
     let node = context.nodes[nodePath];
     if (node.id === 'option') {
       node.r = 0;
     }
     if (!node) {
-      // Reder nothing.
+      // Render nothing.
       return;
     }
 
@@ -435,7 +435,7 @@ function renderBubbleChart(container: string, seriesData: Array<any>) {
         position: 'inside',
       },
       style: {
-        fill: '#5470c6',
+        fill: '#738ace',
       },
       emphasis: {
         style: {
@@ -469,7 +469,12 @@ function renderBubbleChart(container: string, seriesData: Array<any>) {
       },
     ],
   };
-
+  if (container === '#dependent-project-bubble-chart') {
+    option.tooltip.valueFormatter = obj => obj[0] + ' : ' + toKilo(obj[1]) + ' stars';
+  }
+  if (container === '#project-companies-bubble-chart') {
+    option.tooltip.valueFormatter = obj => obj[0].slice(1) + ' ' + obj[1];
+  }
   myChart.setOption(option);
 }
 
@@ -724,9 +729,7 @@ function processBenchmarkData(benchmarkData?: BenchmarkData, needRetain?: boolea
     ? new Set([...benchmarkCompareColumns.value])
     : new Set(['indexName']);
   const data = benchmarkData?.data || [];
-  if (data.length === 0) {
-    showBenchmarkCompare.value = false;
-  }
+  showBenchmarkCompare.value = data.length !== 0;
   for (let i = 0; i < data.length; i++) {
     for (let j = 0; j < data[i].length; j++) {
       const indexName = data[i][j].indexName;
@@ -851,7 +854,6 @@ watchEffect(async () => {
   // handle organization info
   let { dependentProject, dependentOrganization } = organizationInfo;
   dependentProject = dependentProject.slice(0, maxProjectNumber);
-  dependentProjectHeight.value = getDependentProjectHeight(dependentProject.length);
 
   // Star Accumulation for the same organizations
   let topArray = Object.values(
@@ -866,14 +868,17 @@ watchEffect(async () => {
     .slice(0, maxOrganizationsNumber)
     .map(item => ({ label: item.ownerName, value: item.star }));
 
+  dependentProjectHeight.value = max(
+    getBubbleChartHeightByCount(dependentProject.length),
+    organizationInfoTable.value.length * 50,
+  );
   // handle companies info
   let maxCompaniesSize = max(
     companiesInfo.stargazers.length,
     companiesInfo.prCreators.length,
     companiesInfo.issueCreators.length,
   );
-  companiesHeight.value = getDependentProjectHeight(maxCompaniesSize);
-
+  companiesHeight.value = getBubbleChartHeightByCount(maxCompaniesSize);
   await nextTick(() => {
     renderBubbleChart('#dependent-project-bubble-chart', getDependentSeriesData(dependentProject));
     renderBubbleChart(
@@ -888,10 +893,8 @@ watchEffect(async () => {
 });
 
 const companiesActiveName = ref('star');
-function handleCompaniesActiveClick(tab: TabsPaneContext, event: Event) {
+function handleCompaniesActiveClick() {
   const maxOrganizationsNumber = 10;
-  // console.log('tab: ', tab.props.name);
-  companiesActiveName.value = tab.props.name;
   const { issueCreators, stargazers, prCreators } = companiesBaseInfo.value;
 
   if (companiesActiveName.value === 'issue') {
@@ -1001,8 +1004,8 @@ onBeforeUnmount(() => {
               </div>
             </template>
           </el-image>
-          <div w-1170px mb-8px>
-            <div position-relative flex flex-items-center>
+          <div w-1170px>
+            <div flex flex-items-center>
               <el-tooltip effect="light" :teleported="false">
                 <div
                   mt--5px
@@ -1026,17 +1029,15 @@ onBeforeUnmount(() => {
                 {{ project?.techStack }}
               </el-tag>
             </div>
-            <div>
-              <el-tooltip effect="light" :teleported="false">
-                <span mb-2 font-size-3.5 class="text-over">{{ project?.description }}</span>
-                <template #content>
-                  <div max-w-900px>{{ project?.description }}</div>
-                </template>
-              </el-tooltip>
-            </div>
-            <el-tag v-for="(label, idx) in tagList" :key="idx" :type="getTagType(idx)" mr-2 mb-2>{{
-              label
-            }}</el-tag>
+            <el-tooltip effect="light" :teleported="false">
+              <div mb-2 font-size-3.5 class="text-over">{{ project?.description }}</div>
+              <template #content>
+                <div max-w-900px>{{ project?.description }}</div>
+              </template>
+            </el-tooltip>
+            <el-tag v-for="(label, idx) in tagList" :key="idx" :type="getTagType(idx)" mr-2 mb-2>
+              {{ label }}
+            </el-tag>
           </div>
         </div>
         <div flex justify-between>
@@ -1067,9 +1068,9 @@ onBeforeUnmount(() => {
             <InfoFilled />
           </el-icon>
         </el-tooltip>
-        <el-button round ml-3 :icon="Plus" size="small" @click="feedbackAlternative"
-          >反馈相似软件</el-button
-        >
+        <el-button round ml-3 :icon="Plus" size="small" @click="feedbackAlternative">
+          反馈相似软件
+        </el-button>
       </div>
       <div flex my-5>
         <div v-for="item in alternatives" :key="item.id" class="alter-item" flex>
@@ -1105,9 +1106,9 @@ onBeforeUnmount(() => {
       <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-custom:function mr-2 />
         <span>功能</span>
-        <span font-size-5 float-right
-          >{{ formatFloat(project?.evaluation?.functionScore) }}/100</span
-        >
+        <span font-size-5 float-right>
+          {{ formatFloat(project?.evaluation?.functionScore) }}/100
+        </span>
       </div>
       <el-card mb-6>
         <span font-size-5 font-bold>Github Star 趋势</span>
@@ -1214,9 +1215,9 @@ onBeforeUnmount(() => {
               <template #default="{ row }">
                 <div v-if="row[column]" class="flex flex-col items-center justify-center">
                   <span>{{ row[column] }}</span>
-                  <span v-if="column !== 'indexName'"
-                    >({{ (removeUnit(row[column]) / minRowValue[row.indexName]).toFixed(2) }})</span
-                  >
+                  <span v-if="column !== 'indexName'">
+                    ({{ (removeUnit(row[column]) / minRowValue[row.indexName]).toFixed(2) }})
+                  </span>
                 </div>
               </template>
             </el-table-column>
@@ -1226,9 +1227,9 @@ onBeforeUnmount(() => {
       <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-custom:quality mr-2 />
         <span>质量</span>
-        <span font-size-5 float-right
-          >{{ formatFloat(project?.evaluation?.qualityScore) }}/100</span
-        >
+        <span font-size-5 float-right>
+          {{ formatFloat(project?.evaluation?.qualityScore) }}/100
+        </span>
       </div>
       <el-card mb-6>
         <div flex>
@@ -1261,13 +1262,9 @@ onBeforeUnmount(() => {
         </div>
       </el-card>
       <el-card>
-        <div
-          mb-4
-          font-size-5
-          font-bold
-          :class="project?.sonarCloudScan?.sonarProjectKey ? 'color-blue underline' : ''"
-        >
+        <div mb-4 font-size-5 font-bold>
           <a
+            :class="project?.sonarCloudScan?.sonarProjectKey ? 'color-blue underline' : ''"
             :href="
               project?.sonarCloudScan?.sonarProjectKey
                 ? `https://sonarcloud.io/summary/overall?id=${project.sonarCloudScan.sonarProjectKey}`
@@ -1276,9 +1273,14 @@ onBeforeUnmount(() => {
             target="_blank"
           >
             SonarCloud
-            <span i-material-symbols-file-open />
           </a>
+          <el-tooltip :content="i18n.global.t(`tips.sonarCloud.languageSupportTips`)">
+            <el-icon size-5 color-gray-400>
+              <InfoFilled />
+            </el-icon>
+          </el-tooltip>
         </div>
+
         <div h-207px flex flex-wrap justify-between content-between>
           <div position-relative pt-3 pd-3 pl-4 pr-4 w-607px h-92px bg-coolgray-50>
             <div mb-4 font-bold>
@@ -1649,14 +1651,14 @@ onBeforeUnmount(() => {
           </div>
           <div id="recent-releases-count-chart" h-200px />
         </el-card>
-        <el-card mb-6 w-1280px flex>
+        <el-card w-1280px>
           <div mb-2 font-size-5 font-bold>业界使用情况</div>
           <div font-size-3 text-gray-500 class="custom-divide">
             基于 Github 的依赖关系分析得出使用{{ repoName }}的知名开源项目和组织。
           </div>
-          <div w-1220px flex>
-            <div mb-6 w-926px mt-2>
-              <div flex>
+          <div flex>
+            <div w-922px mr-4 position-relative>
+              <div flex position-absolute top-21px style="z-index: 1">
                 <div font-size-5 font-bold>知名项目</div>
                 <el-tooltip :content="i18n.global.t(`tips.dependentOrganization.project`)">
                   <el-icon size-5 color-gray-400>
@@ -1669,40 +1671,37 @@ onBeforeUnmount(() => {
                 :style="{ height: dependentProjectHeight + 'px' }"
               />
             </div>
-            <div mb-6 w-226px mt-2>
-              <el-card w-300px style="box-shadow: unset">
-                <div flex>
-                  <div font-size-5 font-bold mb-6px>知名组织</div>
-                  <el-tooltip :content="i18n.global.t(`tips.dependentOrganization.organization`)">
-                    <el-icon size-5 color-gray-400>
-                      <InfoFilled />
-                    </el-icon>
-                  </el-tooltip>
-                </div>
-                <template v-if="organizationInfoTable?.length">
-                  <div
-                    v-for="(org, idx) in organizationInfoTable"
-                    :key="idx"
-                    flex
-                    justify-between
-                    mt-18px
-                  >
-                    <span class="text-over max-w-200px">{{ org.label }}</span>
-                    <!--                    <span>{{ org.value }}</span>-->
-                  </div>
-                </template>
+            <el-card w-300px style="box-shadow: unset">
+              <div flex>
+                <div font-size-5 font-bold mb-6px>知名组织</div>
+                <el-tooltip :content="i18n.global.t(`tips.dependentOrganization.organization`)">
+                  <el-icon size-5 color-gray-400>
+                    <InfoFilled />
+                  </el-icon>
+                </el-tooltip>
+              </div>
+              <template v-if="organizationInfoTable?.length">
                 <div
-                  v-else-if="!isRequestingProjectInfo"
-                  h-300px
+                  v-for="(org, idx) in organizationInfoTable"
+                  :key="idx"
                   flex
-                  justify-center
-                  items-center
-                  color-gray
+                  justify-between
+                  mt-18px
                 >
-                  暂无数据
+                  <span class="text-over">{{ org.label }}</span>
                 </div>
-              </el-card>
-            </div>
+              </template>
+              <div
+                v-else-if="!isRequestingProjectInfo"
+                :style="{ height: dependentProjectHeight + 'px' }"
+                flex
+                justify-center
+                items-center
+                color-gray
+              >
+                暂无数据
+              </div>
+            </el-card>
           </div>
         </el-card>
       </div>
@@ -1720,7 +1719,7 @@ onBeforeUnmount(() => {
         <el-tabs v-model="geoActiveTab" class="companies-tabs-bold">
           <el-tab-pane label="Stargazers" name="star">
             <div flex>
-              <div id="star-countries-chart" w-964px h-500px mr-4 />
+              <div id="star-countries-chart" w-922px h-500px mr-4 />
               <el-card w-300px style="box-shadow: unset">
                 <div mb-6 font-size-5 font-bold>Top 10 地区</div>
                 <template v-if="geoDistributionInfo?.starCountries?.length">
@@ -1747,7 +1746,7 @@ onBeforeUnmount(() => {
           </el-tab-pane>
           <el-tab-pane label="Issue Creators" name="issue">
             <div flex>
-              <div id="issue-countries-chart" w-964px h-500px mr-4 />
+              <div id="issue-countries-chart" w-922px h-500px mr-4 />
               <el-card w-300px style="box-shadow: unset">
                 <div mb-6 font-size-5 font-bold>Top 10 地区</div>
                 <template v-if="geoDistributionInfo?.issueCountries?.length">
@@ -1766,7 +1765,7 @@ onBeforeUnmount(() => {
                     }}</span>
                   </div>
                 </template>
-                <div v-else-if="!geoLoading" h-300px flex justify-center items-center color-gray>
+                <div v-else-if="!geoLoading" flex justify-center items-center color-gray>
                   暂无数据
                 </div>
               </el-card>
@@ -1774,7 +1773,7 @@ onBeforeUnmount(() => {
           </el-tab-pane>
           <el-tab-pane label="Pull Request Creators" name="pr">
             <div flex>
-              <div id="pr-countries-chart" w-964px h-500px mr-4 />
+              <div id="pr-countries-chart" w-922px h-500px mr-4 />
               <el-card w-300px style="box-shadow: unset">
                 <div mb-6 font-size-5 font-bold>Top 10 地区</div>
                 <template v-if="geoDistributionInfo?.prCountries?.length">
@@ -1818,13 +1817,13 @@ onBeforeUnmount(() => {
           <el-tabs
             v-model="companiesActiveName"
             class="companies-tabs-bold"
-            @tab-click="handleCompaniesActiveClick"
+            @update:model-value="handleCompaniesActiveClick"
           >
             <el-tab-pane label="Stargazers" name="star"></el-tab-pane>
             <el-tab-pane label="Issue Creators" name="issue"> </el-tab-pane>
             <el-tab-pane label="Pull Requests Creators" name="pr"> </el-tab-pane>
             <div flex>
-              <div mb-6 w-964px>
+              <div w-922px mr-4>
                 <div
                   id="project-companies-bubble-chart"
                   :style="{ height: companiesHeight + 'px' }"
@@ -1845,8 +1844,8 @@ onBeforeUnmount(() => {
                   </div>
                 </template>
                 <div
-                  v-else-if="!isRequestingProjectInfo"
-                  h-300px
+                  v-else-if="!loadingInnovation"
+                  :style="{ height: companiesHeight + 'px' }"
                   flex
                   justify-center
                   items-center
@@ -1874,7 +1873,7 @@ onBeforeUnmount(() => {
   padding-bottom: 50px;
   .btn-options-floating {
     position: fixed;
-    top: 186px;
+    top: 193px;
     z-index: 4;
     display: flex;
     flex-direction: column;
@@ -1887,6 +1886,7 @@ onBeforeUnmount(() => {
   .software-introduction {
     display: flex;
     align-items: flex-start;
+    margin-bottom: 8px;
   }
   .table-base-info {
     width: 935px;
@@ -1934,6 +1934,6 @@ onBeforeUnmount(() => {
 .custom-divide {
   border-bottom: 2px solid #e4e7ed;
   padding-bottom: 10px;
-  margin-bottom: 6px;
+  margin-bottom: 15px;
 }
 </style>

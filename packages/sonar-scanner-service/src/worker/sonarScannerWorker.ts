@@ -1,58 +1,34 @@
 import { parentPort } from 'worker_threads';
-import type { SonarScanParam } from '../interfaces/RepoInfo';
-import process from 'node:process';
+import type { SonarScanParam } from '../interfaces/Param';
 import shelljs from 'shelljs';
 import { Result } from '../utils/result.js';
 import { logger } from '@orginjs/oss-evaluation-data-model';
-
-const sleep = ms =>
-  new Promise(resolve => {
-    setTimeout(resolve, ms);
-  });
+import type { LanguageSonarScannerInterface } from '../interfaces/language';
+import { OthersLanguageService } from '../services/sonar-scanner-service/othersLanguage.js';
+import { JavaLanguageService } from '../services/sonar-scanner-service/javaLanguage.js';
 
 function runSonarScanner(info: SonarScanParam): Result<SonarScanParam> {
-  const owner = info.gitOwner;
-  const repoName = info.repoName;
-  const language = info.language.toUpperCase();
-  const dir = `${process.env.REPO_DIR}/${owner}/${repoName}`;
-  logger.info(`start to scan ${owner}/${repoName}`);
-  // run sonar
-  let scanCommand = `sonar-scanner\
-     -Dsonar.organization=${info.sonarOrg}\
-     -Dsonar.projectKey=${info.sonarKey}\
-     -Dsonar.sources=.\
-     -Dsonar.host.url=${info.sonarHostUrl}\
-     -Dsonar.projectBaseDir=${dir}\
-     -DSONAR_SCANNER_OPTS="-Xmx2048m -Xms512m"`;
-  if (language !== 'JAVA') {
-    scanCommand += ' -Dsonar.exclusions=**/*.java';
+  // get language service
+  const languageService = getLanguageServiceImpl(info);
+  const commands = languageService.sonarCommands();
+  const restoreCommand = languageService.restoreCommand();
+  // run commands
+  for (const command of commands) {
+    logger.info(`start execution of command {${command}}`);
+    const shellResult = shelljs.exec(command);
+    logger.info(`end execution of command {${command}} , code = ${shellResult.code}`);
+    if (shellResult?.code !== 0) {
+      // restore changes
+      shelljs.exec(restoreCommand);
+      logger.error(
+        `${info.gitOwner}/${info.repoName} run command {${command}} failed:${shellResult?.stderr}`,
+      );
+      throw new Error(`sonar scanner failed ${JSON.stringify(info)}`);
+    }
   }
-  if (language !== 'C' && language !== 'C++') {
-    scanCommand += ` -Dsonar.c.file.suffixes=-\
-    -Dsonar.cpp.file.suffixes=-\
-    -Dsonar.objc.file.suffixes=-`;
-  }
-  const shellResult = shelljs.exec(scanCommand);
-  if (shellResult?.code === 0) {
-    // try to collect sonar data
-    sleep(5000).then(() => {
-      logger.info(`try to collect sonar ${JSON.stringify([info.sonarKey])}`);
-      fetch(`${process.env.INTEGRATION_HOST}/sync/sonarCloud/collect`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify([info.sonarKey]),
-      })
-        .then(response => response.json())
-        .then(data => logger.info(JSON.stringify(data)))
-        .catch(error => logger.error('Error:', error));
-    });
-    return Result.ok(info);
-  } else {
-    logger.error(shellResult.stderr);
-    throw new Error(`sonar scanner failed ${JSON.stringify(info)}`);
-  }
+  // restore changes
+  shelljs.exec(restoreCommand);
+  return Result.ok(info);
 }
 
 parentPort.on('message', info => {
@@ -60,6 +36,24 @@ parentPort.on('message', info => {
     const sonarScanResult = runSonarScanner(info);
     parentPort.postMessage(sonarScanResult);
   } catch (e) {
-    parentPort.postMessage(Result.fail(e.messagge));
+    parentPort.postMessage(Result.fail(e.message));
   }
 });
+
+function getLanguageServiceImpl(param: SonarScanParam): LanguageSonarScannerInterface {
+  const language = param.language.toUpperCase();
+  switch (language) {
+    case 'JAVA':
+      return new JavaLanguageService(param);
+    case 'C++':
+    case 'C':
+    case 'OBJECT-C':
+    case 'C#':
+    case 'Rust':
+      throw new Error(
+        `unsupported sonar scanner of language:{${language}},project:${param.gitOwner}/${param.repoName} `,
+      );
+    default:
+      return new OthersLanguageService(param);
+  }
+}

@@ -1,5 +1,6 @@
 import {
   GithubProjects,
+  logger,
   OssGitlabFork,
   SonarCloudProject,
 } from '@orginjs/oss-evaluation-data-model';
@@ -11,6 +12,7 @@ import _ from 'underscore';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'path';
+import sonarCloudProject from '@orginjs/oss-evaluation-data-model/models/SonarCloudProject.js';
 
 const getRating = rating => {
   switch (rating) {
@@ -26,6 +28,8 @@ const getRating = rating => {
       return 'E';
   }
 };
+
+const needGithubForkLanguages = new Set(['C', 'C++', 'Objective-C']);
 
 /**
  * {
@@ -82,13 +86,34 @@ async function collectSonarCloudDataBySonarKeys(sonarKeys) {
     });
   }
   if (!sonarCloudProjects?.length) {
-    console.warn('no sonarCloud project!!');
+    logger.error('no sonarCloud project!!');
+    return;
   }
   const sonarCloudSdk = new SonarCloudSdk();
   const metricKeys =
     // eslint-disable-next-line max-len
     'accepted_issues,new_technical_debt,blocker_violations,bugs,classes,code_smells,cognitive_complexity,comment_lines,comment_lines_density,branch_coverage,new_branch_coverage,conditions_to_cover,new_conditions_to_cover,confirmed_issues,coverage,new_coverage,critical_violations,complexity,duplicated_blocks,new_duplicated_blocks,duplicated_files,duplicated_lines,duplicated_lines_density,new_duplicated_lines_density,new_duplicated_lines,effort_to_reach_maintainability_rating_a,false_positive_issues,files,functions,generated_lines,generated_ncloc,info_violations,violations,line_coverage,new_line_coverage,lines,ncloc,lines_to_cover,new_lines_to_cover,sqale_rating,new_maintainability_rating,major_violations,minor_violations,new_accepted_issues,new_blocker_violations,new_bugs,new_code_smells,new_critical_violations,new_info_violations,new_violations,new_lines,new_major_violations,new_minor_violations,new_security_hotspots,new_vulnerabilities,open_issues,projects,alert_status,reliability_rating,new_reliability_rating,reliability_remediation_effort,new_reliability_remediation_effort,reopened_issues,security_hotspots,security_hotspots_reviewed,new_security_hotspots_reviewed,security_rating,new_security_rating,security_remediation_effort,new_security_remediation_effort,security_review_rating,new_security_review_rating,skipped_tests,statements,sqale_index,sqale_debt_ratio,new_sqale_debt_ratio,uncovered_conditions,new_uncovered_conditions,uncovered_lines,new_uncovered_lines,test_execution_time,test_errors,test_failures,test_success_density,tests,vulnerabilities,wont_fix_issues';
-  for (const { sonarProjectKey, defaultBranch } of sonarCloudProjects) {
+  for (let { sonarProjectKey, defaultBranch } of sonarCloudProjects) {
+    if (!defaultBranch) {
+      //   get the first branch
+      const mainBranchOfSonar = await getMainBranchOfSonar(sonarProjectKey);
+      if (mainBranchOfSonar) {
+        defaultBranch = mainBranchOfSonar.name;
+        await sonarCloudProject.update(
+          {
+            analysisDate: mainBranchOfSonar.analysisDate,
+            defaultBranch: mainBranchOfSonar.name,
+          },
+          {
+            where: {
+              sonarProjectKey,
+            },
+          },
+        );
+      } else {
+        continue;
+      }
+    }
     // get measures
     const measuresResponse = await recordTime(
       sonarCloudSdk.getMeasures,
@@ -101,7 +126,7 @@ async function collectSonarCloudDataBySonarKeys(sonarKeys) {
     );
     await sleep(Math.floor(Math.random() * 500) + 100);
     if (!measuresResponse.ok) {
-      console.log(
+      logger.info(
         `get measures of sonar project ${sonarProjectKey} error`,
         await measuresResponse.text(),
       );
@@ -110,7 +135,7 @@ async function collectSonarCloudDataBySonarKeys(sonarKeys) {
     const measuresJson = await measuresResponse.json();
     const metrics = measuresJson?.component?.measures;
     if (!metrics || !metrics.length) {
-      console.warn(`get empty metrics of sonar project ${sonarProjectKey}`);
+      logger.info(`get empty metrics of sonar project ${sonarProjectKey}`);
       continue;
     }
     const metricMap = new Map();
@@ -137,35 +162,40 @@ async function collectSonarCloudDataBySonarKeys(sonarKeys) {
         sonarProjectKey,
       },
     });
-    const response = await sonarCloudSdk.listProjectBranches(sonarProjectKey);
-    await sleep(Math.floor(Math.random() * 500) + 100);
-    if (!response.ok) {
-      console.log(await response.text());
-      continue;
-    }
-    const branches = (await response.json()).branches;
-    if (!branches || !branches.length) {
-      continue;
-    }
-    const mainBranch = branches.find(branch => branch?.isMain) || branches[0];
-    const updateInfo = {
-      analysisDate: mainBranch.analysisDate,
-    };
+    const mainBranch = await getMainBranchOfSonar(sonarProjectKey);
+    if (mainBranch) {
+      const updateDate = {
+        analysisDate: mainBranch.analysisDate,
+      };
 
-    await SonarCloudProject.update(updateInfo, {
-      where: {
-        sonarProjectKey,
-      },
-    });
+      await SonarCloudProject.update(updateDate, {
+        where: {
+          sonarProjectKey,
+        },
+      });
+    }
+  }
+}
+
+async function getMainBranchOfSonar(sonarProjectKey) {
+  const sonarCloudSdk = new SonarCloudSdk();
+  const response = await sonarCloudSdk.listProjectBranches(sonarProjectKey);
+  await sleep(Math.floor(Math.random() * 500) + 100);
+  if (!response.ok) {
+    logger.info(await response.text());
+  }
+  const branches = (await response.json()).branches;
+  if (branches?.length) {
+    return branches.find(branch => branch?.isMain) || branches[0];
   }
 }
 
 async function recordTime(func, name, ...args) {
   const start = new Date();
-  console.log(`start ${name}`);
+  logger.info(`start ${name}`);
   const result = await func(...args);
   const end = new Date();
-  console.log(`end ${name} ${end - start}ms`);
+  logger.info(`end ${name} ${end - start}ms`);
   return result;
 }
 
@@ -210,6 +240,7 @@ export async function updateDefaultBranchAfterImport(req, res) {
 
 export async function createAndScanSonarProjectByGithubId(req, res) {
   const githubIds = req.body;
+  const force = !!req.query.force;
   const sonarCloudSdk = new SonarCloudSdk();
   for (const githubId of githubIds) {
     //   query for sonar
@@ -246,7 +277,7 @@ export async function createAndScanSonarProjectByGithubId(req, res) {
         param,
       );
       if (!createSonarProjectResponse.ok) {
-        console.error(`create sonar project failed , ${await createSonarProjectResponse.text()}`);
+        logger.error(`create sonar project failed , ${await createSonarProjectResponse.text()}`);
         continue;
       } else {
         sonarProjectKey = (await createSonarProjectResponse.json()).project.key;
@@ -260,27 +291,30 @@ export async function createAndScanSonarProjectByGithubId(req, res) {
       sonarProject = createSonarProject;
     }
 
-    if (!sonarProject.analysisDate) {
-      //  try to collect sonar data
-      await collectSonarCloudDataBySonarKeys([sonarProjectKey]);
-      sonarProject = await SonarCloudProject.findOne({
-        where: {
-          githubProjectId: githubId,
-        },
-      });
-      if (sonarProject.analysisDate) {
-        continue;
+    if (!force) {
+      if (!sonarProject.analysisDate) {
+        //  try to collect sonar data
+        await collectSonarCloudDataBySonarKeys([sonarProjectKey]);
+        sonarProject = await SonarCloudProject.findOne({
+          where: {
+            githubProjectId: githubId,
+          },
+        });
+        if (sonarProject.analysisDate) {
+          continue;
+        }
       }
-      //   start sonar scanner
-      await startSonarScanner(
-        githubProject.ownerName,
-        githubProject.name,
-        process.env.SONAR_ORG_NAME,
-        sonarProjectKey,
-        'https://sonarcloud.io',
-        githubProject.language,
-      );
     }
+    //   start sonar scanner
+    await startSonarScanner(
+      githubProject.ownerName,
+      githubProject.name,
+      process.env.SONAR_ORG_NAME,
+      sonarProjectKey,
+      'https://sonarcloud.io',
+      githubProject.language,
+      githubProject.id,
+    );
   }
   res.status(200);
   res.json('success');
@@ -302,7 +336,7 @@ export async function setDefaultBranchOfSonar(req, res) {
     );
     await sleep(Math.floor(Math.random() * 500) + 100);
     if (!listSonarBranches.ok) {
-      console.error(`get sonar project branches info failed`, await listSonarBranches.text());
+      logger.error(`get sonar project branches info failed`, await listSonarBranches.text());
     }
     const sonarBranches = (await listSonarBranches.json()).branches;
     const mainBranch = sonarBranches.find(item => item.isMain);
@@ -317,7 +351,7 @@ export async function setDefaultBranchOfSonar(req, res) {
         );
         await sleep(Math.floor(Math.random() * 500) + 100);
         if (!deleteResponse.ok) {
-          console.error(`delete sonar project branch failed`, await listSonarBranches.text());
+          logger.error(`delete sonar project branch failed`, await listSonarBranches.text());
         }
       }
     }
@@ -342,7 +376,7 @@ export async function setDefaultBranchOfSonar(req, res) {
       );
       await sleep(Math.floor(Math.random() * 500) + 100);
       if (!renameResponse.ok) {
-        console.error(
+        logger.error(
           `rename sonar project:${sonarProjectKey} branch:${mainBranch.name} to ${defaultBranch}`,
           await renameResponse.text(),
         );
@@ -367,7 +401,7 @@ export async function setDefaultBranchOfSonar(req, res) {
   });
 }
 
-async function startSonarScanner(owner, repoName, sonarOrg, sonarKey, sonarHostUrl, language) {
+async function startSonarScanner(owner, repoName, sonarOrg, sonarKey, sonarHostUrl, language, id) {
   const url = `${process.env.SONAR_SCAN_SERVICE_HOST}/sonar/scan`;
   const body = {
     gitOwner: owner,
@@ -376,6 +410,7 @@ async function startSonarScanner(owner, repoName, sonarOrg, sonarKey, sonarHostU
     sonarKey,
     sonarHostUrl,
     language,
+    id,
   };
   return await fetch(url, {
     method: 'post',
@@ -385,6 +420,59 @@ async function startSonarScanner(owner, repoName, sonarOrg, sonarKey, sonarHostU
     },
     body: JSON.stringify(body),
   });
+}
+
+export async function createSonarProjectsFromGithub(req, res) {
+  const githubIds = req.body;
+  const sonarCloudSdk = new SonarCloudSdk();
+  for (const githubId of githubIds) {
+    const githubProject = await GithubProjects.findOne({
+      where: {
+        id: githubId,
+      },
+    });
+
+    if (!needGithubForkLanguages.has(githubProject?.language)) {
+      continue;
+    }
+    //   query for sonar
+    let sonarProject = await SonarCloudProject.findOne({
+      where: {
+        githubProjectId: githubId,
+      },
+    });
+    if (sonarProject) {
+      if (sonarProject.analysisDate) {
+        continue;
+      } else {
+        if (!(sonarProject.sonarOrg === process.env.SONAR_GITHUB_FORK_ORG_NAME)) {
+          //   delete project
+          await sonarCloudSdk.deleteProject(sonarProject.sonarProjectKey);
+          await sonarCloudProject.destroy({
+            where: {
+              githubProjectId: githubId,
+            },
+          });
+        } else {
+          await collectSonarCloudDataBySonarKeys([sonarProject.sonarProjectKey]);
+          continue;
+        }
+      }
+    }
+
+    const fullName = githubProject.fullName;
+    const createResult = {
+      githubProjectId: githubId,
+      githubFullName: fullName,
+      sonarOrg: process.env.SONAR_GITHUB_FORK_ORG_NAME,
+      sonarProjectKey: `${process.env.SONAR_GITHUB_FORK_ORG_NAME}_${fullName.replaceAll('/', '-')}`,
+    };
+    await SonarCloudProject.create(createResult);
+    //   try to collect data
+    await collectSonarCloudDataBySonarKeys([createResult.sonarProjectKey]);
+  }
+  res.status(200);
+  res.json({ ok: true });
 }
 
 export async function createGitlabProject(req, res) {
@@ -432,7 +520,7 @@ export async function createGitlabProject(req, res) {
     );
     await sleep(Math.floor(Math.random() * 500) + 100);
     if (!response.ok) {
-      console.error(`${response.status}:${await response.text()}`);
+      logger.error(`${response.status}:${await response.text()}`);
       continue;
     }
     let json = await response.json();
@@ -453,7 +541,7 @@ export async function createGitlabProject(req, res) {
     };
     await OssGitlabFork.upsert(forkResult);
     count++;
-    console.log(`create gitlab project ${count} / ${paramProjectIds.length}`);
+    logger.info(`create gitlab project ${count} / ${paramProjectIds.length}`);
   }
   res.status(200);
   res.send(`success ${count}/${paramProjectIds.length} projects`);
@@ -505,7 +593,7 @@ export async function createSonarProjectFromGitlab(req, res) {
     );
     await sleep(Math.floor(Math.random() * 500) + 100);
     if (!response.ok) {
-      console.error(`${response.status}:${await response.text()}`);
+      logger.error(`${response.status}:${await response.text()}`);
       continue;
     }
     const json = await response.json();
@@ -607,7 +695,7 @@ export async function uploadSonarCiConfigToGitlab(req, res) {
       commitInfo,
     );
     if (!response.ok) {
-      console.error(`${response.status}:${await response.text()}`);
+      logger.error(`${response.status}:${await response.text()}`);
       continue;
     }
     await OssGitlabFork.update(
@@ -662,7 +750,7 @@ export async function updateSonarCloudDefaultBranch(req, res) {
     );
     await sleep(Math.floor(Math.random() * 500) + 100);
     if (!response.ok) {
-      console.error(`get sonar project branches info failed`, await response.text());
+      logger.error(`get sonar project branches info failed`, await response.text());
       continue;
     }
     const sonarBranches = (await response.json()).branches;
@@ -678,7 +766,7 @@ export async function updateSonarCloudDefaultBranch(req, res) {
         );
         await sleep(Math.floor(Math.random() * 500) + 100);
         if (!deleteResponse.ok) {
-          console.error(`delete sonar project branch failed`, await response.text());
+          logger.error(`delete sonar project branch failed`, await response.text());
         }
       }
     }
@@ -704,7 +792,7 @@ export async function updateSonarCloudDefaultBranch(req, res) {
     );
     await sleep(Math.floor(Math.random() * 500) + 100);
     if (!renameResponse.ok) {
-      console.error(
+      logger.error(
         `rename sonar project:${sonarProjectKey} branch:${mainBranch.name} to ${gitlabDefaultBranch}`,
         await renameResponse.text(),
       );

@@ -1,46 +1,46 @@
-import debug from 'debug';
 import { gql, request } from 'graphql-request';
-import { sleep } from '../util/util.js';
 import { authorizationHeader } from '../../api-sdk/util.js';
 import { GithubSdk } from '@orginjs/github-sdk/src/sdk.js';
-import { GithubProjects, GithubProjectsDependencies } from '@orginjs/oss-evaluation-data-model';
+import {
+  GithubProjects,
+  GithubProjectsDependencies,
+  logger,
+} from '@orginjs/oss-evaluation-data-model';
 
 const graphqlUrl = 'https://api.github.com/graphql';
 
 const queryPackageName = gql`
-  query($repoOwner: String!,
-    $repoName: String!,
-  ) {
-      repository(owner: $repoOwner name: $repoName) {
-        description
-        dependencyGraphManifests(first: 100) {
-          totalCount
-          nodes {
-            filename
-            blobPath
-            dependencies {
-              totalCount
-              nodes {
-                packageName
-                repository {
-                  name
-                  nameWithOwner
-                  owner {
-                    login
-                  }
-                  isInOrganization
-                  primaryLanguage {
-                    name
-                  }
+  query ($repoOwner: String!, $repoName: String!) {
+    repository(owner: $repoOwner, name: $repoName) {
+      description
+      dependencyGraphManifests(first: 100) {
+        totalCount
+        nodes {
+          filename
+          blobPath
+          dependencies {
+            totalCount
+            nodes {
+              packageName
+              repository {
+                name
+                nameWithOwner
+                owner {
+                  login
                 }
-                requirements
-                hasDependencies
+                isInOrganization
+                primaryLanguage {
+                  name
+                }
               }
+              requirements
+              hasDependencies
             }
           }
         }
       }
-   }
+    }
+  }
 `;
 
 export async function syncSingleProjectDependenciesHandler(req, res) {
@@ -65,20 +65,19 @@ export async function syncSingleProjectDependencies(project) {
 }
 
 export async function syncAllProjectDependencies() {
-  debug.log('Sync Project Dependent');
+  logger.info('Sync Project Dependent');
   // 1. get all github project
   const projectList = await GithubProjects.findAll({
     attributes: ['id', 'ownerName', 'name', 'ownerType'],
   });
   const sumOfProject = projectList.length;
-  debug.log(`The Number of Project : ${sumOfProject}`);
+  logger.info(`The Number of Project : ${sumOfProject}`);
   let count = 1;
   for (const project of projectList) {
-    debug.log('**Current Progress**: ', `${count}/${sumOfProject}`);
+    logger.info('**Current Progress**: ', `${count}/${sumOfProject}`);
     count += 1;
     // 2. project Dependent
     await getDependencies(project, new Set());
-    await sleep(20000);
   }
 }
 
@@ -87,31 +86,66 @@ export async function getDependencies(project, seen) {
   const headers = authorizationHeader(githubSdk.token);
   headers.append('Accept', 'application/vnd.github.hawkgirl-preview+json');
 
-  const dependenciesData = await request(graphqlUrl, queryPackageName, {
-    repoOwner: project.ownerName,
-    repoName: project.name,
-  }, headers).catch(error => {
-    debug.log('Post to dependencies error : ', error.message);
+  const dependenciesData = await request(
+    graphqlUrl,
+    queryPackageName,
+    {
+      repoOwner: project.ownerName,
+      repoName: project.name,
+    },
+    headers,
+  ).catch(error => {
+    logger.error('Post to dependencies error : ', error.message);
   });
   if (dependenciesData === undefined || !dependenciesData['repository']) {
     return;
   }
-  const dependenciesList = await parseDependenciesData(project, dependenciesData, seen);
-  await saveDate(dependenciesList);
+  const dependData = await parseDependenciesData(project, dependenciesData, seen);
+  await softDeleteDependencies(project, dependData.dependFullNameList);
+  await saveDate(dependData.dependenciesList);
 }
 
+async function softDeleteDependencies(project, dependFullNameList) {
+  const dbDependencies = await GithubProjectsDependencies.findAll({
+    where: {
+      ownerName: project.ownerName,
+      name: project.name,
+    },
+  });
+
+  const deleteDependencies = [];
+  for (const dependencies of dbDependencies) {
+    if (!dependFullNameList.includes(dependencies.getDataValue('dependentFullName'))) {
+      dependencies.setDataValue('deleted', 1);
+      deleteDependencies.push(dependencies.dataValues);
+    }
+  }
+  if (deleteDependencies.length < 0) {
+    return;
+  }
+  await GithubProjectsDependencies.bulkCreate(deleteDependencies, {
+    updateOnDuplicate: ['deleted'],
+  });
+}
 async function parseDependenciesData(project, dependenciesData, seen) {
   let dependencies = dependenciesData['repository']['dependencyGraphManifests']['nodes'];
   let dependenciesList = [];
+  let dependFullNameList = [];
   let language;
   for (const depend of dependencies) {
     const dependNodes = depend['dependencies']['nodes'];
     for (let i = 0; i < dependNodes.length; i++) {
+      if (!dependNodes[i]['requirements']) {
+        continue;
+      }
+      const requirements = dependNodes[i]['requirements'];
       if (dependNodes[i]['repository']) {
         const dependentOwner = dependNodes[i]['repository']['owner']['login'];
         const dependentName = dependNodes[i]['repository']['name'];
         const dependentHtmlUrl = `https://github.com/${dependentOwner}/${dependentName}`;
-        const dependentOwnerType = await getOwnerType(dependNodes[i]['repository']['isInOrganization']);
+        const dependentOwnerType = await getOwnerType(
+          dependNodes[i]['repository']['isInOrganization'],
+        );
         if (seen.has(dependentHtmlUrl)) {
           continue;
         }
@@ -119,7 +153,7 @@ async function parseDependenciesData(project, dependenciesData, seen) {
           language = dependNodes[i]['repository']['primaryLanguage'].name;
         }
         seen.add(dependentHtmlUrl);
-        const dependProject =  await getProjectInfoByUrl(dependentHtmlUrl);
+        const dependProject = await getProjectInfoByUrl(dependentHtmlUrl);
         const data = {
           fullName: `${project.ownerName}/${project.name}`,
           projectId: project.id,
@@ -131,15 +165,17 @@ async function parseDependenciesData(project, dependenciesData, seen) {
           dependentFullName: `${dependentOwner}/${dependentName}`,
           dependentOwnerName: dependentOwner,
           dependentName: dependentName,
+          dependentRequirements: requirements,
           dependentHtmlUrl: dependentHtmlUrl,
           dependentOwnerType: dependentOwnerType,
           lastUpdatedDate: Date.now(),
         };
         dependenciesList.push(data);
+        dependFullNameList.push(data.dependentFullName);
       }
     }
   }
-  return dependenciesList;
+  return { dependenciesList: dependenciesList, dependFullNameList: dependFullNameList };
 }
 
 async function saveDate(dependenciesList) {
@@ -149,10 +185,10 @@ async function saveDate(dependenciesList) {
   const updateOnDuplicate = Object.keys(dependenciesList[0]).slice(1);
   await GithubProjectsDependencies.bulkCreate(dependenciesList, { updateOnDuplicate })
     .then(dependent => {
-      debug.log(`Insert ${dependent.length} dependent data`);
+      logger.info(`Insert ${dependent.length} dependent data`);
     })
     .catch(error => {
-      debug.log('Batch insert error: ', error.message);
+      logger.error('Batch insert error: ', error.message);
     });
 }
 
@@ -164,15 +200,15 @@ async function getProjectInfoByUrl(repoUrl) {
     },
   });
   if (project === null) {
-    debug.log('project not exists');
+    logger.info('project not exists');
     return;
   }
   return project;
 }
 
-async function getOwnerType (isInOrganization) {
+async function getOwnerType(isInOrganization) {
   if (isInOrganization) {
-    return "Organization";
+    return 'Organization';
   }
-  return "User";
+  return 'User';
 }

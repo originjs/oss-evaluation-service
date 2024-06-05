@@ -1,5 +1,5 @@
 import { Controller, Route, Post, Body, Get, Path } from 'tsoa';
-import type { SonarScanParam } from '../interfaces/RepoInfo.js';
+import type { SonarScanParam } from '../interfaces/Param';
 import { Result } from '../utils/result.js';
 import { getDefaultBranch, scan } from '../services/SonarService.js';
 

@@ -1,7 +1,11 @@
 import express from 'express';
-
 import { syncAlternativeHandler } from '../controllers/alternative.js';
-import { getScorecardHandler, syncScorecardHandler } from '../controllers/scorecard.js';
+import {
+  getScorecardHandler,
+  syncScorecardHandler,
+  syncScorecardSpecial,
+  syncSingleProjectScorecardHandler,
+} from '../controllers/scorecard.js';
 import { syncOpendiggerHandler } from '../controllers/opendigger.js';
 import {
   syncAllProjectPackageDownloadCountHandler,
@@ -34,6 +38,7 @@ import {
   createAndScanSonarProjectByGithubId,
   createGitlabProject,
   createSonarProjectFromGitlab,
+  createSonarProjectsFromGithub,
   setDefaultBranchOfSonar,
   updateDefaultBranchAfterImport,
   updateSonarCloudDefaultBranch,
@@ -67,6 +72,7 @@ import {
   syncSingleProjectCreatorsCountriesHandler,
   syncAllProjectCreatorsCountriesHandler,
 } from '../controllers/ossinsightCreatorsCountry.js';
+import { syncCriticalityScoreHandler } from '../controllers/criticalitryScore.js';
 
 const router = express.Router();
 
@@ -290,6 +296,56 @@ router.route('/scorecard').post(syncScorecardHandler);
  * @swagger
  * tags:
  *   name: Scorecard
+ * /sync/scorecard/syncSingleProjectScorecard:
+ *   post:
+ *     summary: 获取Scorecard单个项目数据
+ *     tags: [Scorecard]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               url:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Success
+ */
+router.route('/scorecard/syncSingleProjectScorecard').post(syncSingleProjectScorecardHandler);
+
+/**
+ * @swagger
+ * tags:
+ *   name: Scorecard
+ * /sync/scorecardSpecial:
+ *   post:
+ *     summary: 获取Scorecard数据
+ *     tags: [Scorecard]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *               category:
+ *                 type: string
+ *               complementary:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Success
+ */
+router.route('/scorecardSpecial').post(syncScorecardSpecial);
+
+/**
+ * @swagger
+ * tags:
+ *   name: Scorecard
  * /sync/scorecard/getScorecardTest:
  *   post:
  *     summary: 获取Scorecard单个数据
@@ -308,6 +364,29 @@ router.route('/scorecard').post(syncScorecardHandler);
  *         description: Success
  */
 router.route('/scorecard/getScorecardTest').post(getScorecardHandler);
+
+/**
+ * @swagger
+ * tags:
+ *   name: Criticality Score
+ * /sync/criticalityScore/syncAllCriticalityScore:
+ *   post:
+ *     summary: 根据github_project同步全量criticality_score数据，输入表名
+ *     tags: [Scorecard]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               tableName:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Success
+ */
+router.route('/criticalityScore/syncAllCriticalityScore').post(syncCriticalityScoreHandler);
 
 /**
  * @swagger
@@ -512,6 +591,9 @@ router.route('/github/:userToken/stars/projects').post(syncProjectByUserStar);
  *               projectName:
  *                 type: string
  *                 example: "vue"
+ *               displayName:
+ *                 type: string
+ *                 example: "vue-pinia-v3.4.11 + 2.1.7-keyed"
  *               benchmark:
  *                 type: string
  *                 example: "speed"
@@ -530,6 +612,9 @@ router.route('/github/:userToken/stars/projects').post(syncProjectByUserStar);
  *               platform:
  *                 type: string
  *                 example: "windows"
+ *               envInfo:
+ *                 type: string
+ *                 example: "The benchmark was run on a MacBook Pro 14 (16 GB RAM, 6/10 Cores, OSX 14.9), Chrome 123.0.6312.59 (arm64)"
  *     responses:
  *       200:
  *         description: success.
@@ -668,7 +753,8 @@ router.route('/benchmark/updateScore').post(updateScore);
  *         application/json:
  *           schema:
  *             type: array
- *       example: [392517209]
+ *             items: string
+ *       example: ['sonar_key']
  *     responses:
  *       200:
  *         description: success.
@@ -732,6 +818,12 @@ router.route('/gitlab/importProjectFromUrl/:namespaceId').post(await createGitla
  *  post:
  *     summary: create and scan github project
  *     tags: [Sonar]
+ *     parameters:
+ *       - name: force
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: boolean
  *     requestBody:
  *       required: true
  *       content:
@@ -744,6 +836,25 @@ router.route('/gitlab/importProjectFromUrl/:namespaceId').post(await createGitla
  *         description: success.
  */
 router.route('/sonarCloud/scan').post(await createAndScanSonarProjectByGithubId);
+
+/**
+ * @swagger
+ * /sync/sonarCloud/createGithubProjects:
+ *  post:
+ *     summary: create github project but not scan
+ *     tags: [Sonar]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *       example: [48296,298375]
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/sonarCloud/createGithubProjects').post(await createSonarProjectsFromGithub);
 
 /**
  * @swagger

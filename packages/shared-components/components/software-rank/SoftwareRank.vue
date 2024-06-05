@@ -302,17 +302,13 @@ onUnmounted(() => {
                 <span class="icon" style="font-size: 20px; margin-right: 2px">
                   <img src="../../assets/svg/star.svg" alt="Star Icon" />
                 </span>
-                <span
-                  >{{ toKilo(item.starCount) }}</span
-                >
+                <span>{{ toKilo(item.starCount) }}</span>
               </div>
               <div flex grid-items-center style="width: 33%">
                 <span class="icon" style="font-size: 24px; margin-right: 2px">
                   <img src="../../assets/svg/fork.svg" alt="Fork Icon" />
                 </span>
-                <span
-                  >{{ toKilo(item.forkCount) }}</span
-                >
+                <span>{{ toKilo(item.forkCount) }}</span>
               </div>
               <div flex grid-items-center style="width: 33%">
                 <span class="icon" style="font-size: 20px; margin-right: 2px">

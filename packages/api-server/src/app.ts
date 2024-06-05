@@ -6,14 +6,20 @@ import cors from 'cors';
 import 'dotenv/config';
 import 'express-async-errors';
 import { RegisterRoutes } from './build/routes.js';
-import Logger from './utils/logger.js';
+import { logger } from '@orginjs/oss-evaluation-data-model';
 import swaggerConfig from './build/swagger.json' assert { type: 'json' };
 
 const port = process.env.PORT || '3000';
 const app = express();
 
 app.use(cors());
-app.use(morgan('dev'));
+app.use(
+  morgan('dev', {
+    stream: {
+      write: (message: string) => logger.info(message.trim()),
+    },
+  }),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 RegisterRoutes(app);
@@ -43,5 +49,5 @@ app.use((err: Error, req: Request, res: Response) => {
 });
 
 app.listen(port, () => {
-  Logger.debug(`server started at http://localhost:${port}`);
+  logger.info(`server started at http://localhost:${port}`);
 });

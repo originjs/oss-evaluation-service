@@ -1,10 +1,10 @@
 import {
   GithubProjects,
+  logger,
   OssinsightCreatorsOrganizations,
   sequelize,
 } from '@orginjs/oss-evaluation-data-model';
 import fetch from '@adobe/node-fetch-retry';
-import debug from 'debug';
 
 const prOrganizationsUrl =
   'https://api.ossinsight.io/q/analyze-pull-request-creators-company?repoId=:repoId&limit=50';
@@ -112,7 +112,7 @@ async function getCreatorsOrg(project, option) {
     organizationList === undefined ||
     organizationList.length === 0
   ) {
-    debug.log(
+    logger.info(
       'sync project data from ossinsight, data not found!',
       project.fullName,
       project.id,
@@ -128,7 +128,7 @@ async function getCreatorsOrg(project, option) {
         type: option.type,
       });
     });
-    debug.log(
+    logger.info(
       'sync project data from ossinsight, successful!',
       project.fullName,
       project.id,
@@ -171,7 +171,7 @@ export async function sendRequestByFullName(repoId, url) {
       return response.json();
     })
     .catch(error => {
-      debug.log('fetch project data from ossinsight failed! url:{} error:{}', url, error);
+      logger.error('fetch project data from ossinsight failed! url:{} error:{}', url, error);
     });
   return response;
 }
@@ -203,8 +203,8 @@ async function bulkInsertData(data) {
         { transaction: t },
       );
     });
-    debug.log('Batch insertion or update succeeded.');
+    logger.info('Batch insertion or update succeeded.');
   } catch (error) {
-    debug.log(`Batch insertion or update failed: ${error}`);
+    logger.error(`Batch insertion or update failed: ${error}`);
   }
 }

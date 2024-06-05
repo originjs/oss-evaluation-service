@@ -2,6 +2,7 @@
 import * as mysql from 'mysql2/promise';
 import * as yaml from 'js-yaml';
 import * as fs from 'fs';
+import { logger } from '@orginjs/oss-evaluation-data-model';
 
 function generateSvg(text, path) {
   const newText = text.length > 8 ? `${text.substring(0, 5)}...` : text;
@@ -19,7 +20,7 @@ function generateSvg(text, path) {
 function parseSoftware(results, subcategory) {
   for (const result of results) {
     if (subcategory.items.find(it => it.name === result.name)) {
-      console.warn('Find duplicate: ', result.name);
+      logger.info('Find duplicate: ', result.name);
       continue;
     }
     const item = {};
@@ -73,7 +74,7 @@ async function updateData() {
       styles: { '!!null': 'empty' },
     }),
   );
-  console.log(`----------Update data.yml ${count}------------`);
+  logger.info(`----------Update data.yml ${count}------------`);
 }
 
 updateData();

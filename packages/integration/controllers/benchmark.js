@@ -1,30 +1,65 @@
 import dayjs from 'dayjs';
-import debug from 'debug';
-import { Benchmark, ProjectTechStack, sequelize } from '@orginjs/oss-evaluation-data-model';
+import { Benchmark, logger, ProjectTechStack, sequelize } from '@orginjs/oss-evaluation-data-model';
+import BenchmarkVersionScore from '@orginjs/oss-evaluation-data-model/models/BenchmarkVersionScore.js';
+import { ServerError } from '../util/error.js';
 
 export async function syncBenchmarkHandler(req, res) {
-  const { projectName, benchmark, techStack, rawValue, content, platform, displayName } = req.body;
-  const projectId = await getIdByName(projectName, techStack);
-  let { patchId } = req.body;
+  try {
+    await insertBenchmark(req.body);
+    res.status(200).send('Done!');
+  } catch (e) {
+    res.status(500).send(e);
+  }
+}
+
+export async function insertBenchmarkVersion(input) {
+  const { projectName, techStack, displayName, envInfo } = input;
+  let { projectId, patchId } = input;
+  if (!projectId) {
+    projectId = await getIdByName(projectName, techStack);
+    if (!projectId) {
+      throw new ServerError(`Project ${projectName} not found in list!`);
+    }
+  }
   if (!patchId) {
     patchId = generatePatchId();
   }
-  if (projectId) {
-    await Benchmark.upsert({
-      projectId,
-      projectName,
-      displayName: displayName ?? '',
-      benchmark,
-      techStack,
-      rawValue,
-      content,
-      patchId,
-      platform,
-    });
-    res.status(200).send('Done!');
-  } else {
-    res.status(500).send(`Project ${projectName} not found in list!`);
+  const [response] = await BenchmarkVersionScore.upsert({
+    projectId,
+    version: displayName,
+    score: null,
+    techStack,
+    isPublish: 0,
+    description: patchId,
+    envInfo: envInfo,
+  });
+  return response.null;
+}
+
+export async function insertBenchmark(input, versionId) {
+  const { projectName, benchmark, techStack, rawValue, content, platform, displayName } = input;
+  let { projectId, patchId } = input;
+  if (!projectId) {
+    projectId = await getIdByName(projectName, techStack);
+    if (!projectId) {
+      throw new ServerError(`Project ${projectName} not found in list!`);
+    }
   }
+  if (!patchId) {
+    patchId = generatePatchId();
+  }
+  await Benchmark.upsert({
+    projectId,
+    projectName,
+    displayName: displayName ?? '',
+    benchmark,
+    techStack,
+    rawValue,
+    content,
+    patchId,
+    platform,
+    bId: versionId,
+  });
 }
 
 export async function updateScore(req, res) {
@@ -79,7 +114,7 @@ function updateThreshold(dataList, weightMap, isDesc) {
       }
     }
     if (threshold === null) {
-      console.warn(`No data content match the benchmark of ${name}`);
+      logger.info(`No data content match the benchmark of ${name}`);
       continue;
     } else {
       result.push({ ...weightItem, threshold });
@@ -107,7 +142,7 @@ async function calScore(weightMap, param) {
     if (Object.prototype.hasOwnProperty.call(param, name)) {
       score += calScoreSection(param[name], weight, threshold);
     } else {
-      console.warn(`Weight name ${name} not found in input data!`);
+      logger.info(`Weight name ${name} not found in input data!`);
     }
   }
   return score;
@@ -121,7 +156,7 @@ export function getPatchId(req, res) {
   res.status(200).send(generatePatchId());
 }
 
-function generatePatchId() {
+export function generatePatchId() {
   const date = dayjs().format('YYYYMMDDHHmmss');
   const random = Math.random().toString().slice(-6);
   return `${date}${random}`;
@@ -154,10 +189,10 @@ export async function bulkAddBenchmarkHandler(req, res) {
   const benchmarkList = await genBenchmarkList(projectName, techStack, platform, patchId, list);
   await Benchmark.bulkCreate(benchmarkList)
     .then(compass => {
-      debug.log('insert into database: ', compass.length);
+      logger.info('insert into database: ', compass.length);
     })
     .catch(error => {
-      debug.log('Batch insert error: ', error.message);
+      logger.error('Batch insert error: ', error.message);
     });
   res.status(200).send('Bulk create benchmark success!');
 }

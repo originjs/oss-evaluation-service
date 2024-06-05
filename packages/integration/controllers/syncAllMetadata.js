@@ -8,7 +8,8 @@ import { syncSingleProjectContributors } from './projectContributors.js';
 import { syncSingleProjectDependentCount } from './projectDependentCount.js';
 import {
   CriticalityScore,
-  GithubProjects, logger,
+  GithubProjects,
+  logger,
   ProjectPackage,
   ProjectTechStack,
   sequelize,

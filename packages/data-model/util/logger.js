@@ -1,5 +1,12 @@
 import winston from 'winston';
 import 'winston-daily-rotate-file';
+import util from 'util';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const ProjectRootPath = path.join(__dirname, '..');
 
 const logFormat = winston.format.printf(({ timestamp, level, message }) => {
   return `[${timestamp}] ${level} : ${message}`;
@@ -65,14 +72,51 @@ export function getDurationInMilliseconds(start) {
   return (diff[0] * NS_PER_SEC + diff[1]) / NS_TO_MS;
 }
 
-const logger = winston.createLogger({
+const customizedLogger = winston.createLogger({
   level: 'info',
   transports: [transportError, transportInfo],
 });
 
 // Do not output log to console in the production environment
 if (process.env.NODE_ENV !== 'production') {
-  logger.add(consoleTransport);
+  customizedLogger.add(consoleTransport);
 }
+
+// 处理文件名和行号
+function getFileNameAndLineNumber() {
+  const stackInfo = getStackInfo(1);
+  if (stackInfo) {
+    return '[' + stackInfo.relativePath + ':' + stackInfo.line + ':' + stackInfo.pos + '] ';
+  }
+  return '';
+}
+function getStackInfo(stackIndex) {
+  const stacklist = new Error().stack.split('\n').slice(3);
+
+  const stackReg = /at ([\w.]+) \(file:\/\/\/(.*?):(\d+):(\d+)\)/gi;
+  const s = stacklist[stackIndex] || stacklist[0];
+  const sp = stackReg.exec(s);
+
+  if (sp && sp.length === 5) {
+    return {
+      method: sp[1],
+      relativePath: path.relative(ProjectRootPath, sp[2]),
+      line: sp[3],
+      pos: sp[4],
+      file: path.basename(sp[2]),
+      stack: stacklist.join('\n'),
+    };
+  }
+}
+
+// handle format
+const logger = {
+  info: (...args) => {
+    customizedLogger.info(util.format(getFileNameAndLineNumber(), ...args));
+  },
+  error: (...args) => {
+    customizedLogger.error(util.format(getFileNameAndLineNumber(), ...args));
+  },
+};
 
 export default logger;
