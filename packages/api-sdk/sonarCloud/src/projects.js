@@ -1,4 +1,5 @@
 import { appendUrlParam, authorizationHeader } from '../../util.js';
+import { Result } from '../../result.js';
 
 export function createProject(param, token) {
   const url = `https://sonarcloud.io/api/projects/create?${appendUrlParam(param)}`;
@@ -27,7 +28,7 @@ export class createProjectInternalParam {
  *
  * @param param createProjectInternalParam
  * @param token token
- * @return {Promise<Response>}
+ * @return {Promise<Result>}
  * {
  *     "projects": [
  *         {
@@ -39,7 +40,7 @@ export class createProjectInternalParam {
  *     ]
  * }
  */
-export function createProjectInternalApi(param, token) {
+export async function createProjectInternalApi(param, token) {
   const formData = new FormData();
   formData.append('newCodeDefinitionValue', param.newCodeDefinitionValue);
   formData.append('newCodeDefinitionType', param.newCodeDefinitionType);
@@ -57,14 +58,18 @@ export function createProjectInternalApi(param, token) {
     redirect: 'follow',
   };
 
-  return fetch('https://sonarcloud.io/api/alm_integration/provision_projects', requestOptions);
+  const response = fetch(
+    'https://sonarcloud.io/api/alm_integration/provision_projects',
+    requestOptions,
+  );
+  return Result.response2Result(response);
 }
 
 /**
  * active auto scan
  * @param projectKey projectKey
  * @param token token
- * @return {Promise<Response>}
+ * @return {Promise<Result>}
  */
 export function activeAutoScanInternalApi(projectKey, token) {
   return fetch(
@@ -76,10 +81,26 @@ export function activeAutoScanInternalApi(projectKey, token) {
   );
 }
 
-export function deleteProject(projectKey, token) {
-  const url = `https://sonarcloud.io/api/projects/delete?project=${projectKey}`;
-  return fetch(url, {
+export function setAutoScanInternalApi(projectKey, enable, token) {
+  const formData = new FormData();
+  formData.append('projectKey', projectKey);
+  formData.append('enable', enable);
+  const requestOptions = {
     method: 'POST',
     headers: authorizationHeader(token),
-  });
+    body: formData,
+  };
+  return Result.response2ResultOnlyStatus(
+    fetch('https://sonarcloud.io/api/autoscan/activation', requestOptions),
+  );
+}
+
+export function deleteProject(projectKey, token) {
+  const url = `https://sonarcloud.io/api/projects/delete?project=${projectKey}`;
+  return Result.response2ResultOnlyStatus(
+    fetch(url, {
+      method: 'POST',
+      headers: authorizationHeader(token),
+    }),
+  );
 }

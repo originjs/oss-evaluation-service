@@ -5,14 +5,15 @@ import {
   SonarCloudProject,
 } from '@orginjs/oss-evaluation-data-model';
 import { literal, Op } from 'sequelize';
-import SonarCloudSdk from '@orginjs/sonarCloud-sdk/src/index.js';
-import { sleep } from '../util/util.js';
+import { sleep, timer } from '../util/util.js';
 import { GitlabSdk } from '@orginjs/gitlab-sdk/src/sdk.js';
 import _ from 'underscore';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'path';
 import sonarCloudProject from '@orginjs/oss-evaluation-data-model/models/SonarCloudProject.js';
+import GithubSdk from '@orginjs/github-sdk/src/index.js';
+import SonarCloudSdk from '@orginjs/sonarCloud-sdk/src/index.js';
 
 const getRating = rating => {
   switch (rating) {
@@ -61,7 +62,10 @@ export async function collectSonarCloudData(req, res) {
   const sonarKeys = req.body;
   await collectSonarCloudDataBySonarKeys(sonarKeys);
   res.status(200);
-  res.json({ ok: true, msg: `collect sonar projects:${JSON.stringify(sonarKeys)} success` });
+  res.json({
+    ok: true,
+    msg: `collect sonar projects:${JSON.stringify(sonarKeys)} success`,
+  });
 }
 
 async function collectSonarCloudDataBySonarKeys(sonarKeys) {
@@ -319,6 +323,7 @@ export async function createAndScanSonarProjectByGithubId(req, res) {
   res.status(200);
   res.json('success');
 }
+
 export async function setDefaultBranchOfSonar(req, res) {
   const { sonarProjectKey, defaultBranch } = req.body;
   const sonarProject = await SonarCloudProject.findOne({
@@ -422,6 +427,23 @@ async function startSonarScanner(owner, repoName, sonarOrg, sonarKey, sonarHostU
   });
 }
 
+export async function deleteSonarByKeys(req, res) {
+  const keys = req.body;
+  if (!keys?.length) {
+    res.status(200).json({ msg: 'empty' });
+  }
+  const sonarCloudSdk = new SonarCloudSdk();
+  for (let key of keys) {
+    await sonarCloudSdk.deleteProject(key);
+    await sonarCloudProject.destroy({
+      where: {
+        sonarProjectKey: key,
+      },
+    });
+  }
+  res.status(200).json({ msg: 'success' });
+}
+
 export async function createSonarProjectsFromGithub(req, res) {
   const githubIds = req.body;
   const sonarCloudSdk = new SonarCloudSdk();
@@ -445,31 +467,78 @@ export async function createSonarProjectsFromGithub(req, res) {
       if (sonarProject.analysisDate) {
         continue;
       } else {
-        if (!(sonarProject.sonarOrg === process.env.SONAR_GITHUB_FORK_ORG_NAME)) {
-          //   delete project
+        await collectSonarCloudDataBySonarKeys([sonarProject.sonarProjectKey]);
+        sonarProject = await SonarCloudProject.findOne({
+          where: {
+            githubProjectId: githubId,
+          },
+        });
+        if (sonarProject.analysisDate) {
+          continue;
+        } else {
           await sonarCloudSdk.deleteProject(sonarProject.sonarProjectKey);
-          await sonarCloudProject.destroy({
+        }
+      }
+    } else {
+      const sonarProject4Db = {
+        githubProjectId: githubId,
+        githubFullName: githubProject.fullName,
+        sonarOrg: process.env.SONAR_GITHUB_FORK_ORG_NAME,
+        sonarProjectKey: `${process.env.SONAR_GITHUB_FORK_ORG_NAME}_${githubProject.fullName.replaceAll('/', '-')}`,
+      };
+      await SonarCloudProject.create(sonarProject4Db);
+      sonarProject = sonarProject4Db;
+    }
+    //   create sonar project
+    if (!sonarProject?.forkGithubFullName) {
+      const githubSdk = new GithubSdk();
+      const infoResult = await githubSdk.projectInfo(
+        process.env.SONAR_GITHUB_FORK_ORG_NAME,
+        githubProject.fullName.replace('/', '-'),
+      );
+
+      // get fork repo info
+      if (infoResult.ok) {
+        await SonarCloudProject.update(
+          {
+            forkGithubId: infoResult.data.id,
+            forkGithubFullName: infoResult.data.full_name,
+          },
+          {
             where: {
               githubProjectId: githubId,
             },
-          });
-        } else {
-          await collectSonarCloudDataBySonarKeys([sonarProject.sonarProjectKey]);
-          continue;
-        }
+          },
+        );
+        sonarProject.forkGithubFullName = infoResult.data.full_name;
+        sonarProject.forkGithubId = infoResult.data.id;
+      } else {
+        continue;
       }
     }
-
-    const fullName = githubProject.fullName;
-    const createResult = {
-      githubProjectId: githubId,
-      githubFullName: fullName,
-      sonarOrg: process.env.SONAR_GITHUB_FORK_ORG_NAME,
-      sonarProjectKey: `${process.env.SONAR_GITHUB_FORK_ORG_NAME}_${fullName.replaceAll('/', '-')}`,
+    const createSonarParam = {
+      newCodeDefinitionType: 'previous_version',
+      newCodeDefinitionValue: 'previous_version',
+      organization: process.env.SONAR_GITHUB_FORK_ORG_NAME,
+      projects: [
+        {
+          repoName: sonarProject.forkGithubFullName,
+          projectId: sonarProject.forkGithubId,
+        },
+      ],
     };
-    await SonarCloudProject.create(createResult);
-    //   try to collect data
-    await collectSonarCloudDataBySonarKeys([createResult.sonarProjectKey]);
+    const createSonarResult = await sonarCloudSdk.createProjectInternalApi(createSonarParam);
+    if (createSonarResult.ok) {
+      //   active auto scan
+      const activeResult = await sonarCloudSdk.setAutoScanInternalApi(
+        sonarProject.sonarProjectKey,
+        true,
+      );
+      if (activeResult.ok) {
+        timer(collectSonarCloudDataBySonarKeys, [sonarProject.sonarProjectKey], 1000 * 60 * 10);
+      }
+      await sleep(30 * 1000);
+    }
   }
   res.status(200);
   res.json({ ok: true });

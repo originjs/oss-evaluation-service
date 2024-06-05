@@ -18,6 +18,16 @@ export default sequelize.define(
       allowNull: false,
       defaultValue: -1,
     },
+    forkGithubId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: -1,
+    },
+    forkGithubFullName: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: '',
+    },
     githubFullName: {
       type: DataTypes.STRING(512),
       allowNull: false,

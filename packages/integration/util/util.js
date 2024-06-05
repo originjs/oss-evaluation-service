@@ -1,10 +1,18 @@
 import { GithubProjects, logger } from '@orginjs/oss-evaluation-data-model';
+import { setTimeout } from 'node:timers';
 
 export const sleep = ms =>
   new Promise(resolve => {
     setTimeout(resolve, ms);
   });
 
+export const timer = (fn, param, ms) =>
+  new Promise(resolve => {
+    setTimeout(async () => {
+      const res = await fn(param);
+      resolve(res);
+    }, ms);
+  });
 /**
  * @async
  * @param {string} repoUrl github project url

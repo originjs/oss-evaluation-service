@@ -3,6 +3,7 @@ import {
   createProject,
   createProjectInternalApi,
   deleteProject,
+  setAutoScanInternalApi,
 } from './projects.js';
 import { deleteBranch, listProjectBranches, renameMainBranch } from './projectBranches.js';
 import { getMeasures } from './measures.js';
@@ -39,6 +40,10 @@ export class SonarCloudSdk {
 
   activeAutoScanInternalApi = projectKey => {
     return activeAutoScanInternalApi(projectKey, this.token);
+  };
+
+  setAutoScanInternalApi = (projectKey, enable) => {
+    return setAutoScanInternalApi(projectKey, enable, this.token);
   };
 
   listProjectBranches = projectKey => {

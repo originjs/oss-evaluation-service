@@ -39,6 +39,7 @@ import {
   createGitlabProject,
   createSonarProjectFromGitlab,
   createSonarProjectsFromGithub,
+  deleteSonarByKeys,
   setDefaultBranchOfSonar,
   updateDefaultBranchAfterImport,
   updateSonarCloudDefaultBranch,
@@ -855,6 +856,25 @@ router.route('/sonarCloud/scan').post(await createAndScanSonarProjectByGithubId)
  *         description: success.
  */
 router.route('/sonarCloud/createGithubProjects').post(await createSonarProjectsFromGithub);
+
+/**
+ * @swagger
+ * /sync/sonarCloud/deleteBySonarKeys:
+ *  post:
+ *     summary: delete sonar projects by keys
+ *     tags: [Sonar]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *       example: ['key']
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/sonarCloud/deleteBySonarKeys').post(await deleteSonarByKeys);
 
 /**
  * @swagger
