@@ -37,9 +37,9 @@ import {
   collectSonarCloudData,
   createAndScanSonarProjectByGithubId,
   createGitlabProject,
+  deleteSonarByKeys,
   createSonarProjectFromGitlab,
   createSonarProjectsFromGithub,
-  deleteSonarByKeys,
   setDefaultBranchOfSonar,
   updateDefaultBranchAfterImport,
   updateSonarCloudDefaultBranch,
@@ -64,7 +64,9 @@ import {
   syncAllProjectDependentCountHandler,
   syncSingleProjectDependentCountHandler,
 } from '../controllers/projectDependentCount.js';
-import syncSingleProjectAllMetadataHandler from '../controllers/syncAllMetadata.js';
+import syncSingleProjectAllMetadataHandler, {
+  syncBatchProjectAllMetadataHandler,
+} from '../controllers/syncAllMetadata.js';
 import {
   syncSingleProjectCreatorsOrgHandler,
   syncAllProjectCreatorsOrgHandler,
@@ -111,6 +113,41 @@ const router = express.Router();
  *         description: Bad Request
  */
 router.route('/syncSingleProjectAllMetadata').post(syncSingleProjectAllMetadataHandler);
+
+/**
+ * @swagger
+ * tags:
+ *   name: SummaryMetadata
+ * /sync/syncBatchProjectAllMetadata:
+ *   post:
+ *     summary: Batch fetch GitHub projects from specific repositories
+ *     tags: [SummaryMetadata]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               repoUrl:
+ *                 type: string
+ *                 example: ""
+ *               category:
+ *                 type: string
+ *                 example: ""
+ *               subcategory:
+ *                 type: string
+ *                 example: ""
+ *               packageName:
+ *                 type: string
+ *                 example: ""
+ *     responses:
+ *       200:
+ *         description: Success
+ *       500:
+ *         description: Bad Request
+ */
+router.route('/syncBatchProjectAllMetadata').post(syncBatchProjectAllMetadataHandler);
 
 /**
  * @swagger
