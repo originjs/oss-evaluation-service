@@ -5,6 +5,7 @@ import {
   logger,
 } from '@orginjs/oss-evaluation-data-model';
 import { getProjectByUrl } from '../util/util.js';
+import JSON5 from 'json5';
 import CozeSdk from '@orginjs/coze-sdk';
 
 export async function syncAlternativeHandler(req, res) {
@@ -41,6 +42,7 @@ export async function syncAllProjectAlternative() {
 }
 
 export async function syncSingleProjectAlternative(project) {
+  logger.info('syncSingleProjectAlternative: ' + project.fullName);
   const cozeSdk = new CozeSdk();
   const response = await cozeSdk.chat(project.htmlUrl);
   if (response.ok) {
@@ -54,13 +56,15 @@ export async function syncSingleProjectAlternative(project) {
           json = json.substring(json.indexOf('\n'), json.lastIndexOf('\n'));
         }
         try {
-          const content = JSON.parse(json);
+          const content = JSON5.parse(json);
           if (content.data && content.data.length > 0) {
             const altList = [];
             for (const line of content.data) {
               if (!line[0].startsWith('https://')) continue;
-              // eclude duplicate
+              // exclude duplicate
               if (altList.find(e => e.alternativeUrl === line[0])) continue;
+              // exclude self
+              if (line[0] === 'https://github.com/' + project.fullName) continue;
               altList.push({
                 projectId: project.id,
                 fullName: project.fullName,
@@ -70,6 +74,7 @@ export async function syncSingleProjectAlternative(project) {
               });
             }
             await AlternativeProjects.bulkCreate(altList);
+            return altList;
           }
         } catch (e) {
           logger.error(e);
