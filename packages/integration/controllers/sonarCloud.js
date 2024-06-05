@@ -448,96 +448,102 @@ export async function createSonarProjectsFromGithub(req, res) {
   const githubIds = req.body;
   const sonarCloudSdk = new SonarCloudSdk();
   for (const githubId of githubIds) {
-    const githubProject = await GithubProjects.findOne({
-      where: {
-        id: githubId,
-      },
-    });
+    try {
+      const githubProject = await GithubProjects.findOne({
+        where: {
+          id: githubId,
+        },
+      });
 
-    if (!needGithubForkLanguages.has(githubProject?.language)) {
-      continue;
-    }
-    //   query for sonar
-    let sonarProject = await SonarCloudProject.findOne({
-      where: {
-        githubProjectId: githubId,
-      },
-    });
-    if (sonarProject) {
-      if (sonarProject.analysisDate) {
+      if (!needGithubForkLanguages.has(githubProject?.language)) {
         continue;
-      } else {
-        await collectSonarCloudDataBySonarKeys([sonarProject.sonarProjectKey]);
-        sonarProject = await SonarCloudProject.findOne({
-          where: {
-            githubProjectId: githubId,
-          },
-        });
+      }
+      //   query for sonar
+      let sonarProject = await SonarCloudProject.findOne({
+        where: {
+          githubProjectId: githubId,
+        },
+      });
+      if (sonarProject) {
         if (sonarProject.analysisDate) {
           continue;
         } else {
-          await sonarCloudSdk.deleteProject(sonarProject.sonarProjectKey);
-        }
-      }
-    } else {
-      const sonarProject4Db = {
-        githubProjectId: githubId,
-        githubFullName: githubProject.fullName,
-        sonarOrg: process.env.SONAR_GITHUB_FORK_ORG_NAME,
-        sonarProjectKey: `${process.env.SONAR_GITHUB_FORK_ORG_NAME}_${githubProject.fullName.replaceAll('/', '-')}`,
-      };
-      await SonarCloudProject.create(sonarProject4Db);
-      sonarProject = sonarProject4Db;
-    }
-    //   create sonar project
-    if (!sonarProject?.forkGithubFullName) {
-      const githubSdk = new GithubSdk();
-      const infoResult = await githubSdk.projectInfo(
-        process.env.SONAR_GITHUB_FORK_ORG_NAME,
-        githubProject.fullName.replace('/', '-'),
-      );
-
-      // get fork repo info
-      if (infoResult.ok) {
-        await SonarCloudProject.update(
-          {
-            forkGithubId: infoResult.data.id,
-            forkGithubFullName: infoResult.data.full_name,
-          },
-          {
+          await collectSonarCloudDataBySonarKeys([sonarProject.sonarProjectKey]);
+          sonarProject = await SonarCloudProject.findOne({
             where: {
               githubProjectId: githubId,
             },
-          },
-        );
-        sonarProject.forkGithubFullName = infoResult.data.full_name;
-        sonarProject.forkGithubId = infoResult.data.id;
+          });
+          if (sonarProject.analysisDate) {
+            continue;
+          } else {
+            await sonarCloudSdk.deleteProject(sonarProject.sonarProjectKey);
+          }
+        }
       } else {
-        continue;
+        const sonarProject4Db = {
+          githubProjectId: githubId,
+          githubFullName: githubProject.fullName,
+          sonarOrg: process.env.SONAR_GITHUB_FORK_ORG_NAME,
+          sonarProjectKey: `${process.env.SONAR_GITHUB_FORK_ORG_NAME}_${githubProject.fullName.replaceAll('/', '-')}`,
+        };
+        await SonarCloudProject.create(sonarProject4Db);
+        sonarProject = sonarProject4Db;
       }
-    }
-    const createSonarParam = {
-      newCodeDefinitionType: 'previous_version',
-      newCodeDefinitionValue: 'previous_version',
-      organization: process.env.SONAR_GITHUB_FORK_ORG_NAME,
-      projects: [
-        {
-          repoName: sonarProject.forkGithubFullName,
-          projectId: sonarProject.forkGithubId,
-        },
-      ],
-    };
-    const createSonarResult = await sonarCloudSdk.createProjectInternalApi(createSonarParam);
-    if (createSonarResult.ok) {
-      //   active auto scan
-      const activeResult = await sonarCloudSdk.setAutoScanInternalApi(
-        sonarProject.sonarProjectKey,
-        true,
-      );
-      if (activeResult.ok) {
-        timer(collectSonarCloudDataBySonarKeys, [sonarProject.sonarProjectKey], 1000 * 60 * 10);
+      //   create sonar project
+      if (!sonarProject?.forkGithubFullName) {
+        const githubSdk = new GithubSdk();
+        const infoResult = await githubSdk.projectInfo(
+          process.env.SONAR_GITHUB_FORK_ORG_NAME,
+          githubProject.fullName.replace('/', '-'),
+        );
+
+        // get fork repo info
+        if (infoResult.ok) {
+          await SonarCloudProject.update(
+            {
+              forkGithubId: infoResult.data.id,
+              forkGithubFullName: infoResult.data.full_name,
+              sonarProjectKey: `${process.env.SONAR_GITHUB_FORK_ORG_NAME}_${githubProject.fullName.replaceAll('/', '-')}`
+            },
+            {
+              where: {
+                githubProjectId: githubId,
+              },
+            },
+          );
+          sonarProject.forkGithubFullName = infoResult.data.full_name;
+          sonarProject.forkGithubId = infoResult.data.id;
+        } else {
+          continue;
+        }
       }
-      await sleep(30 * 1000);
+      const createSonarParam = {
+        newCodeDefinitionType: 'previous_version',
+        newCodeDefinitionValue: 'previous_version',
+        organization: process.env.SONAR_GITHUB_FORK_ORG_NAME,
+        projects: [
+          {
+            repoName: sonarProject.forkGithubFullName,
+            projectId: sonarProject.forkGithubId,
+          },
+        ],
+      };
+      const createSonarResult = await sonarCloudSdk.createProjectInternalApi(createSonarParam);
+      if (createSonarResult.ok) {
+        await sleep(10 * 1000);
+        //   active auto scan
+        const activeResult = await sonarCloudSdk.setAutoScanInternalApi(
+          sonarProject.sonarProjectKey,
+          true,
+        );
+        if (activeResult.ok) {
+          timer(collectSonarCloudDataBySonarKeys, [sonarProject.sonarProjectKey], 1000 * 60 * 10);
+        }
+        await sleep(30 * 1000);
+      }
+    } catch (error) {
+      logger.error(error);
     }
   }
   res.status(200);
