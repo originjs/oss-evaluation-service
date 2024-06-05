@@ -44,53 +44,22 @@
             </el-tooltip>
           </div>
           <div
-            style="
-              display: grid;
-              grid-template-columns: repeat(auto-fit, 40px);
-              grid-auto-rows: 40px;
-              gap: 0.3em;
-              margin-bottom: 10px;
-            "
-          >
-            <div
-              v-for="project in subData.projects"
-              :key="`${data.category}-${subData.subTechStackName}-${project.name}`"
+            :style="`display: grid;grid-template-columns: repeat(auto-fit,${boxSize}px);grid-auto-rows: ${boxSize}px;gap: 0.3em;margin-bottom:10px;`">
+            <div v-for="project in subData.projects" relative
               :style="`${getProjectStyle(project)} display: flex;word-wrap: break-word;`"
-            >
-              <div
-                flex
-                flex-col
-                items-center
-                bg-white
-                class="project-logo"
-                @click="clickProject(project)"
-                @mouseenter="showProjectPopover(project, $event)"
-                @mouseleave="hideProjectPopover"
-              >
-                <el-image
-                  flex-1
-                  lazy
-                  :src="project.logo"
-                  bg-white
-                  fit="fill"
-                  :class="{ 'big-project': project.bigProject === 'Y' }"
-                >
+              :key='`${data.category}-${subData.subTechStackName}-${project.name}`'>
+              <div flex flex-col items-center bg-white class="project-logo" @click="clickProject(project)"
+                @mouseenter="showProjectPopover(project, $event)" @mouseleave="hideProjectPopover">
+                <el-image flex flex-1 lazy :src="'' + project.logo" bg-white fit="fill">
                   <template #error>
-                    <GenerateProjectAvatar v-model="project.name" :width="40" :height="40" />
+                    <GenerateProjectAvatar v-model="project.name" :width="project.bigProject === 'Y' ? boxSize * 2 : boxSize"
+                      :height="project.bigProject === 'Y' ? boxSize * 2: boxSize" />
                   </template>
                 </el-image>
-                <span
-                  v-if="project.bigProject === 'Y'"
-                  truncate
-                  bg-gray-200
-                  w-81px
-                  lh-20px
-                  h-20px
-                  text-10px
-                  text-center
-                  >{{ project.name }}</span
-                >
               </div>
+              <span v-if="labelFormat(project) && (project.bigProject === 'Y' || hasLabel)" truncate bg-gray-200 h-20px text-10px
+                  :style="`width:${project.bigProject === 'Y' ? boxSize * 2 : boxSize}px;bottom:0px;`" absolute 
+                  text-center>{{ labelFormat(project) }}</span>
             </div>
           </div>
         </div>
@@ -200,13 +169,15 @@ interface Project {
 const props = defineProps<{
   projects: Array<Project>;
   options?: {
-    colors: Array<string>;
-    maxProjects?: number;
-    hasMore?: boolean;
-    layout?: { [key: string]: any };
-    evaluation?: (project: Project) => void;
-    goBenchmark?: (project: Project) => void;
-  };
+    colors: Array<string>,
+    maxProjects?: number,
+    labelFormat?: (project: Project) => string,
+    hasMore?: boolean,
+    boxSize?: number,  // || {width:number,height:number}
+    layout?: { [key: string]: any },
+    evaluation?: (project: Project) => void,
+    goBenchmark?: (project: Project) => void
+  }
 }>();
 
 const emit = defineEmits<{
@@ -218,6 +189,8 @@ const landcapseData = ref();
 const popoverProject = ref<Project>(props.projects[0]);
 const popoverRef = ref();
 const hasMore = typeof props.options?.hasMore === 'undefined' ? true : props.options.hasMore;
+const boxSize = typeof props.options?.boxSize !== 'number' ? 40 : props.options.boxSize;
+const hasLabel = typeof props.options?.labelFormat === 'function' ? true : false;
 let popoverInstance: Instance;
 
 const BackgroundColors = ['#89bff6', '#89c997', '#e8dd92', '#f0b58e', '#aea3db'];
@@ -385,10 +358,20 @@ function numberFormat(num: number) {
 
 const getProjectStyle = (project: Project) => {
   if (project.bigProject !== 'Y') {
-    return 'width: 40px;height: 40px;';
+    return `width: ${boxSize}px;height: ${boxSize}px;`;
   }
   //40 * 2 + 5px gap
-  return 'width: 85px;height: 85px;grid-column-end: span 2;grid-row-end: span 2;border: 2px solid #016bccb3;';
+  return `width: ${boxSize * 2 + 5}px;height: ${boxSize * 2 + 5}px;grid-column-end: span 2;grid-row-end: span 2;border: 2px solid #016bccb3;`;
+}
+
+const labelFormat = (project: Project): string => {
+  if (project.bigProject === 'Y' && !hasLabel) {
+    return project.name;
+  }
+  if (props.options?.labelFormat) {
+    return props.options.labelFormat(project);
+  }
+  return '';
 };
 </script>
 <style scoped lang="less">
@@ -403,11 +386,6 @@ const getProjectStyle = (project: Project) => {
   &:hover {
     cursor: pointer;
   }
-}
-
-.big-project {
-  width: 60px;
-  height: 60px;
 }
 
 #project-tooltip {
