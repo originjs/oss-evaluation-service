@@ -12,11 +12,12 @@ export async function searchProject(
            projects.description,
            projects.owner_avatar_url as logo,
            projects.stargazers_count as star,
-           MATCH(projects.name) AGAINST(concat('+' , :keyword) in boolean mode ) AS relevance
+           full_name like concat(:keyword,'%') as prefix,
+           full_name like concat('%',:keyword) as suffix
         from github_projects projects
     where projects.full_name like concat('%',:keyword,'%') 
     ${techStack ? 'and projects.id in (select distinct project_id from project_tech_stack where subcategory = :techStack)' : ''}
-    order by relevance desc,stargazers_count desc
+    order by prefix+suffix desc, stargazers_count desc
     limit 20`;
   return sequelize.query<SoftwareBaseInfo>(searchSql, {
     type: QueryTypes.SELECT,
