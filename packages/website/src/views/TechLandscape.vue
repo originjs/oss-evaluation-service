@@ -17,6 +17,7 @@ interface Project {
 
 const landscapeOptions = {
   hasMore: false,
+  boxSize: 40, //非必填，当前版本只能是正方形，默认长和宽是40，大项目乘2
   maxProjects: 100, //非必填，指定子技术栈超过多少个项目就不再展示
   colors: ['#89bff6', '#89c997', '#e8dd92', '#f0b58e', '#aea3db'], //非必填，自定义背景色，按顺序使用
   layout: {
@@ -66,9 +67,18 @@ const landscapeOptions = {
   },
   goBenchmark: () => {
     //非必填，点击详情卡片的性能Benchmark时触发
-    //alert(`clickProject-Benchmark: ${project.name} -- ${project.htmlUrl}`);
+    //alert(`clickProject-Benchmark: ${project.name} -- ${project.htmlUrl}`);    
     window.open('/#/benchmark-compare', '_blank');
   },
+  labelFormat: (project: Project) => {
+    // 非必填
+    // 设置labelFormat：返回的String会在landscape中显示，如果返回空则不显示
+    // 如果是大项目：不设置labelFormat默认会展示项目名称{project.name},设置了labelFormat则以返回值为准
+    if(project.bigProject === 'Y'){
+      return project.name;
+    }
+    return "";    
+  }
 };
 
 function clickProject(project: Project) {
