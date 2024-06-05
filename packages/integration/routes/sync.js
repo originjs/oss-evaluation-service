@@ -37,7 +37,9 @@ import {
   collectSonarCloudData,
   createAndScanSonarProjectByGithubId,
   createGitlabProject,
-  createSonarProjectFromGitlab, createSonarProjectsFromGithub, setDefaultBranchOfSonar,
+  createSonarProjectFromGitlab,
+  createSonarProjectsFromGithub,
+  setDefaultBranchOfSonar,
   updateDefaultBranchAfterImport,
   updateSonarCloudDefaultBranch,
   uploadSonarCiConfigToGitlab,
@@ -63,20 +65,12 @@ import {
 } from '../controllers/projectDependentCount.js';
 import syncSingleProjectAllMetadataHandler from '../controllers/syncAllMetadata.js';
 import {
-  syncAllProjectPullRequestCreatorsOrgHandler,
-  syncAllProjectIssueCreatorsOrgHandler,
-  syncAllProjectStarCreatorsOrgHandler,
-  syncSingleProjectPullRequestCreatorsOrgHandler,
-  syncSingleProjectIssueCreatorsOrgHandler,
-  syncSingleProjectStarCreatorsOrgHandler,
+  syncSingleProjectCreatorsOrgHandler,
+  syncAllProjectCreatorsOrgHandler,
 } from '../controllers/ossinsightCreatorsOrg.js';
 import {
-  syncAllProjectPullRequestCreatorsCountriesHandler,
-  syncAllProjectIssueCreatorsCountriesHandler,
-  syncAllProjectStarCreatorsCountriesHandler,
-  syncSingleProjectPullRequestCreatorsCountriesHandler,
-  syncSingleProjectIssueCreatorsCountriesHandler,
-  syncSingleProjectStarCreatorsCountriesHandler,
+  syncSingleProjectCreatorsCountriesHandler,
+  syncAllProjectCreatorsCountriesHandler,
 } from '../controllers/ossinsightCreatorsCountry.js';
 import { syncCriticalityScoreHandler } from '../controllers/criticalitryScore.js';
 
@@ -843,7 +837,6 @@ router.route('/gitlab/importProjectFromUrl/:namespaceId').post(await createGitla
  */
 router.route('/sonarCloud/scan').post(await createAndScanSonarProjectByGithubId);
 
-
 /**
  * @swagger
  * /sync/sonarCloud/createGithubProjects:
@@ -1080,9 +1073,9 @@ router.route('/syncSingleProjectDependencies/:repoUrl').get(syncSingleProjectDep
 
 /**
  * @swagger
- * /sync/syncSingleProjectPullRequestCreatorsOrg:
+ * /sync/syncSingleProjectCreatorsOrg:
  *   post:
- *     summary: syncSingleProjectPullRequestCreatorsOrg
+ *     summary: syncSingleProjectCreatorsOrg
  *     requestBody:
  *       required: true
  *       content:
@@ -1098,15 +1091,13 @@ router.route('/syncSingleProjectDependencies/:repoUrl').get(syncSingleProjectDep
  *         description: The created book.
  *
  */
-router
-  .route('/syncSingleProjectPullRequestCreatorsOrg')
-  .post(syncSingleProjectPullRequestCreatorsOrgHandler);
+router.route('/syncSingleProjectCreatorsOrg').post(syncSingleProjectCreatorsOrgHandler);
 
 /**
  * @swagger
- * /sync/syncAllProjectPullRequestCreatorsOrg:
+ * /sync/syncAllProjectCreatorsOrg:
  *   post:
- *     summary: syncAllProjectPullRequestCreatorsOrg
+ *     summary: syncAllProjectCreatorsOrg
  *     requestBody:
  *       required: true
  *       content:
@@ -1128,15 +1119,13 @@ router
  *         description: The created book.
  *
  */
-router
-  .route('/syncAllProjectPullRequestCreatorsOrg')
-  .post(syncAllProjectPullRequestCreatorsOrgHandler);
+router.route('/syncAllProjectCreatorsOrg').post(syncAllProjectCreatorsOrgHandler);
 
 /**
  * @swagger
- * /sync/syncSingleProjectIssueCreatorsOrg:
+ * /sync/syncSingleProjectCreatorsCountries:
  *   post:
- *     summary: syncSingleProjectIssueCreatorsOrg
+ *     summary: syncSingleProjectCreatorsCountries
  *     requestBody:
  *       required: true
  *       content:
@@ -1152,13 +1141,13 @@ router
  *         description: The created book.
  *
  */
-router.route('/syncSingleProjectIssueCreatorsOrg').post(syncSingleProjectIssueCreatorsOrgHandler);
+router.route('/syncSingleProjectCreatorsCountries').post(syncSingleProjectCreatorsCountriesHandler);
 
 /**
  * @swagger
- * /sync/syncAllProjectIssueCreatorsOrg:
+ * /sync/syncAllProjectCreatorsCountries:
  *   post:
- *     summary: syncAllProjectIssueCreatorsOrg
+ *     summary: syncAllProjectCreatorsCountries
  *     requestBody:
  *       required: true
  *       content:
@@ -1180,217 +1169,5 @@ router.route('/syncSingleProjectIssueCreatorsOrg').post(syncSingleProjectIssueCr
  *         description: The created book.
  *
  */
-router.route('/syncAllProjectIssueCreatorsOrg').post(syncAllProjectIssueCreatorsOrgHandler);
-
-/**
- * @swagger
- * /sync/syncSingleProjectStarCreatorsOrg:
- *   post:
- *     summary: syncSingleProjectStarCreatorsOrg
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               repoUrl:
- *                  type: string
- *                  example: 'https://github.com/vuejs/core'
- *     responses:
- *       200:
- *         description: The created book.
- *
- */
-router.route('/syncSingleProjectStarCreatorsOrg').post(syncSingleProjectStarCreatorsOrgHandler);
-
-/**
- * @swagger
- * /sync/syncAllProjectStarCreatorsOrg:
- *   post:
- *     summary: syncAllProjectStarCreatorsOrg
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               startDate:
- *                  type: string
- *                  example: '1024-04-01'
- *               minId:
- *                  type: interger
- *                  example: 12345
- *               maxId:
- *                  type: interger
- *                  example: 12346
- *     responses:
- *       200:
- *         description: The created book.
- *
- */
-router.route('/syncAllProjectStarCreatorsOrg').post(syncAllProjectStarCreatorsOrgHandler);
-
-/**
- * @swagger
- * /sync/syncSingleProjectPullRequestCreatorsCountries:
- *   post:
- *     summary: syncSingleProjectPullRequestCreatorsCountries
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               repoUrl:
- *                  type: string
- *                  example: 'https://github.com/vuejs/core'
- *     responses:
- *       200:
- *         description: The created book.
- *
- */
-router
-  .route('/syncSingleProjectPullRequestCreatorsCountries')
-  .post(syncSingleProjectPullRequestCreatorsCountriesHandler);
-
-/**
- * @swagger
- * /sync/syncAllProjectPullRequestCreatorsCountries:
- *   post:
- *     summary: syncAllProjectPullRequestCreatorsCountries
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               startDate:
- *                  type: string
- *                  example: '1024-04-01'
- *               minId:
- *                  type: interger
- *                  example: 12345
- *               maxId:
- *                  type: interger
- *                  example: 12346
- *     responses:
- *       200:
- *         description: The created book.
- *
- */
-router
-  .route('/syncAllProjectPullRequestCreatorsCountries')
-  .post(syncAllProjectPullRequestCreatorsCountriesHandler);
-
-/**
- * @swagger
- * /sync/syncSingleProjectIssueCreatorsCountries:
- *   post:
- *     summary: syncSingleProjectIssueCreatorsCountries
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               repoUrl:
- *                  type: string
- *                  example: 'https://github.com/vuejs/core'
- *     responses:
- *       200:
- *         description: The created book.
- *
- */
-router
-  .route('/syncSingleProjectIssueCreatorsCountries')
-  .post(syncSingleProjectIssueCreatorsCountriesHandler);
-
-/**
- * @swagger
- * /sync/syncAllProjectIssueCreatorsCountries:
- *   post:
- *     summary: syncAllProjectIssueCreatorsCountries
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               startDate:
- *                  type: string
- *                  example: '1024-04-01'
- *               minId:
- *                  type: interger
- *                  example: 12345
- *               maxId:
- *                  type: interger
- *                  example: 12346
- *     responses:
- *       200:
- *         description: The created book.
- *
- */
-router
-  .route('/syncAllProjectIssueCreatorsCountries')
-  .post(syncAllProjectIssueCreatorsCountriesHandler);
-
-/**
- * @swagger
- * /sync/syncSingleProjectStarCreatorsCountries:
- *   post:
- *     summary: syncSingleProjectStarCreatorsCountries
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               repoUrl:
- *                  type: string
- *                  example: 'https://github.com/vuejs/core'
- *     responses:
- *       200:
- *         description: The created book.
- *
- */
-router
-  .route('/syncSingleProjectStarCreatorsCountries')
-  .post(syncSingleProjectStarCreatorsCountriesHandler);
-
-/**
- * @swagger
- * /sync/syncAllProjectStarCreatorsCountries:
- *   post:
- *     summary: syncAllProjectStarCreatorsCountries
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               startDate:
- *                  type: string
- *                  example: '1024-04-01'
- *               minId:
- *                  type: interger
- *                  example: 12345
- *               maxId:
- *                  type: interger
- *                  example: 12346
- *     responses:
- *       200:
- *         description: The created book.
- *
- */
-router
-  .route('/syncAllProjectStarCreatorsCountries')
-  .post(syncAllProjectStarCreatorsCountriesHandler);
+router.route('/syncAllProjectCreatorsCountries').post(syncAllProjectCreatorsCountriesHandler);
 export default router;

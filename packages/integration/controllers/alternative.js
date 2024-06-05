@@ -1,4 +1,9 @@
-import { AlternativeProjects, GithubProjects, sequelize, logger } from '@orginjs/oss-evaluation-data-model';
+import {
+  AlternativeProjects,
+  GithubProjects,
+  sequelize,
+  logger,
+} from '@orginjs/oss-evaluation-data-model';
 import { getProjectByUrl } from '../util/util.js';
 import CozeSdk from '@orginjs/coze-sdk';
 

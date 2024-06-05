@@ -5,30 +5,28 @@ import {
   sequelize,
 } from '@orginjs/oss-evaluation-data-model';
 import fetch from '@adobe/node-fetch-retry';
+import { getCurrentDate } from '../util/util.js';
 
-const issueOrganizationsUrl =
-  'https://api.ossinsight.io/v1/repos/:owner/:repo/issue_creators/organizations/';
 const prOrganizationsUrl =
-  'https://api.ossinsight.io/v1/repos/:owner/:repo/pull_request_creators/organizations/';
+  'https://api.ossinsight.io/q/analyze-pull-request-creators-company?repoId=:repoId&limit=50';
 const starOrganizationsUrl =
-  'https://api.ossinsight.io/v1/repos/:owner/:repo/stargazers/organizations/';
+  'https://api.ossinsight.io/q/analyze-stars-company?repoId=:repoId&limit=50';
+const issueOrganizationsUrl =
+  'https://api.ossinsight.io/q/analyze-issue-creators-company?repoId=:repoId&limit=50';
 
 const QUERY_SQL = `
 select distinct project.id,
                 project.name,
-                project.full_name as fullName,
-                project.html_url  as htmlUrl,
-                project_id        as projectId
+                project.full_name as fullName
 from github_projects project
          left join (select *
                     from ossinsight_creators_organizations
-                    where updated_at >= :startDate and type = :type) organization on project.id = project_id
+                    where updated_at >= :startDate) organization on project.id = project_id
 where isnull(project_id)
 and project.id >= :startId
 and project.id <= :endId
 order by id;
 `;
-
 const integrationInfo = {
   prOrganizations: { type: 0, url: prOrganizationsUrl },
   starOrganizations: { type: 1, url: starOrganizationsUrl },
@@ -36,66 +34,32 @@ const integrationInfo = {
 };
 
 /**
- * Handles the request to synchronize all project pull request creators organizations.
+ * Synchronizes the pull request creators organizations data for all projects.
  *
- * @param {Object} req - The request object containing the body with the startDate, minId, and maxId.
+ * @param {Object} req - The request object.
  * @param {Object} res - The response object.
  * @return {Promise<void>} A promise that resolves when the synchronization is complete.
  */
-export async function syncAllProjectPullRequestCreatorsOrgHandler(req, res) {
-  const option = integrationInfo.prOrganizations;
+export async function syncAllProjectCreatorsOrgHandler(req, res) {
+  const { startDate, minId, maxId } = req.body;
+  const options = {
+    startDate: startDate,
+    minId: minId,
+    maxId: maxId,
+  };
+  await syncAllProjectCreatorsOrg(options);
 
-  await syncAllProjectCreatorsOrg(req, option);
-  res.status(200).json('ok');
-}
-
-export async function syncAllProjectIssueCreatorsOrgHandler(req, res) {
-  const option = integrationInfo.issueOrganizations;
-
-  await syncAllProjectCreatorsOrg(req, option);
-  res.status(200).json('ok');
-}
-
-export async function syncAllProjectStarCreatorsOrgHandler(req, res) {
-  const option = integrationInfo.starOrganizations;
-
-  await syncAllProjectCreatorsOrg(req, option);
   res.status(200).json('ok');
 }
 
 /**
- * Handles the request to synchronize the pull request creators organizations data for a single project.
+ * Synchronizes the creators organizations data for a single project.
  *
- * @param {Object} req - The request object containing the body with the repoUrl.
+ * @param {Object} req - The request object.
  * @param {Object} res - The response object.
  * @return {Promise<void>} A promise that resolves when the synchronization is complete.
  */
-export async function syncSingleProjectPullRequestCreatorsOrgHandler(req, res) {
-  const option = integrationInfo.prOrganizations;
-  await syncSingleProjectPullRequestCreatorsOrg(req, option);
-  res.status(200).json('ok');
-}
-
-export async function syncSingleProjectIssueCreatorsOrgHandler(req, res) {
-  const option = integrationInfo.issueOrganizations;
-  await syncSingleProjectPullRequestCreatorsOrg(req, option);
-  res.status(200).json('ok');
-}
-
-export async function syncSingleProjectStarCreatorsOrgHandler(req, res) {
-  const option = integrationInfo.starOrganizations;
-  await syncSingleProjectPullRequestCreatorsOrg(req, option);
-  res.status(200).json('ok');
-}
-
-/**
- * Synchronizes the pull request creators organizations data for a single project.
- *
- * @param {Object} project - The Github project data.
- * @param {Object} option - The options for getting the creators organizations.
- * @return {Promise<void>} A promise that resolves when the synchronization is complete.
- */
-export async function syncSingleProjectPullRequestCreatorsOrg(req, option) {
+export async function syncSingleProjectCreatorsOrgHandler(req, res) {
   const { repoUrl } = req.body;
   let project = await GithubProjects.findOne({
     where: {
@@ -103,70 +67,90 @@ export async function syncSingleProjectPullRequestCreatorsOrg(req, option) {
     },
     attributes: ['id', 'fullName'],
   });
-  const organizationList = await getCreatorsOrg(project, option);
-  await bulkUpsertData(organizationList);
+  await syncSingleProjectCreatorsOrg(project);
+
+  res.status(200).json('ok');
+}
+
+/**
+ * Synchronizes the creators organizations data for a single project.
+ *
+ * @param {Object} project - The Github project data.
+ * @return {Promise<void>} A promise that resolves when the synchronization is complete.
+ */
+export async function syncSingleProjectCreatorsOrg(project) {
+  let organizationList = [];
+  for (let option of Object.values(integrationInfo)) {
+    organizationList = await getCreatorsOrg(project, option);
+    if (organizationList.length > 0) {
+      await bulkInsertData(organizationList);
+    }
+  }
 }
 
 /**
  * Synchronizes the pull request creators organizations data for all projects.
  *
- * @param {Array} projectList - An array of Github project data.
- * @param {Object} option - The options for getting the creators organizations.
- * @return {Promise<void>} A promise that resolves when all the data has been synchronized.
+ * @param {Object} options - The options for the synchronization.
+ * @param {number} [options.minId] - The minimum project ID to start the synchronization from.
+ * @param {number} [options.maxId] - The maximum project ID to end the synchronization at.
+ * @param {string} [options.startDate='2020-01-01'] - The start date for the synchronization.
+ * @return {Promise<void>} A promise that resolves when the synchronization is complete.
  */
-export async function syncAllProjectCreatorsOrg(req, option) {
-  const { startDate, minId, maxId } = req.body;
-  let organizationLists = [];
-  let startId = minId || (await GithubProjects.min('id'));
-  let endId = maxId || (await GithubProjects.max('id'));
+export async function syncAllProjectCreatorsOrg(options) {
+  const startId = options?.minId || (await GithubProjects.min('id'));
+  const endId = options?.maxId || (await GithubProjects.max('id'));
+  const startDate = options?.startDate || getCurrentDate();
+
   const projectList = await sequelize.query(QUERY_SQL, {
-    replacements: { startDate, startId, endId, type: option.type },
+    replacements: { startDate, startId, endId },
     type: sequelize.QueryTypes.SELECT,
   });
   for (let project of projectList) {
-    if (project && project.fullName) {
-      let org = await getCreatorsOrg(project, option);
-      if (org.length === 0) {
-        continue;
-      }
-      organizationLists.push(...org);
-    }
-    if (organizationLists.length > 1000) {
-      await bulkUpsertData(organizationLists);
-      organizationLists = [];
+    if (project && project.id) {
+      await syncSingleProjectCreatorsOrg(project);
     }
   }
-
-  await bulkUpsertData(organizationLists);
 }
 
 async function getCreatorsOrg(project, option) {
   const res = [];
-  const result = await sendRequestByFullName(project.fullName, option.url);
-  const organizationList = result?.data?.rows;
+  const result = await sendRequestByFullName(project.id, option.url);
+  const organizationList = result?.data;
   if (
     organizationList === null ||
     organizationList === undefined ||
     organizationList.length === 0
   ) {
-    logger.info('sync project data from ossinsight, data not found!', project.fullName, option.url);
+    logger.info(
+      'sync project data from ossinsight, data not found!',
+      project.fullName,
+      project.id,
+      option.url,
+    );
   } else {
     organizationList.forEach(el => {
       res.push({
         project_id: project.id,
-        org_name: el.org_name,
+        org_name: el.company_name,
         creators_num: getCreatorsNum(el, option.type),
-        percentage: el.percentage,
+        percentage: el.proportion,
         type: option.type,
       });
     });
+    logger.info(
+      'sync project data from ossinsight, successful!',
+      project.fullName,
+      project.id,
+      option.url,
+    );
   }
   return res;
 }
 
 function getCreatorsNum(el, type) {
   if (type === 0) {
-    return el.pull_request_creators;
+    return el.code_contributors;
   }
   if (type === 1) {
     return el.stargazers;
@@ -176,8 +160,8 @@ function getCreatorsNum(el, type) {
   }
 }
 
-export async function sendRequestByFullName(fullName, url) {
-  const fetchUrl = url.replace(':owner/:repo', fullName);
+export async function sendRequestByFullName(repoId, url) {
+  const fetchUrl = url.replace(':repoId', repoId);
   const response = await fetch(fetchUrl, {
     method: 'GET',
     headers: {
@@ -202,17 +186,32 @@ export async function sendRequestByFullName(fullName, url) {
   return response;
 }
 
-async function bulkUpsertData(data) {
+async function bulkInsertData(data) {
   try {
-    await OssinsightCreatorsOrganizations.bulkCreate(data, {
-      updateOnDuplicate: [
-        'project_id',
-        'org_name',
-        'creators_num',
-        'percentage',
-        'type',
-        'updated_at',
-      ],
+    await sequelize.transaction(async t => {
+      await OssinsightCreatorsOrganizations.destroy(
+        {
+          where: {
+            project_id: data[0]?.project_id,
+            type: data[0]?.type,
+          },
+        },
+        { transaction: t },
+      );
+      await OssinsightCreatorsOrganizations.bulkCreate(
+        data,
+        {
+          updateOnDuplicate: [
+            'project_id',
+            'org_name',
+            'creators_num',
+            'percentage',
+            'type',
+            'updated_at',
+          ],
+        },
+        { transaction: t },
+      );
     });
     logger.info('Batch insertion or update succeeded.');
   } catch (error) {

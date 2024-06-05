@@ -5,23 +5,22 @@ import {
   sequelize,
 } from '@orginjs/oss-evaluation-data-model';
 import fetch from '@adobe/node-fetch-retry';
+import { getCurrentDate } from '../util/util.js';
 
-const issueCountriesUrl =
-  'https://api.ossinsight.io/v1/repos/:owner/:repo/issue_creators/countries/';
 const prCountriesUrl =
-  'https://api.ossinsight.io/v1/repos/:owner/:repo/pull_request_creators/countries';
-const starCountriesUrl = 'https://api.ossinsight.io/v1/repos/:owner/:repo/stargazers/countries/';
+  'https://api.ossinsight.io/q/analyze-pull-request-creators-map?repoId=:repoId';
+const starCountriesUrl =
+  'https://api.ossinsight.io/q/analyze-stars-map?repoId=:repoId&period=all_times';
+const issueCountriesUrl = 'https://api.ossinsight.io/q/analyze-issue-creators-map?repoId=:repoId';
 
 const QUERY_SQL = `
   select distinct project.id,
                   project.name,
-                  project.full_name as fullName,
-                  project.html_url  as htmlUrl,
-                  project_id        as projectId
+                  project.full_name as fullName
   from github_projects project
            left join (select *
                       from ossinsight_creators_countries
-                      where updated_at >= :startDate and type = :type) country on project.id = project_id
+                      where updated_at >= :startDate) country on project.id = project_id
   where isnull(project_id)
   and project.id >= :startId
   and project.id <= :endId
@@ -35,66 +34,32 @@ const integrationInfo = {
 };
 
 /**
- * Handles the request to synchronize all project pull request creators organizations.
+ * Synchronizes the countries data for all projects.
  *
- * @param {Object} req - The request object containing the body with the startDate, minId, and maxId.
+ * @param {Object} req - The request object.
  * @param {Object} res - The response object.
  * @return {Promise<void>} A promise that resolves when the synchronization is complete.
  */
-export async function syncAllProjectPullRequestCreatorsCountriesHandler(req, res) {
-  const option = integrationInfo.prCountries;
+export async function syncAllProjectCreatorsCountriesHandler(req, res) {
+  const { startDate, minId, maxId } = req.body;
+  const options = {
+    startDate: startDate,
+    minId: minId,
+    maxId: maxId,
+  };
+  await syncAllProjectCreatorsCountries(options);
 
-  await syncAllProjectCreatorsCountries(req, option);
-  res.status(200).json('ok');
-}
-
-export async function syncAllProjectIssueCreatorsCountriesHandler(req, res) {
-  const option = integrationInfo.issueCountries;
-
-  await syncAllProjectCreatorsCountries(req, option);
-  res.status(200).json('ok');
-}
-
-export async function syncAllProjectStarCreatorsCountriesHandler(req, res) {
-  const option = integrationInfo.starCountries;
-
-  await syncAllProjectCreatorsCountries(req, option);
   res.status(200).json('ok');
 }
 
 /**
- * Handles the request to synchronize the pull request creators organizations data for a single project.
+ * Synchronizes the creators countries data for a single project.
  *
- * @param {Object} req - The request object containing the body with the repoUrl.
+ * @param {Object} req - The request object.
  * @param {Object} res - The response object.
  * @return {Promise<void>} A promise that resolves when the synchronization is complete.
  */
-export async function syncSingleProjectPullRequestCreatorsCountriesHandler(req, res) {
-  const option = integrationInfo.prCountries;
-  await syncSingleProjectPullRequestCreatorsCountries(req, option);
-  res.status(200).json('ok');
-}
-
-export async function syncSingleProjectIssueCreatorsCountriesHandler(req, res) {
-  const option = integrationInfo.issueCountries;
-  await syncSingleProjectPullRequestCreatorsCountries(req, option);
-  res.status(200).json('ok');
-}
-
-export async function syncSingleProjectStarCreatorsCountriesHandler(req, res) {
-  const option = integrationInfo.starCountries;
-  await syncSingleProjectPullRequestCreatorsCountries(req, option);
-  res.status(200).json('ok');
-}
-
-/**
- * Synchronizes the pull request creators organizations data for a single project.
- *
- * @param {Object} project - The Github project data.
- * @param {Object} option - The options for getting the creators organizations.
- * @return {Promise<void>} A promise that resolves when the synchronization is complete.
- */
-export async function syncSingleProjectPullRequestCreatorsCountries(req, option) {
+export async function syncSingleProjectCreatorsCountriesHandler(req, res) {
   const { repoUrl } = req.body;
   let project = await GithubProjects.findOne({
     where: {
@@ -102,77 +67,96 @@ export async function syncSingleProjectPullRequestCreatorsCountries(req, option)
     },
     attributes: ['id', 'fullName'],
   });
-  const countryList = await getCreatorsCountries(project, option);
-  await bulkUpsertData(countryList);
+  await syncSingleProjectCreatorsCountries(project);
+  res.status(200).json('ok');
 }
 
 /**
- * Synchronizes the pull request creators organizations data for all projects.
+ * Synchronizes the pull request creators countries data for a single project.
  *
- * @param {Array} projectList - An array of Github project data.
- * @param {Object} option - The options for getting the creators organizations.
+ * @param {Object} project - The Github project data.
+ * @return {Promise<void>} A promise that resolves when the synchronization is complete.
+ */
+export async function syncSingleProjectCreatorsCountries(project) {
+  let countryList = [];
+  for (let option of Object.values(integrationInfo)) {
+    countryList = await getCreatorsCountries(project, option);
+    if (countryList.length > 0) {
+      await bulkInsertData(countryList);
+    }
+  }
+}
+
+/**
+ * Synchronizes the pull request creators countries data for all projects.
+ *
+ * @param {Object} options - The options for synchronization.
+ * @param {number} [options.minId] - The minimum ID of the Github project.
+ * @param {number} [options.maxId] - The maximum ID of the Github project.
+ * @param {string} [options.startDate] - The start date for synchronization. Defaults to '2020-01-01'.
  * @return {Promise<void>} A promise that resolves when all the data has been synchronized.
  */
-export async function syncAllProjectCreatorsCountries(req, option) {
-  const { startDate, minId, maxId } = req.body;
-  let countryLists = [];
-  let startId = minId || (await GithubProjects.min('id'));
-  let endId = maxId || (await GithubProjects.max('id'));
+export async function syncAllProjectCreatorsCountries(options) {
+  const startId = options?.minId || (await GithubProjects.min('id'));
+  const endId = options?.maxId || (await GithubProjects.max('id'));
+  const startDate = options?.startDate || getCurrentDate();
+
   const projectList = await sequelize.query(QUERY_SQL, {
-    replacements: { startDate, startId, endId, type: option.type },
+    replacements: { startDate, startId, endId },
     type: sequelize.QueryTypes.SELECT,
   });
   for (let project of projectList) {
-    if (project && project.fullName) {
-      let country = await getCreatorsCountries(project, option);
-      if (country.length === 0) {
-        continue;
-      }
-      countryLists.push(...country);
-    }
-    if (countryLists.length > 1000) {
-      await bulkUpsertData(countryLists);
-      countryLists = [];
+    if (project && project.id) {
+      await syncSingleProjectCreatorsCountries(project);
     }
   }
-
-  await bulkUpsertData(countryLists);
 }
 
 async function getCreatorsCountries(project, option) {
   const res = [];
-  const result = await sendRequestByFullName(project.fullName, option.url);
-  const countryList = result?.data?.rows;
+  const result = await sendRequestByFullName(project.id, option.url);
+  const countryList = result?.data;
   if (countryList === null || countryList === undefined || countryList.length === 0) {
-    logger.info('sync project data from ossinsight, data not found!', project.fullName, option.url);
+    logger.info(
+      'sync project data from ossinsight, data not found!',
+      project.fullName,
+      project.id,
+      option.url,
+    );
   } else {
     countryList.forEach(el => {
       res.push({
         project_id: project.id,
-        country_code: el.country_code,
+        country_code: el.country_or_area,
         creators_num: getCreatorsNum(el, option.type),
         percentage: el.percentage,
         type: option.type,
       });
     });
+    logger.info(
+      'sync project data from ossinsight, successful!',
+      project.fullName,
+      project.id,
+      option.url,
+    );
   }
   return res;
 }
 
 function getCreatorsNum(el, type) {
   if (type === 0) {
-    return el.pull_request_creators;
+    return el.count;
   }
   if (type === 1) {
-    return el.stargazers;
+    return el.count;
   }
   if (type === 2) {
-    return el.issue_creators;
+    return el.count;
   }
 }
 
-export async function sendRequestByFullName(fullName, url) {
-  const fetchUrl = url.replace(':owner/:repo', fullName);
+async function sendRequestByFullName(repoId, url) {
+  const fetchUrl = url.replace(':repoId', repoId);
   const response = await fetch(fetchUrl, {
     method: 'GET',
     headers: {
@@ -196,18 +180,32 @@ export async function sendRequestByFullName(fullName, url) {
     });
   return response;
 }
-
-async function bulkUpsertData(data) {
+async function bulkInsertData(data) {
   try {
-    await OssinsightCreatorsCountries.bulkCreate(data, {
-      updateOnDuplicate: [
-        'project_id',
-        'country_code',
-        'creators_num',
-        'percentage',
-        'type',
-        'updated_at',
-      ],
+    await sequelize.transaction(async t => {
+      await OssinsightCreatorsCountries.destroy(
+        {
+          where: {
+            project_id: data[0]?.project_id,
+            type: data[0]?.type,
+          },
+        },
+        { transaction: t },
+      );
+      await OssinsightCreatorsCountries.bulkCreate(
+        data,
+        {
+          updateOnDuplicate: [
+            'project_id',
+            'org_name',
+            'creators_num',
+            'percentage',
+            'type',
+            'updated_at',
+          ],
+        },
+        { transaction: t },
+      );
     });
     logger.info('Batch insertion or update succeeded.');
   } catch (error) {
