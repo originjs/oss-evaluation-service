@@ -21,8 +21,8 @@ import { syncSingleProjectEvaluation } from './evaluate.js';
 import { syncSingleProjectScorecard } from './scorecard.js';
 import { syncSingleProjectCompassMetric } from './compass.js';
 import { syncSingleProjectDependencies } from './projectDependencies.js';
-import {syncSingleProjectCreatorsCountries} from "./ossinsightCreatorsCountry.js";
-import {syncSingleProjectCreatorsOrg} from "./ossinsightCreatorsOrg.js";
+import { syncSingleProjectCreatorsCountries } from './ossinsightCreatorsCountry.js';
+import { syncSingleProjectCreatorsOrg } from './ossinsightCreatorsOrg.js';
 
 export default async function syncSingleProjectAllMetadataHandler(req, res) {
   const options = req.body;
