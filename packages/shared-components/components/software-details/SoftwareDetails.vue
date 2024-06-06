@@ -1241,25 +1241,27 @@ onBeforeUnmount(() => {
           </el-tooltip>
         </div>
         <div font-bold>{{ formatFloat(project?.scorecard?.score) }} / 10</div>
-        <div v-for="item in openSSFScorecard" :key="item.label" flex flex-items-center h-30px>
-          <div w-190px>
-            <span>{{ item.label }}</span>
-            <el-tooltip :content="i18n.global.t(`tips.scorecard.` + item.label)">
-              <el-icon size-5 color-gray-400>
-                <InfoFilled />
-              </el-icon>
-            </el-tooltip>
+        <template v-for="item in openSSFScorecard" :key="item.label">
+          <div v-if="Number(item.value) !== -1" flex flex-items-center h-30px>
+            <div w-190px>
+              <span>{{ item.label }}</span>
+              <el-tooltip :content="i18n.global.t(`tips.scorecard.` + item.label)">
+                <el-icon size-5 color-gray-400>
+                  <InfoFilled />
+                </el-icon>
+              </el-tooltip>
+            </div>
+  
+            <el-progress
+              :percentage="Math.max(Number(item.value ?? 0), 0) * 10"
+              :stroke-width="10"
+              flex-auto
+              :color="scorecardProgressColor(Math.max(Number(item.value ?? 0), 0))"
+            >
+              <span>{{ formatFloat(item.value) }} / 10</span>
+            </el-progress>
           </div>
-
-          <el-progress
-            :percentage="Math.max(Number(item.value ?? 0), 0) * 10"
-            :stroke-width="10"
-            flex-auto
-            :color="scorecardProgressColor(Math.max(Number(item.value ?? 0), 0))"
-          >
-            <span>{{ formatFloat(item.value) }} / 10</span>
-          </el-progress>
-        </div>
+        </template>
       </el-card>
       <el-card>
         <div mb-4 font-size-5 font-bold>
