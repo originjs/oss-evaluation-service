@@ -44,7 +44,7 @@ export default {
       languageSupportTips: '当前支持JS/TS/Java/C/C++/Go/Python等语言，Rust语言SonarCloud暂不支持。',
     },
     ecology: {
-      busFactor: '一个项目失去多少贡献者参与（“被巴士撞了”）将导致项目停滞的成员数量',
+      busFactor: '一个项目失去多少贡献者会导致项目停滞（例如 “被巴士撞了”）。这里的贡献包含代码和Issue贡献。',
       openRank: 'X-lab提出的一种基于全域开发者协作网络的项目影响力评估方法',
       criticality:
         'OpenSSF提供的开源项目关键度得分，定义了项目的影响力和重要性。它是一个介于0(最不关键)和1(最关键)之间的数字',
