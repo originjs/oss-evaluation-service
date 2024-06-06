@@ -44,22 +44,45 @@
             </el-tooltip>
           </div>
           <div
-            :style="`display: grid;grid-template-columns: repeat(auto-fit,${boxSize}px);grid-auto-rows: ${boxSize}px;gap: 0.3em;margin-bottom:10px;`">
-            <div v-for="project in subData.projects" relative
+            :style="`display: grid;grid-template-columns: repeat(auto-fit,${boxSize}px);grid-auto-rows: ${boxSize}px;gap: 0.3em;margin-bottom:10px;`"
+          >
+            <div
+              v-for="project in subData.projects"
+              :key="`${data.category}-${subData.subTechStackName}-${project.name}`"
+              relative
               :style="`${getProjectStyle(project)} display: flex;word-wrap: break-word;`"
-              :key='`${data.category}-${subData.subTechStackName}-${project.name}`'>
-              <div flex flex-col items-center bg-white class="project-logo" @click="clickProject(project)"
-                @mouseenter="showProjectPopover(project, $event)" @mouseleave="hideProjectPopover">
-                <el-image flex flex-1 lazy :src="'' + project.logo" bg-white fit="fill">
+            >
+              <div
+                flex
+                flex-col
+                items-center
+                bg-white
+                class="project-logo"
+                @click="clickProject(project)"
+                @mouseenter="showProjectPopover(project, $event)"
+                @mouseleave="hideProjectPopover"
+              >
+                <el-image flex flex-1 lazy :src="project.logo" bg-white fit="fill">
                   <template #error>
-                    <GenerateProjectAvatar v-model="project.name" :width="project.bigProject === 'Y' ? boxSize * 2 : boxSize"
-                      :height="project.bigProject === 'Y' ? boxSize * 2: boxSize" />
+                    <GenerateProjectAvatar
+                      v-model="project.name"
+                      :width="project.bigProject === 'Y' ? boxSize * 2 : boxSize"
+                      :height="project.bigProject === 'Y' ? boxSize * 2 : boxSize"
+                    />
                   </template>
                 </el-image>
               </div>
-              <span v-if="labelFormat(project) && (project.bigProject === 'Y' || hasLabel)" truncate bg-gray-200 h-20px text-10px
-                  :style="`width:${project.bigProject === 'Y' ? boxSize * 2 : boxSize}px;bottom:0px;`" absolute 
-                  text-center>{{ labelFormat(project) }}</span>
+              <span
+                v-if="labelFormat(project) && (project.bigProject === 'Y' || hasLabel)"
+                truncate
+                bg-gray-200
+                h-20px
+                text-10px
+                :style="`width:${project.bigProject === 'Y' ? boxSize * 2 : boxSize}px;bottom:0px;`"
+                absolute
+                text-center
+                >{{ labelFormat(project) }}</span
+              >
             </div>
           </div>
         </div>
@@ -81,7 +104,7 @@
       @mouseleave="hideProjectPopover"
     >
       <div>
-        <div flex>
+        <div flex items-center>
           <div w-70px h-90px mr-3>
             <el-image :src="popoverProject?.logo" bg-white fit="fill">
               <template #error>
@@ -146,12 +169,70 @@
       </div>
       <div id="arrow" data-popper-arrow></div>
     </div>
+
+    <el-dialog v-model="isOpenProjectDialog" width="fit-content">
+      <slot name="projectDialogHeader" :project="popoverProject">
+        <div flex min-w-600px>
+          <div class="project-logo" w-70px h-70px mr-10>
+            <el-image :src="popoverProject?.logo" bg-white fit="fill">
+              <template #error>
+                <GenerateProjectAvatar v-model="popoverProject.name" :width="70" :height="70" />
+              </template>
+            </el-image>
+          </div>
+          <div class="project-info" flex flex-1 flex-col>
+            <div flex>
+              <span truncate text-lg fw-bold mr-3>
+                {{ popoverProject?.name }}
+              </span>
+
+              <div flex items-center>
+                <div mr-3 flex items-center>
+                  <span i-custom:star-active font-size-4 mr-1></span>
+                  {{ numberFormat(popoverProject?.starCount || 0) }}
+                </div>
+                <div mr-3 flex items-center>
+                  <span i-custom:fork-active font-size-4 mr-1></span>
+                  {{ numberFormat(popoverProject?.forksCount || 0) }}
+                </div>
+                <a
+                  :href="popoverProject?.htmlUrl"
+                  target="_blank"
+                  i-custom:github
+                  font-size-4
+                  mr-3
+                  cursor-pointer
+                ></a>
+              </div>
+            </div>
+            <div>
+              <el-text line-clamp="3" max-w-470px>
+                {{ popoverProject?.description }}
+              </el-text>
+            </div>
+            <div>
+              <el-tag
+                v-for="(label, idx) in popoverProject?.labels"
+                :key="idx"
+                :type="getTagType(idx)"
+                mr-2
+                mb-2
+              >
+                {{ label }}
+              </el-tag>
+            </div>
+          </div>
+        </div>
+      </slot>
+      <slot name="projectDialogBody" :project="popoverProject"> </slot>
+    </el-dialog>
   </div>
 </template>
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { createPopper, type VirtualElement, type Instance } from '@popperjs/core';
 import GenerateProjectAvatar from './GenerateProjectAvatar.vue';
+import { getTagType } from '@orginjs/oss-evaluation-components-utils';
 
 interface Project {
   category: string;
@@ -164,20 +245,23 @@ interface Project {
   forksCount: number;
   hasBenchmark: string;
   bigProject: string;
+  labels: string[];
 }
 
 const props = defineProps<{
   projects: Array<Project>;
   options?: {
-    colors: Array<string>,
-    maxProjects?: number,
-    labelFormat?: (project: Project) => string,
-    hasMore?: boolean,
-    boxSize?: number,  // || {width:number,height:number}
-    layout?: { [key: string]: any },
-    evaluation?: (project: Project) => void,
-    goBenchmark?: (project: Project) => void
-  }
+    colors: Array<string>;
+    maxProjects?: number;
+    labelFormat?: (project: Project) => string;
+    hasMore?: boolean;
+    enableProjectDialog?: boolean;
+    enableProjectPopover: boolean;
+    boxSize?: number; // || {width:number,height:number}
+    layout?: { [key: string]: any };
+    evaluation?: (project: Project) => void;
+    goBenchmark?: (project: Project) => void;
+  };
 }>();
 
 const emit = defineEmits<{
@@ -191,7 +275,12 @@ const popoverRef = ref();
 const hasMore = typeof props.options?.hasMore === 'undefined' ? true : props.options.hasMore;
 const boxSize = typeof props.options?.boxSize !== 'number' ? 40 : props.options.boxSize;
 const hasLabel = typeof props.options?.labelFormat === 'function' ? true : false;
+const enableProjectPopover =
+  typeof props.options?.enableProjectPopover === 'boolean'
+    ? props.options?.enableProjectPopover
+    : true;
 let popoverInstance: Instance;
+const isOpenProjectDialog = ref(false);
 
 const BackgroundColors = ['#89bff6', '#89c997', '#e8dd92', '#f0b58e', '#aea3db'];
 const getBackgroundColor = (index: number) => {
@@ -308,16 +397,18 @@ onMounted(() => {
 
   landcapseData.value = _landcapseData;
 
-  popoverInstance = createPopper(virtualElement, popoverRef.value, {
-    modifiers: [
-      {
-        name: 'offset',
-        options: {
-          offset: [0, 3],
+  if (enableProjectPopover) {
+    popoverInstance = createPopper(virtualElement, popoverRef.value, {
+      modifiers: [
+        {
+          name: 'offset',
+          options: {
+            offset: [0, 3],
+          },
         },
-      },
-    ],
-  });
+      ],
+    });
+  }
 });
 
 function gotoMore(category: string, subTechStackName: string) {
@@ -325,6 +416,9 @@ function gotoMore(category: string, subTechStackName: string) {
 }
 
 function clickProject(project: Project) {
+  if (props.options?.enableProjectDialog) {
+    isOpenProjectDialog.value = true;
+  }
   emit('clickProject', project);
 }
 
@@ -337,6 +431,11 @@ const showProjectPopover = (project: Project, event: MouseEvent) => {
   clearHideTimer();
   popoverRef.value.setAttribute('data-show', '');
   popoverProject.value = project;
+
+  if (!enableProjectPopover) {
+    return;
+  }
+
   virtualElement.getBoundingClientRect = () => {
     return (event.target as Element)!.getBoundingClientRect();
   };
@@ -362,7 +461,7 @@ const getProjectStyle = (project: Project) => {
   }
   //40 * 2 + 5px gap
   return `width: ${boxSize * 2 + 5}px;height: ${boxSize * 2 + 5}px;grid-column-end: span 2;grid-row-end: span 2;border: 2px solid #016bccb3;`;
-}
+};
 
 const labelFormat = (project: Project): string => {
   if (project.bigProject === 'Y' && !hasLabel) {
