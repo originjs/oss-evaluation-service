@@ -13,6 +13,8 @@ interface Project {
   forksCount: number;
   hasBenchmark: string;
   bigProject: string;
+  labels: string[];
+  language: string;
 }
 
 const landscapeOptions = {
@@ -84,6 +86,9 @@ const landscapeOptions = {
 };
 
 function clickProject(project: Project) {
+  if(landscapeOptions.enableProjectDialog){
+    return;
+  }
   window.open(
     `/#/software-details?repoName=${project.htmlUrl.replace('https://github.com/', '')}`,
     '_blank',

@@ -203,6 +203,9 @@
                   mr-3
                   cursor-pointer
                 ></a>
+                <el-tag type="warning" v-if="popoverProject?.language" effect="plain">
+                  {{ popoverProject?.language }}
+                </el-tag>
               </div>
             </div>
             <div>
@@ -246,6 +249,7 @@ interface Project {
   hasBenchmark: string;
   bigProject: string;
   labels: string[];
+  language: string;
 }
 
 const props = defineProps<{
