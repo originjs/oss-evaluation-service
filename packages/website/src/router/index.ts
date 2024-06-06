@@ -8,6 +8,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@views/Home.vue'),
   },
   {
+    name: 'SoftwareDetails',
     path: '/software-details',
     component: () => import('@views/SoftwareDetails.vue'),
     beforeEnter: to => {
@@ -38,6 +39,14 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHashHistory(),
   routes,
+});
+
+router.afterEach(to => {
+  if (to.name === 'SoftwareDetails' && to.query.repoName) {
+    document.title = `${to.query.repoName} OSS Evaluation 开源先进性评估`;
+  } else {
+    document.title = 'OSS Evaluation 开源先进性评估';
+  }
 });
 
 export default router;
