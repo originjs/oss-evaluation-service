@@ -16,7 +16,7 @@ function compareProjects(projects: SoftwareBaseInfo[]) {
 </script>
 
 <template>
-  <SoftwareDetails :repo-name @compare-projects="compareProjects" />
+  <SoftwareDetails :repo-name="repoName" @compare-projects="compareProjects" />
 </template>
 
 <style scoped lang="less"></style>

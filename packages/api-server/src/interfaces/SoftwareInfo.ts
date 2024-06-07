@@ -92,6 +92,8 @@ export interface SoftwareInfo extends SoftwareBaseInfo {
   gzipSize?: number;
 }
 
+export type CompareProject = Pick<SoftwareInfo, 'repoName' | 'logo' | 'url' | 'description'>;
+
 export interface EcologyActivity {
   projectId: number;
   value: number;
@@ -190,25 +192,29 @@ export interface InnovationCompaniesInfo {
 }
 
 export interface InnovationTableInfo {
-  label: string;
-  value: number;
+  ownerName: string;
+  star: number;
+}
+
+export interface DependentProject {
+  fullName: string;
+  ownerName: string;
+  ownerType: string;
+  star: number;
+}
+
+export interface CompaniesInfo {
+  stargazers: Array<InnovationCompaniesInfo>;
+  issueCreators: Array<InnovationCompaniesInfo>;
+  prCreators: Array<InnovationCompaniesInfo>;
 }
 
 export interface InnovationInfo {
   organizationInfo: {
-    dependentProject: {
-      fullName: string;
-      ownerName: string;
-      ownerType: string;
-      star: number;
-    };
-    dependentOrganization: InnovationTableInfo;
+    dependentProject: Array<DependentProject>;
+    dependentOrganization: Array<InnovationTableInfo>;
   };
-  companiesInfo: {
-    stargazers: Array<InnovationCompaniesInfo>;
-    issueCreators: Array<InnovationCompaniesInfo>;
-    prCreators: Array<InnovationCompaniesInfo>;
-  };
+  companiesInfo: CompaniesInfo;
 }
 
 export interface SummaryHighlightInfo {
