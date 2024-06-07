@@ -23,6 +23,12 @@ const landscapeOptions = {
   enableProjectDialog: false, // 非必填，默认不启用，设置后点击项目会弹出项目详情框
   boxSize: 40, //非必填，当前版本只能是正方形，默认长和宽是40，大项目乘2
   maxProjects: 100, //非必填，指定子技术栈超过多少个项目就不再展示
+  // 非必填, 如果传string,例如：borderColor：#e5e7eb,表示所有项目的边框都是这个
+  // 如果传入Objcect,key是具体project name，那对应项目的边框就是这个值，例如"material-ui":"#89c997"
+  // Objcet中的"_bigProject_"表示大项目没有设置指定颜色就使这个配置的值
+  // 如果大项目没有设置"_bigProject_"和指定颜色，会默认边框颜色#016bccb3
+  // Objcet中的"_default_"表示没有设置指定颜色就使用默认的
+  borderColor: {"_default_":"#e5e7eb","_bigProject_":"#016bccb3","material-ui":"#89c997"},
   colors: ['#89bff6', '#89c997', '#e8dd92', '#f0b58e', '#aea3db'], //非必填，自定义背景色，按顺序使用
   layout: {
     //非必填，布局。 但是建议传，当前自动计算布局不好看，数字为占一行的列宽，相加超过1就会在下一行显示
