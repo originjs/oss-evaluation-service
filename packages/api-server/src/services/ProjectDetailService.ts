@@ -608,3 +608,36 @@ export async function getInnovation(repoName: string) {
     },
   };
 }
+
+export async function getSummaryHighlightInfo(repoName: string) {
+  const COMPANIES_SIZE = 6;
+  const alternativeProjects = await getAlternativeProjects(repoName);
+
+  const topPrCompaniesSql = `
+    select ocr.project_id   as projectId,
+           ocr.org_name     as orgName,
+           ocr.creators_num as creatorsNum,
+           ocr.percentage   as percentage
+    from ossinsight_creators_organizations ocr
+           inner join github_projects gp on gp.id = ocr.project_id
+    where gp.full_name = :repoName
+      and ocr.type = 0
+    order by ocr.percentage desc limit 20
+  `;
+  const filterCharacter = ['.', '...', '-', 'none', 'null', 'no', 'china'];
+
+  let topPrCompanies = await sequelize.query(topPrCompaniesSql, {
+    type: sequelize.QueryTypes.SELECT,
+    replacements: {
+      repoName,
+    },
+  });
+  topPrCompanies = topPrCompanies
+    .filter((obj: { orgName: string }) => !filterCharacter.includes(obj.orgName))
+    .slice(0, COMPANIES_SIZE);
+
+  return {
+    alternativeProjects,
+    topPrCompanies,
+  };
+}

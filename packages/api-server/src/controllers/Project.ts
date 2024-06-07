@@ -7,6 +7,7 @@ import {
   exportScoreExcel,
   exportBenchmarkExcel,
   getInnovation,
+  getSummaryHighlightInfo,
 } from '../services/ProjectDetailService.js';
 import type {
   EcologyActivityCategory,
@@ -14,6 +15,7 @@ import type {
   InnovationInfo,
   PerformanceInfo,
   SoftwareInfo,
+  SummaryHighlightInfo,
 } from '../interfaces/SoftwareInfo.js';
 import { appendSheet } from '../utils/excel.js';
 import { Result } from '../utils/result.js';
@@ -57,6 +59,16 @@ export class ProjectController extends Controller {
   ): Promise<Result<InnovationInfo | unknown>> {
     try {
       const data = await getInnovation(repoName);
+      return Result.ok(data);
+    } catch (e) {
+      return Result.ok({});
+    }
+  }
+
+  @Get('summary/{repoName}')
+  public async getSummaryHighlightInfo(@Path() repoName: string): Promise<Result<SummaryHighlightInfo | unknown>> {
+    try {
+      const data = await getSummaryHighlightInfo(repoName);
       return Result.ok(data);
     } catch (e) {
       return Result.ok({});
