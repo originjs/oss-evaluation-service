@@ -507,13 +507,13 @@ export async function createSonarProjectsFromGithub(req, res) {
           githubProject.fullName.replace('/', '-'),
         );
         logger.info(
-          `try to get github fork project info. fullName:{${process.env.SONAR_GITHUB_FORK_ORG_NAME}/${githubProject.fullName.replace('/')}}`,
+          `try to get github fork project info. fullName:{${process.env.SONAR_GITHUB_FORK_ORG_NAME}/${githubProject.fullName.replace('/', '-')}}`,
         );
 
         // get fork repo info
         if (infoResult.ok) {
           logger.info(
-            `success to get github fork project info. fullName:{${process.env.SONAR_GITHUB_FORK_ORG_NAME}/${githubProject.fullName.replace('/')}}`,
+            `success to get github fork project info. fullName:{${process.env.SONAR_GITHUB_FORK_ORG_NAME}/${githubProject.fullName.replace('/', '-')}}`,
           );
           await SonarCloudProject.update(
             {
