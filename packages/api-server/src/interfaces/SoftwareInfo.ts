@@ -210,3 +210,8 @@ export interface InnovationInfo {
     prCreators: Array<InnovationCompaniesInfo>;
   };
 }
+
+export interface SummaryHighlightInfo {
+  alternativeProjects: Array<AlternativeInfo>;
+  topPrCompanies: Array<InnovationCompaniesInfo>;
+}
