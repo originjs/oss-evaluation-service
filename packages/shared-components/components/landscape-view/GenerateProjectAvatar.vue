@@ -4,7 +4,7 @@
     flex
     items-center
   >
-    <span ref="projectNameRef" style="text-align: center">{{ projectName }}</span>
+    <span ref="projectNameRef" style="text-align: center;">{{ projectName }}</span>
   </div>
 </template>
 <script setup lang="ts">
@@ -17,7 +17,7 @@ const props = defineProps<{
 
 const formatProjectName = (projectName: string) => {
   if (!projectName) return '';
-  return projectName.replaceAll('-', ' ').replaceAll('_', ' ');
+  return projectName.replaceAll('-', ' ').replaceAll('_', ' ').replaceAll(':', ' ');
 };
 
 const projectName = ref(formatProjectName(model.value));

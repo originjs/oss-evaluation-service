@@ -50,6 +50,7 @@
               v-for="project in subData.projects"
               :key="`${data.category}-${subData.subTechStackName}-${project.name}`"
               relative
+              bg-white
               :style="`${getProjectStyle(project)} display: flex;word-wrap: break-word;`"
             >
               <div
@@ -62,13 +63,24 @@
                 @mouseenter="showProjectPopover(project, $event)"
                 @mouseleave="hideProjectPopover"
               >
-                <el-image flex flex-1 lazy :src="project.logo" bg-white fit="fill">
+                <el-image
+                  flex
+                  flex-1
+                  lazy
+                  :src="project.logo"
+                  bg-white
+                  fit="fill"
+                  :style="`width:${(project.bigProject === 'Y' ? boxSize * 2 : boxSize) - 2}px;height:${project.bigProject === 'Y' ? boxSize * 2 : boxSize}px;`"
+                >
                   <template #error>
                     <GenerateProjectAvatar
                       v-model="project.name"
                       :width="project.bigProject === 'Y' ? boxSize * 2 : boxSize"
                       :height="project.bigProject === 'Y' ? boxSize * 2 : boxSize"
                     />
+                  </template>
+                  <template #placeholder>
+                    <div></div>
                   </template>
                 </el-image>
               </div>
@@ -77,8 +89,9 @@
                 truncate
                 bg-gray-200
                 h-20px
+                lh-20px
                 text-10px
-                :style="`width:${project.bigProject === 'Y' ? boxSize * 2 : boxSize}px;bottom:0px;`"
+                :style="`width:${project.bigProject === 'Y' ? boxSize * 2 + 1 : boxSize - 2}px;bottom:0px;`"
                 absolute
                 text-center
                 >{{ labelFormat(project) }}</span
@@ -262,6 +275,7 @@ const props = defineProps<{
     enableProjectDialog?: boolean;
     enableProjectPopover: boolean;
     boxSize?: number; // || {width:number,height:number}
+    borderColor?: string | { [key: string]: string };
     layout?: { [key: string]: any };
     evaluation?: (project: Project) => void;
     goBenchmark?: (project: Project) => void;
@@ -460,11 +474,32 @@ function numberFormat(num: number) {
 }
 
 const getProjectStyle = (project: Project) => {
-  if (project.bigProject !== 'Y') {
-    return `width: ${boxSize}px;height: ${boxSize}px;`;
+  let borderColor = '#016bccb3';
+  let hasBorder = false;
+  if (typeof props.options?.borderColor === 'string') {
+    borderColor = props.options?.borderColor;
+    hasBorder = true;
+  } else if (typeof props.options?.borderColor === 'object') {
+    if (props.options?.borderColor[project.name]) {
+      borderColor = props.options?.borderColor[project.name];
+      hasBorder = true;
+    } else if (project.bigProject == 'Y' && props.options?.borderColor['_bigProject_']) {
+      borderColor = props.options?.borderColor['_bigProject_'];
+    } else if (props.options?.borderColor['_default_']) {
+      borderColor = props.options?.borderColor['_default_'];
+      hasBorder = true;
+    }
   }
-  //40 * 2 + 5px gap
-  return `width: ${boxSize * 2 + 5}px;height: ${boxSize * 2 + 5}px;grid-column-end: span 2;grid-row-end: span 2;border: 2px solid #016bccb3;`;
+
+  if (project.bigProject !== 'Y') {
+    let style = `width: ${boxSize}px;height: ${boxSize}px;`;
+    if (hasBorder) {
+      style += `border: 1px solid ${borderColor};`;
+    }
+    return style;
+  }
+
+  return `width: ${boxSize * 2 + 5}px;height: ${boxSize * 2 + 5}px;grid-column-end: span 2;grid-row-end: span 2;border: 2px solid ${borderColor};`;
 };
 
 const labelFormat = (project: Project): string => {
