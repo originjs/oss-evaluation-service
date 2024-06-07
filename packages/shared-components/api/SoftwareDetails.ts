@@ -10,6 +10,11 @@ import type {
   StarTrend,
   InnovationInfo,
   InnovationData,
+  InnovationTableInfo,
+  InnovationCompaniesInfo,
+  DependentProject,
+  CompaniesInfo,
+  CompareProject,
 } from '@orginjs/oss-evaluation-api-server';
 
 export {
@@ -23,6 +28,11 @@ export {
   StarTrend,
   InnovationInfo,
   InnovationData,
+  InnovationTableInfo,
+  InnovationCompaniesInfo,
+  DependentProject,
+  CompaniesInfo,
+  CompareProject,
 };
 
 export function getSoftwareInfo(repoName: string) {

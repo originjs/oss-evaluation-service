@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ArrowDown, ArrowUp, Picture, Delete } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
-import type { SoftwareBaseInfo } from '@orginjs/oss-evaluation-components-api';
+import type { SoftwareBaseInfo, CompareProject } from '@orginjs/oss-evaluation-components-api';
 import { SearchSoftware } from '../search-software';
 
 enum PanelState {
@@ -11,7 +11,7 @@ enum PanelState {
 }
 const emit = defineEmits(['compare']);
 
-const projects: Array<SoftwareBaseInfo> = reactive(
+const projects: Array<CompareProject> = reactive(
   (() => {
     const projectsString = localStorage.getItem('oss-evaluation-compare-projects');
     if (projectsString) {
@@ -38,7 +38,7 @@ const calcPanelState = () => {
   panelState.value = getPanelState();
 };
 
-function removeProject(project: SoftwareBaseInfo) {
+function removeProject(project: CompareProject) {
   let index = projects.findIndex(item => item.url === project.url);
   projects.splice(index, 1);
   localStorage.setItem('oss-evaluation-compare-projects', JSON.stringify(projects));
@@ -49,7 +49,7 @@ function cleanCompareFavorites() {
   localStorage.setItem('oss-evaluation-compare-projects', '[]');
 }
 
-function addProject(newProjects: Array<SoftwareBaseInfo>) {
+function addProject(newProjects: Array<CompareProject>) {
   for (let project of newProjects) {
     let exists = projects.some(p => p.url === project.url);
     if (exists) {

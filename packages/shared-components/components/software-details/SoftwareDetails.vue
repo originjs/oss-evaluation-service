@@ -1,8 +1,16 @@
 <script setup lang="ts">
 import { Plus } from '@element-plus/icons-vue';
-import type { CellStyle, TabsPaneContext } from 'element-plus';
+import type { CellStyle } from 'element-plus';
 import { ElMessage } from 'element-plus';
 import * as echarts from 'echarts';
+import type {
+  EChartsOption,
+  ECharts,
+  CustomSeriesRenderItemParams,
+  CustomSeriesRenderItemAPI,
+  CustomSeriesRenderItemReturn,
+  TooltipComponentOption,
+} from 'echarts';
 import { saveAs } from 'file-saver';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -15,6 +23,11 @@ import type {
   SoftwareInfo,
   StarTrend,
   InnovationData,
+  InnovationTableInfo,
+  InnovationCompaniesInfo,
+  DependentProject,
+  CompaniesInfo,
+  CompareProject,
 } from '@orginjs/oss-evaluation-components-api';
 import {
   exportFileApi,
@@ -85,7 +98,7 @@ const developerSatisfaction = ref({
 watchEffect(async () => {
   isRequestingProjectInfo.value = true;
   const { data } = await getSoftwareInfo(encodedRepoName.value);
-  project.value = data;
+  project.value = data ?? {};
   tagList.value = data.tags ? data.tags.split('|') : [];
   baseInfoTable.value = [
     {
@@ -172,7 +185,7 @@ watchEffect(async () => {
     },
   ];
   documentInfo.value = {
-    score: formatFloat(data.document?.documentScore),
+    score: data.document?.documentScore ?? 0,
     items: [
       {
         title: 'Readme',
@@ -200,8 +213,8 @@ watchEffect(async () => {
   };
   if (data.satisfaction) {
     developerSatisfaction.value = {
-      xAxis: data.satisfaction.map(item => item.year),
-      yAxis: data.satisfaction.map(item => item.val),
+      xAxis: (data.satisfaction ?? []).map(item => item.year),
+      yAxis: (data.satisfaction ?? []).map(item => item.val),
     };
   }
   await nextTick();
@@ -218,7 +231,7 @@ function renderSoftwareRadarChart() {
     return;
   }
   const chart = echarts.init(chartDom);
-  const option: echarts.EChartsOption = {
+  const option: EChartsOption = {
     tooltip: {
       trigger: 'axis',
     },
@@ -267,7 +280,7 @@ function renderGithubStartChart() {
     return;
   }
   const chart = echarts.init(chartDom);
-  const option: echarts.EChartsOption = {
+  const option: EChartsOption = {
     tooltip: {
       trigger: 'axis',
     },
@@ -302,16 +315,24 @@ function renderGithubStartChart() {
   chart.setOption(option);
 }
 
-function getDependentSeriesData(data: object) {
+type SeriesData = Array<{
+  depth: number;
+  id: string;
+  index: number;
+  value: number;
+  name: string;
+}>;
+
+function getDependentSeriesData(data: Array<DependentProject>): SeriesData {
   let count = 1;
-  let seriesData = Object.keys(data).map(key => {
+  let seriesData = data.map(item => {
     count += 1;
     return {
       depth: 1,
-      id: 'option.' + data[key]['ownerName'] + count,
+      id: 'option.' + item['ownerName'] + count,
       index: count,
-      value: data[key]['star'],
-      name: data[key]['fullName'].split('/')[1],
+      value: item['star'],
+      name: item['fullName'].split('/')[1],
     };
   });
   seriesData.push({
@@ -324,16 +345,16 @@ function getDependentSeriesData(data: object) {
   return seriesData;
 }
 
-function getCompaniesSeriesData(data: any) {
+function getCompaniesSeriesData(data: Array<InnovationCompaniesInfo>): SeriesData {
   let count = 1;
-  let seriesData = Object.keys(data).map(key => {
+  let seriesData = data.map(item => {
     count += 1;
     return {
       depth: 1,
-      id: 'option.' + data[key]['projectId'] + count,
+      id: 'option.' + item['projectId'] + count,
       index: count,
-      value: data[key]['creatorsNum'],
-      name: '-' + data[key]['orgName'],
+      value: item['creatorsNum'],
+      name: '-' + item['orgName'],
     };
   });
   seriesData.push({
@@ -346,7 +367,7 @@ function getCompaniesSeriesData(data: any) {
   return seriesData;
 }
 
-function renderBubbleChart(container: string, seriesData: Array<any>) {
+function renderBubbleChart(container: string, seriesData: SeriesData) {
   const chartDom = softwareDetailsEl.value?.querySelector(container);
   if (!chartDom) {
     return;
@@ -360,7 +381,7 @@ function renderBubbleChart(container: string, seriesData: Array<any>) {
   let displayRoot = stratify();
   function stratify() {
     return d3
-      .stratify()
+      .stratify<any>()
       .parentId(function (d) {
         return d.id.substring(0, d.id.lastIndexOf('.'));
       })(seriesData)
@@ -368,11 +389,11 @@ function renderBubbleChart(container: string, seriesData: Array<any>) {
         return d.value || 0;
       })
       .sort(function (a, b) {
-        return b.value - a.value;
+        return b.value! - a.value!;
       });
   }
-  function overallLayout(params, api) {
-    let context = params.context;
+  function overallLayout(params: CustomSeriesRenderItemParams, api: CustomSeriesRenderItemAPI) {
+    let context: any = params.context;
     d3
       .pack()
       .size([api.getWidth() - 2, api.getHeight() - 2])
@@ -380,11 +401,14 @@ function renderBubbleChart(container: string, seriesData: Array<any>) {
     context.nodes = {};
 
     displayRoot.descendants().forEach(function (node) {
-      context.nodes[node.id] = node;
+      context.nodes[node.id as string] = node;
     });
   }
-  function renderItem(params, api) {
-    let context = params.context;
+  function renderItem(
+    params: CustomSeriesRenderItemParams,
+    api: CustomSeriesRenderItemAPI,
+  ): CustomSeriesRenderItemReturn {
+    let context: any = params.context;
 
     // Only do that layout once in each time `setOption` called.
     if (!context.layout) {
@@ -393,7 +417,7 @@ function renderBubbleChart(container: string, seriesData: Array<any>) {
     }
 
     let nodePath = api.value('id');
-    let nodeName = api.value('name').slice(1);
+    let nodeName = (api.value('name') as string).slice(1);
     let node = context.nodes[nodePath];
     if (node.id === 'option') {
       node.r = 0;
@@ -403,10 +427,9 @@ function renderBubbleChart(container: string, seriesData: Array<any>) {
       return;
     }
 
-    let z2 = api.value('depth') * 2;
+    let z2 = (api.value('depth') as number) * 2;
     return {
       type: 'circle',
-      focus: focus,
       shape: {
         cx: node.x,
         cy: node.y,
@@ -426,7 +449,7 @@ function renderBubbleChart(container: string, seriesData: Array<any>) {
         },
         emphasis: {
           style: {
-            overflow: null,
+            overflow: undefined,
             fontSize: Math.max(node.r / 3, 12),
           },
         },
@@ -449,7 +472,7 @@ function renderBubbleChart(container: string, seriesData: Array<any>) {
       },
     };
   }
-  const option = {
+  const option: EChartsOption = {
     dataset: {
       source: seriesData,
     },
@@ -470,10 +493,12 @@ function renderBubbleChart(container: string, seriesData: Array<any>) {
     ],
   };
   if (container === '#dependent-project-bubble-chart') {
-    option.tooltip.valueFormatter = obj => obj[0] + ' : ' + toKilo(obj[1]) + ' stars';
+    (option.tooltip as TooltipComponentOption).valueFormatter = (obj: any) =>
+      obj[0] + ' : ' + toKilo(obj[1]) + ' stars';
   }
   if (container === '#project-companies-bubble-chart') {
-    option.tooltip.valueFormatter = obj => obj[0].slice(1) + ' ' + obj[1];
+    (option.tooltip as TooltipComponentOption).valueFormatter = (obj: any) =>
+      obj[0].slice(1) + ' ' + obj[1];
   }
   myChart.setOption(option);
 }
@@ -484,7 +509,7 @@ function renderDeveloperSatisfactionChart() {
     return;
   }
   const chart = echarts.init(chartDom);
-  const option: echarts.EChartsOption = {
+  const option: EChartsOption = {
     tooltip: {
       trigger: 'axis',
     },
@@ -524,7 +549,7 @@ function renderDocBestPracticesChart() {
     return;
   }
   const chart = echarts.init(chartDom);
-  const option: echarts.EChartsOption = {
+  const option: EChartsOption = {
     series: [
       {
         type: 'gauge',
@@ -569,11 +594,12 @@ function renderDocBestPracticesChart() {
   chart.setOption(option);
 }
 
+type CountriesNameMap = Record<string, string>;
 const geoActiveTab = ref('star');
 const geoDistributionInfo = ref<InnovationData | null>(null);
 const geoLoading = ref(false);
-let countriesChartInstance;
-echarts.registerMap('world', worldMap);
+let countriesChartInstance: ECharts | null;
+echarts.registerMap('world', worldMap as any);
 
 watchEffect(async () => {
   geoActiveTab.value = 'star';
@@ -587,7 +613,7 @@ watchEffect(async () => {
   }
 });
 
-function renderCountriesChart(selector, data) {
+function renderCountriesChart(selector: string, data: InnovationData['starCountries']) {
   const chartDom = softwareDetailsEl.value?.querySelector(selector);
   if (!chartDom) {
     return;
@@ -599,23 +625,23 @@ function renderCountriesChart(selector, data) {
         return;
       }
       return {
-        name: countriesNameMap[countryInfo.code] ?? '',
+        name: (countriesNameMap as CountriesNameMap)[countryInfo.code] ?? '',
         value: [countryInfo.long, countryInfo.lat, country.creatorsNum, country.percentage],
       };
     })
     .filter(country => country);
   countriesChartInstance?.dispose();
   countriesChartInstance = echarts.init(chartDom);
-  const option: echarts.EChartsOption = {
+  const option: EChartsOption = {
     backgroundColor: 'transparent',
     tooltip: {
       formatter(data) {
         return `
           <div>${props.repoName}</div>
           <div font-bold>
-            <span>${data.name}</span>
+            <span>${(data as (typeof countriesData)[0])?.name}</span>
             <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
-            <span>${data.value[2]}</span>
+            <span>${(data as (typeof countriesData)[0])?.value[2]}</span>
           </div>
         `;
       },
@@ -841,8 +867,7 @@ const companiesInfoTable = ref<TableRow[]>([]);
 const dependentProjectHeight = ref(100);
 const companiesHeight = ref(100);
 
-// const companiesBaseInfo = ref<CompaniesInfo>();
-const companiesBaseInfo = ref();
+const companiesBaseInfo = ref<CompaniesInfo>();
 watchEffect(async () => {
   const maxProjectNumber = 50;
   const maxOrganizationsNumber = 10;
@@ -857,11 +882,14 @@ watchEffect(async () => {
 
   // Star Accumulation for the same organizations
   let topArray = Object.values(
-    dependentOrganization.reduce((acc, { ownerName, star }) => {
-      acc[ownerName] = acc[ownerName] || { ownerName, star: 0 };
-      acc[ownerName].star += star;
-      return acc;
-    }, {}),
+    dependentOrganization.reduce(
+      (acc: Record<string, InnovationTableInfo>, { ownerName, star }) => {
+        acc[ownerName] = acc[ownerName] || { ownerName, star: 0 };
+        acc[ownerName].star += star;
+        return acc;
+      },
+      {},
+    ),
   );
   // Convert to array
   organizationInfoTable.value = topArray
@@ -883,7 +911,7 @@ watchEffect(async () => {
     renderBubbleChart('#dependent-project-bubble-chart', getDependentSeriesData(dependentProject));
     renderBubbleChart(
       '#project-companies-bubble-chart',
-      getCompaniesSeriesData(companiesBaseInfo.value.stargazers),
+      getCompaniesSeriesData(companiesBaseInfo.value!.stargazers),
     );
     companiesInfoTable.value = companiesInfo.stargazers
       .slice(0, maxOrganizationsNumber)
@@ -895,24 +923,24 @@ watchEffect(async () => {
 const companiesActiveName = ref('star');
 function handleCompaniesActiveClick() {
   const maxOrganizationsNumber = 10;
-  const { issueCreators, stargazers, prCreators } = companiesBaseInfo.value;
+  const { issueCreators, stargazers, prCreators } = companiesBaseInfo.value!;
 
   if (companiesActiveName.value === 'issue') {
     renderBubbleChart('#project-companies-bubble-chart', getCompaniesSeriesData(issueCreators));
-    companiesInfoTable.value = companiesBaseInfo.value.issueCreators
-      .slice(0, maxOrganizationsNumber)
+    companiesInfoTable.value = companiesBaseInfo
+      .value!.issueCreators.slice(0, maxOrganizationsNumber)
       .map(item => ({ label: item.orgName, value: item.percentage }));
   }
   if (companiesActiveName.value === 'star') {
     renderBubbleChart('#project-companies-bubble-chart', getCompaniesSeriesData(stargazers));
-    companiesInfoTable.value = companiesBaseInfo.value.stargazers
-      .slice(0, maxOrganizationsNumber)
+    companiesInfoTable.value = companiesBaseInfo
+      .value!.stargazers.slice(0, maxOrganizationsNumber)
       .map(item => ({ label: item.orgName, value: item.percentage }));
   }
   if (companiesActiveName.value === 'pr') {
     renderBubbleChart('#project-companies-bubble-chart', getCompaniesSeriesData(prCreators));
-    companiesInfoTable.value = companiesBaseInfo.value.prCreators
-      .slice(0, maxOrganizationsNumber)
+    companiesInfoTable.value = companiesBaseInfo
+      .value!.prCreators.slice(0, maxOrganizationsNumber)
       .map(item => ({ label: item.orgName, value: item.percentage }));
   }
 }
@@ -936,7 +964,7 @@ function feedbackAlternative() {
 }
 
 const compareFavoritesRef = ref<InstanceType<typeof CompareFavorites>>();
-function addProjectToCompare(info?) {
+function addProjectToCompare(info: CompareProject | undefined) {
   if (!info) {
     info = project.value!;
   }
@@ -983,7 +1011,7 @@ onBeforeUnmount(() => {
             :icon="Plus"
             :disabled="!project"
             class="btn-compare"
-            @click="addProjectToCompare(project.value!)"
+            @click="addProjectToCompare(project)"
           >
             对比
           </el-button>
@@ -1053,7 +1081,7 @@ onBeforeUnmount(() => {
             <el-table-column
               prop="value"
               align="center"
-              :formatter="(row: TableRow) => row.value ?? '-'"
+              :formatter="(row: TableRow) => (row.value ? String(row.value) : '-')"
             />
           </el-table>
           <div id="software-radar-chart" w-328px h-280px pt-20px bg-coolgray-50 />
@@ -1251,7 +1279,7 @@ onBeforeUnmount(() => {
                 </el-icon>
               </el-tooltip>
             </div>
-  
+
             <el-progress
               :percentage="Math.max(Number(item.value ?? 0), 0) * 10"
               :stroke-width="10"
@@ -1419,7 +1447,13 @@ onBeforeUnmount(() => {
           {{ formatFloat(project?.evaluation?.ecologyScore) }}/100
         </span>
       </div>
-      <div v-loading="loadingEcology" flex flex-wrap justify-between content-between>
+      <div
+        v-loading="loadingEcology && isRequestingProjectInfo"
+        flex
+        flex-wrap
+        justify-between
+        content-between
+      >
         <el-card w-full mb-6>
           <div mb-4 font-size-5 font-bold>成熟度</div>
           <div flex justify-between flex-items-center ml-8 h-62px>
@@ -1733,7 +1767,7 @@ onBeforeUnmount(() => {
                     mt-18px
                   >
                     <span class="text-over max-w-200px">{{
-                      countriesNameMap[country.countryCode]
+                      (countriesNameMap as CountriesNameMap)[country.countryCode]
                     }}</span>
                     <span>{{
                       Math.max(Number((Number(country.percentage) * 100).toFixed(1)), 0.1) + '%'
@@ -1760,7 +1794,7 @@ onBeforeUnmount(() => {
                     mt-18px
                   >
                     <span class="text-over max-w-200px">{{
-                      countriesNameMap[country.countryCode]
+                      (countriesNameMap as CountriesNameMap)[country.countryCode]
                     }}</span>
                     <span>{{
                       Math.max(Number((Number(country.percentage) * 100).toFixed(1)), 0.1) + '%'
@@ -1787,7 +1821,7 @@ onBeforeUnmount(() => {
                     mt-18px
                   >
                     <span class="text-over max-w-200px">{{
-                      countriesNameMap[country.countryCode]
+                      (countriesNameMap as CountriesNameMap)[country.countryCode]
                     }}</span>
                     <span>{{
                       Math.max(Number((Number(country.percentage) * 100).toFixed(1)), 0.1) + '%'
