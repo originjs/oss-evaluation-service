@@ -4,7 +4,11 @@
   "type": "module",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "tsc": "vue-tsc --noEmit",
+    "tsc-web": "pnpm -C packages/website tsc",
+    "tsc-share": "pnpm -C packages/shared-components tsc",
+    "tsc-sonar": "pnpm -C packages/sonar-scanner-service tsc",
+    "tsc-api-server": "pnpm -C packages/api-server tsc",
+    "tsc": "run-p -c tsc-web tsc-share tsc-sonar tsc-api-server",
     "lint": "eslint --cache . --ignore-path .gitignore",
     "lint-fix": "eslint --fix --cache . --ignore-path .gitignore",
     "format": "prettier --write --cache .",
