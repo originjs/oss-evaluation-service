@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "npm run build & nodemon",
+    "tsc": "vue-tsc --noEmit",
     "build": "tsoa spec-and-routes && tsc",
     "start": "node ./dist/app.js",
     "swagger": "tsoa spec-and-routes",

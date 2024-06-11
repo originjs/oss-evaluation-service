@@ -29,6 +29,7 @@
     }
   },
   "scripts": {
+    "tsc": "vue-tsc --noEmit",
     "build": "vue-tsc && vite build",
     "test": "vitest run"
   },
