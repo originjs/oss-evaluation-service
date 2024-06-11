@@ -13,7 +13,7 @@
         items-center
         mr-16px
       >
-        <span style="transform: rotate(180deg)" write-vertical-right>{{ data.category }}</span>
+        <span class="landscape-category-name" style="transform: rotate(180deg)" write-vertical-right>{{ data.category }}</span>
       </div>
       <div flex-1 flex flex-wrap justify-between>
         <div
