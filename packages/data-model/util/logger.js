@@ -72,15 +72,18 @@ export function getDurationInMilliseconds(start) {
   return (diff[0] * NS_PER_SEC + diff[1]) / NS_TO_MS;
 }
 
-const customizedLogger = winston.createLogger({
-  level: 'info',
-  transports: [transportError, transportInfo],
-});
-
+let transports = [];
 // Do not output log to console in the production environment
 if (process.env.NODE_ENV !== 'production') {
-  customizedLogger.add(consoleTransport);
+  transports = [consoleTransport];
+} else {
+  transports = [transportError, transportInfo];
 }
+
+const customizedLogger = winston.createLogger({
+  level: 'info',
+  transports: transports,
+});
 
 // 处理文件名和行号
 function getFileNameAndLineNumber() {

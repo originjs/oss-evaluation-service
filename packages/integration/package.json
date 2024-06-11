@@ -8,6 +8,12 @@
     "dev": "set DEBUG=* & nodemon ./bin/www.js",
     "start": "node ./bin/www.js"
   },
+  "nodemonConfig": {
+    "ignore": [
+      "storage/",
+      "logs"
+    ]
+  },
   "dependencies": {
     "@adobe/node-fetch-retry": "^2.2.0",
     "@octokit/core": "^5.1.0",
