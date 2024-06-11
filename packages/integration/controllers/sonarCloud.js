@@ -68,6 +68,116 @@ export async function collectSonarCloudData(req, res) {
   });
 }
 
+const sonarCloudSdk = new SonarCloudSdk();
+
+export async function changeSonarKey2OfficialKeys(req, res) {
+  const githubIds = req.body;
+  for (const id of githubIds) {
+    await collectSonarCloudByOfficialKey(id);
+  }
+  res.status(200);
+  res.json({
+    ok: true,
+  });
+}
+
+async function collectSonarCloudByOfficialKey(githubId) {
+  if (!githubId) {
+    return false;
+  }
+
+  const githubProject = await GithubProjects.findOne({
+    where: {
+      id: githubId,
+    },
+  });
+
+  if (!githubProject) {
+    return false;
+  }
+  // try to get official sonar cloud data
+  if (githubProject.ownerType !== 'Organization') {
+    return false;
+  }
+  const officialKey = githubProject.fullName.replaceAll('/', '_');
+  const measures = await getAllMeasuresSonarCloudData(officialKey, githubProject.defaultBranch);
+  if (!measures) {
+    return false;
+  }
+
+  // get last analyse time
+  const branchAnalyseResponse = await sonarCloudSdk.getBranchAnalyseTime(
+    officialKey,
+    githubProject.defaultBranch,
+  );
+  if (!branchAnalyseResponse.ok) {
+    logger.error(`officialSonarProject:{${officialKey}} has result but misses time`);
+    return false;
+  }
+  measures.analysisDate = (await branchAnalyseResponse.json()).analyses[0].date;
+  measures.defaultBranch = githubProject.defaultBranch;
+
+  const sonarProject = await SonarCloudProject.findOne({
+    where: {
+      githubProjectId: githubId,
+    },
+  });
+  if (sonarProject) {
+    if (sonarProject?.sonarProjectKey !== officialKey) {
+      measures.sonarOrg = githubProject.ownerName;
+      measures.sonarProjectKey = officialKey;
+    }
+    SonarCloudProject.update(measures, {
+      where: {
+        sonarProjectKey: sonarProject.sonarProjectKey,
+      },
+    });
+    return true;
+  } else {
+    logger.error(`there is no sonar project of key:{${officialKey}}`);
+  }
+}
+
+async function getAllMeasuresSonarCloudData(sonarKey, branchName) {
+  const metricKeys =
+    // eslint-disable-next-line max-len
+    'accepted_issues,new_technical_debt,blocker_violations,bugs,classes,code_smells,cognitive_complexity,comment_lines,comment_lines_density,branch_coverage,new_branch_coverage,conditions_to_cover,new_conditions_to_cover,confirmed_issues,coverage,new_coverage,critical_violations,complexity,duplicated_blocks,new_duplicated_blocks,duplicated_files,duplicated_lines,duplicated_lines_density,new_duplicated_lines_density,new_duplicated_lines,effort_to_reach_maintainability_rating_a,false_positive_issues,files,functions,generated_lines,generated_ncloc,info_violations,violations,line_coverage,new_line_coverage,lines,ncloc,lines_to_cover,new_lines_to_cover,sqale_rating,new_maintainability_rating,major_violations,minor_violations,new_accepted_issues,new_blocker_violations,new_bugs,new_code_smells,new_critical_violations,new_info_violations,new_violations,new_lines,new_major_violations,new_minor_violations,new_security_hotspots,new_vulnerabilities,open_issues,projects,alert_status,reliability_rating,new_reliability_rating,reliability_remediation_effort,new_reliability_remediation_effort,reopened_issues,security_hotspots,security_hotspots_reviewed,new_security_hotspots_reviewed,security_rating,new_security_rating,security_remediation_effort,new_security_remediation_effort,security_review_rating,new_security_review_rating,skipped_tests,statements,sqale_index,sqale_debt_ratio,new_sqale_debt_ratio,uncovered_conditions,new_uncovered_conditions,uncovered_lines,new_uncovered_lines,test_execution_time,test_errors,test_failures,test_success_density,tests,vulnerabilities,wont_fix_issues';
+
+  const response = await sonarCloudSdk.getMeasures({
+    branch: branchName,
+    component: sonarKey,
+    metricKeys,
+  });
+
+  if (!response.ok) {
+    return;
+  }
+  const measuresJson = await response.json();
+  const metrics = measuresJson?.component?.measures;
+  if (!metrics || !metrics.length) {
+    return;
+  }
+  const metricMap = new Map();
+  metrics.forEach(item => {
+    metricMap.set(item.metric, item.value);
+  });
+  return {
+    bugs: metricMap.get('bugs'),
+    reliabilityRating: getRating(metricMap.get('reliability_rating')),
+    vulnerabilities: metricMap.get('vulnerabilities'),
+    securityRating: getRating(metricMap.get('security_rating')),
+    securityHotspots: metricMap.get('security_hotspots'),
+    securityHotspotsReviewed: metricMap.get('security_hotspots_reviewed'),
+    securityReviewRating: getRating(metricMap.get('security_review_rating')),
+    codeSmells: metricMap.get('code_smells'),
+    maintainabilityRating: getRating(metricMap.get('sqale_rating')),
+    coverageRating: metricMap.get('coverage'),
+    duplicatedLinesDensity: metricMap.get('duplicated_lines_density'),
+    codeLines: metricMap.get('ncloc'),
+    allMeasures: metrics,
+  };
+}
+
 async function collectSonarCloudDataBySonarKeys(sonarKeys) {
   let sonarCloudProjects;
   if (!sonarKeys || !sonarKeys.length) {
@@ -93,10 +203,6 @@ async function collectSonarCloudDataBySonarKeys(sonarKeys) {
     logger.error('no sonarCloud project!!');
     return;
   }
-  const sonarCloudSdk = new SonarCloudSdk();
-  const metricKeys =
-    // eslint-disable-next-line max-len
-    'accepted_issues,new_technical_debt,blocker_violations,bugs,classes,code_smells,cognitive_complexity,comment_lines,comment_lines_density,branch_coverage,new_branch_coverage,conditions_to_cover,new_conditions_to_cover,confirmed_issues,coverage,new_coverage,critical_violations,complexity,duplicated_blocks,new_duplicated_blocks,duplicated_files,duplicated_lines,duplicated_lines_density,new_duplicated_lines_density,new_duplicated_lines,effort_to_reach_maintainability_rating_a,false_positive_issues,files,functions,generated_lines,generated_ncloc,info_violations,violations,line_coverage,new_line_coverage,lines,ncloc,lines_to_cover,new_lines_to_cover,sqale_rating,new_maintainability_rating,major_violations,minor_violations,new_accepted_issues,new_blocker_violations,new_bugs,new_code_smells,new_critical_violations,new_info_violations,new_violations,new_lines,new_major_violations,new_minor_violations,new_security_hotspots,new_vulnerabilities,open_issues,projects,alert_status,reliability_rating,new_reliability_rating,reliability_remediation_effort,new_reliability_remediation_effort,reopened_issues,security_hotspots,security_hotspots_reviewed,new_security_hotspots_reviewed,security_rating,new_security_rating,security_remediation_effort,new_security_remediation_effort,security_review_rating,new_security_review_rating,skipped_tests,statements,sqale_index,sqale_debt_ratio,new_sqale_debt_ratio,uncovered_conditions,new_uncovered_conditions,uncovered_lines,new_uncovered_lines,test_execution_time,test_errors,test_failures,test_success_density,tests,vulnerabilities,wont_fix_issues';
   for (let { sonarProjectKey, defaultBranch } of sonarCloudProjects) {
     if (!defaultBranch) {
       //   get the first branch
@@ -119,49 +225,11 @@ async function collectSonarCloudDataBySonarKeys(sonarKeys) {
       }
     }
     // get measures
-    const measuresResponse = await recordTime(
-      sonarCloudSdk.getMeasures,
-      `get measures of sonar project ${sonarProjectKey}`,
-      {
-        branch: defaultBranch,
-        component: sonarProjectKey,
-        metricKeys,
-      },
-    );
-    await sleep(Math.floor(Math.random() * 500) + 100);
-    if (!measuresResponse.ok) {
-      logger.info(
-        `get measures of sonar project ${sonarProjectKey} error`,
-        await measuresResponse.text(),
-      );
+    const measureResult = await getAllMeasuresSonarCloudData(sonarProjectKey, defaultBranch);
+    if (!measureResult) {
       continue;
     }
-    const measuresJson = await measuresResponse.json();
-    const metrics = measuresJson?.component?.measures;
-    if (!metrics || !metrics.length) {
-      logger.info(`get empty metrics of sonar project ${sonarProjectKey}`);
-      continue;
-    }
-    const metricMap = new Map();
-    metrics.forEach(item => {
-      metricMap.set(item.metric, item.value);
-    });
-    const updateMetric = {
-      bugs: metricMap.get('bugs'),
-      reliabilityRating: getRating(metricMap.get('reliability_rating')),
-      vulnerabilities: metricMap.get('vulnerabilities'),
-      securityRating: getRating(metricMap.get('security_rating')),
-      securityHotspots: metricMap.get('security_hotspots'),
-      securityHotspotsReviewed: metricMap.get('security_hotspots_reviewed'),
-      securityReviewRating: getRating(metricMap.get('security_review_rating')),
-      codeSmells: metricMap.get('code_smells'),
-      maintainabilityRating: getRating(metricMap.get('sqale_rating')),
-      coverageRating: metricMap.get('coverage'),
-      duplicatedLinesDensity: metricMap.get('duplicated_lines_density'),
-      codeLines: metricMap.get('ncloc'),
-      allMeasures: metrics,
-    };
-    await SonarCloudProject.update(updateMetric, {
+    await SonarCloudProject.update(measureResult, {
       where: {
         sonarProjectKey,
       },
@@ -483,7 +551,9 @@ export async function createSonarProjectsFromGithub(req, res) {
             continue;
           } else {
             logger.info(`delete sonarCloud project ${githubProject.fullName} , create a new one`);
-            await sonarCloudSdk.deleteProject(sonarProject.sonarProjectKey);
+            if (sonarProject.sonarProjectKey) {
+              await sonarCloudSdk.deleteProject(sonarProject.sonarProjectKey);
+            }
           }
         }
       } else {
