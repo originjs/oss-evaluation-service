@@ -30,7 +30,7 @@ const getRating = rating => {
   }
 };
 
-const needGithubForkLanguages = new Set(['C', 'C++', 'Objective-C', 'Java', 'C#']);
+const needGithubForkLanguages = new Set(['C', 'C++', 'Objective-C', 'Java', 'C#', null]);
 
 /**
  * {
@@ -524,7 +524,11 @@ export async function createSonarProjectsFromGithub(req, res) {
         },
       });
 
-      if (!needGithubForkLanguages.has(githubProject?.language)) {
+      if (!githubProject) {
+        continue;
+      }
+
+      if (!needGithubForkLanguages.has(githubProject.language)) {
         logger.error(
           `${githubProject.fullName} language:{${githubProject.language}} is not compliant for fork sonar`,
         );
