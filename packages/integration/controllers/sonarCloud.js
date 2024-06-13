@@ -594,6 +594,7 @@ export async function createSonarProjectsFromGithub(req, res) {
               forkGithubId: infoResult.data.id,
               forkGithubFullName: infoResult.data.full_name,
               sonarProjectKey: `${process.env.SONAR_GITHUB_FORK_ORG_NAME}_${githubProject.fullName.replaceAll('/', '-')}`,
+              sonarOrg: process.env.SONAR_GITHUB_FORK_ORG_NAME,
               defaultBranch: '',
             },
             {
@@ -630,9 +631,9 @@ export async function createSonarProjectsFromGithub(req, res) {
         );
         await sleep(10 * 1000);
         //   active auto scan
-        const activeResult = await sonarCloudSdk.setAutoScanInternalApi(
+        await sonarCloudSdk.setAutoScanInternalApi(sonarProject.sonarProjectKey, true);
+        const activeResult = await sonarCloudSdk.activeAutoScanInternalApi(
           sonarProject.sonarProjectKey,
-          true,
         );
         if (activeResult.ok) {
           timer(collectSonarCloudDataBySonarKeys, [sonarProject.sonarProjectKey], 1000 * 60 * 10);
