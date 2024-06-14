@@ -30,8 +30,6 @@ const getRating = rating => {
   }
 };
 
-const needGithubForkLanguages = new Set(['C', 'C++', 'Objective-C', 'Java', 'C#', null]);
-
 /**
  * {
  *     "branches": [
@@ -528,12 +526,6 @@ export async function createSonarProjectsFromGithub(req, res) {
         continue;
       }
 
-      if (!needGithubForkLanguages.has(githubProject.language)) {
-        logger.error(
-          `${githubProject.fullName} language:{${githubProject.language}} is not compliant for fork sonar`,
-        );
-        continue;
-      }
       //   query for sonar
       let sonarProject = await SonarCloudProject.findOne({
         where: {
