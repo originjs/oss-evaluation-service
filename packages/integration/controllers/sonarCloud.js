@@ -581,25 +581,25 @@ export async function createSonarProjectsFromGithub(req, res) {
           logger.info(
             `success to get github fork project info. fullName:{${process.env.SONAR_GITHUB_FORK_ORG_NAME}/${githubProject.fullName.replace('/', '-')}}`,
           );
-          await SonarCloudProject.update(
-            {
-              forkGithubId: infoResult.data.id,
-              forkGithubFullName: infoResult.data.full_name,
-              sonarProjectKey: `${process.env.SONAR_GITHUB_FORK_ORG_NAME}_${githubProject.fullName.replaceAll('/', '-')}`,
-              sonarOrg: process.env.SONAR_GITHUB_FORK_ORG_NAME,
-              defaultBranch: '',
+          const updateInfo = {
+            forkGithubId: infoResult.data.id,
+            forkGithubFullName: infoResult.data.full_name,
+            sonarProjectKey: `${process.env.SONAR_GITHUB_FORK_ORG_NAME}_${githubProject.fullName.replaceAll('/', '-')}`,
+            sonarOrg: process.env.SONAR_GITHUB_FORK_ORG_NAME,
+            defaultBranch: '',
+          };
+          await SonarCloudProject.update(updateInfo, {
+            where: {
+              githubProjectId: githubId,
             },
-            {
-              where: {
-                githubProjectId: githubId,
-              },
-            },
-          );
+          });
           sonarProject.forkGithubFullName = infoResult.data.full_name;
           sonarProject.forkGithubId = infoResult.data.id;
+          sonarProject.sonarProjectKey = updateInfo.sonarProjectKey;
         } else {
           logger.error(
-            `failed to get github fork project info. fullName:{${process.env.SONAR_GITHUB_FORK_ORG_NAME}/${githubProject.fullName.replace('/')}}`,
+            // eslint-disable-next-line max-len
+            `failed to get github fork project info. fullName:{${process.env.SONAR_GITHUB_FORK_ORG_NAME}/${githubProject.fullName.replace('/', '-')}} , reason: ${await infoResult.msg()}`,
           );
           continue;
         }
@@ -621,16 +621,21 @@ export async function createSonarProjectsFromGithub(req, res) {
         logger.info(
           `success created sonarCloud project of sonarKey:{${JSON.stringify(createSonarParam)}}`,
         );
-        await sleep(10 * 1000);
+        await sleep(5 * 1000);
         //   active auto scan
         await sonarCloudSdk.setAutoScanInternalApi(sonarProject.sonarProjectKey, true);
         const activeResult = await sonarCloudSdk.activeAutoScanInternalApi(
           sonarProject.sonarProjectKey,
         );
         if (activeResult.ok) {
+          logger.info(`active auto scan of {${sonarProject.sonarProjectKey}} success!`);
           timer(collectSonarCloudDataBySonarKeys, [sonarProject.sonarProjectKey], 1000 * 60 * 10);
+        } else {
+          logger.error(
+            `failed to active auto scan of project :${sonarProject.sonarProjectKey} , ${await activeResult.text()}`,
+          );
         }
-        await sleep(30 * 1000);
+        await sleep(3 * 1000);
       } else {
         logger.error(
           `failed to sonarCloud project of sonarKey:{${JSON.stringify(createSonarParam)}}`,

@@ -31,7 +31,7 @@ export const renameMainBranch = async (projectKey, newBranchName, token) => {
   );
 };
 
-export const getBranchAnalyseTime = async (sonarKey, branchName , token) => {
+export const getBranchAnalyseTime = async (sonarKey, branchName, token) => {
   const requestOptions = {
     method: 'GET',
     headers: authorizationHeader(token),
