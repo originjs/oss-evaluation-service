@@ -32,7 +32,7 @@
             items-center
             mb-10px
           >
-            <span>{{ subData.subTechStackName }}</span>
+            <span>{{ subData.subTechStackName }} ({{ subData.projects.length }})</span>
             <el-tooltip v-if="hasMore" effect="light" content="点击查看更多项目" placement="right">
               <div
                 class="more-btn"
@@ -349,7 +349,7 @@ type LandscapeData = {
 };
 
 const getLandscapeWidth = () => {
-  let width = document.getElementById('landscape')!.offsetWidth - 32;
+  let width = (document.getElementById('landscape')?.offsetWidth || 1280) - 32;
   width = width < 350 ? 1248 : width;
   return width;
 };
@@ -591,7 +591,7 @@ const clearHideTimer = () => {
 
 const showProjectPopover = (project: Project, event: MouseEvent) => {
   clearHideTimer();
-  popoverRef.value.setAttribute('data-show', '');
+  popoverRef.value?.setAttribute('data-show', '');
   popoverProject.value = project;
 
   if (!enableProjectPopover) {
@@ -605,7 +605,7 @@ const showProjectPopover = (project: Project, event: MouseEvent) => {
 };
 const hideProjectPopover = () => {
   timerNumber = setTimeout(() => {
-    popoverRef.value.removeAttribute('data-show');
+    popoverRef.value?.removeAttribute('data-show');
   }, 500);
 };
 
