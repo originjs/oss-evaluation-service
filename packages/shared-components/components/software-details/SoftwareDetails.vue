@@ -332,7 +332,7 @@ function getDependentSeriesData(data: Array<DependentProject>): SeriesData {
       id: 'option.' + item['ownerName'] + count,
       index: count,
       value: item['star'],
-      name: item['fullName'].split('/')[1],
+      name: '-' + item['fullName'].split('/')[1],
     };
   });
   seriesData.push({
@@ -494,7 +494,7 @@ function renderBubbleChart(container: string, seriesData: SeriesData) {
   };
   if (container === '#dependent-project-bubble-chart') {
     (option.tooltip as TooltipComponentOption).valueFormatter = (obj: any) =>
-      obj[0] + ' : ' + toKilo(obj[1]) + ' stars';
+      obj[0].slice(1) + ' : ' + toKilo(obj[1]) + ' stars';
   }
   if (container === '#project-companies-bubble-chart') {
     (option.tooltip as TooltipComponentOption).valueFormatter = (obj: any) =>
@@ -1748,7 +1748,14 @@ onBeforeUnmount(() => {
         <span font-size-5 float-right>-/100</span>
       </div>
       <el-card v-loading="!loadingInnovation && geoLoading" mb-6>
-        <div mb-2 font-size-5 font-bold>贡献者多样性</div>
+        <div flex>
+          <div mb-2 font-size-5 font-bold>贡献者多样性</div>
+          <el-tooltip :content="i18n.global.t(`tips.ossInsight`)">
+            <el-icon size-5 color-gray-400>
+              <InfoFilled />
+            </el-icon>
+          </el-tooltip>
+        </div>
         <span font-size-3 text-gray-500>
           {{ i18n.global.t(`tips.geoDistribution`) }}
         </span>
@@ -1846,7 +1853,14 @@ onBeforeUnmount(() => {
         items-center
       >
         <el-card mb-6 w-1280px>
-          <div mb-2 font-size-5 font-bold>组织多样性</div>
+          <div flex>
+            <div mb-2 font-size-5 font-bold>组织多样性</div>
+            <el-tooltip :content="i18n.global.t(`tips.ossInsight`)">
+              <el-icon size-5 color-gray-400>
+                <InfoFilled />
+              </el-icon>
+            </el-tooltip>
+          </div>
           <span font-size-3 text-gray-500>
             {{ i18n.global.t(`tips.companies.info`) }}
           </span>
