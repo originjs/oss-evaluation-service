@@ -52,6 +52,7 @@
                 @click="gotoMore(data.category, subData.subTechStackName)"
               />
             </el-tooltip>
+            <slot name="subTechStackTitleExtend" :subTechStack="subData"></slot>
           </div>
           <div
             :style="`display: grid;grid-template-columns: repeat(auto-fit,${boxSize}px);grid-auto-rows: ${boxSize}px;gap: ${boxGap}px;margin-bottom:10px;`"
