@@ -30,3 +30,14 @@ export const renameMainBranch = async (projectKey, newBranchName, token) => {
     requestOptions,
   );
 };
+
+export const getBranchAnalyseTime = async (sonarKey, branchName, token) => {
+  const requestOptions = {
+    method: 'GET',
+    headers: authorizationHeader(token),
+  };
+  return fetch(
+    `https://sonarcloud.io/api/project_analyses/search?project=${sonarKey}&branch=${branchName}&p=1&ps=1&s=analysisDate`,
+    requestOptions,
+  );
+};

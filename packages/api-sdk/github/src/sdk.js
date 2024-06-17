@@ -15,7 +15,7 @@ export class GithubSdk {
     return deleteFork(owner, repo, this.token);
   };
 
-  projectInfo(owner, repo) {
+  projectInfo = (owner, repo) => {
     return getProjectInfo(owner, repo, this.token);
-  }
+  };
 }

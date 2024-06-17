@@ -71,6 +71,7 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
         const sonarCommand = `
             cd ${dir} &&\
             ${mvnCommand} org.sonarsource.scanner.maven:sonar-maven-plugin:LATEST:sonar\
+            -Dsonar.maven.scanAll=true\
             -Dsonar.host.url=${this.param.sonarHostUrl}\
             -Dsonar.organization=${this.param.sonarOrg}\
             -Dsonar.projectKey=${this.param.sonarKey}\
@@ -108,7 +109,7 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
             tasks.matching { it.name.toLowerCase().contains("dist") }.configureEach {
               enabled = false
             }
-        } 
+        }
         `;
         const initFilePath = `${dir}/${initGradleFileName}`;
         fs.writeFileSync(initFilePath, initContent, 'utf-8');

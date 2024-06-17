@@ -43,7 +43,7 @@ import {
   setDefaultBranchOfSonar,
   updateDefaultBranchAfterImport,
   updateSonarCloudDefaultBranch,
-  uploadSonarCiConfigToGitlab,
+  uploadSonarCiConfigToGitlab, changeSonarKey2OfficialKeys,
 } from '../controllers/sonarCloud.js';
 import syncSingleProjectCodeSizeHandler, {
   syncAllProjectCodeSizeHandler,
@@ -893,6 +893,25 @@ router.route('/sonarCloud/scan').post(await createAndScanSonarProjectByGithubId)
  *         description: success.
  */
 router.route('/sonarCloud/createGithubProjects').post(await createSonarProjectsFromGithub);
+
+/**
+ * @swagger
+ * /sync/sonarCloud/changeSonar2OfficialKey:
+ *  post:
+ *     summary: changeSonar2OfficialKey
+ *     tags: [Sonar]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *       example: [158975124]
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/sonarCloud/changeSonar2OfficialKey').post(await changeSonarKey2OfficialKeys);
 
 /**
  * @swagger

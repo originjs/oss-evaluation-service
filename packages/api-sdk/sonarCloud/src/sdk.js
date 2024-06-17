@@ -5,7 +5,12 @@ import {
   deleteProject,
   setAutoScanInternalApi,
 } from './projects.js';
-import { deleteBranch, listProjectBranches, renameMainBranch } from './projectBranches.js';
+import {
+  deleteBranch,
+  getBranchAnalyseTime,
+  listProjectBranches,
+  renameMainBranch,
+} from './projectBranches.js';
 import { getMeasures } from './measures.js';
 
 export class SonarCloudSdk {
@@ -44,6 +49,10 @@ export class SonarCloudSdk {
 
   setAutoScanInternalApi = (projectKey, enable) => {
     return setAutoScanInternalApi(projectKey, enable, this.token);
+  };
+
+  getBranchAnalyseTime = (sonarKey, branchName) => {
+    return getBranchAnalyseTime(sonarKey, branchName, this.token);
   };
 
   listProjectBranches = projectKey => {
