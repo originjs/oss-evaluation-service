@@ -32,7 +32,7 @@
             items-center
             mb-10px
           >
-            <span>{{ subData.subTechStackName }} ({{ subData.projects.length }})</span>
+            <span>{{ subData.subTechStackName }} ({{ subData.projects?.length || 0 }})</span>
             <el-tooltip v-if="hasMore" effect="light" content="点击查看更多项目" placement="right">
               <div
                 class="more-btn"
