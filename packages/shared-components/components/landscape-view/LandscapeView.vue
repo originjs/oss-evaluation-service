@@ -300,7 +300,20 @@ const emit = defineEmits<{
 }>();
 
 const landcapseData = ref();
-const popoverProject = ref<Project>(props.projects[0]);
+const popoverProject = ref<Project>({
+  category: '',
+  subcategory: '',
+  name: '',
+  description: '',
+  htmlUrl: '',
+  logo: '',
+  starCount: 0,
+  forksCount: 0,
+  hasBenchmark: '',
+  bigProject: '',
+  labels: [],
+  language: '',
+});
 const popoverRef = ref();
 const hasMore = typeof props.options?.hasMore === 'undefined' ? true : props.options.hasMore;
 const boxSize = typeof props.options?.boxSize !== 'number' ? 40 : props.options.boxSize;
@@ -543,13 +556,15 @@ const processLandscapeData = (
   return _landcapseData;
 };
 
-onMounted(() => {
+watchEffect(() => {
   landcapseData.value = processLandscapeData(props.projects, {
     layout: props.options?.layout,
     autoLayout: props.options?.autoLayout,
     isInit: true,
   });
+});
 
+onMounted(() => {
   if (enableProjectPopover) {
     popoverInstance = createPopper(virtualElement, popoverRef.value, {
       modifiers: [
