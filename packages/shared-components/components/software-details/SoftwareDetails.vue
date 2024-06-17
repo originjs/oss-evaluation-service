@@ -332,7 +332,7 @@ function getDependentSeriesData(data: Array<DependentProject>): SeriesData {
       id: 'option.' + item['ownerName'] + count,
       index: count,
       value: item['star'],
-      name: item['fullName'].split('/')[1],
+      name: '-' + item['fullName'].split('/')[1],
     };
   });
   seriesData.push({
@@ -494,7 +494,7 @@ function renderBubbleChart(container: string, seriesData: SeriesData) {
   };
   if (container === '#dependent-project-bubble-chart') {
     (option.tooltip as TooltipComponentOption).valueFormatter = (obj: any) =>
-      obj[0] + ' : ' + toKilo(obj[1]) + ' stars';
+      obj[0].slice(1) + ' : ' + toKilo(obj[1]) + ' stars';
   }
   if (container === '#project-companies-bubble-chart') {
     (option.tooltip as TooltipComponentOption).valueFormatter = (obj: any) =>
