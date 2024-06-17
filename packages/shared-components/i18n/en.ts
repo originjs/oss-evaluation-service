@@ -51,6 +51,7 @@ export default {
     },
     Compass:
       '数据来源于开源指南针OSS Compass，关于指标的详细说明可以查看官网: https://oss-compass.org/zh/docs/docs/metrics-models/',
+    ossInsight: 'Data from OSS Insight analysis of Geographical Distribution and Companies',
     geoDistribution:
       'Stargazers, Issue creators, and Pull Request creators’ geographical distribution around the world (analyzed with the public GitHub information).',
   },

@@ -70,6 +70,7 @@ export default {
     companies: {
       info: '有关 Stargazers、Issue 创建者和 Pull Request 创建者的公司信息（使用公共 GitHub 信息进行分析）。',
     },
+    ossInsight: '数据来源于OSS Insight分析中的Geographical Distribution与Companies',
     geoDistribution:
       'Stargazers、Issue 创建者和 Pull Request 创建者的全球地理分布（使用公开的 GitHub 信息进行分析）。',
   },
