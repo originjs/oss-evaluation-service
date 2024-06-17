@@ -13,7 +13,12 @@
         items-center
         mr-16px
       >
-        <span class="landscape-category-name" style="transform: rotate(180deg)" write-vertical-right>{{ data.category }}</span>
+        <span
+          class="landscape-category-name"
+          style="transform: rotate(180deg)"
+          write-vertical-right
+          >{{ data.category }}</span
+        >
       </div>
       <div flex-1 flex flex-wrap justify-between>
         <div
@@ -32,7 +37,12 @@
             items-center
             mb-10px
           >
-            <span>{{ subData.subTechStackName }} ({{ subData.projects?.length || 0 }})</span>
+            <span
+              >{{ subData.subTechStackName }} ({{
+                totalSubcategoryProjectsCount[`${data.category}###${subData.subTechStackName}`] ||
+                0
+              }})</span
+            >
             <el-tooltip v-if="hasMore" effect="light" content="点击查看更多项目" placement="right">
               <div
                 class="more-btn"
@@ -325,6 +335,7 @@ const enableProjectPopover =
     : true;
 let popoverInstance: Instance;
 const isOpenProjectDialog = ref(false);
+const totalSubcategoryProjectsCount = ref<{ [key: string]: number }>({});
 
 const BackgroundColors = ['#89bff6', '#89c997', '#e8dd92', '#f0b58e', '#aea3db'];
 const getBackgroundColor = (index: number) => {
@@ -455,6 +466,13 @@ const calcWidth: (data: LandscapeData[], autoLayout?: AutoLayout) => LandscapeDa
   return data;
 };
 
+const countProjects = (item: Project) => {
+  const key = `${item.category}###${item.subcategory}`;
+  let currCount = totalSubcategoryProjectsCount.value[key] || 0;
+  ++currCount;
+  totalSubcategoryProjectsCount.value[key] = currCount;
+};
+
 const processLandscapeData = (
   projects: Project[],
   { layout, autoLayout, isInit }: { layout?: Layout; autoLayout?: AutoLayout; isInit?: boolean },
@@ -498,7 +516,10 @@ const processLandscapeData = (
     }
   }
 
+  totalSubcategoryProjectsCount.value = {};
   projects.forEach((item: Project) => {
+    countProjects(item);
+
     if (typeof indexMapping[item.category] === 'undefined') {
       indexMapping[item.category] = {
         index: _landcapseData.length,
@@ -556,15 +577,22 @@ const processLandscapeData = (
   return _landcapseData;
 };
 
-watchEffect(() => {
+const initLandscape = () => {
   landcapseData.value = processLandscapeData(props.projects, {
     layout: props.options?.layout,
     autoLayout: props.options?.autoLayout,
     isInit: true,
   });
-});
+};
+
+watch(
+  () => props.projects,
+  () => initLandscape(),
+);
 
 onMounted(() => {
+  initLandscape();
+
   if (enableProjectPopover) {
     popoverInstance = createPopper(virtualElement, popoverRef.value, {
       modifiers: [
