@@ -17,12 +17,12 @@ defineExpose({
   popoverRef,
 });
 
-const emit = defineEmits(['mouseenter']);
+const emit = defineEmits(['mouseenter', 'mouseleave']);
 </script>
 
 <template>
   <el-popover ref="popoverRef" v-bind="$attrs" virtual-triggering width="450">
-    <div @mouseenter="emit('mouseenter')">
+    <div @mouseenter="emit('mouseenter')" @mouseleave="emit('mouseleave')">
       <div flex items-center>
         <div w-70px h-90px mr-3>
           <el-image :src="project.logo" class="bg-[#d98c8cff]" fit="fill">
