@@ -1,13 +1,21 @@
-export function toKilo(value: number | undefined | string): string {
+type ToKiloOptions = {
+  fractionDigits?: number;
+  emptyValue?: string;
+};
+
+export function toKilo(
+  value: number | undefined | string,
+  { fractionDigits = 2, emptyValue = '-' }: ToKiloOptions = {},
+): string {
   if (value === undefined || value === null || value === '') {
-    return '-';
+    return emptyValue;
   }
 
   const number = typeof value === 'string' ? parseFloat(value) : value;
   if (number < 1000) {
     return number.toString();
   } else if (number < 100000) {
-    return (number / 1000).toFixed(2) + ' k';
+    return (number / 1000).toFixed(fractionDigits) + ' k';
   } else {
     return Math.round(number / 1000) + ' k';
   }
