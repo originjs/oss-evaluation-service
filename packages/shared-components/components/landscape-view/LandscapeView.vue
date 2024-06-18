@@ -119,7 +119,8 @@
       :project="popoverProject"
       :virtual-ref="virtualRef"
       :options="{ evaluation: props.options.evaluation, goBenchmark: props.options.goBenchmark }"
-      @mouseenter="clearVisibleTimer"
+      @mouseenter="undoHideProjectPopover"
+      @mouseleave="hideProjectPopover"
     />
 
     <el-dialog v-model="isOpenProjectDialog" width="fit-content">
@@ -529,7 +530,7 @@ function clickProject(project: Project) {
 }
 
 let visibleTimer: number | undefined;
-const clearVisibleTimer = () => {
+const undoHideProjectPopover = () => {
   if (visibleTimer) {
     clearTimeout(visibleTimer);
   }
@@ -544,7 +545,7 @@ const showProjectPopover = (project: Project, event: MouseEvent) => {
     return;
   }
 
-  clearVisibleTimer();
+  undoHideProjectPopover();
 
   virtualRef.value = event.target as HTMLElement;
 };
