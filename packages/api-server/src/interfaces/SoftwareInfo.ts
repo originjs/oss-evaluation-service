@@ -104,6 +104,8 @@ export interface AlternativeInfo {
   id: number;
   repoName: string;
   logo: string;
+  starCount: number;
+  forksCount: number;
   url: string;
   description: string;
   ai: number;
