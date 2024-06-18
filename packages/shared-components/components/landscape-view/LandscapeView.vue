@@ -112,87 +112,15 @@
         </div>
       </div>
     </div>
-    <div
-      id="project-tooltip"
+
+    <project-popover
       ref="popoverRef"
-      w-450px
-      bg-white
-      role="project-tooltip"
-      style="
-        box-shadow:
-          rgb(14 18 22 / 35%) 0px 10px 38px -10px,
-          rgb(14 18 22 / 20%) 0px 10px 20px -15px;
-        padding: 20px;
-      "
-      @mouseenter="clearHideTimer"
-      @mouseleave="hideProjectPopover"
-    >
-      <div>
-        <div flex items-center>
-          <div w-70px h-90px mr-3>
-            <el-image :src="popoverProject?.logo" bg-white fit="fill">
-              <template #error>
-                <GenerateProjectAvatar v-model="popoverProject.name" :width="70" :height="70" />
-              </template>
-            </el-image>
-          </div>
-          <div flex flex-1 flex-col>
-            <span text-lg fw-bold>
-              <el-text line-clamp="2">
-                {{ popoverProject?.name }}
-              </el-text>
-            </span>
-            <div flex items-center>
-              <div mr-3 flex items-center>
-                <span i-custom:star-active font-size-4 mr-1></span>
-                {{ numberFormat(popoverProject?.starCount || 0) }}
-              </div>
-              <div mr-3 flex items-center>
-                <span i-custom:fork-active font-size-4 mr-1></span>
-                {{ numberFormat(popoverProject?.forksCount || 0) }}
-              </div>
-              <a
-                :href="popoverProject?.htmlUrl"
-                target="_blank"
-                i-custom:github
-                font-size-4
-                mr-3
-                cursor-pointer
-              ></a>
-            </div>
-          </div>
-          <div flex>
-            <div v-if="props.options?.evaluation" flex flex-col mr-3 items-center>
-              <el-tooltip effect="light" content="先进性评估" placement="bottom">
-                <span
-                  i-custom:evaluation
-                  font-size-10
-                  cursor-pointer
-                  @click="props.options?.evaluation(popoverProject as Project)"
-                ></span>
-              </el-tooltip>
-            </div>
-            <div v-if="popoverProject?.hasBenchmark == 'Y'" flex flex-col items-center>
-              <el-tooltip effect="light" content="性能Benchmark" placement="bottom">
-                <span
-                  i-custom:benchmark
-                  font-size-10
-                  :class="{ 'cursor-pointer': props.options?.goBenchmark }"
-                  @click="
-                    props.options?.goBenchmark &&
-                      props.options?.goBenchmark(popoverProject as Project)
-                  "
-                ></span>
-              </el-tooltip>
-            </div>
-          </div>
-        </div>
-        <el-text line-clamp="3">
-          {{ popoverProject?.description }}
-        </el-text>
-      </div>
-      <div id="arrow" data-popper-arrow></div>
-    </div>
+      :visible="!!virtualRef"
+      :project="popoverProject"
+      :virtual-ref="virtualRef"
+      :options="{ evaluation: props.options.evaluation, goBenchmark: props.options.goBenchmark }"
+      @mouseenter="clearVisibleTimer"
+    />
 
     <el-dialog v-model="isOpenProjectDialog" width="fit-content">
       <slot name="projectDialogHeader" :project="popoverProject">
@@ -213,11 +141,11 @@
               <div flex items-center>
                 <div mr-3 flex items-center>
                   <span i-custom:star-active font-size-4 mr-1></span>
-                  {{ numberFormat(popoverProject?.starCount || 0) }}
+                  {{ toKilo(popoverProject?.starCount, { fractionDigits: 1, emptyValue: '0' }) }}
                 </div>
                 <div mr-3 flex items-center>
                   <span i-custom:fork-active font-size-4 mr-1></span>
-                  {{ numberFormat(popoverProject?.forksCount || 0) }}
+                  {{ toKilo(popoverProject?.forksCount, { fractionDigits: 1, emptyValue: '0' }) }}
                 </div>
                 <a
                   :href="popoverProject?.htmlUrl"
@@ -227,7 +155,7 @@
                   mr-3
                   cursor-pointer
                 ></a>
-                <el-tag type="warning" v-if="popoverProject?.language" effect="plain">
+                <el-tag v-if="popoverProject?.language" type="warning" effect="plain">
                   {{ popoverProject?.language }}
                 </el-tag>
               </div>
@@ -257,9 +185,9 @@
 </template>
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { createPopper, type VirtualElement, type Instance } from '@popperjs/core';
 import GenerateProjectAvatar from './GenerateProjectAvatar.vue';
-import { getTagType } from '@orginjs/oss-evaluation-components-utils';
+import { getTagType, toKilo } from '@orginjs/oss-evaluation-components-utils';
+import ProjectPopover from './ProjectPopover.vue';
 
 interface Project {
   category: string;
@@ -325,7 +253,6 @@ const popoverProject = ref<Project>({
   labels: [],
   language: '',
 });
-const popoverRef = ref();
 const hasMore = typeof props.options?.hasMore === 'undefined' ? true : props.options.hasMore;
 const boxSize = typeof props.options?.boxSize !== 'number' ? 40 : props.options.boxSize;
 const boxGap = typeof props.options?.boxGap !== 'number' ? 8 : props.options.boxGap;
@@ -334,7 +261,6 @@ const enableProjectPopover =
   typeof props.options?.enableProjectPopover === 'boolean'
     ? props.options?.enableProjectPopover
     : true;
-let popoverInstance: Instance;
 const isOpenProjectDialog = ref(false);
 const totalSubcategoryProjectsCount = ref<{ [key: string]: number }>({});
 
@@ -345,19 +271,6 @@ const getBackgroundColor = (index: number) => {
     colors = props.options.colors;
   }
   return colors[index % colors.length];
-};
-
-const virtualElement: VirtualElement = {
-  getBoundingClientRect: () => {
-    return {
-      width: 0,
-      height: 0,
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
-    } as ClientRect;
-  },
 };
 
 type SubCategory = {
@@ -593,19 +506,6 @@ watch(
 
 onMounted(() => {
   initLandscape();
-
-  if (enableProjectPopover) {
-    popoverInstance = createPopper(virtualElement, popoverRef.value, {
-      modifiers: [
-        {
-          name: 'offset',
-          options: {
-            offset: [0, 3],
-          },
-        },
-      ],
-    });
-  }
 });
 
 const updateProjects = (projects: Project[]) => {
@@ -628,38 +528,32 @@ function clickProject(project: Project) {
   emit('clickProject', project);
 }
 
-let timerNumber: NodeJS.Timeout;
-const clearHideTimer = () => {
-  clearTimeout(timerNumber);
+let visibleTimer: number | undefined;
+const clearVisibleTimer = () => {
+  if (visibleTimer) {
+    clearTimeout(visibleTimer);
+  }
 };
 
+const popoverRef = ref();
+const virtualRef = ref<HTMLElement>();
 const showProjectPopover = (project: Project, event: MouseEvent) => {
-  clearHideTimer();
-  popoverRef.value?.setAttribute('data-show', '');
   popoverProject.value = project;
 
   if (!enableProjectPopover) {
     return;
   }
 
-  virtualElement.getBoundingClientRect = () => {
-    return (event.target as Element)!.getBoundingClientRect();
-  };
-  popoverInstance.update();
+  clearVisibleTimer();
+
+  virtualRef.value = event.target as HTMLElement;
 };
+
 const hideProjectPopover = () => {
-  timerNumber = setTimeout(() => {
-    popoverRef.value?.removeAttribute('data-show');
+  visibleTimer = setTimeout(() => {
+    virtualRef.value = undefined;
   }, 500);
 };
-
-function numberFormat(num: number) {
-  if (num < 1000) {
-    return num;
-  }
-
-  return (num / 1000).toFixed(1) + 'k';
-}
 
 const getProjectStyle = (project: Project) => {
   let borderColor = '#016bccb3';
@@ -711,48 +605,6 @@ const labelFormat = (project: Project): string => {
 .more-btn {
   &:hover {
     cursor: pointer;
-  }
-}
-
-#project-tooltip {
-  display: none;
-
-  #arrow,
-  #arrow::before {
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    background: inherit;
-  }
-
-  #arrow {
-    visibility: hidden;
-  }
-
-  #arrow::before {
-    visibility: visible;
-    content: '';
-    transform: rotate(45deg);
-  }
-
-  &[data-popper-placement^='top'] > #arrow {
-    bottom: -4px;
-  }
-
-  &[data-popper-placement^='bottom'] > #arrow {
-    top: -4px;
-  }
-
-  &[data-popper-placement^='left'] > #arrow {
-    right: -4px;
-  }
-
-  &[data-popper-placement^='right'] > #arrow {
-    left: -4px;
-  }
-
-  &[data-show] {
-    display: block;
   }
 }
 </style>
