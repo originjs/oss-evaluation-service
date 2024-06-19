@@ -6,7 +6,8 @@ AlternativeProjects.hasOne(GithubProjects, { foreignKey: 'alternative_id' });
 export async function getAlternativeProjects(fullName: string): Promise<AlternativeInfo[]> {
   const ALTERNATIVE_SIZE = 6;
   // similar project by ai
-  const sql = `SELECT alternative_id, alternative_name, alternative_url, source, owner_avatar_url, description 
+  const sql = `SELECT alternative_id, alternative_name, alternative_url, source, 
+       owner_avatar_url, description, stargazers_count as starCount, forks_count as forksCount
   FROM alternative_projects a LEFT JOIN github_projects g ON a.alternative_id=g.id
   WHERE a.full_name=:fullName AND alternative_id IS NOT NULL ORDER BY distance LIMIT ${ALTERNATIVE_SIZE}`;
   let list = await sequelize.query(sql, {
@@ -18,6 +19,8 @@ export async function getAlternativeProjects(fullName: string): Promise<Alternat
       id: item.alternative_id,
       repoName: item.alternative_name,
       logo: item.owner_avatar_url,
+      starCount: item.starCount,
+      forksCount: item.forksCount,
       url: item.alternative_url,
       description: item.description,
       ai: item.source === 'ai' ? 1 : 0,
@@ -25,7 +28,8 @@ export async function getAlternativeProjects(fullName: string): Promise<Alternat
   });
   if (alternatives.length < ALTERNATIVE_SIZE) {
     // similar project by subcategory
-    const sql = `SELECT id, full_name, g.html_url, g.owner_avatar_url as logo, description
+    const sql = `SELECT id, full_name, g.html_url, g.owner_avatar_url as logo, 
+       description, g.stargazers_count as starCount, g.forks_count as forksCount
 FROM github_projects g JOIN project_tech_stack t ON g.id = t.project_id 
 WHERE subcategory IN ( SELECT subcategory FROM project_tech_stack WHERE html_url = :repoName ) 
 ORDER BY stargazers_count DESC LIMIT ${ALTERNATIVE_SIZE + 1}`;
@@ -42,6 +46,8 @@ ORDER BY stargazers_count DESC LIMIT ${ALTERNATIVE_SIZE + 1}`;
         id: item.id,
         repoName: item.full_name,
         logo: item.logo,
+        starCount: item.starCount,
+        forksCount: item.forksCount,
         url: item.html_url,
         description: item.description,
       });
