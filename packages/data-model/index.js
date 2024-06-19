@@ -31,3 +31,4 @@ export { default as GithubProjectsDependencies } from './models/GithubProjectsDe
 export { default as OssinsightPullRequestCreatorsCountries } from './models/OssinsightPullRequestCreatorsCountries.js';
 export { default as OssinsightCreatorsOrganizations } from './models/OssinsightCreatorsOrganizations.js';
 export { default as OssinsightCreatorsCountries } from './models/OssinsightCreatorsCountries.js';
+export { default as GithubProjectsRank } from './models/GithubProjectsRank.js';
