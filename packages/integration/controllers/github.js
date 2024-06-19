@@ -1,7 +1,8 @@
 import https from 'node:https';
 import * as fs from 'node:fs';
 import { Octokit } from '@octokit/core';
-import { GithubProjects, logger } from '@orginjs/oss-evaluation-data-model';
+import { GithubProjects, logger, GithubProjectsRank } from '@orginjs/oss-evaluation-data-model';
+import GithubSdk from '@orginjs/github-sdk/src/index.js';
 
 /**
  *  There are 952 github projects between 1000 and 1130 stars.
@@ -98,6 +99,32 @@ async function savaData(projects) {
     updateOnDuplicate,
   });
   logger.info(`Batch insert/update success,${result.length} rows.`);
+}
+
+export async function refreshRankProjects(req, res) {
+  const { type, count } = req.query;
+  const githubSdk = new GithubSdk();
+  const data = await githubSdk.rankProjects(type, count);
+  const dbData = [];
+  const keyMap = new Map();
+  keyMap.set('forks', 'forks_count');
+  keyMap.set('stars', 'stargazers_count');
+  data.forEach((val, index) => {
+    dbData.push({
+      fullName: val.full_name,
+      homeUrl: val.html_url,
+      orderNum: index + 1,
+      value: val[keyMap.get(type)],
+      type: type,
+    });
+  });
+  GithubProjectsRank.destroy({
+    where: {
+      type: type,
+    },
+  });
+  GithubProjectsRank.bulkCreate(dbData);
+  res.status(200).json('success');
 }
 
 function saveCSVFile(projects, fileName) {

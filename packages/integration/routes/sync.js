@@ -23,6 +23,7 @@ import {
   syncProjectByStar,
   syncProjectByRepo,
   syncProjectByUserStar,
+  refreshRankProjects,
 } from '../controllers/github.js';
 import {
   bulkAddBenchmarkHandler,
@@ -1246,4 +1247,33 @@ router.route('/syncSingleProjectCreatorsCountries').post(syncSingleProjectCreato
  *
  */
 router.route('/syncAllProjectCreatorsCountries').post(syncAllProjectCreatorsCountriesHandler);
+
+
+
+/**
+ * @swagger
+ * /sync/github/refreshGithubProjectsRank:
+ *   get:
+ *     summary: get github projects ranks
+ *     tags: [Github]
+ *     parameters:
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: ['stars', 'forks']
+ *           example: 'stars'
+ *           required: true
+ *       - in: query
+ *         name: count
+ *         required: true
+ *         schema:
+ *           type: number
+ *           example: 100
+ *     responses:
+ *       200:
+ *         description: Success
+ */
+router.route('/github/refreshGithubProjectsRank').get(await refreshRankProjects);
+
 export default router;
