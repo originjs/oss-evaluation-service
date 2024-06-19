@@ -12,3 +12,16 @@ export interface Project {
   labels: string[];
   language: string;
 }
+
+export interface Subcategory {
+  subTechStackName: string;
+  projects: Project[];
+  width?: number;
+  normalizedProjectsCount?: number;
+  hasBigProject?: boolean;
+}
+
+export interface Category {
+  category: string;
+  subcategory: Subcategory[];
+}

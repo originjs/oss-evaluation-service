@@ -1,6 +1,6 @@
 <template>
   <div id="landscape" w-full>
-    <div v-for="(data, index) in landcapseData" :key="data.category" w-full flex mb-16px>
+    <div v-for="(data, index) in landscapeData" :key="data.category" w-full flex mb-16px>
       <div
         :style="`background-color:${getBackgroundColor(index)}`"
         w-32px
@@ -52,62 +52,21 @@
                 @click="gotoMore(data.category, subData.subTechStackName)"
               />
             </el-tooltip>
-            <slot name="subTechStackTitleExtend" :subTechStack="subData"></slot>
+            <slot name="subTechStackTitleExtend" :sub-tech-stack="subData"></slot>
           </div>
           <div
             :style="`display: grid;grid-template-columns: repeat(auto-fit,${boxSize}px);grid-auto-rows: ${boxSize}px;gap: ${boxGap}px;margin-bottom:10px;`"
           >
-            <div
+            <project-thumbnails
               v-for="project in subData.projects"
               :key="`${data.category}-${subData.subTechStackName}-${project.name}`"
-              relative
-              bg-white
-              :style="`${getProjectStyle(project)} display: flex;word-wrap: break-word;`"
-            >
-              <div
-                flex
-                flex-col
-                items-center
-                bg-white
-                class="project-logo"
-                @click="clickProject(project)"
-                @mouseenter="showProjectPopover(project, $event)"
-                @mouseleave="hideProjectPopover"
-              >
-                <el-image
-                  flex
-                  flex-1
-                  lazy
-                  :src="project.logo"
-                  bg-white
-                  fit="fill"
-                  :style="`width:${(project.bigProject === 'Y' ? boxSize * 2 : boxSize) - 2}px;height:${project.bigProject === 'Y' ? boxSize * 2 : boxSize}px;`"
-                >
-                  <template #error>
-                    <GenerateProjectAvatar
-                      v-model="project.name"
-                      :width="project.bigProject === 'Y' ? boxSize * 2 : boxSize"
-                      :height="project.bigProject === 'Y' ? boxSize * 2 : boxSize"
-                    />
-                  </template>
-                  <template #placeholder>
-                    <div></div>
-                  </template>
-                </el-image>
-              </div>
-              <span
-                v-if="labelFormat(project) && (project.bigProject === 'Y' || hasLabel)"
-                truncate
-                bg-gray-200
-                h-20px
-                lh-20px
-                text-10px
-                :style="`width:${project.bigProject === 'Y' ? boxSize * 2 + 1 : boxSize - 2}px;bottom:0px;`"
-                absolute
-                text-center
-                >{{ labelFormat(project) }}</span
-              >
-            </div>
+              class="project-logo"
+              :project="project"
+              :options="props.options"
+              @click="clickProject(project)"
+              @mouseenter="showProjectPopover(project, $event)"
+              @mouseleave="hideProjectPopover"
+            />
           </div>
         </div>
       </div>
@@ -189,6 +148,8 @@ import { ref, onMounted } from 'vue';
 import GenerateProjectAvatar from './GenerateProjectAvatar.vue';
 import { getTagType, toKilo } from '@orginjs/oss-evaluation-components-utils';
 import ProjectPopover from './ProjectPopover.vue';
+import type { Category, Subcategory } from './type';
+import ProjectThumbnails from './ProjectThumbnails.vue';
 
 interface Project {
   category: string;
@@ -239,7 +200,7 @@ const emit = defineEmits<{
   (e: 'clickProject', project: Project): void;
 }>();
 
-const landcapseData = ref();
+const landscapeData = ref<Category[]>([]);
 const popoverProject = ref<Project>({
   category: '',
   subcategory: '',
@@ -257,7 +218,6 @@ const popoverProject = ref<Project>({
 const hasMore = typeof props.options?.hasMore === 'undefined' ? true : props.options.hasMore;
 const boxSize = typeof props.options?.boxSize !== 'number' ? 40 : props.options.boxSize;
 const boxGap = typeof props.options?.boxGap !== 'number' ? 8 : props.options.boxGap;
-const hasLabel = typeof props.options?.labelFormat === 'function' ? true : false;
 const enableProjectPopover =
   typeof props.options?.enableProjectPopover === 'boolean'
     ? props.options?.enableProjectPopover
@@ -274,19 +234,6 @@ const getBackgroundColor = (index: number) => {
   return colors[index % colors.length];
 };
 
-type SubCategory = {
-  subTechStackName: string;
-  width?: number;
-  normalizedProjectsCount?: number;
-  hasBigProject?: boolean;
-  projects: Array<Project>;
-};
-
-type LandscapeData = {
-  category: string;
-  subcategory: SubCategory[];
-};
-
 const getLandscapeWidth = () => {
   let width = (document.getElementById('landscape')?.offsetWidth || 1280) - 32;
   width = width < 350 ? 1248 : width;
@@ -297,10 +244,7 @@ const DEFAULT_MAX_COLUMN = 2; // 默认一行展示的最大列数（子类别�
 const MIN_COLUMN_PROJECTS = 4; // 一列中至少要展示多少个项目数，用来计算最小列宽
 
 // 计算 landscape 中每个子类别所占的宽度
-const calcWidth: (data: LandscapeData[], autoLayout?: AutoLayout) => LandscapeData[] = (
-  data,
-  autoLayout,
-) => {
+const calcWidth: (data: Category[], autoLayout?: AutoLayout) => Category[] = (data, autoLayout) => {
   const width = getLandscapeWidth();
   for (const categoryData of data) {
     const maxCol = (autoLayout && autoLayout[categoryData.category]) || DEFAULT_MAX_COLUMN;
@@ -318,7 +262,7 @@ const calcWidth: (data: LandscapeData[], autoLayout?: AutoLayout) => LandscapeDa
     categoryData.subcategory.sort((a, b) => b.normalizedProjectsCount - a.normalizedProjectsCount);
 
     // 生成行列信息，保存到 rows 中，列代表子类别
-    const rows: (SubCategory & { weight: number })[][] = Array.from({ length: rowCount }, () => []);
+    const rows: (Subcategory & { weight: number })[][] = Array.from({ length: rowCount }, () => []);
     let currentRow = 0;
     for (const subcategoryData of categoryData.subcategory) {
       rows[currentRow].push({
@@ -395,7 +339,7 @@ const processLandscapeData = (
   let width = getLandscapeWidth();
   const indexMapping: { [key: string]: { index: number; subIndex: { [key: string]: number } } } =
     {};
-  const _landcapseData: LandscapeData[] = [];
+  const _landscapeData: Category[] = [];
   const projectCategories = new Set(projects.map(p => p.category));
   const projectSubCategories = new Set(projects.map(p => p.subcategory));
   let category;
@@ -408,7 +352,7 @@ const processLandscapeData = (
       }
 
       indexMapping[category] = {
-        index: _landcapseData.length,
+        index: _landscapeData.length,
         subIndex: {},
       };
 
@@ -427,7 +371,7 @@ const processLandscapeData = (
         });
       }
 
-      _landcapseData.push({ category: category, subcategory: subcategoryArray });
+      _landscapeData.push({ category: category, subcategory: subcategoryArray });
     }
   }
 
@@ -437,12 +381,12 @@ const processLandscapeData = (
 
     if (typeof indexMapping[item.category] === 'undefined') {
       indexMapping[item.category] = {
-        index: _landcapseData.length,
+        index: _landscapeData.length,
         subIndex: {},
       };
-      _landcapseData.push({ category: item.category, subcategory: [] });
+      _landscapeData.push({ category: item.category, subcategory: [] });
     }
-    category = _landcapseData[indexMapping[item.category].index];
+    category = _landscapeData[indexMapping[item.category].index];
 
     if (typeof indexMapping[item.category].subIndex[item.subcategory] === 'undefined') {
       indexMapping[item.category].subIndex[item.subcategory] = category.subcategory.length;
@@ -468,7 +412,7 @@ const processLandscapeData = (
     }
   });
 
-  _landcapseData.forEach(data => {
+  _landscapeData.forEach(data => {
     data.subcategory.forEach(subcategory => {
       if (!subcategory.hasBigProject) {
         return;
@@ -486,14 +430,14 @@ const processLandscapeData = (
   });
 
   if (!layout || !isInit) {
-    return calcWidth(_landcapseData, autoLayout);
+    return calcWidth(_landscapeData, autoLayout);
   }
 
-  return _landcapseData;
+  return _landscapeData;
 };
 
 const initLandscape = () => {
-  landcapseData.value = processLandscapeData(props.projects, {
+  landscapeData.value = processLandscapeData(props.projects, {
     layout: props.options?.layout,
     autoLayout: props.options?.autoLayout,
     isInit: true,
@@ -510,7 +454,7 @@ onMounted(() => {
 });
 
 const updateProjects = (projects: Project[]) => {
-  landcapseData.value = processLandscapeData(projects, {
+  landscapeData.value = processLandscapeData(projects, {
     layout: props.options?.layout,
     autoLayout: props.options?.autoLayout,
   });
@@ -555,46 +499,8 @@ const hideProjectPopover = () => {
     virtualRef.value = undefined;
   }, 500);
 };
-
-const getProjectStyle = (project: Project) => {
-  let borderColor = '#016bccb3';
-  let hasBorder = false;
-  if (typeof props.options?.borderColor === 'string') {
-    borderColor = props.options?.borderColor;
-    hasBorder = true;
-  } else if (typeof props.options?.borderColor === 'object') {
-    if (props.options?.borderColor[project.name]) {
-      borderColor = props.options?.borderColor[project.name];
-      hasBorder = true;
-    } else if (project.bigProject == 'Y' && props.options?.borderColor['_bigProject_']) {
-      borderColor = props.options?.borderColor['_bigProject_'];
-    } else if (props.options?.borderColor['_default_']) {
-      borderColor = props.options?.borderColor['_default_'];
-      hasBorder = true;
-    }
-  }
-
-  if (project.bigProject !== 'Y') {
-    let style = `width: ${boxSize}px;height: ${boxSize}px;`;
-    if (hasBorder) {
-      style += `border: 1px solid ${borderColor};`;
-    }
-    return style;
-  }
-
-  return `width: ${boxSize * 2 + 5}px;height: ${boxSize * 2 + 5}px;grid-column-end: span 2;grid-row-end: span 2;border: 2px solid ${borderColor};`;
-};
-
-const labelFormat = (project: Project): string => {
-  if (project.bigProject === 'Y' && !hasLabel) {
-    return project.name;
-  }
-  if (props.options?.labelFormat) {
-    return props.options.labelFormat(project);
-  }
-  return '';
-};
 </script>
+
 <style scoped lang="less">
 .project-logo {
   &:hover {
