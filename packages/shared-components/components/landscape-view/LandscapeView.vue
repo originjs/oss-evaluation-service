@@ -62,7 +62,12 @@
               :key="`${data.category}-${subData.subTechStackName}-${project.name}`"
               class="project-logo"
               :project="project"
-              :options="props.options"
+              :options="{
+                borderColor: props?.options?.borderColor,
+                boxSize: props?.options?.boxSize,
+                enableProjectDialog: props?.options?.enableProjectDialog,
+                labelFormat: props?.options?.labelFormat,
+              }"
               @click="clickProject(project)"
               @mouseenter="showProjectPopover(project, $event)"
               @mouseleave="hideProjectPopover"
