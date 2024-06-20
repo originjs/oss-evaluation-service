@@ -228,9 +228,9 @@ router.route('/opendigger').post(syncOpendiggerHandler);
 
 /**
  * @swagger
- * /sync/alernative:
+ * /sync/alternative:
  *   post:
- *     summary: Synchronize Alernative from AI
+ *     summary: Synchronize Alternative from AI
  *     requestBody:
  *       required: true
  *       content:
@@ -241,11 +241,14 @@ router.route('/opendigger').post(syncOpendiggerHandler);
  *               repoUrl:
  *                 type: string
  *                 example: "https://github.com/vuejs/vue"
+ *               projectId:
+ *                 type: Array<number>
+ *                 example: [1000,1123]
  *     responses:
  *       200:
  *         description: success.
  */
-router.route('/alernative').post(syncAlternativeHandler);
+router.route('/alternative').post(syncAlternativeHandler);
 
 /**
  * @swagger

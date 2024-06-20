@@ -9,16 +9,23 @@ import JSON5 from 'json5';
 import CozeSdk from '@orginjs/coze-sdk';
 
 export async function syncAlternativeHandler(req, res) {
-  const { repoUrl } = req.body;
-  // sync all
-  if (!repoUrl) {
-    syncAllProjectAlternative();
-    res.status(200).json('ok');
-  } else {
+  const { repoUrl, projectId } = req.body;
+  if (repoUrl) {
     // sync single project
     const project = await getProjectByUrl(repoUrl);
     const result = await syncSingleProjectAlternative(project);
     res.status(200).json(result);
+  } else if (projectId) {
+    for (const id of projectId) {
+      const project = await GithubProjects.findByPk(id);
+      await syncSingleProjectAlternative(project);
+    }
+    await updateProjectId();
+    res.status(200).json('ok');
+  } else {
+    // sync all
+    syncAllProjectAlternative();
+    res.status(200).json('ok');
   }
 }
 
@@ -35,10 +42,7 @@ export async function syncAllProjectAlternative() {
     await syncSingleProjectAlternative(project);
   }
   // update project id
-  sql = `UPDATE alternative_projects t1 INNER JOIN github_projects t2
-  ON t1.alternative_url= t2.html_url SET t1.alternative_id= t2.id, t1.alternative_name = t2.full_name
-	WHERE t1.alternative_id IS NULL`;
-  await sequelize.query(sql);
+  await updateProjectId();
 }
 
 export async function syncSingleProjectAlternative(project) {
@@ -82,4 +86,11 @@ export async function syncSingleProjectAlternative(project) {
       }
     }
   }
+}
+
+async function updateProjectId() {
+  const sql = `UPDATE alternative_projects t1 INNER JOIN github_projects t2
+  ON t1.alternative_url= t2.html_url SET t1.alternative_id= t2.id, t1.alternative_name = t2.full_name
+	WHERE t1.alternative_id IS NULL`;
+  await sequelize.query(sql);
 }
