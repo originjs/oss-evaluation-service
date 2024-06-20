@@ -77,7 +77,9 @@ export async function syncSingleProjectAlternative(project) {
                 source: 'ai',
               });
             }
-            await AlternativeProjects.bulkCreate(altList);
+            await AlternativeProjects.bulkCreate(altList, {
+              updateOnDuplicate: ['distance'],
+            });
             return altList;
           }
         } catch (e) {
