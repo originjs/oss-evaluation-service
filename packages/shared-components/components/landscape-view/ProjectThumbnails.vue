@@ -3,25 +3,17 @@ import { computed } from 'vue';
 import GenerateProjectAvatar from './GenerateProjectAvatar.vue';
 import type { Project } from './type';
 
-const props = defineProps({
-  project: {
-    type: Object as () => Project,
-    required: true,
-  },
+const props = defineProps<{
+  project: Project;
   options: {
-    type: Object as () => {
-      borderColor?: string | { [key: string]: string };
-      boxSize?: number;
-      enableProjectDialog?: boolean;
-      labelFormat?: (project: Project) => string;
-    },
-    default: () => ({
-      borderColor: '#016bccb3',
-      boxSize: 40,
-    }),
-  },
-});
+    borderColor?: string | { [key: string]: string };
+    boxSize?: number;
+    enableProjectDialog?: boolean;
+    labelFormat?: (project: Project) => string;
+  };
+}>();
 const { project, options } = toRefs(props);
+options.value.boxSize = options.value.boxSize || 40;
 
 const projectStyle = computed(() => {
   let borderColor = '#016bccb3';
