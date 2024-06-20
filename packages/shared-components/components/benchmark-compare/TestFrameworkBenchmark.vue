@@ -17,7 +17,7 @@ import ApplyNewProjectBenchmarkDialog from './ApplyNewProjectBenchmarkDialog.vue
 import type { TableColumnCtx } from 'element-plus';
 
 const chooseProjectsRef = ref<InstanceType<typeof ChooseProjectsDialog>>();
-let projectsRaw = ref<Array<SoftwareBaseInfo>>([]); // 原始数据，用来展示所有可选项目
+let projectsRaw = ref<Array<SoftwareBaseInfo & { selected?: boolean }>>([]); // 原始数据，用来展示所有可选项目
 const projects = ref<Array<SoftwareBaseInfo>>([]); // 选中的项目，可修改其值改变表格展示的项目
 const envInfo = ref<string>();
 getProjectsByTechStack('测试', '测试框架-UT').then(response => {
@@ -70,7 +70,7 @@ getBenchmarkResultByTechStack('测试框架-UT').then(response => {
   envInfo.value = response.data[0]?.envInfo;
 });
 
-const getMappingKey = project => {
+const getMappingKey = (project: BenchmarkResult) => {
   return `${project.projectId}##${project.version}`;
 };
 
@@ -82,9 +82,9 @@ watch([benchmarkIndexRaw, benchmarkResult], () => {
     return [];
   }
 
-  const projectBenchmark: { [key: string]: string | number }[] = [];
+  const projectBenchmark: BenchmarkResult[] = [];
   const projectIndexMapping: { [key: string]: number } = {};
-  let project: { [key: string]: string | number };
+  let project: any;
   let mappingKey;
   for (const item of benchmarkResult.value) {
     if (!projects.value.some(project => project.projectId === item.projectId)) {
@@ -111,7 +111,7 @@ watch([benchmarkIndexRaw, benchmarkResult], () => {
   let isGoodProjectId;
   let isAllEqual;
   let number1, number2;
-  const tableData = [];
+  const tableData: any[] = [];
   benchmarkIndexRaw.value.forEach(benchmarkIndexItem => {
     isAllEqual = true;
     record = {
@@ -159,7 +159,7 @@ watch([benchmarkIndex, benchmarksResultTableDataRaw], () => {
 });
 
 const hoveringRow = ref('');
-const sortedRow = ref('');
+const sortedRow = ref<keyof BenchmarkResult>();
 const benchmarkResultProjects = ref<BenchmarkResult[]>([]); // 实际表格展示的列，根据选中的项目，并基于原始表格数据计算更新
 watch([projects, benchmarkResultProjectsRaw, sortedRow], () => {
   const res = benchmarkResultProjectsRaw.value.filter(item =>
@@ -170,19 +170,20 @@ watch([projects, benchmarkResultProjectsRaw, sortedRow], () => {
       return project.selectedVersions.includes(item.version);
     }),
   );
-  sortedRow.value &&
+  if (sortedRow.value) {
     res.sort((a, b) => {
-      if (!a[sortedRow.value]) {
+      if (!a[sortedRow.value!]) {
         return 1;
       }
-      if (!b[sortedRow.value]) {
+      if (!b[sortedRow.value!]) {
         return -1;
       }
       if (sortedRow.value == 'score') {
         return b[sortedRow.value] - a[sortedRow.value];
       }
-      return a[sortedRow.value] - b[sortedRow.value];
+      return (a[sortedRow.value!] as number) - (b[sortedRow.value!] as number);
     });
+  }
   benchmarkResultProjects.value = res;
 });
 
@@ -229,7 +230,7 @@ interface SpanMethodProps {
 }
 
 let rowLen = 1;
-const objectSpanMethod = ({ row, column, rowIndex, columnIndex }: SpanMethodProps) => {
+const objectSpanMethod = ({ column, rowIndex, columnIndex }: SpanMethodProps) => {
   if (columnIndex === 0 && column.label === '类型') {
     if (rowLen > 1) {
       rowLen--;
@@ -342,7 +343,9 @@ const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
                 "
                 class="right-[-6px] absolute top-50% transform-translate-y-[-50%] ml-2 h-5 w-5 cursor-pointer"
                 @click="
-                  sortedRow === row.indexName ? (sortedRow = '') : (sortedRow = row.indexName)
+                  sortedRow === row.indexName
+                    ? (sortedRow = undefined)
+                    : (sortedRow = row.indexName)
                 "
               />
             </div>
@@ -362,7 +365,7 @@ const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
                 :underline="false"
                 target="_blank"
                 style="font-weight: bolder"
-                @click="getProjectInfoUrl(benchmarkResultProject)"
+                @click="getProjectInfoUrl(benchmarkResultProject as unknown as SoftwareBaseInfo)"
               >
                 {{ headerScope.column.label }}
               </el-link>
@@ -374,7 +377,7 @@ const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
               <el-icon
                 class="cursor-pointer hover-color-#F56C6C"
                 style="position: absolute; top: 3px; right: 3px"
-                @click="removeProject(benchmarkResultProject)"
+                @click="removeProject(benchmarkResultProject as unknown as SoftwareBaseInfo)"
               >
                 <Close />
               </el-icon>

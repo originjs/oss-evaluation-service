@@ -164,14 +164,6 @@ export interface PerformanceInfo {
   benchmarkData?: BenchmarkData;
 }
 
-export interface BenchmarkIndex {
-  indexName: string;
-  displayName: string;
-  unit: string;
-  category?: string;
-  description?: string;
-}
-
 export interface BenchmarkResult {
   projectId: string;
   projectName: string;
@@ -184,6 +176,14 @@ export interface BenchmarkResult {
   version: string;
   envInfo: string;
   score: number;
+}
+
+export interface BenchmarkIndex {
+  indexName: keyof BenchmarkResult;
+  displayName: string;
+  unit: string;
+  category?: string;
+  description?: string;
 }
 
 export interface InnovationCompaniesInfo {

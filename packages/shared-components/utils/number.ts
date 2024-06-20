@@ -21,7 +21,7 @@ export function toKilo(
   }
 }
 
-export function formatFloat(value: number | undefined | string) {
+export function formatFloat(value: number | undefined | string | null) {
   if (value === undefined || value === null || value === '') {
     return '-';
   }
@@ -29,7 +29,7 @@ export function formatFloat(value: number | undefined | string) {
   return parseFloat(number.toFixed(2));
 }
 
-export function formatNumber(value: number | undefined | string) {
+export function formatNumber(value: number | undefined | string | null) {
   if (value === undefined || value === null || value === '') {
     return '-';
   }

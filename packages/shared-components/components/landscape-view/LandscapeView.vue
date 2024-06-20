@@ -77,7 +77,7 @@
       :visible="!!virtualRef"
       :project="popoverProject"
       :virtual-ref="virtualRef"
-      :options="{ evaluation: props.options.evaluation, goBenchmark: props.options.goBenchmark }"
+      :options="props.options"
       @mouseenter="undoHideProjectPopover"
       @mouseleave="hideProjectPopover"
     />
@@ -259,16 +259,21 @@ const calcWidth: (data: Category[], autoLayout?: AutoLayout) => Category[] = (da
     }
 
     // 按照 projects 数量排序
-    categoryData.subcategory.sort((a, b) => b.normalizedProjectsCount - a.normalizedProjectsCount);
+    categoryData.subcategory.sort(
+      (a, b) => b.normalizedProjectsCount! - a.normalizedProjectsCount!,
+    );
 
     // 生成行列信息，保存到 rows 中，列代表子类别
-    const rows: (Subcategory & { weight: number })[][] = Array.from({ length: rowCount }, () => []);
+    const rows: (Subcategory & { weight: number; width: number })[][] = Array.from(
+      { length: rowCount },
+      () => [],
+    );
     let currentRow = 0;
     for (const subcategoryData of categoryData.subcategory) {
       rows[currentRow].push({
         ...subcategoryData,
         width: 0,
-        weight: subcategoryData.normalizedProjectsCount / totalProjectsCount, // 子类别的权重，等于 projects 数量 / projects 总数
+        weight: subcategoryData.normalizedProjectsCount! / totalProjectsCount, // 子类别的权重，等于 projects 数量 / projects 总数
       });
       currentRow = currentRow === rows.length - 1 ? 0 : currentRow + 1;
     }
@@ -284,7 +289,7 @@ const calcWidth: (data: Category[], autoLayout?: AutoLayout) => Category[] = (da
     // 调整子类别宽度不能小于最小宽度
     const minWidth = (MIN_COLUMN_PROJECTS - 1) * boxGap + MIN_COLUMN_PROJECTS * boxSize;
     for (const row of rows) {
-      const owers = {};
+      const owers: { [key: string]: number } = {};
       let owed = 0;
 
       // 把小于最小宽度的列设为最小宽度，记录下多出的宽度，需要从其他列减掉
@@ -473,7 +478,7 @@ function clickProject(project: Project) {
   emit('clickProject', project);
 }
 
-let visibleTimer: number | undefined;
+let visibleTimer: NodeJS.Timeout;
 const undoHideProjectPopover = () => {
   if (visibleTimer) {
     clearTimeout(visibleTimer);
