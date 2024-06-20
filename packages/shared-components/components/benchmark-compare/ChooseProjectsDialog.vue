@@ -6,6 +6,7 @@ import { Search } from '@element-plus/icons-vue';
 
 interface ProjectInfo extends SoftwareBaseInfo {
   selected: boolean;
+  forksCount: number;
 }
 
 const isSelectedAll = ref(true);

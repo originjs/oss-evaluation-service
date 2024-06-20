@@ -1,11 +1,16 @@
 export function getLevelColor(level?: string) {
-  const levelColorMap = {
+  if (!level) {
+    return '#61a6fa';
+  }
+
+  const levelColorMap: { [key: string]: string } = {
     A: '#21c45d',
     B: '#bbf7d0',
     C: '#fef08b',
     D: '#fcd44f',
     E: '#fca6a6',
   };
+
   return levelColorMap[level] || '#61a6fa';
 }
 

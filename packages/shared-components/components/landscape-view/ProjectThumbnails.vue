@@ -58,8 +58,8 @@ const projectStyle = computed(() => {
   }
 
   return {
-    width: `${options?.value?.boxSize * 2 + 5}px`,
-    height: `${options?.value?.boxSize * 2 + 5}px`,
+    width: `${options!.value!.boxSize! * 2 + 5}px`,
+    height: `${options!.value!.boxSize! * 2 + 5}px`,
     gridColumnEnd: 'span 2',
     gridRowEnd: 'span 2',
     border: `2px solid ${borderColor}`,
@@ -112,7 +112,7 @@ const labelFormat = computed(() => {
       v-if="labelFormat && (isBigProject || hasFormatFn)"
       class="truncate bg-gray-200 h-20px lh-20px text-10px absolute text-center"
       :style="{
-        width: `${isBigProject ? boxSize + 1 : options?.boxSize - 2}px`,
+        width: `${isBigProject ? boxSize + 1 : options!.boxSize! - 2}px`,
         bottom: '0',
       }"
       >{{ labelFormat }}</span

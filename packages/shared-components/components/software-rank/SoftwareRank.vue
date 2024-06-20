@@ -39,7 +39,7 @@ async function getTopTrendData(pageNo: number, pageSize: number, type: string) {
 onMounted(async () => {
   loadingOverview.value = true;
   // TODO request parameter
-  await getTopTrendData(0, pageSize, 'star');
+  await getTopTrendData(0, pageSize.value, 'star');
   // TODO render chart
   nextTick(() => {
     for (let i = 0; i < rankPage.value.data.length; i++) {
@@ -66,7 +66,7 @@ function renderGithubTrendChart(index: number, data: Array<rankInfo>) {
     },
     tooltip: {
       trigger: 'item',
-      formatter: function (params) {
+      formatter: function (params: any) {
         return params.marker + ': ' + params.value;
       },
     },
@@ -97,7 +97,6 @@ function renderGithubTrendChart(index: number, data: Array<rankInfo>) {
         },
         smooth: true,
         showSymbol: false,
-        hoverAnimation: true,
       },
       {
         name: '当月总数',
@@ -111,7 +110,6 @@ function renderGithubTrendChart(index: number, data: Array<rankInfo>) {
         },
         smooth: true,
         showSymbol: false,
-        hoverAnimation: true,
       },
     ],
   };
@@ -160,7 +158,7 @@ async function getMore() {
   loadingOverview.value = false;
 }
 
-let scrollListener;
+let scrollListener: () => void;
 
 function addScrollListener() {
   const documentElement = document.documentElement;
@@ -272,7 +270,7 @@ onUnmounted(() => {
               style="cursor: pointer"
               @click="goSoftwareDetails(item.name)"
             >
-              <el-tooltip effect="light" teleported="false">
+              <el-tooltip effect="light">
                 <div
                   mt--5px
                   mr-12px
