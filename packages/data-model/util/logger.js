@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ProjectRootPath = path.join(__dirname, '..');
+const logDir = process.env.LOG_DIR ? process.env.LOG_DIR : 'logs';
 
 const logFormat = winston.format.printf(({ timestamp, level, message }) => {
   return `[${timestamp}] ${level} : ${message}`;
@@ -35,7 +36,7 @@ const fileFormat = winston.format.combine(
 );
 
 const transportInfo = new winston.transports.DailyRotateFile({
-  filename: 'logs/%DATE%-info.log',
+  filename: logDir + '/%DATE%-info.log',
   datePattern: 'YYYY-MM-DD',
   zippedArchive: true,
   format: fileFormat,
@@ -46,7 +47,7 @@ const transportInfo = new winston.transports.DailyRotateFile({
 });
 
 const transportError = new winston.transports.DailyRotateFile({
-  filename: 'logs/%DATE%-error.log',
+  filename: logDir + '%DATE%-error.log',
   datePattern: 'YYYY-MM-DD',
   zippedArchive: true,
   format: fileFormat,
