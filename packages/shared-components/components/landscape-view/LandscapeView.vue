@@ -2,7 +2,7 @@
   <div id="landscape" w-full>
     <div v-for="(data, index) in landscapeData" :key="data.category" w-full flex mb-16px>
       <div
-        :style="`background-color:${getBackgroundColor(index)}`"
+        :style="`background-color:${options.colors[index % options.colors.length]}`"
         w-32px
         rd-4px
         c-white
@@ -27,7 +27,7 @@
           :style="`width: ${subData.width}px;`"
         >
           <div
-            :style="`background-color:${getBackgroundColor(index)}`"
+            :style="`background-color:${options.colors[index % options.colors.length]}`"
             h-32px
             rd-4px
             c-white
@@ -43,7 +43,12 @@
                 0
               }})</span
             >
-            <el-tooltip v-if="hasMore" effect="light" content="点击查看更多项目" placement="right">
+            <el-tooltip
+              v-if="options.hasMore"
+              effect="light"
+              content="点击查看更多项目"
+              placement="right"
+            >
               <div
                 class="more-btn"
                 i-custom:more
@@ -55,19 +60,19 @@
             <slot name="subTechStackTitleExtend" :sub-tech-stack="subData"></slot>
           </div>
           <div
-            :style="`display: grid;grid-template-columns: repeat(auto-fit,${boxSize}px);grid-auto-rows: ${boxSize}px;gap: ${boxGap}px;margin-bottom:10px;`"
+            style="display: grid; margin-bottom: 10px"
+            :style="{
+              gridTemplateColumns: `repeat(auto-fit,${options.boxSize}px)`,
+              gridAutoRows: `${options.boxSize}px`,
+              gap: `${options.boxGap}px`,
+            }"
           >
             <project-thumbnails
               v-for="project in subData.projects"
               :key="`${data.category}-${subData.subTechStackName}-${project.name}`"
               class="project-logo"
               :project="project"
-              :options="{
-                borderColor: props?.options?.borderColor,
-                boxSize: props?.options?.boxSize,
-                enableProjectDialog: props?.options?.enableProjectDialog,
-                labelFormat: props?.options?.labelFormat,
-              }"
+              :options="options"
               @click="clickProject(project)"
               @mouseenter="showProjectPopover(project, $event)"
               @mouseleave="hideProjectPopover"
@@ -82,7 +87,7 @@
       :visible="!!virtualRef"
       :project="popoverProject"
       :virtual-ref="virtualRef"
-      :options="props.options"
+      :options="options"
       @mouseenter="undoHideProjectPopover"
       @mouseleave="hideProjectPopover"
     />
@@ -184,12 +189,12 @@ type AutoLayout = {
 const props = defineProps<{
   projects: Array<Project>;
   options?: {
-    colors: Array<string>;
+    colors?: Array<string>;
     maxProjects?: number;
     labelFormat?: (project: Project) => string;
     hasMore?: boolean;
     enableProjectDialog?: boolean;
-    enableProjectPopover: boolean;
+    enableProjectPopover?: boolean;
     boxSize?: number; // || {width:number,height:number}
     boxGap?: number;
     borderColor?: string | { [key: string]: string };
@@ -199,6 +204,15 @@ const props = defineProps<{
     goBenchmark?: (project: Project) => void;
   };
 }>();
+
+const options = computed(() => ({
+  ...(props?.options || {}),
+  hasMore: props?.options?.hasMore ?? true,
+  boxSize: props?.options?.boxSize ?? 40,
+  boxGap: props?.options?.boxGap ?? 8,
+  enableProjectPopover: props?.options?.enableProjectPopover ?? true,
+  colors: props?.options?.colors ?? ['#89bff6', '#89c997', '#e8dd92', '#f0b58e', '#aea3db'],
+}));
 
 const emit = defineEmits<{
   (e: 'goMore', category: string, subTechStackName: string): void;
@@ -220,24 +234,8 @@ const popoverProject = ref<Project>({
   labels: [],
   language: '',
 });
-const hasMore = typeof props.options?.hasMore === 'undefined' ? true : props.options.hasMore;
-const boxSize = typeof props.options?.boxSize !== 'number' ? 40 : props.options.boxSize;
-const boxGap = typeof props.options?.boxGap !== 'number' ? 8 : props.options.boxGap;
-const enableProjectPopover =
-  typeof props.options?.enableProjectPopover === 'boolean'
-    ? props.options?.enableProjectPopover
-    : true;
 const isOpenProjectDialog = ref(false);
 const totalSubcategoryProjectsCount = ref<{ [key: string]: number }>({});
-
-const BackgroundColors = ['#89bff6', '#89c997', '#e8dd92', '#f0b58e', '#aea3db'];
-const getBackgroundColor = (index: number) => {
-  let colors = BackgroundColors;
-  if (props.options?.colors) {
-    colors = props.options.colors;
-  }
-  return colors[index % colors.length];
-};
 
 const getLandscapeWidth = () => {
   let width = (document.getElementById('landscape')?.offsetWidth || 1280) - 32;
@@ -292,7 +290,9 @@ const calcWidth: (data: Category[], autoLayout?: AutoLayout) => Category[] = (da
     }
 
     // 调整子类别宽度不能小于最小宽度
-    const minWidth = (MIN_COLUMN_PROJECTS - 1) * boxGap + MIN_COLUMN_PROJECTS * boxSize;
+    const minWidth =
+      (MIN_COLUMN_PROJECTS - 1) * options.value.boxGap +
+      MIN_COLUMN_PROJECTS * options.value.boxSize;
     for (const row of rows) {
       const owers: { [key: string]: number } = {};
       let owed = 0;
@@ -495,7 +495,7 @@ const virtualRef = ref<HTMLElement>();
 const showProjectPopover = (project: Project, event: MouseEvent) => {
   popoverProject.value = project;
 
-  if (!enableProjectPopover) {
+  if (!options.value.enableProjectPopover) {
     return;
   }
 
