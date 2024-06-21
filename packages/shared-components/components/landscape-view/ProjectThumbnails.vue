@@ -5,15 +5,17 @@ import type { Project } from './type';
 
 const props = defineProps<{
   project: Project;
-  options: {
+  options?: {
     borderColor?: string | { [key: string]: string };
     boxSize?: number;
-    enableProjectDialog?: boolean;
     labelFormat?: (project: Project) => string;
   };
 }>();
-const { project, options } = toRefs(props);
-options.value.boxSize = options.value.boxSize || 40;
+const { project } = toRefs(props);
+const options = computed(() => ({
+  ...(props?.options || {}),
+  boxSize: props.options?.boxSize ?? 40,
+}));
 
 const projectStyle = computed(() => {
   let borderColor = '#016bccb3';
