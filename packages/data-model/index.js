@@ -26,9 +26,16 @@ export { default as ProjectInfo } from './models/ProjectInfo.js';
 export { default as CncfDocumentScoreMin } from './models/CncfDocumentScoreMin.js';
 export { default as StateOfJsMin } from './models/StateOfJsMin.js';
 export { default as SonarCloudProjectMin } from './models/SonarCloudProjectMin.js';
-export { default as GithubProjectsStargazersTrend } from './models/GithubProjectsStargazersTrend.js';
+export {
+  default as GithubProjectsStargazersTrend,
+} from './models/GithubProjectsStargazersTrend.js';
 export { default as GithubProjectsDependencies } from './models/GithubProjectsDependencies.js';
-export { default as OssinsightPullRequestCreatorsCountries } from './models/OssinsightPullRequestCreatorsCountries.js';
-export { default as OssinsightCreatorsOrganizations } from './models/OssinsightCreatorsOrganizations.js';
+export {
+  default as OssinsightPullRequestCreatorsCountries,
+} from './models/OssinsightPullRequestCreatorsCountries.js';
+export {
+  default as OssinsightCreatorsOrganizations,
+} from './models/OssinsightCreatorsOrganizations.js';
 export { default as OssinsightCreatorsCountries } from './models/OssinsightCreatorsCountries.js';
 export { default as GithubProjectsRank } from './models/GithubProjectsRank.js';
+export { default as NewProjectApply } from './models/NewProjectApply.js';
