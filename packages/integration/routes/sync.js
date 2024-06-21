@@ -44,7 +44,8 @@ import {
   setDefaultBranchOfSonar,
   updateDefaultBranchAfterImport,
   updateSonarCloudDefaultBranch,
-  uploadSonarCiConfigToGitlab, changeSonarKey2OfficialKeys,
+  uploadSonarCiConfigToGitlab,
+  changeSonarKey2OfficialKeys,
 } from '../controllers/sonarCloud.js';
 import syncSingleProjectCodeSizeHandler, {
   syncAllProjectCodeSizeHandler,
@@ -1250,8 +1251,6 @@ router.route('/syncSingleProjectCreatorsCountries').post(syncSingleProjectCreato
  *
  */
 router.route('/syncAllProjectCreatorsCountries').post(syncAllProjectCreatorsCountriesHandler);
-
-
 
 /**
  * @swagger

@@ -223,3 +223,14 @@ export interface SummaryHighlightInfo {
   alternativeProjects: Array<AlternativeInfo>;
   topPrCompanies: Array<InnovationCompaniesInfo>;
 }
+
+export interface NewProjectApply{
+  repoUrl: string;
+  comment: string;
+  applicantEmail: string;
+  username: string;
+  alternativeProjectId: string;
+  type: number;
+  expandField1: string;
+  createdAt: Date;
+}
