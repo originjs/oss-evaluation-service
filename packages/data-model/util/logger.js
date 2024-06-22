@@ -116,10 +116,10 @@ function getStackInfo(stackIndex) {
 // handle format
 const logger = {
   info: (...args) => {
-    customizedLogger.info(util.format(getFileNameAndLineNumber(), ...args));
+    customizedLogger.info(getFileNameAndLineNumber() + util.format(...args));
   },
   error: (...args) => {
-    customizedLogger.error(util.format(getFileNameAndLineNumber(), ...args));
+    customizedLogger.error(getFileNameAndLineNumber() + util.format(...args));
   },
 };
 
