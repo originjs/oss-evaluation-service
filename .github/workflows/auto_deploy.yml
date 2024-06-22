@@ -36,25 +36,30 @@ jobs:
           pnpm build-api-server
           pnpm build-website
 
-      - name: Deploy 🚀
-        uses: easingthemes/ssh-deploy@v5.0.3
+      - name: Deploy Website 🚀
+        uses: easingthemes/ssh-deploy@main
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.ALIYUN_SSH_PRIVATE_KEY }}
+          SSH_PRIVATE_KEY: ${{ secrets.HW_SSH_PRIVATE_KEY }}
           ARGS: "-avz --delete"
           SOURCE: "./"  # 更改为你要部署的文件夹
-          TARGET: "/home/oss-evaluation-service/"
+          TARGET: "/home/oss-eval-website/oss-evaluation-service/"
           EXCLUDE: "/node_modules/"
-          REMOTE_HOST: ${{ secrets.ALIYUN_HOST }}
-          REMOTE_USER: ${{ secrets.ALIYUN_USER }}
-          REMOTE_PORT: ${{ secrets.ALIYUN_PORT }}  # 如果不是默认的22端口，需要更改
-          SCRIPT_AFTER: |
-            export DATABASE_URL=${{ secrets.DATABASE_URL }}
-            export VITE_BACKEND_SERVICE_URL=${{ secrets.BACKEND_SERVICE_URL }}
-            export PATH=$PATH:/root/.nvm/versions/node/v21.6.2/bin
-            pm2 stop all
-            cd /home/oss-evaluation-service/packages/api-server
-            pm2 start ./dist/app.js --watch
-            cd /home/oss-evaluation-service/packages/integration
-            pm2 start ./bin/www.js --watch
-            nginx -s reload
+          REMOTE_HOST: ${{ secrets.HW_HOST }}
+          REMOTE_USER: ${{ secrets.HW_USER }}
+          REMOTE_PORT: ${{ secrets.HW_PORT }}  # 如果不是默认的22端口，需要更改
+          SCRIPT_BEFORE: ls
+          SCRIPT_AFTER: bash /home/ci_deploy.sh
 
+      - name: Deploy Integration 🚀
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.BT_SSH_PRIVATE_KEY }}
+          ARGS: "-avz --delete"
+          SOURCE: "./"  # 更改为你要部署的文件夹
+          TARGET: "/home/oss-eval-integration/oss-evaluation-service/"
+          EXCLUDE: "/node_modules/"
+          REMOTE_HOST: ${{ secrets.BT_HOST }}
+          REMOTE_USER: ${{ secrets.BT_USER }}
+          REMOTE_PORT: ${{ secrets.BT_PORT }}  # 如果不是默认的22端口，需要更改
+          SCRIPT_BEFORE: ls
+          SCRIPT_AFTER: bash /home/ci_deploy.sh
