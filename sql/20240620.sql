@@ -1,0 +1,1 @@
+ALTER TABLE alternative_projects ADD UNIQUE INDEX `id_url`(`project_id`, `alternative_url`);

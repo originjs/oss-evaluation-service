@@ -1,10 +1,13 @@
 <template>
   <div
     :style="`width:${props.width}px;height:${props.height}px;color:#4d97db;padding: 0px 5px;`"
+    class="landscape-generate-avatar"
     flex
     items-center
   >
-    <span ref="projectNameRef" style="text-align: center;">{{ projectName }}</span>
+    <span ref="projectNameRef" class="landscape-generate-avatar-text" style="text-align: center">{{
+      projectName
+    }}</span>
   </div>
 </template>
 <script setup lang="ts">
@@ -15,7 +18,7 @@ const props = defineProps<{
   height: number;
 }>();
 
-const formatProjectName = (projectName: string) => {
+const formatProjectName = (projectName?: string) => {
   if (!projectName) return '';
   return projectName.replaceAll('-', ' ').replaceAll('_', ' ').replaceAll(':', ' ');
 };

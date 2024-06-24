@@ -12,7 +12,6 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
     idle: 20000,
   },
   dialectModule: mysql,
-  logging: msg => logger.info(msg),
 });
 
 let sequelizeExt;

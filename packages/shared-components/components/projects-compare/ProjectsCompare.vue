@@ -178,10 +178,6 @@ const getShowRow = (path: string) => {
   const res = new Set(projects.map(item => _get(item, path)));
   return res.size > 1;
 };
-
-const changePage = (name: string) => {
-  pageName.value = name;
-};
 </script>
 
 <template>

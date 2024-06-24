@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ProjectRootPath = path.join(__dirname, '..');
+const logDir = process.env.LOG_DIR ? process.env.LOG_DIR : 'logs';
 
 const logFormat = winston.format.printf(({ timestamp, level, message }) => {
   return `[${timestamp}] ${level} : ${message}`;
@@ -35,7 +36,7 @@ const fileFormat = winston.format.combine(
 );
 
 const transportInfo = new winston.transports.DailyRotateFile({
-  filename: 'logs/%DATE%-info.log',
+  filename: path.join(logDir, '%DATE%-info.log'),
   datePattern: 'YYYY-MM-DD',
   zippedArchive: true,
   format: fileFormat,
@@ -46,7 +47,7 @@ const transportInfo = new winston.transports.DailyRotateFile({
 });
 
 const transportError = new winston.transports.DailyRotateFile({
-  filename: 'logs/%DATE%-error.log',
+  filename: path.join(logDir, '%DATE%-error.log'),
   datePattern: 'YYYY-MM-DD',
   zippedArchive: true,
   format: fileFormat,
@@ -72,15 +73,18 @@ export function getDurationInMilliseconds(start) {
   return (diff[0] * NS_PER_SEC + diff[1]) / NS_TO_MS;
 }
 
-const customizedLogger = winston.createLogger({
-  level: 'info',
-  transports: [transportError, transportInfo],
-});
-
+let transports = [];
 // Do not output log to console in the production environment
 if (process.env.NODE_ENV !== 'production') {
-  customizedLogger.add(consoleTransport);
+  transports = [consoleTransport];
+} else {
+  transports = [transportError, transportInfo];
 }
+
+const customizedLogger = winston.createLogger({
+  level: 'info',
+  transports: transports,
+});
 
 // 处理文件名和行号
 function getFileNameAndLineNumber() {
@@ -112,10 +116,10 @@ function getStackInfo(stackIndex) {
 // handle format
 const logger = {
   info: (...args) => {
-    customizedLogger.info(util.format(getFileNameAndLineNumber(), ...args));
+    customizedLogger.info(getFileNameAndLineNumber() + util.format(...args));
   },
   error: (...args) => {
-    customizedLogger.error(util.format(getFileNameAndLineNumber(), ...args));
+    customizedLogger.error(getFileNameAndLineNumber() + util.format(...args));
   },
 };
 

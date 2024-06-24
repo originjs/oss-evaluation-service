@@ -23,6 +23,7 @@ import {
   syncProjectByStar,
   syncProjectByRepo,
   syncProjectByUserStar,
+  refreshRankProjects,
 } from '../controllers/github.js';
 import {
   bulkAddBenchmarkHandler,
@@ -44,6 +45,7 @@ import {
   updateDefaultBranchAfterImport,
   updateSonarCloudDefaultBranch,
   uploadSonarCiConfigToGitlab,
+  changeSonarKey2OfficialKeys,
 } from '../controllers/sonarCloud.js';
 import syncSingleProjectCodeSizeHandler, {
   syncAllProjectCodeSizeHandler,
@@ -227,9 +229,9 @@ router.route('/opendigger').post(syncOpendiggerHandler);
 
 /**
  * @swagger
- * /sync/alernative:
+ * /sync/alternative:
  *   post:
- *     summary: Synchronize Alernative from AI
+ *     summary: Synchronize Alternative from AI
  *     requestBody:
  *       required: true
  *       content:
@@ -240,11 +242,14 @@ router.route('/opendigger').post(syncOpendiggerHandler);
  *               repoUrl:
  *                 type: string
  *                 example: "https://github.com/vuejs/vue"
+ *               projectId:
+ *                 type: Array<number>
+ *                 example: [1000,1123]
  *     responses:
  *       200:
  *         description: success.
  */
-router.route('/alernative').post(syncAlternativeHandler);
+router.route('/alternative').post(syncAlternativeHandler);
 
 /**
  * @swagger
@@ -896,6 +901,25 @@ router.route('/sonarCloud/createGithubProjects').post(await createSonarProjectsF
 
 /**
  * @swagger
+ * /sync/sonarCloud/changeSonar2OfficialKey:
+ *  post:
+ *     summary: changeSonar2OfficialKey
+ *     tags: [Sonar]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *       example: [158975124]
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/sonarCloud/changeSonar2OfficialKey').post(await changeSonarKey2OfficialKeys);
+
+/**
+ * @swagger
  * /sync/sonarCloud/deleteBySonarKeys:
  *  post:
  *     summary: delete sonar projects by keys
@@ -1227,4 +1251,31 @@ router.route('/syncSingleProjectCreatorsCountries').post(syncSingleProjectCreato
  *
  */
 router.route('/syncAllProjectCreatorsCountries').post(syncAllProjectCreatorsCountriesHandler);
+
+/**
+ * @swagger
+ * /sync/github/refreshGithubProjectsRank:
+ *   get:
+ *     summary: get github projects ranks
+ *     tags: [Github]
+ *     parameters:
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: ['stars', 'forks']
+ *           example: 'stars'
+ *           required: true
+ *       - in: query
+ *         name: count
+ *         required: true
+ *         schema:
+ *           type: number
+ *           example: 100
+ *     responses:
+ *       200:
+ *         description: Success
+ */
+router.route('/github/refreshGithubProjectsRank').get(await refreshRankProjects);
+
 export default router;

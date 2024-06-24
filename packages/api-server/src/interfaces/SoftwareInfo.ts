@@ -104,6 +104,8 @@ export interface AlternativeInfo {
   id: number;
   repoName: string;
   logo: string;
+  starCount: number;
+  forksCount: number;
   url: string;
   description: string;
   ai: number;
@@ -162,14 +164,6 @@ export interface PerformanceInfo {
   benchmarkData?: BenchmarkData;
 }
 
-export interface BenchmarkIndex {
-  indexName: string;
-  displayName: string;
-  unit: string;
-  category?: string;
-  description?: string;
-}
-
 export interface BenchmarkResult {
   projectId: string;
   projectName: string;
@@ -182,6 +176,14 @@ export interface BenchmarkResult {
   version: string;
   envInfo: string;
   score: number;
+}
+
+export interface BenchmarkIndex {
+  indexName: keyof BenchmarkResult;
+  displayName: string;
+  unit: string;
+  category?: string;
+  description?: string;
 }
 
 export interface InnovationCompaniesInfo {
@@ -220,4 +222,15 @@ export interface InnovationInfo {
 export interface SummaryHighlightInfo {
   alternativeProjects: Array<AlternativeInfo>;
   topPrCompanies: Array<InnovationCompaniesInfo>;
+}
+
+export interface NewProjectApply{
+  repoUrl: string;
+  comment: string;
+  applicantEmail: string;
+  username: string;
+  alternativeProjectId: string;
+  type: number;
+  expandField1: string;
+  createdAt: Date;
 }

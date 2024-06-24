@@ -117,11 +117,11 @@ const handleCheckedItemsChange = (value: string[], category: string) => {
           :indeterminate="checkedStatus[category].isIndeterminate"
           class="ml-10px"
           label="全选"
-          @change="val => handleCheckAllChange(val, category)"
+          @change="(val: boolean) => handleCheckAllChange(val, category)"
         />
         <el-checkbox-group
           v-model="checkedStatus[category].checkedBenchmarkIndex"
-          @change="val => handleCheckedItemsChange(val, category)"
+          @change="(val: string[]) => handleCheckedItemsChange(val, category)"
         >
           <div
             v-for="item of benchmarkIndexRawGroup[category]"

@@ -7,9 +7,12 @@ export type rankInfo = {
   starCount: string;
   forkCount: string;
   contributorCount: string;
+  contributors: number | undefined | string;
   trend: {
     xAxis: [];
     yAxis: [];
+    monthCount: number[];
+    monthDiff: number[];
   };
 };
 export type rankPage = {
