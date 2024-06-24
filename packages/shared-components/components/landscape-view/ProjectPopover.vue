@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Project } from './type';
-import GenerateProjectAvatar from './GenerateProjectAvatar.vue';
 import { toKilo } from '@orginjs/oss-evaluation-components-utils';
+import ProjectThumbnails from './ProjectThumbnails.vue';
 
 const props = defineProps<{
   project: Project;
@@ -21,16 +21,17 @@ const emit = defineEmits(['mouseenter', 'mouseleave']);
 </script>
 
 <template>
-  <el-popover ref="popoverRef" v-bind="$attrs" virtual-triggering width="450">
+  <el-popover ref="popoverRef" v-bind="$attrs" virtual-triggering width="450" :offset="5">
     <div @mouseenter="emit('mouseenter')" @mouseleave="emit('mouseleave')">
-      <div flex items-center>
-        <div w-70px h-90px mr-3>
-          <el-image :src="project.logo" class="bg-white" fit="fill">
-            <template #error>
-              <GenerateProjectAvatar v-model="project.name" :width="70" :height="70" />
-            </template>
-          </el-image>
-        </div>
+      <div flex items-center mb-3>
+        <project-thumbnails
+          class="mr-3"
+          :project="{ ...project, bigProject: 'N' }"
+          :options="{
+            boxSize: 70,
+            borderColor: '#e5e7eb',
+          }"
+        />
         <div flex flex-1 flex-col>
           <span text-lg fw-bold>
             <el-text line-clamp="2">

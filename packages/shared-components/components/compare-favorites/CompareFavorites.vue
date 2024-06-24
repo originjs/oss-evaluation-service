@@ -1,8 +1,24 @@
 <script setup lang="ts">
-import { ArrowDown, ArrowUp, Picture, Delete } from '@element-plus/icons-vue';
+import { ArrowDown, ArrowUp, Delete } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import type { SoftwareBaseInfo, CompareProject } from '@orginjs/oss-evaluation-components-api';
 import { SearchSoftware } from '../search-software';
+import ProjectThumbnails from '../landscape-view/ProjectThumbnails.vue';
+import type { Project } from '../landscape-view/type';
+
+const props = defineProps<{
+  options?: {
+    borderColor?: string | { [key: string]: string };
+    boxSize?: number;
+    labelFormat?: (project: Project) => string;
+  };
+}>();
+const options = computed(() => ({
+  ...(props?.options || {}),
+  boxSize: props.options?.boxSize ?? 64,
+  borderColor: props.options?.borderColor ?? '#e5e7eb',
+  labelFormat: props.options?.labelFormat ?? (() => ''),
+}));
 
 enum PanelState {
   hide = 0,
@@ -117,17 +133,11 @@ defineExpose({ addProject });
       <div class="projects">
         <div v-for="(project, idx) in projects" :key="idx" class="project">
           <div class="project-box">
-            <div class="project-logo">
-              <el-image :src="project.logo" fit="contain" class="w-64px h-64px mr-14px">
-                <template #error>
-                  <div flex flex-justify-center flex-items-center w-full h-full bg-gray-100>
-                    <el-icon font-size-7 color-gray-400>
-                      <Picture />
-                    </el-icon>
-                  </div>
-                </template>
-              </el-image>
-            </div>
+            <project-thumbnails
+              class="mr-14px"
+              :project="project as unknown as Project"
+              :options="options"
+            />
             <div class="project-info">
               <span>
                 <el-link
@@ -225,13 +235,6 @@ defineExpose({ addProject });
           flex: 1;
           height: 100%;
           align-items: center;
-
-          .project-logo {
-            display: flex;
-            width: 80px;
-            height: 100%;
-            align-items: center;
-          }
 
           .project-info {
             display: flex;
