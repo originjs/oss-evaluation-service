@@ -25,7 +25,7 @@ const emit = defineEmits(['mouseenter', 'mouseleave']);
     <div @mouseenter="emit('mouseenter')" @mouseleave="emit('mouseleave')">
       <div flex items-center>
         <div w-70px h-90px mr-3>
-          <el-image :src="project.logo" class="bg-[#d98c8cff]" fit="fill">
+          <el-image :src="project.logo" class="bg-white" fit="fill">
             <template #error>
               <GenerateProjectAvatar v-model="project.name" :width="70" :height="70" />
             </template>

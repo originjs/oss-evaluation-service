@@ -83,17 +83,8 @@ const labelFormat = computed(() => {
 
 <template>
   <div v-bind="$attrs" class="project-logo relative bg-white" :style="projectStyle">
-    <div class="flex flex-col items-center bg-white">
-      <el-image
-        class="flex flex-1 bg-white"
-        lazy
-        :src="project?.logo"
-        fit="fill"
-        :style="{
-          width: `${boxSize}px`,
-          height: `${boxSize}px`,
-        }"
-      >
+    <div class="w-full h-full flex flex-col items-center bg-white">
+      <el-image class="flex flex-1 bg-white" lazy :src="project?.logo" fit="fill">
         <template #error>
           <GenerateProjectAvatar v-model="project!.name" :width="boxSize" :height="boxSize" />
         </template>
