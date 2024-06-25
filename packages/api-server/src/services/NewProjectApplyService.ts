@@ -6,10 +6,9 @@ export async function newProjectApply(
   application: NewProjectApplyInterface,
 ): Promise<Result<string>> {
   const repoUrl = application.repoUrl;
-  const username = application.username;
   const applicationEmail = application.applicantEmail;
-  if (!repoUrl || !username || !applicationEmail) {
-    return Result.fail(500, 'repoUrl/username/application is empty!');
+  if (!repoUrl || !applicationEmail) {
+    return Result.fail(500, 'repoUrl/application is empty!');
   }
   const data = [];
   for (const url of repoUrl.split(';')) {
@@ -19,8 +18,7 @@ export async function newProjectApply(
     });
   }
   await NewProjectApply.bulkCreate(data);
-  return Result.ok(`success`)
-
+  return Result.ok(`success`);
 }
 
 export async function existsApplication(

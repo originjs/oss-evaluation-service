@@ -1,4 +1,5 @@
 export interface SoftwareBaseInfo {
+  id?: string;
   projectId?: string;
   projectName?: string;
   repoName: string;
@@ -224,7 +225,7 @@ export interface SummaryHighlightInfo {
   topPrCompanies: Array<InnovationCompaniesInfo>;
 }
 
-export interface NewProjectApply{
+export interface NewProjectApply {
   repoUrl: string;
   comment: string;
   applicantEmail: string;

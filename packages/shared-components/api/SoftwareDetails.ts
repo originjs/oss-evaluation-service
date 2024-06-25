@@ -15,6 +15,7 @@ import type {
   DependentProject,
   CompaniesInfo,
   CompareProject,
+  NewProjectApply,
 } from '@orginjs/oss-evaluation-api-server';
 
 export {
@@ -33,6 +34,7 @@ export {
   DependentProject,
   CompaniesInfo,
   CompareProject,
+  NewProjectApply,
 };
 
 export function getSoftwareInfo(repoName: string) {
@@ -57,4 +59,8 @@ export function getInnovationApi(repoName: string) {
 
 export function getGeoDistributionInfo(repoName: string) {
   return HttpRequest.get<InnovationData>(`/project/innovate/${repoName}`);
+}
+
+export function submitApplication(param: NewProjectApply) {
+  return HttpRequest.post<string>('/newProjectApply/submitApplication', param);
 }

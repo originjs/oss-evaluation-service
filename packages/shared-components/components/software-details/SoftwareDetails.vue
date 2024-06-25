@@ -36,6 +36,7 @@ import {
   getPerformanceModuleInfo,
   getSoftwareInfo,
   getGeoDistributionInfo,
+  submitApplication,
 } from '@orginjs/oss-evaluation-components-api';
 import { CompareFavorites } from '../compare-favorites';
 import {
@@ -959,10 +960,6 @@ function toBenchmarkPage() {
   window.open(location.origin + '/#/benchmark-compare', '_blank');
 }
 
-function feedbackAlternative() {
-  ElMessage.info('功能建设中，敬请期待');
-}
-
 const compareFavoritesRef = ref<InstanceType<typeof CompareFavorites>>();
 function addProjectToCompare(info: CompareProject | undefined) {
   if (!info) {
@@ -998,6 +995,69 @@ onBeforeUnmount(() => {
   window.removeEventListener('scroll', setbOptionBtnsDomPos);
   window.removeEventListener('resize', setbOptionBtnsDomPos);
 });
+
+const feedbackDialogVisible = ref(false);
+const formInstance = ref();
+const feedbackSubmitting = ref(false);
+const feedbackInfo = reactive({
+  repoUrl: '',
+  comment: '',
+  email: '',
+});
+const formRules = reactive({
+  repoUrl: [
+    {
+      required: true,
+      message: '请输入社区源码仓地址',
+      trigger: 'blur',
+    },
+  ],
+  email: [
+    {
+      required: true,
+      message: '请输入你的邮箱地址',
+      trigger: 'blur',
+    },
+  ],
+});
+
+function submitFeedback() {
+  formInstance.value.validate((valid: boolean) => {
+    if (valid) {
+      feedbackSubmitting.value = true;
+      submitApplication({
+        repoUrl: feedbackInfo.repoUrl,
+        comment: feedbackInfo.comment,
+        applicantEmail: feedbackInfo.email,
+        username: '',
+        alternativeProjectId: String(project.value!.id!),
+        type: 2,
+        expandField1: '',
+        createdAt: new Date(),
+      })
+        .then(res => {
+          if (res.data === 'success') {
+            ElMessage.success('已反馈相似软件');
+            formInstance.value.resetFields();
+            feedbackDialogVisible.value = false;
+          } else {
+            ElMessage.warning('提交失败，请稍后重试');
+          }
+        })
+        .catch(() => {
+          ElMessage.warning('提交失败，请稍后重试');
+        })
+        .finally(() => {
+          feedbackSubmitting.value = false;
+        });
+    }
+  });
+}
+
+function cancelFeedback() {
+  formInstance.value.resetFields();
+  feedbackDialogVisible.value = false;
+}
 </script>
 
 <template>
@@ -1096,9 +1156,57 @@ onBeforeUnmount(() => {
             <InfoFilled />
           </el-icon>
         </el-tooltip>
-        <el-button round ml-3 :icon="Plus" size="small" @click="feedbackAlternative">
+        <el-button
+          round
+          ml-3
+          :icon="Plus"
+          size="small"
+          :disabled="isRequestingProjectInfo"
+          @click="feedbackDialogVisible = true"
+        >
           反馈相似软件
         </el-button>
+        <el-dialog
+          v-model="feedbackDialogVisible"
+          title="反馈相似软件"
+          destroy-on-close
+          append-to-body
+          @close="cancelFeedback"
+        >
+          <el-form
+            ref="formInstance"
+            :model="feedbackInfo"
+            :rules="formRules"
+            label-position="right"
+            label-width="auto"
+          >
+            <el-form-item label="社区源码仓地址" prop="repoUrl">
+              <el-input
+                v-model="feedbackInfo.repoUrl"
+                type="textarea"
+                :row="3"
+                placeholder="https://github.com/owner-name/repo-name"
+              />
+            </el-form-item>
+            <el-form-item label="描述" prop="comment">
+              <el-input
+                v-model="feedbackInfo.comment"
+                type="textarea"
+                :row="3"
+                placeholder="请输入描述"
+              />
+            </el-form-item>
+            <el-form-item label="邮箱地址" prop="email">
+              <el-input v-model="feedbackInfo.email" placeholder="请输入你的邮箱地址" />
+            </el-form-item>
+          </el-form>
+          <template #footer>
+            <el-button @click="cancelFeedback">取消</el-button>
+            <el-button type="primary" :disabled="feedbackSubmitting" @click="submitFeedback">
+              确定
+            </el-button>
+          </template>
+        </el-dialog>
       </div>
       <div flex my-5>
         <div v-for="item in alternatives" :key="item.id" class="alter-item" flex>
