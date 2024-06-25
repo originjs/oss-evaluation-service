@@ -585,8 +585,14 @@ router.route('/github/stars/projects').post(syncProjectByStar);
  *       content:
  *         application/json:
  *           schema:
- *             type: Array<string>
- *             example: ["https://github.com/vuejs/core","https://github.com/vuejs/pinia"]
+ *             type: object
+ *             properties:
+ *               dataType:
+ *                 type: interger
+ *                 example: 1
+ *               repoList:
+ *                 type: Array<string>
+ *                 example: ["https://github.com/vuejs/core","https://github.com/vuejs/pinia"]
  *     responses:
  *       200:
  *         description: Success

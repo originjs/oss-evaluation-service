@@ -193,7 +193,7 @@ async function pagingQuery(url) {
   });
 }
 
-function parseProjects(items) {
+function parseProjects(items, dataType) {
   return items.map(project => ({
     id: project.id,
     name: project.name,
@@ -241,17 +241,19 @@ function parseProjects(items) {
     licenseName: project.license?.name,
     isTemplate: project.is_template,
     webCommitSignoffRequired: project.web_commit_signoff_required,
+    dataType: dataType || 1,
   }));
 }
 
 export async function syncProjectByRepo(req, res) {
+  const dataType = req.body.dataType;
   if (!process.env.GITHUB_TOKEN) {
     res.status(500).json({ error: 'User token is required.' });
     return;
   }
 
   const items = [];
-  for (const projectUrl of req.body) {
+  for (const projectUrl of req.body.repoList) {
     const item = await queryProjectByRepUrl(projectUrl);
     if (item) items.push(item);
   }
@@ -261,7 +263,7 @@ export async function syncProjectByRepo(req, res) {
     return;
   }
 
-  const projects = parseProjects(items);
+  const projects = parseProjects(items, dataType);
   saveCSVFile(projects, 'github_projects');
   await savaData(projects);
 
