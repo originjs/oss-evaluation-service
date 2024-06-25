@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { BenchmarkIndex } from '@orginjs/oss-evaluation-components-api';
+import type { CheckboxValueType } from 'element-plus';
 
 const props = defineProps({
   benchmarkIndexRaw: {
@@ -89,14 +90,14 @@ const checkedStatus = computed({
   },
 });
 
-const handleCheckAllChange = (val: boolean, category: string) => {
+const handleCheckAllChange = (val: CheckboxValueType, category: string) => {
   checkedStatus.value[category].checkedBenchmarkIndex = val
     ? benchmarkIndexRawGroup.value[category].map(item => item.indexName)
     : [];
   checkedStatus.value[category].isIndeterminate = false;
   checkedStatus.value = { ...checkedStatus.value }; // 重新赋值触发 computed 更新
 };
-const handleCheckedItemsChange = (value: string[], category: string) => {
+const handleCheckedItemsChange = (value: CheckboxValueType[], category: string) => {
   const checkedCount = value.length;
   const allCount = benchmarkIndexRawGroup.value[category].length;
   checkedStatus.value[category].checkAll = checkedCount === allCount;
@@ -117,11 +118,11 @@ const handleCheckedItemsChange = (value: string[], category: string) => {
           :indeterminate="checkedStatus[category].isIndeterminate"
           class="ml-10px"
           label="全选"
-          @change="(val: boolean) => handleCheckAllChange(val, category)"
+          @change="(val: CheckboxValueType) => handleCheckAllChange(val, category)"
         />
         <el-checkbox-group
           v-model="checkedStatus[category].checkedBenchmarkIndex"
-          @change="(val: string[]) => handleCheckedItemsChange(val, category)"
+          @change="(val: CheckboxValueType[]) => handleCheckedItemsChange(val, category)"
         >
           <div
             v-for="item of benchmarkIndexRawGroup[category]"
