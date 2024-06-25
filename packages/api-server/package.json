@@ -42,7 +42,6 @@
     "@types/node": "^18.11.12",
     "@types/swagger-ui-express": "^4.1.6",
     "@types/underscore": "^1.11.15",
-    "nodemon": "^3.0.3",
-    "typescript": "~4.7.4"
+    "nodemon": "^3.0.3"
   }
 }
