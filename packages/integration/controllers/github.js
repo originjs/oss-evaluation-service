@@ -1,7 +1,11 @@
 import https from 'node:https';
 import * as fs from 'node:fs';
 import { Octokit } from '@octokit/core';
-import { GithubProjects, logger, GithubProjectsRank } from '@orginjs/oss-evaluation-data-model';
+import {
+  GithubProjectsTable,
+  logger,
+  GithubProjectsRank,
+} from '@orginjs/oss-evaluation-data-model';
 import GithubSdk from '@orginjs/github-sdk/src/index.js';
 
 /**
@@ -95,7 +99,7 @@ async function savaData(projects) {
   let updateOnDuplicate = Object.keys(projects[0]).slice(1);
   updateOnDuplicate = updateOnDuplicate.filter(fieldName => fieldName != 'integratedState');
 
-  const result = await GithubProjects.bulkCreate(projects, {
+  const result = await GithubProjectsTable.bulkCreate(projects, {
     updateOnDuplicate,
   });
   logger.info(`Batch insert/update success,${result.length} rows.`);
