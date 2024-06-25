@@ -58,26 +58,30 @@ const emit = defineEmits(['mouseenter', 'mouseleave']);
           </div>
         </div>
         <div flex>
-          <div v-if="options?.evaluation" flex flex-col mr-3 items-center>
-            <el-tooltip effect="light" content="先进性评估" placement="bottom">
-              <span
-                i-custom:evaluation
-                font-size-10
-                cursor-pointer
-                @click="options.evaluation(project)"
-              ></span>
-            </el-tooltip>
-          </div>
-          <div v-if="project?.hasBenchmark == 'Y'" flex flex-col items-center>
-            <el-tooltip effect="light" content="性能Benchmark" placement="bottom">
-              <span
-                i-custom:benchmark
-                font-size-10
-                :class="{ 'cursor-pointer': options?.goBenchmark }"
-                @click="options?.goBenchmark && options?.goBenchmark(project)"
-              ></span>
-            </el-tooltip>
-          </div>
+          <slot name="toolbar-left"></slot>
+          <slot>
+            <div v-if="options?.evaluation" flex flex-col mr-3 items-center>
+              <el-tooltip effect="light" content="先进性评估" placement="bottom">
+                <span
+                  i-custom:evaluation
+                  font-size-8
+                  cursor-pointer
+                  @click="options.evaluation(project)"
+                ></span>
+              </el-tooltip>
+            </div>
+            <div v-if="project?.hasBenchmark == 'Y'" flex flex-col items-center>
+              <el-tooltip effect="light" content="性能Benchmark" placement="bottom">
+                <span
+                  i-custom:benchmark
+                  font-size-8
+                  :class="{ 'cursor-pointer': options?.goBenchmark }"
+                  @click="options?.goBenchmark && options?.goBenchmark(project)"
+                ></span>
+              </el-tooltip>
+            </div>
+          </slot>
+          <slot name="toolbar-right"></slot>
         </div>
       </div>
       <el-text line-clamp="3">
