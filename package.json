@@ -53,7 +53,6 @@
     "simple-git-hooks": "^2.10.0",
     "typescript": "^5.4.5",
     "vitest": "^1.2.2",
-    "vue-tsc": "^2.0.6",
-    "@vue/language-server": "^2.0.21"
+    "vue-tsc": "^2.0.6"
   }
 }
