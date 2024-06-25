@@ -57,7 +57,7 @@ const emit = defineEmits(['mouseenter', 'mouseleave']);
             ></a>
           </div>
         </div>
-        <div flex>
+        <div class="flex items-center">
           <slot name="toolbar-left"></slot>
           <slot>
             <div v-if="options?.evaluation" flex flex-col mr-3 items-center>

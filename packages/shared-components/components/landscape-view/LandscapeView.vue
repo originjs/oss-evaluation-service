@@ -90,7 +90,14 @@
       :options="options"
       @mouseenter="undoHideProjectPopover"
       @mouseleave="hideProjectPopover"
-    />
+    >
+      <template #toolbar-left>
+        <slot name="popover-toolbar-left" :project="popoverProject"></slot>
+      </template>
+      <template #toolbar-right>
+        <slot name="popover-toolbar-right" :project="popoverProject"></slot>
+      </template>
+    </project-popover>
 
     <el-dialog v-model="isOpenProjectDialog" width="fit-content">
       <slot name="projectDialogHeader" :project="popoverProject">
