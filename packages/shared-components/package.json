@@ -1,6 +1,6 @@
 {
   "name": "@originjs/oss-evaluation-components",
-  "version": "0.0.28-beta.2",
+  "version": "0.0.28",
   "files": [
     "dist"
   ],
