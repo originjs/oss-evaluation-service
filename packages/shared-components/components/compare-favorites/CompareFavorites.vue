@@ -5,6 +5,7 @@ import type { SoftwareBaseInfo, CompareProject } from '@orginjs/oss-evaluation-c
 import { SearchSoftware } from '../search-software';
 import ProjectThumbnails from '../landscape-view/ProjectThumbnails.vue';
 import type { Project } from '../landscape-view/type';
+import { extractRepositoryName } from '@orginjs/oss-evaluation-components-utils/common';
 
 const props = defineProps<{
   options?: {
@@ -65,8 +66,24 @@ function cleanCompareFavorites() {
   localStorage.setItem('oss-evaluation-compare-projects', '[]');
 }
 
+const compatibleField = (p: any): CompareProject => {
+  let project = { ...p, bigProject: 'N' };
+  project.url = project.url || project.htmlUrl;
+  if (!project.repoName && project.url) {
+    project.repoName = extractRepositoryName(project.url);
+  }
+  return project;
+};
+
 function addProject(newProjects: Array<CompareProject>) {
-  for (let project of newProjects) {
+  for (let p of newProjects) {
+    let project = compatibleField(p);
+    if (!project.repoName) {
+      // TODO 如果不是 github 的项目，暂时不支持，待数据支持后这里的逻辑和 compatibleField 内的逻辑要改
+      ElMessage.warning('暂无对比数据，无法添加');
+      continue;
+    }
+
     let exists = projects.some(p => p.url === project.url);
     if (exists) {
       ElMessage.success(`${project.repoName} 已添加`);

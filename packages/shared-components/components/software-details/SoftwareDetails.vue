@@ -1068,12 +1068,11 @@ function cancelFeedback() {
           <el-button
             type="primary"
             plain
-            :icon="Plus"
             :disabled="!project"
             class="btn-compare"
             @click="addProjectToCompare(project)"
           >
-            对比
+            <span class="add-version-icon"></span>添加对比
           </el-button>
           <el-button type="primary" plain class="btn-export" @click="exportToExcel">
             导出评估报告
@@ -1228,13 +1227,14 @@ function cancelFeedback() {
               </div>
             </el-tooltip>
             <el-button
-              style="padding: 0 18px; height: 22px"
               type="primary"
               size="small"
               round
+              plain
+              class="btn-compare"
               @click="addProjectToCompare(item)"
             >
-              <span w-10px h-10px i-custom:plus-bold />
+              <span class="add-version-icon"></span>添加对比
             </el-button>
           </div>
         </div>
@@ -2050,6 +2050,28 @@ function cancelFeedback() {
     width: 935px;
   }
 }
+
+.add-version-icon {
+  margin-right: 6px;
+  display: inline-block;
+  mask: url('../../assets/svg/add-versus.svg');
+  mask-size: 100% 100%;
+  background-color: currentColor;
+  color: #409eff;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.btn-compare {
+  &:hover,
+  &:focus {
+    .add-version-icon {
+      color: #ffffff;
+    }
+  }
+}
+
 .text-over {
   white-space: nowrap;
   overflow: hidden;

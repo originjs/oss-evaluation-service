@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { LandscapeView } from '@orginjs/oss-evaluation-components/landscape-view';
 import projects from './projects.json';
+import { CompareFavorites } from '@orginjs/oss-evaluation-components';
+import type { CompareProject, SoftwareBaseInfo } from '@orginjs/oss-evaluation-components-api';
+
+const router = useRouter();
 
 interface Project {
   category: string;
@@ -28,7 +32,7 @@ const landscapeOptions = {
   // Objcet中的"_bigProject_"表示大项目没有设置指定颜色就使这个配置的值
   // 如果大项目没有设置"_bigProject_"和指定颜色，会默认边框颜色#016bccb3
   // Objcet中的"_default_"表示没有设置指定颜色就使用默认的
-  borderColor: {"_default_":"#e5e7eb","_bigProject_":"#016bccb3","material-ui":"#89c997"},
+  borderColor: { _default_: '#e5e7eb', _bigProject_: '#016bccb3', 'material-ui': '#89c997' },
   colors: ['#89bff6', '#89c997', '#e8dd92', '#f0b58e', '#aea3db'], //非必填，自定义背景色，按顺序使用
   layout: {
     //非必填，布局。 但是建议传，当前自动计算布局不好看，数字为占一行的列宽，相加超过1就会在下一行显示
@@ -92,13 +96,24 @@ const landscapeOptions = {
 };
 
 function clickProject(project: Project) {
-  if(landscapeOptions.enableProjectDialog){
+  if (landscapeOptions.enableProjectDialog) {
     return;
   }
   window.open(
     `/#/software-details?repoName=${project.htmlUrl.replace('https://github.com/', '')}`,
     '_blank',
   );
+}
+
+const compareFavoritesRef = ref<InstanceType<typeof CompareFavorites>>();
+function addProjectToCompare(project: CompareProject) {
+  compareFavoritesRef.value?.addProject([{ ...project }]);
+}
+function compareProjects(projects: SoftwareBaseInfo[]) {
+  router.push({
+    path: 'compare-projects',
+    query: { repos: projects.map(project => project.repoName) },
+  });
 }
 </script>
 
@@ -110,11 +125,25 @@ function clickProject(project: Project) {
       :options="landscapeOptions"
       @click-project="clickProject"
     >
+      <template #popover-toolbar-right="{ project }">
+        <el-tooltip effect="light" content="添加对比" placement="bottom" :teleported="false">
+          <span
+            class="i-custom:add-versus ml3 cursor-pointer font-size-8 color-[#409eff]"
+            @click="addProjectToCompare(project as unknown as CompareProject)"
+          ></span>
+        </el-tooltip>
+      </template>
       <template #projectDialogBody="scoped">
         <!-- 启用项目弹框才会显示，有两个区域（projectDialogHeader，projectDialogBody） -->
         <span>{{ scoped.project.name }}</span>
       </template>
     </LandscapeView>
+
+    <CompareFavorites
+      ref="compareFavoritesRef"
+      style="position: fixed; bottom: 0; z-index: 999"
+      @compare="compareProjects"
+    />
   </div>
 </template>
 

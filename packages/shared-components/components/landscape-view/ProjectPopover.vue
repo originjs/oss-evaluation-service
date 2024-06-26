@@ -60,7 +60,7 @@ const emit = defineEmits(['mouseenter', 'mouseleave']);
         <div class="flex items-center">
           <slot name="toolbar-left"></slot>
           <slot>
-            <div v-if="options?.evaluation" flex flex-col mr-3 items-center>
+            <div v-if="options?.evaluation" class="toolbar-item flex flex-col items-center">
               <el-tooltip effect="light" content="先进性评估" placement="bottom">
                 <span
                   i-custom:evaluation
@@ -70,7 +70,10 @@ const emit = defineEmits(['mouseenter', 'mouseleave']);
                 ></span>
               </el-tooltip>
             </div>
-            <div v-if="project?.hasBenchmark == 'Y'" flex flex-col items-center>
+            <div
+              v-if="project?.hasBenchmark == 'Y'"
+              class="toolbar-item flex flex-col items-center"
+            >
               <el-tooltip effect="light" content="性能Benchmark" placement="bottom">
                 <span
                   i-custom:benchmark
@@ -91,4 +94,8 @@ const emit = defineEmits(['mouseenter', 'mouseleave']);
   </el-popover>
 </template>
 
-<style scoped lang="less"></style>
+<style scoped lang="less">
+.toolbar-item + .toolbar-item {
+  margin-left: 12px;
+}
+</style>
