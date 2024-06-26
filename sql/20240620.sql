@@ -1,1 +1,2 @@
 ALTER TABLE alternative_projects ADD UNIQUE INDEX `id_url`(`project_id`, `alternative_url`);
+ALTER TABLE alternative_projects ADD COLUMN `approved` tinyint NULL, ADD COLUMN `created_at` timestamp NULL, ADD COLUMN `updated_at` timestamp NULL;

@@ -9,7 +9,7 @@ export async function getAlternativeProjects(fullName: string): Promise<Alternat
   const sql = `SELECT alternative_id, alternative_name, alternative_url, source, 
        owner_avatar_url, description, stargazers_count as starCount, forks_count as forksCount
   FROM alternative_projects a LEFT JOIN github_projects g ON a.alternative_id=g.id
-  WHERE a.full_name=:fullName AND alternative_id IS NOT NULL ORDER BY distance LIMIT ${ALTERNATIVE_SIZE}`;
+  WHERE a.full_name=:fullName AND approved=1 ORDER BY distance LIMIT ${ALTERNATIVE_SIZE}`;
   let list = await sequelize.query(sql, {
     replacements: { fullName },
     type: sequelize.QueryTypes.SELECT,

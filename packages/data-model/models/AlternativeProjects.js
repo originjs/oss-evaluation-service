@@ -26,10 +26,14 @@ export default sequelize.define(
     source: {
       type: DataTypes.STRING,
     },
+    approved: {
+      type: DataTypes.TINYINT,
+    },
   },
   {
     tableName: 'alternative_projects',
     underscored: true,
-    timestamps: false,
+    createdAt: true,
+    updatedAt: true,
   },
 );
