@@ -294,11 +294,12 @@ async function queryProjectByRepUrl(url) {
   }
 
   const tokens = JSON.parse(process.env.GITHUB_TOKEN);
+  logger.info(`fetch url: https://api.github.com/repos/${ownerRepo[0]}/${ownerRepo[1]}`);
   const response = await fetch(`https://api.github.com/repos/${ownerRepo[0]}/${ownerRepo[1]}`, {
     // agent,
     headers: {
       'User-Agent': 'nodejs/18.19.0',
-      Authorization: tokens[0],
+      Authorization: `Bearer ${tokens[0]}`,
       'X-GitHub-Api-Version': '2022-11-28',
       Accept: 'application/vnd.github+json',
     },
