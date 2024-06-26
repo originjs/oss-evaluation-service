@@ -88,6 +88,7 @@
       :project="popoverProject"
       :virtual-ref="virtualRef"
       :options="options"
+      :teleported="false"
       @mouseenter="undoHideProjectPopover"
       @mouseleave="hideProjectPopover"
     >
