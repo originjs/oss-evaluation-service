@@ -2,6 +2,7 @@ export { default as logger } from './util/logger.js';
 export { sequelize, sequelizeExt } from './util/database.js';
 export { default as AlternativeProjects } from './models/AlternativeProjects.js';
 export { default as GithubProjects } from './models/GithubProjects.js';
+export { default as GithubProjectsTable } from './models/GithubProjectsTable.js';
 export { default as ProjectPackage } from './models/ProjectPackage.js';
 export { default as StateOfJs } from './models/StateOfJs.js';
 export { default as CncfDocumentScore } from './models/CncfDocumentScore.js';
@@ -26,16 +27,10 @@ export { default as ProjectInfo } from './models/ProjectInfo.js';
 export { default as CncfDocumentScoreMin } from './models/CncfDocumentScoreMin.js';
 export { default as StateOfJsMin } from './models/StateOfJsMin.js';
 export { default as SonarCloudProjectMin } from './models/SonarCloudProjectMin.js';
-export {
-  default as GithubProjectsStargazersTrend,
-} from './models/GithubProjectsStargazersTrend.js';
+export { default as GithubProjectsStargazersTrend } from './models/GithubProjectsStargazersTrend.js';
 export { default as GithubProjectsDependencies } from './models/GithubProjectsDependencies.js';
-export {
-  default as OssinsightPullRequestCreatorsCountries,
-} from './models/OssinsightPullRequestCreatorsCountries.js';
-export {
-  default as OssinsightCreatorsOrganizations,
-} from './models/OssinsightCreatorsOrganizations.js';
+export { default as OssinsightPullRequestCreatorsCountries } from './models/OssinsightPullRequestCreatorsCountries.js';
+export { default as OssinsightCreatorsOrganizations } from './models/OssinsightCreatorsOrganizations.js';
 export { default as OssinsightCreatorsCountries } from './models/OssinsightCreatorsCountries.js';
 export { default as GithubProjectsRank } from './models/GithubProjectsRank.js';
 export { default as NewProjectApply } from './models/NewProjectApply.js';

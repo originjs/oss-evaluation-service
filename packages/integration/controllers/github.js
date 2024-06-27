@@ -1,7 +1,11 @@
 import https from 'node:https';
 import * as fs from 'node:fs';
 import { Octokit } from '@octokit/core';
-import { GithubProjects, logger, GithubProjectsRank } from '@orginjs/oss-evaluation-data-model';
+import {
+  GithubProjectsTable,
+  logger,
+  GithubProjectsRank,
+} from '@orginjs/oss-evaluation-data-model';
 import GithubSdk from '@orginjs/github-sdk/src/index.js';
 
 /**
@@ -17,6 +21,13 @@ import GithubSdk from '@orginjs/github-sdk/src/index.js';
  *  There are 955 github projects between 7001 and 16000 stars.
  *  There are 524 github projects by stars:>=16001.
  */
+const dataTypes = {
+  // Source is software for progressiveness assessment
+  generalRepo: 1,
+  // Source is similar software recommended by AI
+  aiRepo: 2,
+};
+
 export async function observeProjectsByStar(req, res) {
   const githubApiUrl = getGithubApiUrl(req);
   const result = await pagingQuery(githubApiUrl);
@@ -93,9 +104,11 @@ function getStarsScope(req) {
 
 async function savaData(projects) {
   let updateOnDuplicate = Object.keys(projects[0]).slice(1);
-  updateOnDuplicate = updateOnDuplicate.filter(fieldName => fieldName != 'integratedState');
+  updateOnDuplicate = updateOnDuplicate.filter(
+    fieldName => fieldName != 'integratedState' && fieldName != 'dataType',
+  );
 
-  const result = await GithubProjects.bulkCreate(projects, {
+  const result = await GithubProjectsTable.bulkCreate(projects, {
     updateOnDuplicate,
   });
   logger.info(`Batch insert/update success,${result.length} rows.`);
@@ -189,7 +202,7 @@ async function pagingQuery(url) {
   });
 }
 
-function parseProjects(items) {
+function parseProjects(items, dataType) {
   return items.map(project => ({
     id: project.id,
     name: project.name,
@@ -237,17 +250,19 @@ function parseProjects(items) {
     licenseName: project.license?.name,
     isTemplate: project.is_template,
     webCommitSignoffRequired: project.web_commit_signoff_required,
+    dataType: dataType || dataTypes.generalRepo,
   }));
 }
 
 export async function syncProjectByRepo(req, res) {
+  const dataType = req.body.dataType;
   if (!process.env.GITHUB_TOKEN) {
     res.status(500).json({ error: 'User token is required.' });
     return;
   }
 
   const items = [];
-  for (const projectUrl of req.body) {
+  for (const projectUrl of req.body.repoList) {
     const item = await queryProjectByRepUrl(projectUrl);
     if (item) items.push(item);
   }
@@ -257,7 +272,7 @@ export async function syncProjectByRepo(req, res) {
     return;
   }
 
-  const projects = parseProjects(items);
+  const projects = parseProjects(items, dataType);
   saveCSVFile(projects, 'github_projects');
   await savaData(projects);
 
@@ -288,11 +303,12 @@ async function queryProjectByRepUrl(url) {
   }
 
   const tokens = JSON.parse(process.env.GITHUB_TOKEN);
+  logger.info(`fetch url: https://api.github.com/repos/${ownerRepo[0]}/${ownerRepo[1]}`);
   const response = await fetch(`https://api.github.com/repos/${ownerRepo[0]}/${ownerRepo[1]}`, {
     // agent,
     headers: {
       'User-Agent': 'nodejs/18.19.0',
-      Authorization: tokens[0],
+      Authorization: `Bearer ${tokens[0]}`,
       'X-GitHub-Api-Version': '2022-11-28',
       Accept: 'application/vnd.github+json',
     },
@@ -303,6 +319,7 @@ async function queryProjectByRepUrl(url) {
     project = await response.json();
   } else {
     logger.info(await response.text());
+    logger.info(await response.status);
   }
   return project;
 }

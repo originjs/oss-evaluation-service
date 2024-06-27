@@ -1,4 +1,4 @@
-import { GithubProjects, logger } from '@orginjs/oss-evaluation-data-model';
+import { GithubProjects, GithubProjectsTable, logger } from '@orginjs/oss-evaluation-data-model';
 import { CheerioCrawler, Configuration } from 'crawlee';
 import { Cron } from 'croner';
 import { getProjectByUrl } from '../util/util.js';
@@ -55,7 +55,7 @@ export default async function syncProjectContributors(projectId) {
       continue;
     }
 
-    await GithubProjects.update(
+    await GithubProjectsTable.update(
       { contributors: contributors },
       {
         where: {

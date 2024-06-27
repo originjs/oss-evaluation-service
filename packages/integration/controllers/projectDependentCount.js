@@ -1,4 +1,9 @@
-import { GithubProjects, logger, ProjectPackage } from '@orginjs/oss-evaluation-data-model';
+import {
+  GithubProjects,
+  GithubProjectsTable,
+  logger,
+  ProjectPackage,
+} from '@orginjs/oss-evaluation-data-model';
 import { CheerioCrawler, Configuration } from 'crawlee';
 import { Cron } from 'croner';
 GithubProjects.hasMany(ProjectPackage, {
@@ -72,7 +77,7 @@ export default async function syncProjectDependentCount(projectId) {
       dependentCount.repositories != '' &&
       dependentCount.packages != ''
     ) {
-      await GithubProjects.update(
+      await GithubProjectsTable.update(
         {
           dependentRepositories: dependentCount.repositories,
           dependentPackages: dependentCount.packages,

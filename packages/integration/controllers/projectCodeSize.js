@@ -1,4 +1,4 @@
-import { GithubProjects, logger } from '@orginjs/oss-evaluation-data-model';
+import { GithubProjects, GithubProjectsTable, logger } from '@orginjs/oss-evaluation-data-model';
 import { CheerioCrawler, Configuration } from 'crawlee';
 import { Cron } from 'croner';
 import { XMLParser } from 'fast-xml-parser';
@@ -58,7 +58,7 @@ async function syncProjectCodeSize(projectId) {
       continue;
     }
 
-    await GithubProjects.update(
+    await GithubProjectsTable.update(
       { codeSize: codeSize },
       {
         where: {

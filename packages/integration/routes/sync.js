@@ -578,15 +578,22 @@ router.route('/github/stars/projects').post(syncProjectByStar);
  *   name: Github
  * /sync/github/repo/projects:
  *   post:
- *     summary: Batch fetch Github projects from specific repositories
+ *     summary: Batch fetch Github projects from specific repositories, 
+ *             dataType can be 1 or 2, 1 means source is software for progressiveness assessment; 2 means Source is similar software recommended by AI
  *     tags: [Github]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: Array<string>
- *             example: ["https://github.com/vuejs/core","https://github.com/vuejs/pinia"]
+ *             type: object
+ *             properties:
+ *               dataType:
+ *                 type: interger
+ *                 example: 1
+ *               repoList:
+ *                 type: Array<string>
+ *                 example: ["https://github.com/vuejs/core","https://github.com/vuejs/pinia"]
  *     responses:
  *       200:
  *         description: Success
