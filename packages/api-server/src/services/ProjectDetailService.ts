@@ -527,7 +527,7 @@ export async function getInnovation(repoName: string) {
     select pd.full_name as fullName, pd.owner_name as ownerName, pd.owner_type as ownerType, p.stargazers_count as star
     from github_projects_dependencies pd
            inner join github_projects p on p.id = pd.project_id
-    where dependent_full_name = :repoName 
+    where dependent_full_name = :repoName
       and pd.full_name != :repoName
       and pd.deleted = false
     order by stargazers_count desc limit 50`;
@@ -563,7 +563,7 @@ export async function getInnovation(repoName: string) {
            ocr.type
     from ossinsight_creators_organizations ocr
            inner join github_projects gp on gp.id = ocr.project_id
-    where gp.full_name = :repoName 
+    where gp.full_name = :repoName
     order by ocr.percentage desc;
   `;
 
@@ -639,8 +639,16 @@ export async function getSummaryHighlightInfo(repoName: string) {
     .filter((obj: { orgName: string }) => !filterCharacter.includes(obj.orgName))
     .slice(0, COMPANIES_SIZE);
 
+  const sonarData = await SonarCloudProjectMin.findOne({
+    where: {
+      githubFullName: repoName,
+    },
+    attributes: ['reliabilityRating', 'bugs', 'maintainabilityRating', 'codeSmells'],
+  });
+
   return {
     alternativeProjects,
     topPrCompanies,
+    sonar: sonarData,
   };
 }
