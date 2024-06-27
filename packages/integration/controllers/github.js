@@ -21,6 +21,13 @@ import GithubSdk from '@orginjs/github-sdk/src/index.js';
  *  There are 955 github projects between 7001 and 16000 stars.
  *  There are 524 github projects by stars:>=16001.
  */
+const dataTypes = {
+  // Source is software for progressiveness assessment
+  generalRepo: 1,
+  // Source is similar software recommended by AI
+  aiRepo: 2,
+};
+
 export async function observeProjectsByStar(req, res) {
   const githubApiUrl = getGithubApiUrl(req);
   const result = await pagingQuery(githubApiUrl);
@@ -243,7 +250,7 @@ function parseProjects(items, dataType) {
     licenseName: project.license?.name,
     isTemplate: project.is_template,
     webCommitSignoffRequired: project.web_commit_signoff_required,
-    dataType: dataType || 1,
+    dataType: dataType || dataTypes.generalRepo,
   }));
 }
 

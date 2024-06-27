@@ -578,7 +578,8 @@ router.route('/github/stars/projects').post(syncProjectByStar);
  *   name: Github
  * /sync/github/repo/projects:
  *   post:
- *     summary: Batch fetch Github projects from specific repositories
+ *     summary: Batch fetch Github projects from specific repositories, 
+ *             dataType can be 1 or 2, 1 means source is software for progressiveness assessment; 2 means Source is similar software recommended by AI
  *     tags: [Github]
  *     requestBody:
  *       required: true
