@@ -4,7 +4,6 @@ import { Octokit } from '@octokit/core';
 import {
   GithubProjectsTable,
   logger,
-  GithubProjectsRank,
 } from '@orginjs/oss-evaluation-data-model';
 import GithubSdk from '@orginjs/github-sdk/src/index.js';
 
@@ -114,29 +113,17 @@ async function savaData(projects) {
   logger.info(`Batch insert/update success,${result.length} rows.`);
 }
 
-export async function refreshRankProjects(req, res) {
-  const { type, count } = req.query;
+export async function searchAndIntegrationGithubProjects(req, res) {
+  const { condition, count } = req.query;
   const githubSdk = new GithubSdk();
-  const data = await githubSdk.rankProjects(type, count);
-  const dbData = [];
-  const keyMap = new Map();
-  keyMap.set('forks', 'forks_count');
-  keyMap.set('stars', 'stargazers_count');
-  data.forEach((val, index) => {
-    dbData.push({
-      fullName: val.full_name,
-      homeUrl: val.html_url,
-      orderNum: index + 1,
-      value: val[keyMap.get(type)],
-      type: type,
-    });
-  });
-  GithubProjectsRank.destroy({
-    where: {
-      type: type,
-    },
-  });
-  GithubProjectsRank.bulkCreate(dbData);
+  const data = await githubSdk.searchProjects({ condition }, count);
+  if(data?.length > 0){
+    const projects = parseProjects(data);
+    for (let project of projects) {
+      project.recordDesc = 'needIntegration';
+    }
+    await savaData(projects);
+  }
   res.status(200).json('success');
 }
 

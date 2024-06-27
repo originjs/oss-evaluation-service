@@ -23,7 +23,7 @@ import {
   syncProjectByStar,
   syncProjectByRepo,
   syncProjectByUserStar,
-  refreshRankProjects,
+  searchAndIntegrationGithubProjects,
 } from '../controllers/github.js';
 import {
   bulkAddBenchmarkHandler,
@@ -578,7 +578,7 @@ router.route('/github/stars/projects').post(syncProjectByStar);
  *   name: Github
  * /sync/github/repo/projects:
  *   post:
- *     summary: Batch fetch Github projects from specific repositories, 
+ *     summary: Batch fetch Github projects from specific repositories,
  *             dataType can be 1 or 2, 1 means source is software for progressiveness assessment; 2 means Source is similar software recommended by AI
  *     tags: [Github]
  *     requestBody:
@@ -1261,17 +1261,16 @@ router.route('/syncAllProjectCreatorsCountries').post(syncAllProjectCreatorsCoun
 
 /**
  * @swagger
- * /sync/github/refreshGithubProjectsRank:
+ * /sync/github/searchAndIntegrationGithubProjects:
  *   get:
  *     summary: get github projects ranks
  *     tags: [Github]
  *     parameters:
  *       - in: query
- *         name: type
+ *         name: condition
  *         schema:
  *           type: string
- *           enum: ['stars', 'forks']
- *           example: 'stars'
+ *           example: 'language:java+stars:5000..10000'
  *           required: true
  *       - in: query
  *         name: count
@@ -1283,6 +1282,6 @@ router.route('/syncAllProjectCreatorsCountries').post(syncAllProjectCreatorsCoun
  *       200:
  *         description: Success
  */
-router.route('/github/refreshGithubProjectsRank').get(await refreshRankProjects);
+router.route('/github/searchAndIntegrationGithubProjects').get(searchAndIntegrationGithubProjects);
 
 export default router;

@@ -1,5 +1,5 @@
 import { createFork, deleteFork } from './fork.js';
-import { getProjectInfo, getRankProjects } from './project.js';
+import { getProjectInfo, searchProjects } from './project.js';
 
 export class GithubSdk {
   constructor(token) {
@@ -20,14 +20,21 @@ export class GithubSdk {
   };
 
   /**
-   get rank projects of github
+   * @typedef {Object} SearchCondition
+   * @property {string} condition - condition
+   * @property {'stars'|'forks'} sort - sort
+   * @property {'asc'|'desc'} order - order
+   */
+
+  /**
+   search projects of github
    @async
-   @param {'stars'|'forks'} type - rank types
+   @param {{condition: *}} condition - search condition
    @param {number} count - num of projects, count > 0 & count < 1000
    @returns {Promise<Object[]>} - reponse
    @throws {Error} - request Error
   */
-  rankProjects = async (type, count) => {
-    return getRankProjects(type, count);
+  searchProjects = async (condition, count) => {
+    return searchProjects(condition, count, this.token);
   };
 }
