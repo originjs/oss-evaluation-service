@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Plus } from '@element-plus/icons-vue';
+import { Plus, Download } from '@element-plus/icons-vue';
 import type { CellStyle } from 'element-plus';
 import { ElMessage } from 'element-plus';
 import * as echarts from 'echarts';
@@ -69,7 +69,7 @@ const project = ref<SoftwareInfo>();
 const isRequestingProjectInfo = ref(false);
 const baseInfoTable = ref<TableRow[]>([]);
 const tagList = ref<string[]>([]);
-const alternatives = ref<AlternativeInfo[]>();
+const alternatives = ref<AlternativeInfo[]>([]);
 const starTrend = ref<StarTrend>({
   date: [],
   stargazers: [],
@@ -1071,15 +1071,14 @@ function cancelFeedback() {
             :disabled="!project"
             class="btn-compare"
             @click="addProjectToCompare(project)"
+            ><span class="add-version-icon"></span>添加对比</el-button
           >
-            <span class="add-version-icon"></span>添加对比
-          </el-button>
-          <el-button type="primary" plain class="btn-export" @click="exportToExcel">
-            导出评估报告
-          </el-button>
-          <el-button type="primary" plain class="btn-benchmark" @click="toBenchmarkPage">
-            性能 Benchmark
-          </el-button>
+          <el-button type="primary" plain :icon="Download" @click="exportToExcel"
+            >导出报告</el-button
+          >
+          <el-button type="primary" plain class="btn-benchmark" @click="toBenchmarkPage"
+            ><span class="benchmark-icon"></span>Benchmark</el-button
+          >
         </div>
         <div class="software-introduction">
           <el-image :src="project?.logo" fit="contain" class="w-96px h-96px mr-14px">
@@ -1148,10 +1147,10 @@ function cancelFeedback() {
       </div>
     </div>
     <div w-1280px m-auto>
-      <div flex mt-4 mb-4>
+      <div class="flex items-center mt-4 mb-4">
         <div font-size-5 font-bold>相似软件推荐</div>
         <el-tooltip :content="i18n.global.t(`tips.alternatives`)">
-          <el-icon size-1 color-gray-400>
+          <el-icon class="size-5 color-gray-400">
             <InfoFilled />
           </el-icon>
         </el-tooltip>
@@ -1226,18 +1225,12 @@ function cancelFeedback() {
                 </el-link>
               </div>
             </el-tooltip>
-            <el-button
-              type="primary"
-              size="small"
-              round
-              plain
-              class="btn-compare"
-              @click="addProjectToCompare(item)"
-            >
-              <span class="add-version-icon"></span>添加对比
+            <el-button type="primary" size="small" round @click="addProjectToCompare(item)">
+              <span style="color: #ffffff" class="add-version-icon"></span>添加对比
             </el-button>
           </div>
         </div>
+        <div v-if="!alternatives.length" class="color-gray">暂无数据</div>
       </div>
       <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-custom:function mr-2 />
@@ -2064,9 +2057,28 @@ function cancelFeedback() {
 }
 
 .btn-compare {
-  &:hover,
-  &:focus {
+  &:hover {
     .add-version-icon {
+      color: #ffffff;
+    }
+  }
+}
+
+.benchmark-icon {
+  margin-right: 6px;
+  display: inline-block;
+  mask: url('../../assets/svg/benchmark.svg');
+  mask-size: 100% 100%;
+  background-color: currentColor;
+  color: #409eff;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.btn-benchmark {
+  &:hover {
+    .benchmark-icon {
       color: #ffffff;
     }
   }
