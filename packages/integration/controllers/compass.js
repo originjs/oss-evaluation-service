@@ -1,6 +1,6 @@
 import { gql, request } from 'graphql-request';
 import { CompassActivity, GithubProjects, logger } from '@orginjs/oss-evaluation-data-model';
-import { getProjectByUrl } from '../util/util.js';
+import { getProjectByUrl, sleep } from '../util/util.js';
 
 const query = gql`
   query MetricActivity(
@@ -151,4 +151,55 @@ async function getIncrementalIntegrationArray(repoUrl, projectId, activityMetric
     }
   }
   return compassMetricsList;
+}
+
+export async function compassTimer(
+  startIndex = 0,
+  beginDate = '2023-04-01',
+  maxRetries = 3,
+  currentAttempt = 1,
+) {
+  try {
+    let startTime = process.hrtime();
+    logger.info('[Integration][Compass] Compass Integration Job start');
+    await syncAllProjectCompassMetric({ startIndex, beginDate });
+    logger.info('[Integration][Compass] Compass integration Successful!');
+    let endTime = process.hrtime(startTime);
+    logger.info(
+      `[Integration] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
+    );
+  } catch (err) {
+    if (currentAttempt >= maxRetries) {
+      logger.error('[Integration][Compass] Maximum number of retries: Integration Failure ');
+      logger.error('Max retries reached. Giving up.');
+      return;
+    }
+    logger.info(`Retrying... (${currentAttempt + 1}/${maxRetries})`);
+    // Customize the error, continue running from startIndex
+    if (Object.prototype.hasOwnProperty.call(err, 'startIndex')) {
+      const { error, startIndex } = err;
+      if (
+        Object.prototype.hasOwnProperty.call(error, 'response') &&
+        error.response.status === 429
+      ) {
+        logger.error(
+          `[Integration][Compass] Compass integrates flow limiting, waits 1 hour and restarts the timer, and current process: ${startIndex}`,
+        );
+        await sleep(3600001);
+        await compassTimer(startIndex, beginDate, maxRetries, currentAttempt);
+      } else {
+        logger.error('[Integration][Compass] Unknown error occurs, wait 10s and re-execute');
+        await sleep(10000);
+        await compassTimer(startIndex, beginDate, maxRetries, currentAttempt + 1);
+      }
+    } else if (
+      // Sequelize error, just exit
+      Object.prototype.hasOwnProperty.call(err, 'name') &&
+      err.name.includes('Sequelize')
+    ) {
+      logger.error('[Integration][Compass] Sequelize error, please check your database config');
+    } else {
+      logger.error('[Integration][Compass] compass integration unknown error, please checks');
+    }
+  }
 }

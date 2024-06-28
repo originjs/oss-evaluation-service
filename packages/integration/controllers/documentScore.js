@@ -1,6 +1,6 @@
 import { Octokit } from '@octokit/core';
 import { GithubProjects, CncfDocumentScore, logger } from '@orginjs/oss-evaluation-data-model';
-import { getProjectByUrl } from '../util/util.js';
+import { getProjectByUrl, sleep } from '../util/util.js';
 
 // cncf document checks item
 const cncfDocumentChecksSet = {
@@ -365,4 +365,26 @@ async function getRelease(octokit, owner, repo) {
     return '';
   }
   return release.data[0].body;
+}
+
+export async function cncfDocumentScoreTimer(startIndex = 0) {
+  try {
+    logger.info('[Integration][Document Best Practice Score] Document Score Integration Job start');
+    await syncAllProjectCncfDocumentScore({ startIndex });
+    logger.info(
+      '[Integration][Document Best Practice Score] Document Score Integration Integration Job Successful!',
+    );
+  } catch (err) {
+    if (Object.prototype.hasOwnProperty.call(err, 'startIndex')) {
+      // some error happened, restart after 10s
+      const { error, startIndex } = err;
+      logger.error(`Some error happened: ${error}`);
+      logger.error('Retry, wait 10s restart');
+      await sleep(10000);
+      // restart
+      await cncfDocumentScoreTimer(startIndex);
+    } else {
+      logger.error(`Some Unknown Error Happened: ${err}`);
+    }
+  }
 }
