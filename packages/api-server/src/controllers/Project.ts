@@ -8,6 +8,7 @@ import {
   exportBenchmarkExcel,
   getInnovation,
   getSummaryHighlightInfo,
+  prCreatorCompanyAndAreaInfo,
 } from '../services/ProjectDetailService.js';
 import type {
   EcologyActivityCategory,
@@ -66,9 +67,21 @@ export class ProjectController extends Controller {
   }
 
   @Get('summary/{repoName}')
-  public async getSummaryHighlightInfo(@Path() repoName: string): Promise<Result<SummaryHighlightInfo | unknown>> {
+  public async getSummaryHighlightInfo(
+    @Path() repoName: string,
+  ): Promise<Result<SummaryHighlightInfo | unknown>> {
     try {
       const data = await getSummaryHighlightInfo(repoName);
+      return Result.ok(data);
+    } catch (e) {
+      return Result.ok({});
+    }
+  }
+
+  @Get('prCreatorCompanyAndAreaInfo/{repoName}')
+  public async prCreatorCompanyAndAreaInfo(@Path() repoName: string): Promise<Result<object>> {
+    try {
+      const data = await prCreatorCompanyAndAreaInfo(repoName);
       return Result.ok(data);
     } catch (e) {
       return Result.ok({});

@@ -13,6 +13,8 @@ import {
   GithubProjects,
   GithubProjectsStargazersTrend,
   PackageDownloadCount,
+  OssinsightCreatorsOrganizations,
+  OssinsightCreatorsCountries,
   logger,
 } from '@orginjs/oss-evaluation-data-model';
 import ejsExcel from 'ejsexcel';
@@ -188,7 +190,7 @@ group by if(index_name.display_name is null, benchmark.benchmark, index_name.dis
   };
 }
 
-export async function getProjectIdByRepoName(repoName: string) {
+export async function getProjectIdByRepoName(repoName: string): Promise<number> {
   const data = await GithubProjects.findOne({
     where: {
       fullName: repoName,
@@ -441,6 +443,47 @@ export async function getSoftwareInnovate(repoName: string): Promise<InnovationD
 }
 
 const DECIMAL_PLACES = 2;
+
+export async function prCreatorCompanyAndAreaInfo(repoName: string) {
+  const projectId = await getProjectIdByRepoName(repoName);
+  const orgSummaryInfo = await OssinsightCreatorsOrganizations.findAll({
+    where: {
+      project_id: projectId,
+      type: 0,
+      org_name: {
+        [Op.notIn]: ['.', '...', '-', 'none', 'null', 'no', 'china', 'China', 'undefined'],
+      },
+    },
+    attributes: [
+      // Why don't we use `underscored: true`?
+      ['project_id', 'projectId'],
+      ['org_name', 'orgName'],
+      ['creators_num', 'creatorsNum'],
+      'percentage',
+    ],
+    limit: 10,
+    order: [['percentage', 'desc']],
+  });
+
+  const countrySummaryInfo = await OssinsightCreatorsCountries.findAll({
+    where: {
+      project_id: projectId,
+      type: 0,
+      country_code: {
+        [Op.ne]: 'UNKNOWN',
+      },
+    },
+    attributes: [
+      ['project_id', 'projectId'],
+      ['country_code', 'countryCode'],
+      ['creators_num', 'creatorsNum'],
+      'percentage',
+    ],
+    limit: 10,
+    order: [['percentage', 'desc']],
+  });
+  return { orgSummaryInfo, countrySummaryInfo };
+}
 
 export async function exportScoreExcel(projectName: string) {
   const excelTemplate = readFileSync('./assets/evaluation-template.xlsx');
