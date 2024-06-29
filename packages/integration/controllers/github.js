@@ -1,10 +1,7 @@
 import https from 'node:https';
 import * as fs from 'node:fs';
 import { Octokit } from '@octokit/core';
-import {
-  GithubProjectsTable,
-  logger,
-} from '@orginjs/oss-evaluation-data-model';
+import { GithubProjectsTable, logger } from '@orginjs/oss-evaluation-data-model';
 import GithubSdk from '@orginjs/github-sdk/src/index.js';
 
 /**
@@ -25,6 +22,10 @@ const dataTypes = {
   generalRepo: 1,
   // Source is similar software recommended by AI
   aiRepo: 2,
+  // Projects that are not suitable for display, usually pornography, violence, viruses, etc.
+  hiddenRepo: 4,
+  // Newly integrated github repository, but no other statistics yet
+  needIntegration: 9,
 };
 
 export async function observeProjectsByStar(req, res) {
@@ -117,7 +118,7 @@ export async function searchAndIntegrationGithubProjects(req, res) {
   const { condition, count } = req.query;
   const githubSdk = new GithubSdk();
   const data = await githubSdk.searchProjects({ condition }, count);
-  if(data?.length > 0){
+  if (data?.length > 0) {
     const projects = parseProjects(data);
     for (let project of projects) {
       project.recordDesc = 'needIntegration';
