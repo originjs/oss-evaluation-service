@@ -3,6 +3,7 @@ import type { TabsPaneContext } from 'element-plus';
 import FrameworkBenchmark from './FrameworkBenchmark.vue';
 import BundlerBenchmark from './BundlerBenchmark.vue';
 import TestFrameworkBenchmark from './TestFrameworkBenchmark.vue';
+import SerializationBenchmark from './SerializationBenchmark.vue';
 
 const activeName = ref('frameworks');
 
@@ -23,6 +24,12 @@ const handleClick = (tab: TabsPaneContext, event: Event) => {
       </el-tab-pane>
       <el-tab-pane label="测试框架" name="test_framework">
         <TestFrameworkBenchmark></TestFrameworkBenchmark>
+      </el-tab-pane>
+      <el-tab-pane label="XML序列化" name="terminal_serialization_xml">
+        <SerializationBenchmark type="终端序列化XML"></SerializationBenchmark>
+      </el-tab-pane>
+      <el-tab-pane label="JSON序列化" name="terminal_serialization">
+        <SerializationBenchmark type="终端序列化JSON"></SerializationBenchmark>
       </el-tab-pane>
     </el-tabs>
   </div>
