@@ -120,7 +120,7 @@ watchEffect(async () => {
     },
     {
       label: '代码量',
-      value: `${(data.codeLines / 1000).toFixed(2)} kl`,
+      value: `${data.codeLines ? (data.codeLines / 1000).toFixed(2) : '-'} kl`,
     },
     {
       label: '首次提交',
