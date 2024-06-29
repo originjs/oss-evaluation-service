@@ -1293,66 +1293,76 @@ function cancelFeedback() {
           </div>
         </div>
       </el-card>
-      <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
-        <span class="i-line-md-speedometer-loop" mr-2 />
-        <span>性能</span>
-        <span font-size-5 float-right
-          >{{ formatFloat(project?.evaluation?.performanceScore) }}/100</span
-        >
-      </div>
-      <el-card>
-        <div>
-          包大小{{
-            performanceModuleInfo.packageName ? ` : ${performanceModuleInfo.packageName}` : ''
-          }}
-        </div>
-        <div flex flex-items-center h-86px>
-          <div mr-200px>
-            <div mb-2 font-bold>
-              {{
-                performanceModuleInfo?.size ? (performanceModuleInfo.size / 1024).toFixed(1) : '--'
-              }}
-              kB
-            </div>
-            <div>MINIFIED</div>
-          </div>
-          <div mr-200px>
-            <div mb-2 font-bold>
-              {{
-                performanceModuleInfo?.gzipSize
-                  ? (performanceModuleInfo.gzipSize / 1024).toFixed(1)
-                  : '--'
-              }}
-              kB
-            </div>
-            <div>MINIFIED + GZIPPED</div>
-          </div>
-        </div>
-        <div v-show="showBenchmarkCompare">
-          <el-table
-            :data="benchmarkCompareTable"
-            border
-            :max-height="400"
-            :cell-style="computeColor"
+      <div v-if="performanceModuleInfo.packageName || showBenchmarkCompare">
+        <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
+          <span class="i-line-md-speedometer-loop" mr-2 />
+          <span>性能</span>
+          <span font-size-5 float-right
+            >{{ formatFloat(project?.evaluation?.performanceScore) }}/100</span
           >
-            <el-table-column v-for="column in benchmarkCompareColumns" :key="column" :prop="column">
-              <template #header>
-                <div class="flex items-center justify-center">
-                  <span>{{ column === 'indexName' ? 'Name' : column }}</span>
-                </div>
-              </template>
-              <template #default="{ row }">
-                <div v-if="row[column]" class="flex flex-col items-center justify-center">
-                  <span>{{ row[column] }}</span>
-                  <span v-if="column !== 'indexName'">
-                    ({{ (removeUnit(row[column]) / minRowValue[row.indexName]).toFixed(2) }})
-                  </span>
-                </div>
-              </template>
-            </el-table-column>
-          </el-table>
         </div>
-      </el-card>
+        <el-card>
+          <div v-if="performanceModuleInfo.packageName">
+            <div>
+              包大小{{
+                performanceModuleInfo.packageName ? ` : ${performanceModuleInfo.packageName}` : ''
+              }}
+            </div>
+            <div flex flex-items-center h-86px>
+              <div mr-200px>
+                <div mb-2 font-bold>
+                  {{
+                    performanceModuleInfo?.size
+                      ? (performanceModuleInfo.size / 1024).toFixed(1)
+                      : '--'
+                  }}
+                  kB
+                </div>
+                <div>MINIFIED</div>
+              </div>
+              <div mr-200px>
+                <div mb-2 font-bold>
+                  {{
+                    performanceModuleInfo?.gzipSize
+                      ? (performanceModuleInfo.gzipSize / 1024).toFixed(1)
+                      : '--'
+                  }}
+                  kB
+                </div>
+                <div>MINIFIED + GZIPPED</div>
+              </div>
+            </div>
+          </div>
+          <div v-show="showBenchmarkCompare">
+            <el-table
+              :data="benchmarkCompareTable"
+              border
+              :max-height="400"
+              :cell-style="computeColor"
+            >
+              <el-table-column
+                v-for="column in benchmarkCompareColumns"
+                :key="column"
+                :prop="column"
+              >
+                <template #header>
+                  <div class="flex items-center justify-center">
+                    <span>{{ column === 'indexName' ? '指标' : column }}</span>
+                  </div>
+                </template>
+                <template #default="{ row }">
+                  <div v-if="row[column]" class="flex flex-col items-center justify-center">
+                    <span>{{ row[column] }}</span>
+                    <span v-if="column !== 'indexName'">
+                      ({{ (removeUnit(row[column]) / minRowValue[row.indexName]).toFixed(2) }})
+                    </span>
+                  </div>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </el-card>
+      </div>
       <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-custom:quality mr-2 />
         <span>质量</span>
