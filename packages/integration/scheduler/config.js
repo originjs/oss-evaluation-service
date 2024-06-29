@@ -31,7 +31,7 @@ export const JobConfig = {
     {
       name: 'projectContributorsTimer',
       cronScheduleTime: '0 0 * * 6', // 周六 00:00
-      enabled: true, // only start in production environment
+      enabled: isProduction, // only start in production environment
     },
   ],
 };

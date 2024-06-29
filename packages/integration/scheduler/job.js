@@ -54,6 +54,5 @@ export default function scheduleJob() {
       const taskFunction = taskFactory.createTask(config.name);
       const job = createTimer(config.name, config.cronScheduleTime, taskFunction);
       logger.info(`Integration Job [${job.name}] Start At Cron Expression : ${job.getPattern()}`);
-      job.trigger()
     });
 }
