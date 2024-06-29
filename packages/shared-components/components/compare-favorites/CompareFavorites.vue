@@ -5,7 +5,7 @@ import type { SoftwareBaseInfo, CompareProject } from '@orginjs/oss-evaluation-c
 import { SearchSoftware } from '../search-software';
 import ProjectThumbnails from '../landscape-view/ProjectThumbnails.vue';
 import type { Project } from '../landscape-view/type';
-import { extractRepositoryName } from '@orginjs/oss-evaluation-components-utils/common';
+import { extractRepositoryName } from '@orginjs/oss-evaluation-components-utils';
 
 const props = defineProps<{
   options?: {
