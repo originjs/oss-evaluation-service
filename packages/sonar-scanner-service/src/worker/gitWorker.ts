@@ -1,5 +1,5 @@
 import { parentPort } from 'worker_threads';
-import type { GitCloneParam } from '../interfaces/Param';
+import type { GitCloneParam } from '../interfaces/param';
 import fs from 'node:fs';
 import process from 'node:process';
 import type { SimpleGit, SimpleGitOptions } from 'simple-git';
@@ -34,7 +34,10 @@ export async function cloneRepoIfNotExist(
       mkdirSync(dir, { recursive: true });
     }
     const gitClient: SimpleGit = simpleGit(options);
-    const isRepo = await gitClient.checkIsRepo();
+    let isRepo = false;
+    try {
+      isRepo = await gitClient.checkIsRepo();
+    } catch (e){ /* empty */ }
     if (isRepo) {
       logger.info(`${owner}/${repoName} exists`);
       if (pullIfExists) {
@@ -81,7 +84,11 @@ function getCloneUrlByTime(time: number, owner: string, repoName: string): strin
 }
 
 parentPort.on('message', gitCloneInfo => {
-  cloneRepoIfNotExist(gitCloneInfo)
-    .then(cloneResult => parentPort.postMessage(cloneResult))
-    .catch(e => parentPort.postMessage(Result.fail(e.message)));
+  try {
+    cloneRepoIfNotExist(gitCloneInfo)
+      .then(cloneResult => parentPort.postMessage(cloneResult))
+      .catch(e => parentPort.postMessage(Result.fail(e.message)));
+  } catch (e) {
+    parentPort.postMessage(Result.fail(e.message));
+  }
 });

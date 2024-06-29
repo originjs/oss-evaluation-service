@@ -1,4 +1,4 @@
-import type { SonarScanParam } from '../../interfaces/Param';
+import type { SonarScanParam } from '../../interfaces/param';
 import type { LanguageSonarScannerInterface } from '../../interfaces/language';
 import process from 'node:process';
 import fs from 'node:fs';

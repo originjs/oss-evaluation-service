@@ -79,11 +79,23 @@ async function syncProjectCodeSize(projectId) {
 }
 
 async function getCodeSizeUsingCloc(project) {
-  const cloneUrl = project.cloneUrl;
   const fetchUrl = process.env.REPO_SERVICE_URL;
-  const response = await fetch(`${fetchUrl}/repo/getCodeSize/${cloneUrl}`);
+  const response = await fetch(`${fetchUrl}/repo/getCodeSize`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      projectId: project.id,
+      owner: project.ownerName,
+      repoName: project.name,
+    }),
+  });
   if (!response.ok) {
-    logger.error(`request failed of get project:${project.fullName} cloc code size`);
+    logger.error(
+      `request failed of get project:${project.fullName} cloc code size,error: ${await response.text()}`,
+    );
   }
 }
 

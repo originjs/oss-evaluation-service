@@ -48,7 +48,7 @@ import {
   changeSonarKey2OfficialKeys,
 } from '../controllers/sonarCloud.js';
 import syncSingleProjectCodeSizeHandler, {
-    setCodeSizeOfProject,
+  setCodeSizeOfProject,
   syncAllProjectCodeSizeHandler,
 } from '../controllers/projectCodeSize.js';
 import {
