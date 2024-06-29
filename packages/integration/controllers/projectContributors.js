@@ -1,6 +1,5 @@
 import { GithubProjects, GithubProjectsTable, logger } from '@orginjs/oss-evaluation-data-model';
 import { CheerioCrawler, Configuration } from 'crawlee';
-import { Cron } from 'croner';
 import { getProjectByUrl } from '../util/util.js';
 
 export async function syncSingleProjectContributorsHandler(req, res) {
@@ -101,20 +100,6 @@ async function getProjectContributors(url) {
   return contributors;
 }
 
-const errorHandler = e => {
-  logger.error(e);
-};
-
-const syncProjectContributorsTimerTask = Cron(
-  '0 0 0 ? * THU',
-  { catch: errorHandler, timezone: 'Etc/UTC' },
-  async () => {
-    logger.info('syncProjectContributors start!', syncProjectContributorsTimerTask.getPattern());
-    await syncProjectContributors();
-    logger.info('syncProjectContributors end!', syncProjectContributorsTimerTask.getPattern());
-  },
-);
-
 async function getContributors(repoName, page = 1) {
   const request = await fetch(
     `https://api.github.com/repos/${repoName}/contributors?per_page=100&page=${page}&anon=true`,
@@ -145,4 +130,14 @@ async function getAlllContributors(repoName) {
     }
   }
   return contributors;
+}
+export async function projectContributorsTimer() {
+  const startTime = process.hrtime();
+  logger.info('[Integration][ProjectContributors] Integration Job start');
+  await syncAllProjectContributors();
+  logger.info('[Integration][ProjectContributors] Integration Job end');
+  const endTime = process.hrtime(startTime);
+  logger.info(
+    `[Integration][ProjectContributors] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
+  );
 }

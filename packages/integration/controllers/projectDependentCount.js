@@ -5,12 +5,12 @@ import {
   ProjectPackage,
 } from '@orginjs/oss-evaluation-data-model';
 import { CheerioCrawler, Configuration } from 'crawlee';
-import { Cron } from 'croner';
+import { getProjectByUrl } from '../util/util.js';
+
 GithubProjects.hasMany(ProjectPackage, {
   foreignKey: 'project_id',
   as: 'projectPackage',
 });
-import { getProjectByUrl } from '../util/util.js';
 
 export async function syncSingleProjectDependentCountHandler(req, res) {
   const { repoUrl: repoUrl } = req.params;
@@ -174,19 +174,13 @@ async function getProjectMainPackageUrl(url, packageName) {
   return urlResult;
 }
 
-const errorHandler = e => {
-  logger.error(e);
-};
-
-const syncProjectDependentCountTimerTask = Cron(
-  '0 0 0 ? * FRI',
-  { catch: errorHandler, timezone: 'Etc/UTC' },
-  async () => {
-    logger.info(
-      'syncProjectDependentCount start!',
-      syncProjectDependentCountTimerTask.getPattern(),
-    );
-    await syncProjectDependentCount();
-    logger.info('syncProjectDependentCount end!', syncProjectDependentCountTimerTask.getPattern());
-  },
-);
+export async function projectDependentCountTimer() {
+  const startTime = process.hrtime();
+  logger.info('[Integration][DependentCount] Integration Job start');
+  await syncAllProjectDependentCount();
+  logger.info('[Integration][DependentCount] Integration Job end');
+  const endTime = process.hrtime(startTime);
+  logger.info(
+    `[Integration][DependentCount] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
+  );
+}

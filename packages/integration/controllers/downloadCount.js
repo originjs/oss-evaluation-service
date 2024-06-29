@@ -1,5 +1,3 @@
-import { Cron } from 'croner';
-import Dayjs from 'dayjs';
 import fetch from '@adobe/node-fetch-retry';
 import { chunk } from 'underscore';
 import {
@@ -10,6 +8,7 @@ import {
 } from '@orginjs/oss-evaluation-data-model';
 import { getWeekOfYearList } from '../util/weekOfYearUtil.js';
 import { getProjectByUrl } from '../util/util.js';
+import Dayjs from 'dayjs';
 
 const PAGE_SIZE = 128;
 
@@ -40,35 +39,6 @@ const QUERY_NONE_SCOPED_PACKAGE = `
 const QUERY_PACKAGE_END = `
         order by project_id, package
     `;
-
-const errorHandler = e => {
-  logger.error(e);
-};
-
-const jobSyncAllProjectPackageDownloadCount = Cron(
-  '0 0 0 ? * TUE',
-  { catch: errorHandler, timezone: 'Etc/UTC' },
-  async () => {
-    logger.info(
-      'jobSyncAllProjectPackageDownloadCount start!',
-      jobSyncAllProjectPackageDownloadCount.getPattern(),
-    );
-    const queryLastDate = `
-    select max(end_date) as endDate
-    from package_download_count;
-  `;
-    const lastDate = await sequelize.query(queryLastDate, {
-      type: sequelize.QueryTypes.SELECT,
-    });
-    const startDate = new Dayjs(lastDate[0].endDate).add(1, 'day');
-    const endDate = new Dayjs(new Date());
-    await syncAllProjectPackageDownloadCount(startDate, endDate);
-    logger.info(
-      'jobSyncAllProjectPackageDownloadCount end!',
-      jobSyncAllProjectPackageDownloadCount.getPattern(),
-    );
-  },
-);
 
 export async function syncAllProjectPackageDownloadCountHandler(req, res) {
   const { startDate, endDate } = req.body;
@@ -253,4 +223,23 @@ export async function sendRequestByPoint(start, end, name) {
   return {
     error: `fetch package download count failed:: ${response.statusText}`,
   };
+}
+
+export async function packageDownloadCountTimer() {
+  logger.info(
+    '[Integration][PackageDownloadCount] ProjectPackageDownloadCount Integration Job start',
+  );
+  let startTime = process.hrtime();
+  const queryLastDate = `select max(end_date) as endDate from package_download_count;`;
+  const lastDate = await sequelize.query(queryLastDate, {
+    type: sequelize.QueryTypes.SELECT,
+  });
+  const beginDate = new Dayjs(lastDate[0].endDate).add(1, 'day');
+  const endDate = new Dayjs(new Date());
+  await syncAllProjectPackageDownloadCount({ beginDate, endDate });
+  let endTime = process.hrtime(startTime);
+  logger.info(
+    `[Integration][ProjectPackageDownloadCount] ProjectPackageDownloadCount End!, 
+          The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
+  );
 }

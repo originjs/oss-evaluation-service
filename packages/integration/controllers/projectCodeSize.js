@@ -1,6 +1,5 @@
 import { GithubProjects, GithubProjectsTable, logger } from '@orginjs/oss-evaluation-data-model';
 import { CheerioCrawler, Configuration } from 'crawlee';
-import { Cron } from 'croner';
 import { XMLParser } from 'fast-xml-parser';
 import { getProjectByUrl } from '../util/util.js';
 
@@ -155,16 +154,13 @@ async function getCodeSizeByOtherWays(ownerName, name) {
   }
 }
 
-const errorHandler = e => {
-  logger.error(e);
-};
-
-const syncProjectCodeSizeTimerTask = Cron(
-  '0 0 0 ? * WED',
-  { catch: errorHandler, timezone: 'Etc/UTC' },
-  async () => {
-    logger.info('syncProjectCodeSize start!', syncProjectCodeSizeTimerTask.getPattern());
-    await syncAllProjectCodeSize();
-    logger.info('syncProjectCodeSize end!', syncProjectCodeSizeTimerTask.getPattern());
-  },
-);
+export async function projectCodeSizeTimer() {
+  const startTime = process.hrtime();
+  logger.info('[Integration][ProjectCodeSize] Integration Job start');
+  await syncAllProjectCodeSize();
+  logger.info('[Integration][ProjectCodeSize] Integration Job end');
+  const endTime = process.hrtime(startTime);
+  logger.info(
+    `[Integration][ProjectCodeSize] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
+  );
+}
