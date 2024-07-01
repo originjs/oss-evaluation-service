@@ -1341,7 +1341,8 @@ function cancelFeedback() {
               :cell-style="computeColor"
             >
               <el-table-column
-                v-for="column in benchmarkCompareColumns"
+                v-for="(column, index) in benchmarkCompareColumns"
+                :width="index == 0 ? '300' : ''"
                 :key="column"
                 :prop="column"
               >
@@ -1351,7 +1352,7 @@ function cancelFeedback() {
                   </div>
                 </template>
                 <template #default="{ row }">
-                  <div v-if="row[column]" class="flex flex-col items-center justify-center">
+                  <div v-if="row[column]" class="flex flex-col justify-center">
                     <span>{{ row[column] }}</span>
                     <span v-if="column !== 'indexName'">
                       ({{ (removeUnit(row[column]) / minRowValue[row.indexName]).toFixed(2) }})
