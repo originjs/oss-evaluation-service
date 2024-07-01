@@ -79,8 +79,12 @@ async function syncProjectCodeSize(projectId) {
 }
 
 async function getCodeSizeUsingCloc(project) {
-  const fetchUrl = process.env.REPO_SERVICE_URL;
-  const response = await fetch(`${fetchUrl}/repo/getCodeSize`, {
+  const repoServiceUrl = process.env.REPO_SERVICE_URL;
+  if (!repoServiceUrl) {
+    logger.error('no ${REPO_SERVICE_URL} env config, skip local repo cloc');
+    return;
+  }
+  const response = await fetch(`${repoServiceUrl}/repo/getCodeSize`, {
     method: 'POST',
     headers: {
       Accept: 'application/json',
