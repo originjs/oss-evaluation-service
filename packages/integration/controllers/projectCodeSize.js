@@ -1,5 +1,4 @@
 import { GithubProjects, GithubProjectsTable, logger } from '@orginjs/oss-evaluation-data-model';
-import { Cron } from 'croner';
 import * as cheerio from 'cheerio';
 import { Op } from 'sequelize';
 import { fetchWithTimeout } from '../util/fetchWitTimeout.js';

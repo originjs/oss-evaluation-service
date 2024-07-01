@@ -18,7 +18,8 @@ export async function getCodeLines(repoInfo: GitCloneParam) {
 function getClocCommand(repoInfo: GitCloneParam): string {
   const dir = `${process.env.REPO_DIR}/${repoInfo.owner}/${repoInfo.repoName}`;
   const cdCommand = `cd ${dir}`;
-  const clocCommand = `cloc . | awk '/SUM:/ {print $5}'`;
+  // timeout = 0 to allow unlimited time
+  const clocCommand = `cloc --timeout 0 . | awk '/SUM:/ {print $5}'`;
   return `
   ${cdCommand} && \
   ${clocCommand}
