@@ -29,32 +29,21 @@ export async function cloneRepoIfNotExist(
   // retry 3 times for clone
   for (let i = 0; i < 2; i++) {
     const exists = existsSync(dir);
-    const cloneUrl = getCloneUrlByTime(i + 1, owner, repoName);
+    const retryUrl = getCloneUrlByTime(i + 1, owner, repoName);
+    // create folder if dont exists
     if (!exists) {
       mkdirSync(dir, { recursive: true });
     }
     const gitClient: SimpleGit = simpleGit(options);
-    let isRepo = false;
-    try {
-      isRepo = await gitClient.checkIsRepo();
-    } catch (e){ /* empty */ }
+    const isRepo = await gitClient.checkIsRepo();
     if (isRepo) {
       logger.info(`${owner}/${repoName} exists`);
       if (pullIfExists) {
-        try {
-          await gitClient.pull();
-        } catch (e) {
-          logger.warn(`${owner}/${repoName} pull failed,but it doesn't affect sonar scan.`);
-        }
+        await pull(cloneInfo, gitClient);
       }
     } else {
       logger.info(`${owner}/${repoName} dont exists,git clone`);
-      try {
-        await gitClient.clone(cloneUrl, '.');
-      } catch (e) {
-        logger.error(`${owner}/${repoName}:${cloneUrl} clone failed! ${e}`);
-        continue;
-      }
+      await clone(cloneInfo, retryUrl, gitClient);
     }
 
     // check valid after clone/pull
@@ -64,17 +53,36 @@ export async function cloneRepoIfNotExist(
       logger.info(`clone/pull ${dir} failed , retry count: ${i + 1}`);
       fs.rmSync(dir, { recursive: true, force: true });
     } else {
-      logger.info(`${owner}/${repoName}:${cloneUrl} clone success`);
+      logger.info(`${owner}/${repoName}:${retryUrl} clone success`);
       return Result.ok(cloneInfo);
     }
   }
   throw new Error(`clone repo failed:${JSON.stringify(cloneInfo)}`);
 }
 
+async function clone(cloneInfo: GitCloneParam, retryUrl: string, gitClient: SimpleGit) {
+  try {
+    await gitClient.clone(retryUrl, '.', cloneInfo.shadowClone ? { '--depth': 1 } : {});
+  } catch (e) {
+    logger.error(
+      `${cloneInfo.owner}/${cloneInfo.repoName}:${cloneInfo.cloneUrl} clone failed! ${e}`,
+    );
+  }
+}
+
+async function pull(cloneInfo: GitCloneParam, gitClient: SimpleGit) {
+  try {
+    await gitClient.pull();
+    return true;
+  } catch (e) {
+    logger.warn(`${cloneInfo.owner}/${cloneInfo.repoName} pull failed`);
+    return false;
+  }
+}
+
 function getCloneUrlByTime(time: number, owner: string, repoName: string): string {
   //   1: origin url
-  //   2: gitclone.com/github.com/xxx/xxx
-  //   3: use ssh clone
+  //   2: use ssh clone
   switch (time) {
     case 1:
       return `https://github.com/${owner}/${repoName}.git`;

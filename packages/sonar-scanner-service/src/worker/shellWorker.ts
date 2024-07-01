@@ -1,6 +1,7 @@
 import { parentPort } from 'worker_threads';
 import shelljs from 'shelljs';
 import { Result } from '../utils/result.js';
+import { logger } from '@orginjs/oss-evaluation-data-model';
 
 function execCommand(command: string): Result<string> {
   if (!command) {
@@ -15,7 +16,12 @@ function execCommand(command: string): Result<string> {
 
 parentPort.on('message', command => {
   try {
+    logger.info(`shell worker start exec:{${command}}`);
+    const startTime = new Date();
     const result = execCommand(command);
+    const endTime = new Date();
+    const duration = (endTime.getTime() - startTime.getTime()) / 1000;
+    logger.info(`shell worker end:{${duration}s} exec:{${command}}`);
     parentPort.postMessage(result);
   } catch (e) {
     parentPort.postMessage(Result.fail(e.message));

@@ -3,6 +3,8 @@ import { gitCloneThreadPool, shellThreadPool } from '../worker/workers.js';
 import { logger } from '@orginjs/oss-evaluation-data-model';
 
 export async function getCodeLines(repoInfo: GitCloneParam) {
+  repoInfo.shadowClone = true;
+  repoInfo.pullIfExists = false;
   gitCloneThreadPool
     .run(repoInfo)
     .then(result => (result.ok ? Promise.resolve(result.data) : Promise.reject(result.msg)))
@@ -25,7 +27,12 @@ function getClocCommand(repoInfo: GitCloneParam): string {
 
 async function updateCodeLinesOfProject(codeLines: number, repoInfo: GitCloneParam) {
   if (codeLines > 0 && repoInfo.projectId) {
-    const updateUrl = `${process.env.INTEGRATION_URL}/sync/setProjectCodeLines`;
+    const url = process.env.INTEGRATION_URL;
+    if (!url) {
+      logger.error('no ${INTEGRATION_URL} env config, skip local repo cloc');
+      return;
+    }
+    const updateUrl = `${url}/sync/setProjectCodeLines`;
     const response = await fetch(updateUrl, {
       method: 'PUT',
       headers: {

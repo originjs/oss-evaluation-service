@@ -3,7 +3,7 @@ import { getProjectByUrl } from '../util/util.js';
 import { syncSingleProjectCncfDocumentScore } from './documentScore.js';
 import { syncSingleProjectStargazersTrend } from './projectStarGazersTrend.js';
 import { syncSingleProjectOpendigger } from './opendigger.js';
-import { syncSingleProjectCodeSize } from './projectCodeSize.js';
+import { getCodeSizeByProject } from './projectCodeSize.js';
 import { syncSingleProjectContributors } from './projectContributors.js';
 import { syncSingleProjectDependentCount } from './projectDependentCount.js';
 import {
@@ -60,7 +60,7 @@ async function syncSingleProjectAllMetadata(options) {
   // 5. openrank & opendigger
   await syncSingleProjectOpendigger(project);
   // 6. code size、 contributor count、 dependent count
-  await syncSingleProjectCodeSize(project);
+  await getCodeSizeByProject(project);
   await syncSingleProjectContributors(project);
   await syncSingleProjectDependentCount(project);
   // 7. critical score

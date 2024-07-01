@@ -18,6 +18,7 @@ export interface GitCloneParam {
   cloneUrl?: string;
   projectId?: number;
   sonarKey?: string;
+  shadowClone?: boolean;
 }
 
 export type SonarScanParam = SonarProjectInfo & Param;

@@ -1,12 +1,16 @@
 import { GithubProjects, GithubProjectsTable, logger } from '@orginjs/oss-evaluation-data-model';
 import { Cron } from 'croner';
-import { getProjectByUrl } from '../util/util.js';
 import * as cheerio from 'cheerio';
+import { Op } from 'sequelize';
 
-export default async function syncSingleProjectCodeSizeHandler(req, res) {
-  const { repoUrl: repoUrl } = req.params;
-  const project = await getProjectByUrl(repoUrl);
-  await syncSingleProjectCodeSize(project);
+export async function syncProjectCodeSizeByProjectIdHandler(req, res) {
+  const projectIds = req.body;
+  await syncProjectCodeSize(projectIds);
+  res.status(200).send('success');
+}
+
+export async function syncAllProjectCodeSizeHandler(req, res) {
+  await syncProjectCodeSize();
   res.status(200).send('success');
 }
 
@@ -29,52 +33,45 @@ export async function setCodeSizeOfProject(req, res) {
   res.json({ ok: true });
 }
 
-export async function syncAllProjectCodeSizeHandler(req, res) {
-  await syncAllProjectCodeSize();
-  res.status(200).send('success');
-}
 
-/**
- * Synchronize Single Project Code Size
- * @param {Object} project project info
- * @returns {Promise<*>} inserted project code size
- */
-export async function syncSingleProjectCodeSize(project) {
-  await syncProjectCodeSize(project.id);
-}
-
-export async function syncAllProjectCodeSize() {
-  await syncProjectCodeSize();
-}
-
-async function syncProjectCodeSize(projectId) {
+async function syncProjectCodeSize(projectIds) {
   logger.info('Sync Project Code Size');
   const projectList = await GithubProjects.findAll({
     attributes: ['id', 'size', 'cloneUrl', 'ownerName', 'name', 'codeSize', 'fullName'],
-    where: projectId
-      ? {
-          id: projectId,
-        }
-      : {},
+    where:
+      projectIds?.length > 0
+        ? {
+            id: {
+              [Op.in]: projectIds,
+            },
+          }
+        : {
+            codeSize: {
+              [Op.is]: null,
+            },
+          },
   });
   logger.info(`The Number of Project : ${projectList.length}`);
   for (let i = 0; i < projectList.length; i++) {
+    await getCodeSizeByProject(projectList[i]);
     logger.info('**Current Progress**: ', `${i + 1}/${projectList.length}`);
-    const project = projectList[i];
-    const numOfM = project.size / 1024;
-    let codeLines = null;
-    if (numOfM < 5) {
-      codeLines = await getCodeSizeBelow5M(project);
-    } else if (numOfM < 500) {
-      codeLines = await getCodeSizeBelow500M(project);
-    }
+  }
+}
 
-    if (codeLines) {
-      await updateCodeSizeByProjectId(codeLines, projectId);
-    } else {
-      // api failed , try to use cloc to get the codeLines
-      await getCodeSizeUsingCloc(project);
-    }
+export async function getCodeSizeByProject(project) {
+  const numOfM = project.size / 1024;
+  let codeLines = null;
+  if (numOfM < 5) {
+    codeLines = await getCodeSizeBelow5M(project);
+  } else if (numOfM < 500) {
+    codeLines = await getCodeSizeBelow500M(project);
+  }
+
+  if (codeLines) {
+    await updateCodeSizeByProjectId(codeLines, project.id);
+  } else {
+    // api failed , try to use cloc to get the codeLines
+    await getCodeSizeUsingCloc(project);
   }
 }
 
@@ -140,7 +137,7 @@ async function getCodeSizeBelow500M(project) {
 export async function projectCodeSizeTimer() {
   const startTime = process.hrtime();
   logger.info('[Integration][ProjectCodeSize] Integration Job start');
-  await syncAllProjectCodeSize();
+  await syncProjectCodeSize();
   logger.info('[Integration][ProjectCodeSize] Integration Job end');
   const endTime = process.hrtime(startTime);
   logger.info(

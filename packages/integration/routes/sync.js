@@ -47,9 +47,10 @@ import {
   uploadSonarCiConfigToGitlab,
   changeSonarKey2OfficialKeys,
 } from '../controllers/sonarCloud.js';
-import syncSingleProjectCodeSizeHandler, {
+import {
   setCodeSizeOfProject,
   syncAllProjectCodeSizeHandler,
+  syncProjectCodeSizeByProjectIdHandler
 } from '../controllers/projectCodeSize.js';
 import {
   syncAllProjectDependenciesHandler,
@@ -995,7 +996,7 @@ router.route('/gitlab/addSonarCheckPipeline').get(await uploadSonarCiConfigToGit
  *       200:
  *         description: success.
  */
-router.route('/sonarCloud/updateDefaultBranch').get(await updateSonarCloudDefaultBranch);
+router.route('/sonarCloud/updateDefaultBranch').get(updateSonarCloudDefaultBranch);
 
 /**
  * @swagger
@@ -1011,21 +1012,22 @@ router.route('/syncProjectCodeSize').get(syncAllProjectCodeSizeHandler);
 
 /**
  * @swagger
- * /sync/syncSingleProjectCodeSize/{repoUrl}:
- *   get:
+ * /sync/syncProjectCodeSizeByProjectId:
+ *   post:
  *     summary: refresh code size of project
  *     tags: [CodeLines]
- *     parameters:
- *      - in: path
- *        name: repoUrl
- *        type: string
- *        required: true
- *        example: https://github.com/vuejs/core
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *             items: number
  *     responses:
  *       200:
  *         description: success.
  */
-router.route('/syncSingleProjectCodeSize/:repoUrl').get(syncSingleProjectCodeSizeHandler);
+router.route('/syncProjectCodeSizeByProjectId').post(syncProjectCodeSizeByProjectIdHandler);
 
 /**
  * @swagger
