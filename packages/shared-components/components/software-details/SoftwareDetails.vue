@@ -1147,7 +1147,7 @@ function cancelFeedback() {
       </div>
     </div>
     <div w-1280px m-auto>
-      <div class="flex items-center mt-4 mb-4">
+      <div id="alternative" class="flex items-center mt-4 mb-4">
         <div font-size-5 font-bold>相似软件推荐</div>
         <el-tooltip :content="i18n.global.t(`tips.alternatives`)">
           <el-icon class="size-5 color-gray-400">
@@ -1232,7 +1232,7 @@ function cancelFeedback() {
         </div>
         <div v-if="!alternatives.length" class="color-gray">暂无数据</div>
       </div>
-      <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
+      <div id="function" mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-custom:function mr-2 />
         <span>功能</span>
         <span font-size-5 float-right>
@@ -1294,7 +1294,7 @@ function cancelFeedback() {
         </div>
       </el-card>
       <div v-if="performanceModuleInfo.packageName || showBenchmarkCompare">
-        <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
+        <div id="performance" mt-4 mb-4 font-size-7 font-bold line-height-normal>
           <span class="i-line-md-speedometer-loop" mr-2 />
           <span>性能</span>
           <span font-size-5 float-right
@@ -1363,14 +1363,14 @@ function cancelFeedback() {
           </div>
         </el-card>
       </div>
-      <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
+      <div id="quality" mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-custom:quality mr-2 />
         <span>质量</span>
         <span font-size-5 float-right>
           {{ formatFloat(project?.evaluation?.qualityScore) }}/100
         </span>
       </div>
-      <el-card mb-6>
+      <el-card id="scorecard" mb-6>
         <div flex>
           <div mb-4 font-size-5 font-bold>OpenSSF Scorecard</div>
           <el-tooltip :content="i18n.global.t(`tips.scorecard.scorecard`)">
@@ -1402,7 +1402,7 @@ function cancelFeedback() {
           </div>
         </template>
       </el-card>
-      <el-card>
+      <el-card id="sonar-cloud">
         <div mb-4 font-size-5 font-bold>
           <a
             :class="project?.sonarCloudScan?.sonarProjectKey ? 'color-blue underline' : ''"
@@ -1551,7 +1551,7 @@ function cancelFeedback() {
           </div>
         </div>
       </el-card>
-      <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
+      <div id="ecology" mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-custom:ecology mr-2 />
         <span>生态</span>
         <span font-size-5 float-right>
@@ -1853,12 +1853,12 @@ function cancelFeedback() {
         </el-card>
       </div>
 
-      <div mt-4 mb-4 font-size-7 font-bold line-height-normal>
+      <div id="innovation" mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-ph:lightbulb-filament-bold mr-2 />
         <span>创新</span>
         <span font-size-5 float-right>-/100</span>
       </div>
-      <el-card v-loading="!loadingInnovation && geoLoading" mb-6>
+      <el-card id="creators-area" v-loading="!loadingInnovation && geoLoading" mb-6>
         <div flex>
           <div mb-2 font-size-5 font-bold>贡献者多样性</div>
           <el-tooltip :content="i18n.global.t(`tips.ossInsight`)">
@@ -1963,7 +1963,7 @@ function cancelFeedback() {
         content-between
         items-center
       >
-        <el-card mb-6 w-1280px>
+        <el-card id="creators-company" mb-6 w-1280px>
           <div flex>
             <div mb-2 font-size-5 font-bold>组织多样性</div>
             <el-tooltip :content="i18n.global.t(`tips.ossInsight`)">
