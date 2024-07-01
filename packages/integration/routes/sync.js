@@ -47,8 +47,10 @@ import {
   uploadSonarCiConfigToGitlab,
   changeSonarKey2OfficialKeys,
 } from '../controllers/sonarCloud.js';
-import syncSingleProjectCodeSizeHandler, {
+import {
+  setCodeSizeOfProject,
   syncAllProjectCodeSizeHandler,
+  syncProjectCodeSizeByProjectIdHandler
 } from '../controllers/projectCodeSize.js';
 import {
   syncAllProjectDependenciesHandler,
@@ -994,13 +996,14 @@ router.route('/gitlab/addSonarCheckPipeline').get(await uploadSonarCiConfigToGit
  *       200:
  *         description: success.
  */
-router.route('/sonarCloud/updateDefaultBranch').get(await updateSonarCloudDefaultBranch);
+router.route('/sonarCloud/updateDefaultBranch').get(updateSonarCloudDefaultBranch);
 
 /**
  * @swagger
  * /sync/syncProjectCodeSize:
  *   get:
  *     summary: refresh code size of project
+ *     tags: [CodeLines]
  *     responses:
  *       200:
  *         description: success.
@@ -1009,20 +1012,47 @@ router.route('/syncProjectCodeSize').get(syncAllProjectCodeSizeHandler);
 
 /**
  * @swagger
- * /sync/syncSingleProjectCodeSize/{repoUrl}:
- *   get:
+ * /sync/syncProjectCodeSizeByProjectId:
+ *   post:
  *     summary: refresh code size of project
- *     parameters:
- *      - in: path
- *        name: repoUrl
- *        type: string
- *        required: true
- *        example: https://github.com/vuejs/core
+ *     tags: [CodeLines]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *             items: number
  *     responses:
  *       200:
  *         description: success.
  */
-router.route('/syncSingleProjectCodeSize/:repoUrl').get(syncSingleProjectCodeSizeHandler);
+router.route('/syncProjectCodeSizeByProjectId').post(syncProjectCodeSizeByProjectIdHandler);
+
+/**
+ * @swagger
+ * /sync/setProjectCodeLines:
+ *   put:
+ *     summary: setProjectCodeLines(callback of cloc codeLines)
+ *     tags: [CodeLines]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               projectId:
+ *                  type: number
+ *                  example: 392517209
+ *               codeLines:
+ *                  type: number
+ *     responses:
+ *       200:
+ *         description: The created book.
+ *
+ */
+router.route('/setProjectCodeLines').put(setCodeSizeOfProject);
 
 /**
  * @swagger

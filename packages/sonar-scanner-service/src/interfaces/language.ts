@@ -1,4 +1,4 @@
-import type { SonarScanParam } from './Param';
+import type { SonarScanParam } from './param';
 
 /**
  * each language sonar scanner impl

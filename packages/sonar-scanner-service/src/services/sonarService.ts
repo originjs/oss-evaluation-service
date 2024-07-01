@@ -1,38 +1,17 @@
-import type { GitCloneParam, SonarScanParam } from '../interfaces/Param';
-import { WorkerPool } from '../worker/workerPool.js';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'path';
+import type { GitCloneParam, SonarScanParam } from '../interfaces/param';
 import process from 'node:process';
 import type { SimpleGitOptions } from 'simple-git';
 import { simpleGit } from 'simple-git';
-import type { Result } from '../utils/result';
 import { logger } from '@orginjs/oss-evaluation-data-model';
+import { gitCloneThreadPool, sonarScannerThreadPool } from '../worker/workers.js';
 
 const sleep = ms =>
   new Promise(resolve => {
     setTimeout(resolve, ms);
   });
 
-// thread pool for git and sonar scanner
-const sonarScannerWorkerPath = join(
-  dirname(fileURLToPath(import.meta.url)),
-  '../worker/sonarScannerWorker.js',
-);
-const gitWorkerPath = join(dirname(fileURLToPath(import.meta.url)), '../worker/gitWorker.js');
-// if the machine's performance is sufficient, you can try increasing the number of workers(change size param)
-const sonarScannerThreadPool = new WorkerPool<SonarScanParam, Result<SonarScanParam>>(
-  'sonar scanner workers',
-  sonarScannerWorkerPath,
-  1,
-);
-const gitThreadPool = new WorkerPool<GitCloneParam, Result<GitCloneParam>>(
-  'git clone workers',
-  gitWorkerPath,
-  1,
-);
-
 export async function scan(info: SonarScanParam) {
-  return gitThreadPool
+  return gitCloneThreadPool
     .run({
       owner: info.gitOwner,
       repoName: info.repoName,
@@ -69,7 +48,7 @@ export async function scan(info: SonarScanParam) {
 }
 
 export async function getDefaultBranch(cloneInfo: GitCloneParam) {
-  gitThreadPool
+  gitCloneThreadPool
     .run(cloneInfo)
     .then(result => (result.ok ? Promise.resolve(result.data) : Promise.reject(result.msg)))
     .then(data => getDefaultBranchName(`${process.env.REPO_DIR}/${data.owner}/${data.repoName}`))

@@ -1,163 +1,142 @@
 import { GithubProjects, GithubProjectsTable, logger } from '@orginjs/oss-evaluation-data-model';
-import { CheerioCrawler, Configuration } from 'crawlee';
-import { XMLParser } from 'fast-xml-parser';
-import { getProjectByUrl } from '../util/util.js';
+import * as cheerio from 'cheerio';
+import { Op } from 'sequelize';
+import { fetchWithTimeout } from '../util/fetchWitTimeout.js';
 
-export default async function syncSingleProjectCodeSizeHandler(req, res) {
-  const { repoUrl: repoUrl } = req.params;
-  const project = await getProjectByUrl(repoUrl);
-  await syncSingleProjectCodeSize(project);
+export async function syncProjectCodeSizeByProjectIdHandler(req, res) {
+  const projectIds = req.body;
+  await syncProjectCodeSize(projectIds);
   res.status(200).send('success');
 }
 
 export async function syncAllProjectCodeSizeHandler(req, res) {
-  await syncAllProjectCodeSize();
+  await syncProjectCodeSize();
   res.status(200).send('success');
 }
 
-/**
- * Synchronize Single Project Code Size
- * @param {Object} project project info
- * @returns {Promise<*>} inserted project code size
- */
-export async function syncSingleProjectCodeSize(project) {
-  await syncProjectCodeSize(project.id);
-}
-
-export async function syncAllProjectCodeSize() {
-  await syncProjectCodeSize();
-}
-
-async function syncProjectCodeSize(projectId) {
-  logger.info('Sync Project Code Size');
-  // 1. get all github project
-  const projectList = await GithubProjects.findAll({
-    attributes: ['id', 'ownerName', 'name', 'codeSize'],
-    where: projectId
-      ? {
-          id: projectId,
-        }
-      : {},
-  });
-  const sumOfProject = projectList.length;
-  logger.info(`The Number of Project : ${sumOfProject}`);
-  let count = 1;
-  for (const project of projectList) {
-    logger.info('**Current Progress**: ', `${count}/${sumOfProject}`);
-    count += 1;
-    const url = `https://git-cloc.fly.dev/cloc/${project.ownerName}/${project.name}`;
-    const tokeiUrl = `https://tokei.rs/b1/github/${project.ownerName}/${project.name}`;
-    // 2. get project code size
-    let codeSize = await getProjectCodeSize(url, tokeiUrl);
-    if (codeSize === '' || codeSize === undefined) {
-      codeSize = await getCodeSizeByOtherWays(project.ownerName, project.name);
-    }
-
-    if (codeSize === '' || codeSize === undefined) {
-      continue;
-    }
-
+async function updateCodeSizeByProjectId(codeLines, projectId) {
+  if (codeLines && projectId) {
     await GithubProjectsTable.update(
-      { codeSize: codeSize },
+      { codeSize: codeLines },
       {
         where: {
-          id: project.id,
+          id: projectId,
         },
       },
     );
   }
 }
-
-async function getProjectCodeSize(url, otherUrl) {
-  let codeSize;
-  const config = new Configuration({ persistStorage: false });
-  const crawler = new CheerioCrawler(
-    {
-      async requestHandler({ request, $, log }) {
-        const thead = $('#cloc-table > thead > tr').text();
-        const head = thead.replaceAll(' ', '').split('\n');
-        if (head.length > 0 && head.indexOf('Code') > 0) {
-          const index = head.indexOf('Code');
-          const tfoot = $('#cloc-table > tfoot > tr').text();
-          codeSize = tfoot.replaceAll(' ', '').split('\n')[index].replaceAll(',', '');
-        }
-        log.info(`codeSize of ${request.loadedUrl} is ${codeSize}`);
-      },
-      maxRequestsPerCrawl: 20000,
-      maxRequestRetries: 1,
-    },
-    config,
-  );
-  const crawlerOther = new CheerioCrawler(
-    {
-      async requestHandler({ request, body, log }) {
-        const svgContent = body.toString();
-        // Parse SVG files
-        const parser = new XMLParser();
-        const jsonObj = parser.parse(svgContent);
-
-        // Extract text nodes
-        const textContents = jsonObj['svg']['g'] ? jsonObj['svg']['g'][1].text[2] : [];
-
-        log.info(`textContents is : ${textContents}`);
-        let codeTextReplace = textContents.toString();
-        if (codeTextReplace.indexOf('K') > 0) {
-          codeTextReplace = codeTextReplace.replaceAll('K', '');
-          codeTextReplace = codeTextReplace * 1000;
-        } else if (codeTextReplace.indexOf('M') > 0) {
-          codeTextReplace = codeTextReplace.replaceAll('M', '');
-          codeTextReplace = codeTextReplace * 1000000;
-        } else {
-          log.info(`This value does not require special processing: ${codeTextReplace}`);
-        }
-
-        codeSize = codeTextReplace;
-        log.info(`codeSize of ${request.loadedUrl} is ${codeSize}`);
-      },
-      maxRequestsPerCrawl: 20000,
-      maxRequestRetries: 1,
-      additionalMimeTypes: ['image/svg+xml', 'application/octet-stream', 'text/plain'],
-    },
-    config,
-  );
-
-  await crawler.run([url]);
-  if (codeSize == '' || codeSize == undefined) {
-    await crawlerOther.run([otherUrl]);
-  }
-  return codeSize;
+export async function setCodeSizeOfProject(req, res) {
+  const { projectId, codeLines } = req.body;
+  await updateCodeSizeByProjectId(codeLines, projectId);
+  res.status(200);
+  res.json({ ok: true });
 }
 
-async function getCodeSizeByOtherWays(ownerName, name) {
-  const url = `https://api.codetabs.com/v1/loc?github=${ownerName}/${name}`;
-  try {
-    logger.info(`**loadUrl is** :${url}`);
-    const response = await fetch(url, {
-      retryOptions: {
-        retryMaxDuration: 3600000, // 60 min retry duration
-        retryInitialDelay: 100,
-      },
-    });
+async function syncProjectCodeSize(projectIds) {
+  logger.info('Sync Project Code Size');
+  const projectList = await GithubProjects.findAll({
+    attributes: ['id', 'size', 'cloneUrl', 'ownerName', 'name', 'codeSize', 'fullName'],
+    where:
+      projectIds?.length > 0
+        ? {
+            id: {
+              [Op.in]: projectIds,
+            },
+          }
+        : {
+            codeSize: {
+              [Op.is]: null,
+            },
+          },
+  });
+  logger.info(`The Number of Project : ${projectList.length}`);
+  for (let i = 0; i < projectList.length; i++) {
+    await getCodeSizeByProject(projectList[i]);
+    logger.info('**Current Progress**: ', `${i + 1}/${projectList.length}`);
+  }
+}
 
+export async function getCodeSizeByProject(project) {
+  const numOfM = project.size / 1024;
+  let codeLines = null;
+  if (numOfM < 5) {
+    codeLines = await getCodeSizeBelow5M(project);
+  } else if (numOfM < 500) {
+    codeLines = await getCodeSizeBelow500M(project);
+  }
+
+  if (codeLines) {
+    await updateCodeSizeByProjectId(codeLines, project.id);
+  } else {
+    // api failed , try to use cloc to get the codeLines
+    await getCodeSizeUsingCloc(project);
+  }
+}
+
+async function getCodeSizeUsingCloc(project) {
+  const repoServiceUrl = process.env.REPO_SERVICE_URL;
+  if (!repoServiceUrl) {
+    logger.error('no ${REPO_SERVICE_URL} env config, skip local repo cloc');
+    return;
+  }
+  const response = await fetch(`${repoServiceUrl}/repo/getCodeSize`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      projectId: project.id,
+      owner: project.ownerName,
+      repoName: project.name,
+    }),
+  });
+  if (!response.ok) {
+    logger.error(
+      `request failed of get project:${project.fullName} cloc code size,error: ${await response.text()}`,
+    );
+  }
+}
+
+async function getCodeSizeBelow5M(project) {
+  const fullName = project.fullName;
+  const url = `https://git-cloc.fly.dev/cloc/${fullName}`;
+  try {
+    const response = await fetchWithTimeout(url, 10 * 1000);
     if (response.ok) {
-      const body = await response.json();
-      const index = body.length - 1;
-      if (index > 0 && body[index].language == 'Total') {
-        const codeSize = body[index].linesOfCode;
-        logger.info(`**codeSize of '${url} is :${codeSize}`);
-        return codeSize;
-      }
+      const text = await response.text();
+      // parse html
+      const $ = cheerio.load(text);
+      const CodeCell = $('#cloc-table > thead > tr > th').filter((_, th) => {
+        return $(th).text() === 'Code';
+      });
+      const footCells = $('#cloc-table > tfoot > tr > th');
+      return footCells.eq(CodeCell.index()).text().replaceAll(',', '');
     }
-    return '';
   } catch (e) {
-    logger.error(`**Url get code size is failed !** :${url}`);
+    logger.error(`get code size of ${project.fullName} failed!`, e);
+  }
+}
+
+async function getCodeSizeBelow500M(project) {
+  const fullName = project.fullName;
+  const url = `https://api.codetabs.com/v1/loc?github=${fullName}`;
+  try {
+    const reponse = await fetchWithTimeout(url, 60 * 1000);
+    if (reponse.ok) {
+      const json = await reponse.json();
+      return json.find(item => item.language === 'Total').linesOfCode;
+    }
+  } catch (e) {
+    logger.error(`get code size of ${project.fullName} failed!`, e);
   }
 }
 
 export async function projectCodeSizeTimer() {
   const startTime = process.hrtime();
   logger.info('[Integration][ProjectCodeSize] Integration Job start');
-  await syncAllProjectCodeSize();
+  await syncProjectCodeSize();
   logger.info('[Integration][ProjectCodeSize] Integration Job end');
   const endTime = process.hrtime(startTime);
   logger.info(

@@ -1,7 +1,7 @@
 import { Controller, Route, Post, Body, Get, Path } from 'tsoa';
-import type { SonarScanParam } from '../interfaces/Param';
+import type { SonarScanParam } from '../interfaces/param';
 import { Result } from '../utils/result.js';
-import { getDefaultBranch, scan } from '../services/SonarService.js';
+import { getDefaultBranch, scan } from '../services/sonarService.js';
 
 @Route('sonar')
 export class SonarController extends Controller {
