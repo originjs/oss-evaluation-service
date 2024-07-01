@@ -2,6 +2,7 @@ import { GithubProjects, GithubProjectsTable, logger } from '@orginjs/oss-evalua
 import { Cron } from 'croner';
 import * as cheerio from 'cheerio';
 import { Op } from 'sequelize';
+import { fetchWithTimeout } from '../util/fetchWitTimeout.js';
 
 export async function syncProjectCodeSizeByProjectIdHandler(req, res) {
   const projectIds = req.body;
@@ -32,7 +33,6 @@ export async function setCodeSizeOfProject(req, res) {
   res.status(200);
   res.json({ ok: true });
 }
-
 
 async function syncProjectCodeSize(projectIds) {
   logger.info('Sync Project Code Size');
@@ -104,7 +104,7 @@ async function getCodeSizeBelow5M(project) {
   const fullName = project.fullName;
   const url = `https://git-cloc.fly.dev/cloc/${fullName}`;
   try {
-    const response = await fetch(url);
+    const response = await fetchWithTimeout(url, 10 * 1000);
     if (response.ok) {
       const text = await response.text();
       // parse html
@@ -124,7 +124,7 @@ async function getCodeSizeBelow500M(project) {
   const fullName = project.fullName;
   const url = `https://api.codetabs.com/v1/loc?github=${fullName}`;
   try {
-    const reponse = await fetch(url);
+    const reponse = await fetchWithTimeout(url, 60 * 1000);
     if (reponse.ok) {
       const json = await reponse.json();
       return json.find(item => item.language === 'Total').linesOfCode;

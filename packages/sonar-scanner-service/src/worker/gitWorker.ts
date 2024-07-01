@@ -34,7 +34,8 @@ export async function cloneRepoIfNotExist(
     if (!exists) {
       mkdirSync(dir, { recursive: true });
     }
-    const gitClient: SimpleGit = simpleGit(options);
+    // skip ask username and password , avoid hang
+    const gitClient: SimpleGit = simpleGit(options).env('GIT_TERMINAL_PROMPT', '0');
     const isRepo = await gitClient.checkIsRepo();
     if (isRepo) {
       logger.info(`${owner}/${repoName} exists`);
@@ -62,11 +63,10 @@ export async function cloneRepoIfNotExist(
 
 async function clone(cloneInfo: GitCloneParam, retryUrl: string, gitClient: SimpleGit) {
   try {
-    await gitClient.clone(retryUrl, '.', cloneInfo.shadowClone ? { '--depth': 1 } : {});
+    const options = cloneInfo.shadowClone ? { '--depth': 1 } : {};
+    await gitClient.clone(retryUrl, '.', options);
   } catch (e) {
-    logger.error(
-      `${cloneInfo.owner}/${cloneInfo.repoName}:${cloneInfo.cloneUrl} clone failed! ${e}`,
-    );
+    logger.error(`${cloneInfo.owner}/${cloneInfo.repoName}:${retryUrl} clone failed! ${e}`);
   }
 }
 
