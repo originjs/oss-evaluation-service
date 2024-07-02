@@ -22,6 +22,8 @@ const dataTypes = {
   generalRepo: 1,
   // Source is similar software recommended by AI
   aiRepo: 2,
+  // learning repo , e.g. books, movie and TV courses, etc.
+  learnRepo: 3,
   // Projects that are not suitable for display, usually pornography, violence, viruses, etc.
   hiddenRepo: 4,
   // Newly integrated github repository, but no other statistics yet
