@@ -108,11 +108,11 @@ async function getCodeSizeBelow5M(project) {
       const text = await response.text();
       // parse html
       const $ = cheerio.load(text);
-      const CodeCell = $('#cloc-table > thead > tr > th').filter((_, th) => {
+      const codeCell = $('#cloc-table > thead > tr > th').filter((_, th) => {
         return $(th).text() === 'Code';
       });
       const footCells = $('#cloc-table > tfoot > tr > th');
-      return footCells.eq(CodeCell.index()).text().replaceAll(',', '');
+      return footCells.eq(codeCell.index()).text().replaceAll(',', '');
     }
   } catch (e) {
     logger.error(`get code size of ${project.fullName} failed!`, e);
