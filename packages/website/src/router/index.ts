@@ -19,10 +19,6 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
-    path: '/tech-landscape',
-    component: () => import('@views/TechLandscape.vue'),
-  },
-  {
     path: '/compare-projects',
     component: () => import('@views/CompareProject.vue'),
   },
