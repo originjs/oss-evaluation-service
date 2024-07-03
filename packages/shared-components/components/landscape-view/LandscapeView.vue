@@ -50,10 +50,7 @@
               placement="right"
             >
               <div
-                class="more-btn"
-                i-custom:more
-                font-size-4
-                ml-2
+                class="more-btn i-custom:more font-size-4 ml-2"
                 @click="gotoMore(data.category, subData.subTechStackName)"
               />
             </el-tooltip>
@@ -67,85 +64,93 @@
               gap: `${options.boxGap}px`,
             }"
           >
-            <project-thumbnails
-              v-for="project in subData.projects"
-              :key="`${data.category}-${subData.subTechStackName}-${project.name}`"
-              class="project-logo"
-              :project="project"
-              :options="options"
-              @click="clickProject(project)"
-              @mouseenter="showProjectPopover(project, $event)"
-              @mouseleave="hideProjectPopover"
-            />
+            <template v-if="options.enableProjectPopover">
+              <el-popover
+                v-for="project in subData.projects"
+                :key="`${data.category}-${subData.subTechStackName}-${project.name}`"
+                :show-after="options.popoverShowDelay"
+                :hide-after="options.popoverHideDelay"
+                :width="450"
+                :teleported="false"
+                :persistent="false"
+                trigger="hover"
+              >
+                <template #reference>
+                  <project-thumbnails
+                    class="project-logo"
+                    :project="project"
+                    :options="options"
+                    @click="clickProject(project)"
+                  />
+                </template>
+                <project-popover :project="project" :options="options">
+                  <template #toolbar-left>
+                    <slot name="popover-toolbar-left" :project="project"></slot>
+                  </template>
+                  <template #toolbar-right>
+                    <slot name="popover-toolbar-right" :project="project"></slot>
+                  </template>
+                </project-popover>
+              </el-popover>
+            </template>
+            <template v-else>
+              <project-thumbnails
+                v-for="project in subData.projects"
+                :key="`${data.category}-${subData.subTechStackName}-${project.name}`"
+                class="project-logo"
+                :project="project"
+                :options="options"
+                @click="clickProject(project)"
+              />
+            </template>
           </div>
         </div>
       </div>
     </div>
 
-    <project-popover
-      ref="popoverRef"
-      :visible="!!virtualRef"
-      :project="popoverProject"
-      :virtual-ref="virtualRef"
-      :options="options"
-      :teleported="false"
-      @mouseenter="undoHideProjectPopover"
-      @mouseleave="hideProjectPopover"
-    >
-      <template #toolbar-left>
-        <slot name="popover-toolbar-left" :project="popoverProject"></slot>
-      </template>
-      <template #toolbar-right>
-        <slot name="popover-toolbar-right" :project="popoverProject"></slot>
-      </template>
-    </project-popover>
-
     <el-dialog v-model="isOpenProjectDialog" width="fit-content">
-      <slot name="projectDialogHeader" :project="popoverProject">
+      <slot name="projectDialogHeader" :project="dialogProject">
         <div flex min-w-600px>
           <div class="project-logo" w-70px h-70px mr-10>
-            <el-image :src="popoverProject?.logo" bg-white fit="fill">
+            <el-image :src="dialogProject?.logo" bg-white fit="fill">
               <template #error>
-                <GenerateProjectAvatar v-model="popoverProject.name" :width="70" :height="70" />
+                <GenerateProjectAvatar v-model="dialogProject.name" :width="70" :height="70" />
               </template>
             </el-image>
           </div>
           <div class="project-info" flex flex-1 flex-col>
             <div flex>
               <span truncate text-lg fw-bold mr-3>
-                {{ popoverProject?.name }}
+                {{ dialogProject?.name }}
               </span>
 
               <div flex items-center>
                 <div mr-3 flex items-center>
-                  <span i-custom:star-active font-size-4 mr-1></span>
-                  {{ toKilo(popoverProject?.starCount, { fractionDigits: 1, emptyValue: '0' }) }}
+                  <span class="i-custom:star-active font-size-4 mr-1"></span>
+                  {{ toKilo(dialogProject?.starCount, { fractionDigits: 1, emptyValue: '0' }) }}
                 </div>
                 <div mr-3 flex items-center>
-                  <span i-custom:fork-active font-size-4 mr-1></span>
-                  {{ toKilo(popoverProject?.forksCount, { fractionDigits: 1, emptyValue: '0' }) }}
+                  <span class="i-custom:fork-active font-size-4 mr-1"></span>
+                  {{ toKilo(dialogProject?.forksCount, { fractionDigits: 1, emptyValue: '0' }) }}
                 </div>
                 <a
-                  :href="popoverProject?.htmlUrl"
+                  :href="dialogProject?.htmlUrl"
                   target="_blank"
-                  i-custom:github
-                  font-size-4
-                  mr-3
-                  cursor-pointer
+                  class="i-custom:github font-size-4 mr-3 cursor-pointer"
                 ></a>
-                <el-tag v-if="popoverProject?.language" type="warning" effect="plain">
-                  {{ popoverProject?.language }}
+                <el-tag v-if="dialogProject?.language" type="warning" effect="plain">
+                  {{ dialogProject?.language }}
                 </el-tag>
               </div>
             </div>
             <div>
               <el-text line-clamp="3" max-w-470px>
-                {{ popoverProject?.description }}
+                {{ dialogProject?.description }}
               </el-text>
             </div>
             <div>
               <el-tag
-                v-for="(label, idx) in popoverProject?.labels"
+                v-for="(label, idx) in dialogProject?.labels"
                 :key="idx"
                 :type="getTagType(idx)"
                 mr-2
@@ -157,7 +162,7 @@
           </div>
         </div>
       </slot>
-      <slot name="projectDialogBody" :project="popoverProject"> </slot>
+      <slot name="projectDialogBody" :project="dialogProject"> </slot>
     </el-dialog>
   </div>
 </template>
@@ -203,6 +208,8 @@ const props = defineProps<{
     hasMore?: boolean;
     enableProjectDialog?: boolean;
     enableProjectPopover?: boolean;
+    popoverShowDelay?: number;
+    popoverHideDelay?: number;
     boxSize?: number; // || {width:number,height:number}
     boxGap?: number;
     borderColor?: string | { [key: string]: string };
@@ -219,6 +226,8 @@ const options = computed(() => ({
   boxSize: props?.options?.boxSize ?? 40,
   boxGap: props?.options?.boxGap ?? 8,
   enableProjectPopover: props?.options?.enableProjectPopover ?? true,
+  popoverShowDelay: props?.options?.popoverShowDelay ?? 0,
+  popoverHideDelay: props?.options?.popoverHideDelay ?? 200,
   colors: props?.options?.colors ?? ['#89bff6', '#89c997', '#e8dd92', '#f0b58e', '#aea3db'],
 }));
 
@@ -228,7 +237,7 @@ const emit = defineEmits<{
 }>();
 
 const landscapeData = ref<Category[]>([]);
-const popoverProject = ref<Project>({
+const dialogProject = ref<Project>({
   category: '',
   subcategory: '',
   name: '',
@@ -486,37 +495,11 @@ function gotoMore(category: string, subTechStackName: string) {
 
 function clickProject(project: Project) {
   if (props.options?.enableProjectDialog) {
+    dialogProject.value = project;
     isOpenProjectDialog.value = true;
   }
   emit('clickProject', project);
 }
-
-let visibleTimer: NodeJS.Timeout;
-const undoHideProjectPopover = () => {
-  if (visibleTimer) {
-    clearTimeout(visibleTimer);
-  }
-};
-
-const popoverRef = ref();
-const virtualRef = ref<HTMLElement>();
-const showProjectPopover = (project: Project, event: MouseEvent) => {
-  popoverProject.value = project;
-
-  if (!options.value.enableProjectPopover) {
-    return;
-  }
-
-  undoHideProjectPopover();
-
-  virtualRef.value = event.target as HTMLElement;
-};
-
-const hideProjectPopover = () => {
-  visibleTimer = setTimeout(() => {
-    virtualRef.value = undefined;
-  }, 500);
-};
 </script>
 
 <style scoped lang="less">
