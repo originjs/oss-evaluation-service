@@ -202,15 +202,19 @@ export async function getScorecardHandler(req, res) {
   }
 }
 
+
 /**
  * Synchronize scorecard score for single project
  * @param projectUrl string html path for the project
  */
 export async function syncSingleProjectScorecard(projectUrl) {
   const project = await GithubProjects.findOne({ where: { htmlUrl: projectUrl } });
-  const projectId = project.id;
-  const { address, owner, repository } = parseRepoUrl(projectUrl);
-  await syncScorecard(projectId, null, address, owner, repository);
+  await syncSingleProjectScorecardByProject(project);
+}
+
+export async function syncSingleProjectScorecardByProject(project) {
+  const { address, owner, repository } = parseRepoUrl(project.htmlUrl);
+  await syncScorecard(project.id, null, address, owner, repository);
 }
 
 export async function syncSingleProjectScorecardHandler(req, res) {

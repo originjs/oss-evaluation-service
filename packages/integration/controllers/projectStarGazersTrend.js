@@ -56,6 +56,10 @@ async function syncAllProjectStargazersTrend(options) {
  * @param {string} [options.startDate]  integrate  begin date
  */
 export async function syncSingleProjectStargazersTrend(project, options) {
+  options = options ?? {};
+  if (!options.startDate) {
+    options.startDate = '1010-01-01';
+  }
   await getStargazersTrend(options.startDate, project.id, project.id);
 }
 
