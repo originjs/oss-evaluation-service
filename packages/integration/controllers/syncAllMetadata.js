@@ -48,11 +48,16 @@ async function syncSingleProjectAllMetadata(options) {
   const { repoUrl, category, subcategory, packageName } = options;
   // 1. GitHub Info
   await syncSingleGithubProject({ url: repoUrl });
+  const project = await getProjectByUrl(repoUrl);
+  if (!project) {
+    logger.error(`[Batch Integrated] get github info by repo:{${repoUrl}} failed!!`);
+    return;
+  }
+
   // 2. insert techStack
   if (category && subcategory) {
     await createNewTechStack(repoUrl, category, subcategory);
   }
-  const project = await getProjectByUrl(repoUrl);
   // try ... catch to avoid break
   const functions = [
     // 3. Cncf document best practice
