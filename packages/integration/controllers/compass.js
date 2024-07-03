@@ -62,8 +62,7 @@ export async function syncProjectCompassMetricHandler(req, res) {
  * @returns {Promise<*>} inserted compass metrics
  */
 export async function syncSingleProjectCompassMetric(project, options) {
-  const { beginDate } = options;
-
+  const beginDate = options?.beginDate ? options.beginDate : '2023-04-01';
   const compassData = await request(compassUrl, query, {
     label: project.htmlUrl,
     beginDate,

@@ -18,7 +18,7 @@ import { syncSingleProjectPackageDownloadCount } from './downloadCount.js';
 import dayjs from 'dayjs';
 import { syncSingleProjectPackageSize } from './packageSize.js';
 import { syncSingleProjectEvaluation } from './evaluate.js';
-import { syncSingleProjectScorecard } from './scorecard.js';
+import { syncSingleProjectScorecardByProject } from './scorecard.js';
 import { syncSingleProjectCompassMetric } from './compass.js';
 import { syncSingleProjectDependencies } from './projectDependencies.js';
 import { syncSingleProjectCreatorsCountries } from './ossinsightCreatorsCountry.js';
@@ -52,24 +52,45 @@ async function syncSingleProjectAllMetadata(options) {
   if (category && subcategory) {
     await createNewTechStack(repoUrl, category, subcategory);
   }
-  // 3. Cncf document best practice
   const project = await getProjectByUrl(repoUrl);
-  await syncSingleProjectCncfDocumentScore(project);
-  // 4. GitHub star trend
-  await syncSingleProjectStargazersTrend(project, { startDate: '1010-01-01' });
-  // 5. openrank & opendigger
-  await syncSingleProjectOpendigger(project);
-  // 6. code size、 contributor count、 dependent count
-  await getCodeSizeByProject(project);
-  await syncSingleProjectContributors(project);
-  await syncSingleProjectDependentCount(project);
-  // 7. critical score
-  await createNewCriticalityScore(project);
-  // 8. scorecard
-  await syncSingleProjectScorecard(project.htmlUrl);
+  // try ... catch to avoid break
+  const functions = [
+    // 3. Cncf document best practice
+    syncSingleProjectCncfDocumentScore,
+    // 4. GitHub star trend
+    syncSingleProjectStargazersTrend,
+    // 5. openrank & opendigger
+    syncSingleProjectOpendigger,
+    // 6. code size、 contributor count、 dependent count
+    getCodeSizeByProject,
+    syncSingleProjectContributors,
+    syncSingleProjectDependentCount,
+    // 7. critical score
+    createNewCriticalityScore,
+    // 8. scorecard
+    syncSingleProjectScorecardByProject,
+    // 10. compass  -> manual
+    syncSingleProjectCompassMetric,
+    // 11. sonarCloud -> manual
+    // 12. sync project dependency graph
+    syncSingleProjectDependencies,
+    // 13. oss-insight geology/companies data
+    syncSingleProjectCreatorsCountries,
+    syncSingleProjectCreatorsOrg,
+    // 14. Evaluate the score
+    syncSingleProjectEvaluation,
+  ];
+
+  for (const _function of functions) {
+    try {
+      await _function(project);
+    } catch (e) {
+      logger.error(`[Batch Integrated] integration function:{${_function.name}} error`, e);
+    }
+  }
 
   // 9. Determining the type of software: frontend software - main package / Rust - Cargo and so on
-  if (packageName !== '') {
+  if (packageName) {
     logger.info('Front-end software, computing package related data');
     // 9.1 insert main package project_packages: rule is manual
     await ProjectPackage.upsert({
@@ -86,16 +107,6 @@ async function syncSingleProjectAllMetadata(options) {
     // 9.3 package size
     await syncSingleProjectPackageSize(project);
   }
-  // 10. compass  -> manual
-  await syncSingleProjectCompassMetric(project, { beginDate: '2023-04-01' });
-  // 11. sonarCloud -> manual
-  // 12. sync project dependency graph
-  await syncSingleProjectDependencies(project);
-  // 13. oss-insight geology/companies data
-  await syncSingleProjectCreatorsCountries(project);
-  await syncSingleProjectCreatorsOrg(project);
-  // 14. Evaluate the score
-  await syncSingleProjectEvaluation(project);
   logger.info(`Project ${repoUrl}: all metadata information integrated`);
 }
 
