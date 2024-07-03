@@ -1648,6 +1648,7 @@ const getShowRow = (path: string) => {
         .description {
           padding: 10px;
           max-height: 85px;
+          max-width: 100%;
         }
 
         .close-btn {
