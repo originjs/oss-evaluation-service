@@ -1,5 +1,6 @@
 import { createFork, deleteFork } from './fork.js';
 import { getProjectInfo, searchProjects } from './project.js';
+import { fetchRedirectUrl } from './repo.js';
 
 export class GithubSdk {
   constructor(token) {
@@ -36,5 +37,15 @@ export class GithubSdk {
   */
   searchProjects = async (condition, count) => {
     return searchProjects(condition, count, this.token);
+  };
+
+  /**
+   get repo redirect url
+   @async
+   @param {url} string - github repo html url
+   @returns {Promise<Result<Object>} - result
+  */
+  getRedirectUrl = async url => {
+    return fetchRedirectUrl(url);
   };
 }

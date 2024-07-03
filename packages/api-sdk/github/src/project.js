@@ -31,7 +31,7 @@ export const searchProjects = async (search, count, token) => {
   const header = githubCommonHeader(token);
   for (let page = 1; res.length < count; page++) {
     const url = `https://api.github.com/search/repositories?q=${search.condition}&sort=${search.sort}&order=${search.order}&page=${page}&per_page=${pageSize}`;
-    const response = await fetch(url , {method:'GET', headers: header});
+    const response = await fetch(url, { method: 'GET', headers: header });
     if (response.ok) {
       const data = await response.json();
       if (data.items.length === 0) {
