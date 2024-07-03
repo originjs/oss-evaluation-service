@@ -3,6 +3,7 @@ import * as fs from 'node:fs';
 import { Octokit } from '@octokit/core';
 import { GithubProjectsTable, logger } from '@orginjs/oss-evaluation-data-model';
 import GithubSdk from '@orginjs/github-sdk/src/index.js';
+import { fetchWithTimeout } from '../util/fetchWitTimeout';
 
 /**
  *  There are 952 github projects between 1000 and 1130 stars.
@@ -294,24 +295,24 @@ async function queryProjectByRepUrl(url) {
 
   const tokens = JSON.parse(process.env.GITHUB_TOKEN);
   logger.info(`fetch url: https://api.github.com/repos/${ownerRepo[0]}/${ownerRepo[1]}`);
-  const response = await fetch(`https://api.github.com/repos/${ownerRepo[0]}/${ownerRepo[1]}`, {
-    // agent,
-    headers: {
-      'User-Agent': 'nodejs/18.19.0',
-      Authorization: `Bearer ${tokens[0]}`,
-      'X-GitHub-Api-Version': '2022-11-28',
-      Accept: 'application/vnd.github+json',
+  const response = await fetchWithTimeout(
+    `https://api.github.com/repos/${ownerRepo[0]}/${ownerRepo[1]}`,
+    {
+      // agent,
+      headers: {
+        'User-Agent': 'nodejs/18.19.0',
+        Authorization: `Bearer ${tokens[0]}`,
+        'X-GitHub-Api-Version': '2022-11-28',
+        Accept: 'application/vnd.github+json',
+      },
     },
-  });
-
-  let project = null;
+  );
   if (response.ok) {
-    project = await response.json();
+    return await response.json();
   } else {
     logger.info(await response.text());
-    logger.info(await response.status);
+    logger.info(response.status);
   }
-  return project;
 }
 
 function getOwnerRepo(url) {

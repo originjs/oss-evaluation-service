@@ -9,6 +9,7 @@ import {
 } from '@orginjs/oss-evaluation-data-model';
 import { ServerError, BadRequestError } from '../util/error.js';
 import { parseRepoUrl } from '../util/util.js';
+import { fetchWithTimeout } from '../util/fetchWitTimeout.js';
 
 /**
  * Sync scorecard by id or by tech_stack from table:project_stack
@@ -135,7 +136,7 @@ export async function syncScorecard(projectId, address, platform, org, repo) {
 export async function getScorecard(url) {
   try {
     const apiUrl = `https://api.securityscorecards.dev/projects/${url}`;
-    const response = await fetch(apiUrl);
+    const response = await fetchWithTimeout(apiUrl);
     let body;
     let isLocal;
     if (response.ok) {
@@ -201,7 +202,6 @@ export async function getScorecardHandler(req, res) {
     res.status(500).send(e.toString());
   }
 }
-
 
 /**
  * Synchronize scorecard score for single project

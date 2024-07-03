@@ -1,4 +1,4 @@
-export function fetchWithTimeout(url, options = {}, timeout = 5000) {
+export function fetchWithTimeout(url, options = {}, timeout = 10 * 1000) {
   if (typeof options === 'number') {
     timeout = options;
     options = {};
