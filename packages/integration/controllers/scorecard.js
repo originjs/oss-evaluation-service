@@ -146,9 +146,12 @@ export async function getScorecard(url) {
       logger.info(`Fetching data of project ${url} failed! Running scorecard locally...`);
       let buffer;
       const execPromise = util.promisify(exec);
-      await execPromise(`"scorecard-windows-amd64.exe" --repo=${url} --format=json`, {
-        env: { GITHUB_AUTH_TOKEN: process.env.GITHUB_AUTH_TOKEN },
-      })
+      await execPromise(
+        `${process.platform === 'win32' ? 'scorecard-windows-amd64.exe' : 'scorecard'} --repo=${url} --format=json`,
+        {
+          env: { GITHUB_AUTH_TOKEN: process.env.GITHUB_AUTH_TOKEN },
+        },
+      )
         .then(value => {
           buffer = value.stdout;
         })
