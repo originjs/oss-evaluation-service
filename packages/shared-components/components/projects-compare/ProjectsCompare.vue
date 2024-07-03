@@ -247,7 +247,7 @@ const getShowRow = (path: string) => {
         </div>
       </el-affix>
 
-      <div class="row">
+      <div class="row" @mouseover="showChooseBorder('简介', $event)" @mouseout="hideChooseBorder()">
         <div class="border param-name">简介</div>
         <div v-for="idx in 5" :key="idx" class="param-value border">
           <div v-if="projects[idx - 1]" class="value-div">
@@ -374,67 +374,68 @@ const getShowRow = (path: string) => {
         </el-icon>
         基本信息
       </div>
-      <TransitionGroup name="list" tag="div" class="overflow-hidden">
-        <div
-          v-show="showBasic && getShowRow('star')"
-          key="1"
-          class="row"
-          @mouseover="showChooseBorder('Stars', $event)"
-          @mouseout="hideChooseBorder()"
-        >
-          <div class="border param-name">Stars</div>
-          <div v-for="idx in 5" :key="idx" class="param-value border">
-            <div v-if="projects[idx - 1]" class="value-div">
-              <span style="color: #409eff" :class="{ good: isStarTop(projects[idx - 1].star) }"
-                >{{ toKilo(projects[idx - 1].star) }}
-              </span>
+      <el-collapse-transition>
+        <div v-show="showBasic">
+          <div
+            v-show="getShowRow('star')"
+            key="1"
+            class="row"
+            @mouseover="showChooseBorder('Stars', $event)"
+            @mouseout="hideChooseBorder()"
+          >
+            <div class="border param-name">Stars</div>
+            <div v-for="idx in 5" :key="idx" class="param-value border">
+              <div v-if="projects[idx - 1]" class="value-div">
+                <span style="color: #409eff" :class="{ good: isStarTop(projects[idx - 1].star) }"
+                  >{{ toKilo(projects[idx - 1].star) }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div
+            v-show="getShowRow('language')"
+            key="2"
+            class="row"
+            @mouseover="showChooseBorder('开发语言', $event)"
+            @mouseout="hideChooseBorder()"
+          >
+            <div class="border param-name">开发语言</div>
+            <div v-for="idx in 5" :key="idx" class="param-value border">
+              <div v-if="projects[idx - 1]" class="value-div">
+                <span>{{ projects[idx - 1].language }}</span>
+              </div>
+            </div>
+          </div>
+          <div
+            v-show="getShowRow('firstCommit')"
+            key="4"
+            class="row"
+            @mouseover="showChooseBorder('首次提交', $event)"
+            @mouseout="hideChooseBorder()"
+          >
+            <div class="border param-name">首次提交</div>
+            <div v-for="idx in 5" :key="idx" class="param-value border">
+              <div v-if="projects[idx - 1]" class="value-div">
+                <span> {{ dayjs(projects[idx - 1].firstCommit).format('YYYY-MM-DD') }} </span>
+              </div>
+            </div>
+          </div>
+          <div
+            v-show="getShowRow('license')"
+            key="5"
+            class="row"
+            @mouseover="showChooseBorder('License', $event)"
+            @mouseout="hideChooseBorder()"
+          >
+            <div class="border param-name">License</div>
+            <div v-for="idx in 5" :key="idx" class="param-value border">
+              <div v-if="projects[idx - 1]" class="value-div">
+                <span> {{ projects[idx - 1].license }} </span>
+              </div>
             </div>
           </div>
         </div>
-        <div
-          v-show="showBasic && getShowRow('language')"
-          key="2"
-          class="row"
-          @mouseover="showChooseBorder('开发语言', $event)"
-          @mouseout="hideChooseBorder()"
-        >
-          <div class="border param-name">开发语言</div>
-          <div v-for="idx in 5" :key="idx" class="param-value border">
-            <div v-if="projects[idx - 1]" class="value-div">
-              <span>{{ projects[idx - 1].language }}</span>
-            </div>
-          </div>
-        </div>
-
-        <div
-          v-show="showBasic && getShowRow('firstCommit')"
-          key="4"
-          class="row"
-          @mouseover="showChooseBorder('首次提交', $event)"
-          @mouseout="hideChooseBorder()"
-        >
-          <div class="border param-name">首次提交</div>
-          <div v-for="idx in 5" :key="idx" class="param-value border">
-            <div v-if="projects[idx - 1]" class="value-div">
-              <span> {{ dayjs(projects[idx - 1].firstCommit).format('YYYY-MM-DD') }} </span>
-            </div>
-          </div>
-        </div>
-        <div
-          v-show="showBasic && getShowRow('license')"
-          key="5"
-          class="row"
-          @mouseover="showChooseBorder('License', $event)"
-          @mouseout="hideChooseBorder()"
-        >
-          <div class="border param-name">License</div>
-          <div v-for="idx in 5" :key="idx" class="param-value border">
-            <div v-if="projects[idx - 1]" class="value-div">
-              <span> {{ projects[idx - 1].license }} </span>
-            </div>
-          </div>
-        </div>
-      </TransitionGroup>
+      </el-collapse-transition>
 
       <div class="border categar" @click="showFunction = !showFunction">
         <el-icon style="color: cornflowerblue; margin: 0px 6px">
@@ -443,107 +444,116 @@ const getShowRow = (path: string) => {
         </el-icon>
         功能
       </div>
-      <TransitionGroup name="list" tag="div" class="overflow-hidden">
-        <div
-          v-show="showFunction && getShowRow('codesize')"
-          key="3"
-          class="row"
-          @mouseover="showChooseBorder('代码量', $event)"
-          @mouseout="hideChooseBorder()"
-        >
-          <div class="border param-name">代码量</div>
-          <div v-for="idx in 5" :key="idx" class="param-value border">
-            <div v-if="projects[idx - 1]" class="value-div">
-              <span>{{ projects[idx - 1].codeLines ? (projects[idx - 1].codeLines / 1000).toFixed(2) : '-' }} kl</span>
+      <el-collapse-transition>
+        <div v-show="showFunction">
+          <div
+            v-show="getShowRow('codesize')"
+            key="3"
+            class="row"
+            @mouseover="showChooseBorder('代码量', $event)"
+            @mouseout="hideChooseBorder()"
+          >
+            <div class="border param-name">代码量</div>
+            <div v-for="idx in 5" :key="idx" class="param-value border">
+              <div v-if="projects[idx - 1]" class="value-div">
+                <span
+                  >{{
+                    projects[idx - 1].codeLines
+                      ? (projects[idx - 1].codeLines / 1000).toFixed(2)
+                      : '-'
+                  }}
+                  kl</span
+                >
+              </div>
             </div>
           </div>
-        </div>
 
-        <div
-          v-show="showFunction && getShowRow('satisfaction')"
-          key="1"
-          class="row"
-          @mouseover="showChooseBorder('开发者满意度', $event)"
-          @mouseout="hideChooseBorder()"
-        >
-          <div class="border param-name">
-            <el-tooltip :content="i18n.global.t(`tips.satisfaction`)"> 开发者满意度 </el-tooltip>
-          </div>
-          <div v-for="idx in 5" :key="idx" class="param-value border">
-            <div v-if="projects[idx - 1]" class="value-div" style="">
-              <span v-for="value in projects[idx - 1].satisfaction?.slice(-3)" :key="value.year">
-                {{ value.year }} : {{ value.val }}%
-              </span>
-              <span v-if="!projects[idx - 1].satisfaction.length">-</span>
+          <div
+            v-show="getShowRow('satisfaction')"
+            key="1"
+            class="row"
+            @mouseover="showChooseBorder('开发者满意度', $event)"
+            @mouseout="hideChooseBorder()"
+          >
+            <div class="border param-name">
+              <el-tooltip :content="i18n.global.t(`tips.satisfaction`)"> 开发者满意度 </el-tooltip>
+            </div>
+            <div v-for="idx in 5" :key="idx" class="param-value border">
+              <div v-if="projects[idx - 1]" class="value-div" style="">
+                <span v-for="value in projects[idx - 1].satisfaction?.slice(-3)" :key="value.year">
+                  {{ value.year }} : {{ value.val }}%
+                </span>
+                <span v-if="!projects[idx - 1].satisfaction.length">-</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div
-          v-show="showFunction && getShowRow('document.documentScore')"
-          key="2"
-          class="row"
-          @mouseover="showChooseBorder('文档最佳实践', $event)"
-          @mouseout="hideChooseBorder()"
-        >
-          <div class="border param-name">
-            <el-tooltip :content="i18n.global.t(`tips.bestPractices`)"> 文档最佳实践 </el-tooltip>
-          </div>
-          <div v-for="idx in 5" :key="idx" class="param-value border">
-            <div v-if="projects[idx - 1]" class="value-div">
-              <div>
-                <div style="text-align: center; margin-bottom: 8px">
-                  {{ formatFloat(projects[idx - 1].document?.documentScore) }}%
-                </div>
+          <div
+            v-show="getShowRow('document.documentScore')"
+            key="2"
+            class="row"
+            @mouseover="showChooseBorder('文档最佳实践', $event)"
+            @mouseout="hideChooseBorder()"
+          >
+            <div class="border param-name">
+              <el-tooltip :content="i18n.global.t(`tips.bestPractices`)"> 文档最佳实践 </el-tooltip>
+            </div>
+            <div v-for="idx in 5" :key="idx" class="param-value border">
+              <div v-if="projects[idx - 1]" class="value-div">
                 <div>
-                  <span
-                    v-if="projects[idx - 1].document?.hasReadme"
-                    i-ph-check-circle
-                    mr-1
-                    font-size-5
-                    color-green-300
-                  />
-                  <span v-else i-ph-minus-circle mr-1 font-size-5 color-red-400 />
-                  Readme
-                </div>
-                <div>
-                  <span
-                    v-if="projects[idx - 1].document?.hasWebsite"
-                    i-ph-check-circle
-                    mr-1
-                    font-size-5
-                    color-green-300
-                  />
-                  <span v-else i-ph-minus-circle mr-1 font-size-5 color-red-400 />
-                  Website
-                </div>
-                <div>
-                  <span
-                    v-if="projects[idx - 1].document?.hasChangelog"
-                    i-ph-check-circle
-                    mr-1
-                    font-size-5
-                    color-green-300
-                  />
-                  <span v-else i-ph-minus-circle mr-1 font-size-5 color-red-400 />
-                  Changelog
-                </div>
-                <div>
-                  <span
-                    v-if="projects[idx - 1].document?.hasContributing"
-                    i-ph-check-circle
-                    mr-1
-                    font-size-5
-                    color-green-300
-                  />
-                  <span v-else i-ph-minus-circle mr-1 font-size-5 color-red-400 />
-                  Contributing
+                  <div style="text-align: center; margin-bottom: 8px">
+                    {{ formatFloat(projects[idx - 1].document?.documentScore) }}%
+                  </div>
+                  <div>
+                    <span
+                      v-if="projects[idx - 1].document?.hasReadme"
+                      i-ph-check-circle
+                      mr-1
+                      font-size-5
+                      color-green-300
+                    />
+                    <span v-else i-ph-minus-circle mr-1 font-size-5 color-red-400 />
+                    Readme
+                  </div>
+                  <div>
+                    <span
+                      v-if="projects[idx - 1].document?.hasWebsite"
+                      i-ph-check-circle
+                      mr-1
+                      font-size-5
+                      color-green-300
+                    />
+                    <span v-else i-ph-minus-circle mr-1 font-size-5 color-red-400 />
+                    Website
+                  </div>
+                  <div>
+                    <span
+                      v-if="projects[idx - 1].document?.hasChangelog"
+                      i-ph-check-circle
+                      mr-1
+                      font-size-5
+                      color-green-300
+                    />
+                    <span v-else i-ph-minus-circle mr-1 font-size-5 color-red-400 />
+                    Changelog
+                  </div>
+                  <div>
+                    <span
+                      v-if="projects[idx - 1].document?.hasContributing"
+                      i-ph-check-circle
+                      mr-1
+                      font-size-5
+                      color-green-300
+                    />
+                    <span v-else i-ph-minus-circle mr-1 font-size-5 color-red-400 />
+                    Contributing
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </TransitionGroup>
+      </el-collapse-transition>
 
       <div class="border categar" @click="showPerformance = !showPerformance">
         <el-icon style="color: cornflowerblue; margin: 0px 6px">
@@ -552,22 +562,26 @@ const getShowRow = (path: string) => {
         </el-icon>
         性能
       </div>
-      <TransitionGroup name="list" tag="div" class="overflow-hidden">
-        <div
-          v-show="showPerformance && getShowRow('evaluation.performanceScore')"
-          key="1"
-          class="row"
-          @mouseover="showChooseBorder('Benchmark Score', $event)"
-          @mouseout="hideChooseBorder()"
-        >
-          <div class="border param-name" style="height: 60px; font-size: 14px">Benchmark Score</div>
-          <div v-for="idx in 5" :key="idx" class="param-value border">
-            <div v-if="projects[idx - 1]" class="value-div">
-              <span>{{ formatFloat(projects[idx - 1].evaluation?.performanceScore) }}</span>
+      <el-collapse-transition>
+        <div v-show="showPerformance">
+          <div
+            v-show="getShowRow('evaluation.performanceScore')"
+            key="1"
+            class="row"
+            @mouseover="showChooseBorder('Benchmark Score', $event)"
+            @mouseout="hideChooseBorder()"
+          >
+            <div class="border param-name" style="height: 60px; font-size: 14px">
+              Benchmark Score
+            </div>
+            <div v-for="idx in 5" :key="idx" class="param-value border">
+              <div v-if="projects[idx - 1]" class="value-div">
+                <span>{{ formatFloat(projects[idx - 1].evaluation?.performanceScore) }}</span>
+              </div>
             </div>
           </div>
         </div>
-      </TransitionGroup>
+      </el-collapse-transition>
 
       <div class="border categar" @click="showQuality = !showQuality">
         <el-icon style="color: cornflowerblue; margin: 0px 6px">
@@ -576,561 +590,573 @@ const getShowRow = (path: string) => {
         </el-icon>
         质量
       </div>
-      <TransitionGroup name="list" tag="div" class="overflow-hidden">
-        <div v-show="showQuality" key="1" style="display: flex">
-          <div
-            class="border-left border-top"
-            style="
-              width: 22px;
-              writing-mode: vertical-rl;
-              transform: rotate(180deg);
-              text-align: center;
-            "
-          >
-            <el-tooltip :content="i18n.global.t(`tips.scorecard.scorecard`)">
-              OpenSSF Scorecard
-            </el-tooltip>
+      <el-collapse-transition>
+        <div v-show="showQuality">
+          <div key="1" style="display: flex">
+            <div
+              class="border-left border-top"
+              style="
+                width: 22px;
+                writing-mode: vertical-rl;
+                transform: rotate(180deg);
+                text-align: center;
+              "
+            >
+              <el-tooltip :content="i18n.global.t(`tips.scorecard.scorecard`)">
+                OpenSSF Scorecard
+              </el-tooltip>
+            </div>
+            <div style="flex: 1">
+              <div
+                v-show="getShowRow('scorecard.score')"
+                class="row"
+                @mouseover="showChooseBorder('Score', $event)"
+                @mouseout="hideChooseBorder()"
+              >
+                <div class="border param-name" style="width: 97px">
+                  <el-tooltip
+                    :content="i18n.global.t(`tips.scorecard.scorecard`)"
+                    placement="top-start"
+                  >
+                    <el-text size="small" line-clamp="3">Scorecard得分</el-text>
+                  </el-tooltip>
+                </div>
+                <div v-for="idx in 5" :key="idx" class="param-value border">
+                  <div v-if="projects[idx - 1]" class="value-div">
+                    <span
+                      :class="{
+                        good: isGood(projects[idx - 1].scorecard?.score, 'scorecard.score'),
+                      }"
+                    >
+                      {{ formatFloat(projects[idx - 1].scorecard?.score) }} / 10
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div
+                v-show="getShowRow('scorecard.codeReview')"
+                class="row"
+                @mouseover="showChooseBorder('Code-Review', $event)"
+                @mouseout="hideChooseBorder()"
+              >
+                <div class="border param-name" style="width: 97px">
+                  <el-tooltip
+                    :content="i18n.global.t(`tips.scorecard.Code-Review`)"
+                    placement="top-start"
+                  >
+                    <el-text size="small" line-clamp="3">Code-Review</el-text>
+                  </el-tooltip>
+                </div>
+                <div v-for="idx in 5" :key="idx" class="param-value border">
+                  <div v-if="projects[idx - 1]" class="value-div">
+                    <span
+                      :class="{
+                        good: isGood(
+                          projects[idx - 1].scorecard?.codeReview,
+                          'scorecard.codeReview',
+                        ),
+                      }"
+                    >
+                      {{ formatFloat(projects[idx - 1].scorecard?.codeReview) }} / 10
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div
+                v-show="getShowRow('scorecard.maintained')"
+                class="row"
+                @mouseover="showChooseBorder('Maintained', $event)"
+                @mouseout="hideChooseBorder()"
+              >
+                <div class="border param-name" style="width: 97px">
+                  <el-tooltip
+                    :content="i18n.global.t(`tips.scorecard.Maintained`)"
+                    placement="top-start"
+                  >
+                    <el-text size="small" line-clamp="3">Maintained</el-text>
+                  </el-tooltip>
+                </div>
+                <div v-for="idx in 5" :key="idx" class="param-value border">
+                  <div v-if="projects[idx - 1]" class="value-div">
+                    <span
+                      :class="{
+                        good: isGood(
+                          projects[idx - 1].scorecard?.maintained,
+                          'scorecard.maintained',
+                        ),
+                      }"
+                    >
+                      {{ formatFloat(projects[idx - 1].scorecard?.maintained) }} / 10
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div
+                v-show="getShowRow('scorecard.ciiBestPractices')"
+                class="row"
+                @mouseover="showChooseBorder('CII-Best-Practices', $event)"
+                @mouseout="hideChooseBorder()"
+              >
+                <div class="border param-name" style="width: 97px">
+                  <el-tooltip
+                    :content="i18n.global.t(`tips.scorecard.CII-Best-Practices`)"
+                    placement="top-start"
+                  >
+                    <el-text size="small" line-clamp="3">CII-Best-Practices</el-text>
+                  </el-tooltip>
+                </div>
+                <div v-for="idx in 5" :key="idx" class="param-value border">
+                  <div v-if="projects[idx - 1]" class="value-div">
+                    <span
+                      :class="{
+                        good: isGood(
+                          projects[idx - 1].scorecard?.ciiBestPractices,
+                          'scorecard.ciiBestPractices',
+                        ),
+                      }"
+                    >
+                      {{ formatFloat(projects[idx - 1].scorecard?.ciiBestPractices) }} / 10
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div
+                v-show="getShowRow('scorecard.license')"
+                class="row"
+                @mouseover="showChooseBorder('License', $event)"
+                @mouseout="hideChooseBorder()"
+              >
+                <div class="border param-name" style="width: 97px">
+                  <el-tooltip
+                    :content="i18n.global.t(`tips.scorecard.License`)"
+                    placement="top-start"
+                  >
+                    <el-text size="small" line-clamp="3">License</el-text>
+                  </el-tooltip>
+                </div>
+                <div v-for="idx in 5" :key="idx" class="param-value border">
+                  <div v-if="projects[idx - 1]" class="value-div">
+                    <span
+                      :class="{
+                        good: isGood(projects[idx - 1].scorecard?.license, 'scorecard.license'),
+                      }"
+                    >
+                      {{ formatFloat(projects[idx - 1].scorecard?.license) }} / 10
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div
+                v-show="getShowRow('scorecard.securityPolicy')"
+                class="row"
+                @mouseover="showChooseBorder('Security-Policy', $event)"
+                @mouseout="hideChooseBorder()"
+              >
+                <div class="border param-name" style="width: 97px">
+                  <el-tooltip
+                    :content="i18n.global.t(`tips.scorecard.Security-Policy`)"
+                    placement="top-start"
+                  >
+                    <el-text size="small" line-clamp="3">Security-Policy</el-text>
+                  </el-tooltip>
+                </div>
+                <div v-for="idx in 5" :key="idx" class="param-value border">
+                  <div v-if="projects[idx - 1]" class="value-div">
+                    <span
+                      :class="{
+                        good: isGood(
+                          projects[idx - 1].scorecard?.securityPolicy,
+                          'scorecard.securityPolicy',
+                        ),
+                      }"
+                    >
+                      {{ formatFloat(projects[idx - 1].scorecard?.securityPolicy) }} / 10
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div
+                v-show="getShowRow('scorecard.dangerousWorkflow')"
+                class="row"
+                @mouseover="showChooseBorder('Dangerous-Workflow', $event)"
+                @mouseout="hideChooseBorder()"
+              >
+                <div class="border param-name" style="width: 97px">
+                  <el-tooltip
+                    :content="i18n.global.t(`tips.scorecard.Dangerous-Workflow`)"
+                    placement="top-start"
+                  >
+                    <el-text size="small" line-clamp="3">Dangerous-Workflow</el-text>
+                  </el-tooltip>
+                </div>
+                <div v-for="idx in 5" :key="idx" class="param-value border">
+                  <div v-if="projects[idx - 1]" class="value-div">
+                    <span
+                      :class="{
+                        good: isGood(
+                          projects[idx - 1].scorecard?.dangerousWorkflow,
+                          'scorecard.dangerousWorkflow',
+                        ),
+                      }"
+                    >
+                      {{ formatFloat(projects[idx - 1].scorecard?.dangerousWorkflow) }} / 10
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div
+                v-show="getShowRow('scorecard.branchProtection')"
+                class="row"
+                @mouseover="showChooseBorder('Branch-Protection', $event)"
+                @mouseout="hideChooseBorder()"
+              >
+                <div class="border param-name" style="width: 97px">
+                  <el-tooltip
+                    :content="i18n.global.t(`tips.scorecard.Branch-Protection`)"
+                    placement="top-start"
+                  >
+                    <el-text size="small" line-clamp="3">Branch-Protection</el-text>
+                  </el-tooltip>
+                </div>
+                <div v-for="idx in 5" :key="idx" class="param-value border">
+                  <div v-if="projects[idx - 1]" class="value-div">
+                    <span
+                      :class="{
+                        good: isGood(
+                          projects[idx - 1].scorecard?.branchProtection,
+                          'scorecard.branchProtection',
+                        ),
+                      }"
+                    >
+                      {{ formatFloat(projects[idx - 1].scorecard?.branchProtection) }} / 10
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div
+                v-show="getShowRow('scorecard.tokenPermissions')"
+                class="row"
+                @mouseover="showChooseBorder('Token-Permissions', $event)"
+                @mouseout="hideChooseBorder()"
+              >
+                <div class="border param-name" style="width: 97px">
+                  <el-tooltip
+                    :content="i18n.global.t(`tips.scorecard.Token-Permissions`)"
+                    placement="top-start"
+                  >
+                    <el-text size="small" line-clamp="3">Token-Permissions</el-text>
+                  </el-tooltip>
+                </div>
+                <div v-for="idx in 5" :key="idx" class="param-value border">
+                  <div v-if="projects[idx - 1]" class="value-div">
+                    <span
+                      :class="{
+                        good: isGood(
+                          projects[idx - 1].scorecard?.tokenPermissions,
+                          'scorecard.tokenPermissions',
+                        ),
+                      }"
+                    >
+                      {{ formatFloat(projects[idx - 1].scorecard?.tokenPermissions) }} / 10
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div
+                v-show="getShowRow('scorecard.binaryArtifacts')"
+                class="row"
+                @mouseover="showChooseBorder('Binary-Artifacts', $event)"
+                @mouseout="hideChooseBorder()"
+              >
+                <div class="border param-name" style="width: 97px">
+                  <el-tooltip
+                    :content="i18n.global.t(`tips.scorecard.Binary-Artifacts`)"
+                    placement="top-start"
+                  >
+                    <el-text size="small" line-clamp="3">Binary-Artifacts</el-text>
+                  </el-tooltip>
+                </div>
+                <div v-for="idx in 5" :key="idx" class="param-value border">
+                  <div v-if="projects[idx - 1]" class="value-div">
+                    <span
+                      :class="{
+                        good: isGood(
+                          projects[idx - 1].scorecard?.binaryArtifacts,
+                          'scorecard.binaryArtifacts',
+                        ),
+                      }"
+                    >
+                      {{ formatFloat(projects[idx - 1].scorecard?.binaryArtifacts) }} / 10
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div
+                v-show="getShowRow('scorecard.fuzzing')"
+                class="row"
+                @mouseover="showChooseBorder('Fuzzing', $event)"
+                @mouseout="hideChooseBorder()"
+              >
+                <div class="border param-name" style="width: 97px">
+                  <el-tooltip
+                    :content="i18n.global.t(`tips.scorecard.Fuzzing`)"
+                    placement="top-start"
+                  >
+                    <el-text size="small" line-clamp="3">Fuzzing</el-text>
+                  </el-tooltip>
+                </div>
+                <div v-for="idx in 5" :key="idx" class="param-value border">
+                  <div v-if="projects[idx - 1]" class="value-div">
+                    <span
+                      :class="{
+                        good: isGood(projects[idx - 1].scorecard?.fuzzing, 'scorecard.fuzzing'),
+                      }"
+                    >
+                      {{ formatFloat(projects[idx - 1].scorecard?.fuzzing) }} / 10
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div
+                v-show="getShowRow('scorecard.sast')"
+                class="row"
+                @mouseover="showChooseBorder('SAST', $event)"
+                @mouseout="hideChooseBorder()"
+              >
+                <div class="border param-name" style="width: 97px">
+                  <el-tooltip :content="i18n.global.t(`tips.scorecard.SAST`)" placement="top-start">
+                    <el-text size="small" line-clamp="3">SAST</el-text>
+                  </el-tooltip>
+                </div>
+                <div v-for="idx in 5" :key="idx" class="param-value border">
+                  <div v-if="projects[idx - 1]" class="value-div">
+                    <span
+                      :class="{ good: isGood(projects[idx - 1].scorecard?.sast, 'scorecard.sast') }"
+                    >
+                      {{ formatFloat(projects[idx - 1].scorecard?.sast) }} / 10
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div
+                v-show="getShowRow('scorecard.vulnerabilities')"
+                class="row"
+                @mouseover="showChooseBorder('Vulnerabilities', $event)"
+                @mouseout="hideChooseBorder()"
+              >
+                <div class="border param-name" style="width: 97px">
+                  <el-tooltip
+                    :content="i18n.global.t(`tips.scorecard.Vulnerabilities`)"
+                    placement="top-start"
+                  >
+                    <el-text size="small" line-clamp="3">Vulnerabilities</el-text>
+                  </el-tooltip>
+                </div>
+                <div v-for="idx in 5" :key="idx" class="param-value border">
+                  <div v-if="projects[idx - 1]" class="value-div">
+                    <span
+                      :class="{
+                        good: isGood(
+                          projects[idx - 1].scorecard?.vulnerabilities,
+                          'scorecard.vulnerabilities',
+                        ),
+                      }"
+                    >
+                      {{ formatFloat(projects[idx - 1].scorecard?.vulnerabilities) }} / 10
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div
+                v-show="getShowRow('scorecard.pinnedDependencies')"
+                class="row"
+                @mouseover="showChooseBorder('Pinned-Dependencies', $event)"
+                @mouseout="hideChooseBorder()"
+              >
+                <div class="border param-name" style="width: 97px">
+                  <el-tooltip
+                    :content="i18n.global.t(`tips.scorecard.Pinned-Dependencies`)"
+                    placement="top-start"
+                  >
+                    <el-text size="small" line-clamp="3">Pinned-Dependencies</el-text>
+                  </el-tooltip>
+                </div>
+                <div v-for="idx in 5" :key="idx" class="param-value border">
+                  <div v-if="projects[idx - 1]" class="value-div">
+                    <span
+                      :class="{
+                        good: isGood(
+                          projects[idx - 1].scorecard?.pinnedDependencies,
+                          'scorecard.pinnedDependencies',
+                        ),
+                      }"
+                    >
+                      {{ formatFloat(projects[idx - 1].scorecard?.pinnedDependencies) }} / 10
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div style="flex: 1">
-            <div
-              v-show="getShowRow('scorecard.score')"
-              class="row"
-              @mouseover="showChooseBorder('Score', $event)"
-              @mouseout="hideChooseBorder()"
-            >
-              <div class="border param-name" style="width: 97px">
-                <el-tooltip
-                  :content="i18n.global.t(`tips.scorecard.scorecard`)"
-                  placement="top-start"
-                >
-                  <el-text size="small" line-clamp="3">Scorecard得分</el-text>
-                </el-tooltip>
-              </div>
-              <div v-for="idx in 5" :key="idx" class="param-value border">
-                <div v-if="projects[idx - 1]" class="value-div">
-                  <span
-                    :class="{ good: isGood(projects[idx - 1].scorecard?.score, 'scorecard.score') }"
-                  >
-                    {{ formatFloat(projects[idx - 1].scorecard?.score) }} / 10
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div
-              v-show="getShowRow('scorecard.codeReview')"
-              class="row"
-              @mouseover="showChooseBorder('Code-Review', $event)"
-              @mouseout="hideChooseBorder()"
-            >
-              <div class="border param-name" style="width: 97px">
-                <el-tooltip
-                  :content="i18n.global.t(`tips.scorecard.Code-Review`)"
-                  placement="top-start"
-                >
-                  <el-text size="small" line-clamp="3">Code-Review</el-text>
-                </el-tooltip>
-              </div>
-              <div v-for="idx in 5" :key="idx" class="param-value border">
-                <div v-if="projects[idx - 1]" class="value-div">
-                  <span
-                    :class="{
-                      good: isGood(projects[idx - 1].scorecard?.codeReview, 'scorecard.codeReview'),
-                    }"
-                  >
-                    {{ formatFloat(projects[idx - 1].scorecard?.codeReview) }} / 10
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div
-              v-show="getShowRow('scorecard.maintained')"
-              class="row"
-              @mouseover="showChooseBorder('Maintained', $event)"
-              @mouseout="hideChooseBorder()"
-            >
-              <div class="border param-name" style="width: 97px">
-                <el-tooltip
-                  :content="i18n.global.t(`tips.scorecard.Maintained`)"
-                  placement="top-start"
-                >
-                  <el-text size="small" line-clamp="3">Maintained</el-text>
-                </el-tooltip>
-              </div>
-              <div v-for="idx in 5" :key="idx" class="param-value border">
-                <div v-if="projects[idx - 1]" class="value-div">
-                  <span
-                    :class="{
-                      good: isGood(projects[idx - 1].scorecard?.maintained, 'scorecard.maintained'),
-                    }"
-                  >
-                    {{ formatFloat(projects[idx - 1].scorecard?.maintained) }} / 10
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div
-              v-show="getShowRow('scorecard.ciiBestPractices')"
-              class="row"
-              @mouseover="showChooseBorder('CII-Best-Practices', $event)"
-              @mouseout="hideChooseBorder()"
-            >
-              <div class="border param-name" style="width: 97px">
-                <el-tooltip
-                  :content="i18n.global.t(`tips.scorecard.CII-Best-Practices`)"
-                  placement="top-start"
-                >
-                  <el-text size="small" line-clamp="3">CII-Best-Practices</el-text>
-                </el-tooltip>
-              </div>
-              <div v-for="idx in 5" :key="idx" class="param-value border">
-                <div v-if="projects[idx - 1]" class="value-div">
-                  <span
-                    :class="{
-                      good: isGood(
-                        projects[idx - 1].scorecard?.ciiBestPractices,
-                        'scorecard.ciiBestPractices',
-                      ),
-                    }"
-                  >
-                    {{ formatFloat(projects[idx - 1].scorecard?.ciiBestPractices) }} / 10
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div
-              v-show="getShowRow('scorecard.license')"
-              class="row"
-              @mouseover="showChooseBorder('License', $event)"
-              @mouseout="hideChooseBorder()"
-            >
-              <div class="border param-name" style="width: 97px">
-                <el-tooltip
-                  :content="i18n.global.t(`tips.scorecard.License`)"
-                  placement="top-start"
-                >
-                  <el-text size="small" line-clamp="3">License</el-text>
-                </el-tooltip>
-              </div>
-              <div v-for="idx in 5" :key="idx" class="param-value border">
-                <div v-if="projects[idx - 1]" class="value-div">
-                  <span
-                    :class="{
-                      good: isGood(projects[idx - 1].scorecard?.license, 'scorecard.license'),
-                    }"
-                  >
-                    {{ formatFloat(projects[idx - 1].scorecard?.license) }} / 10
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div
-              v-show="getShowRow('scorecard.securityPolicy')"
-              class="row"
-              @mouseover="showChooseBorder('Security-Policy', $event)"
-              @mouseout="hideChooseBorder()"
-            >
-              <div class="border param-name" style="width: 97px">
-                <el-tooltip
-                  :content="i18n.global.t(`tips.scorecard.Security-Policy`)"
-                  placement="top-start"
-                >
-                  <el-text size="small" line-clamp="3">Security-Policy</el-text>
-                </el-tooltip>
-              </div>
-              <div v-for="idx in 5" :key="idx" class="param-value border">
-                <div v-if="projects[idx - 1]" class="value-div">
-                  <span
-                    :class="{
-                      good: isGood(
-                        projects[idx - 1].scorecard?.securityPolicy,
-                        'scorecard.securityPolicy',
-                      ),
-                    }"
-                  >
-                    {{ formatFloat(projects[idx - 1].scorecard?.securityPolicy) }} / 10
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div
-              v-show="getShowRow('scorecard.dangerousWorkflow')"
-              class="row"
-              @mouseover="showChooseBorder('Dangerous-Workflow', $event)"
-              @mouseout="hideChooseBorder()"
-            >
-              <div class="border param-name" style="width: 97px">
-                <el-tooltip
-                  :content="i18n.global.t(`tips.scorecard.Dangerous-Workflow`)"
-                  placement="top-start"
-                >
-                  <el-text size="small" line-clamp="3">Dangerous-Workflow</el-text>
-                </el-tooltip>
-              </div>
-              <div v-for="idx in 5" :key="idx" class="param-value border">
-                <div v-if="projects[idx - 1]" class="value-div">
-                  <span
-                    :class="{
-                      good: isGood(
-                        projects[idx - 1].scorecard?.dangerousWorkflow,
-                        'scorecard.dangerousWorkflow',
-                      ),
-                    }"
-                  >
-                    {{ formatFloat(projects[idx - 1].scorecard?.dangerousWorkflow) }} / 10
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div
-              v-show="getShowRow('scorecard.branchProtection')"
-              class="row"
-              @mouseover="showChooseBorder('Branch-Protection', $event)"
-              @mouseout="hideChooseBorder()"
-            >
-              <div class="border param-name" style="width: 97px">
-                <el-tooltip
-                  :content="i18n.global.t(`tips.scorecard.Branch-Protection`)"
-                  placement="top-start"
-                >
-                  <el-text size="small" line-clamp="3">Branch-Protection</el-text>
-                </el-tooltip>
-              </div>
-              <div v-for="idx in 5" :key="idx" class="param-value border">
-                <div v-if="projects[idx - 1]" class="value-div">
-                  <span
-                    :class="{
-                      good: isGood(
-                        projects[idx - 1].scorecard?.branchProtection,
-                        'scorecard.branchProtection',
-                      ),
-                    }"
-                  >
-                    {{ formatFloat(projects[idx - 1].scorecard?.branchProtection) }} / 10
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div
-              v-show="getShowRow('scorecard.tokenPermissions')"
-              class="row"
-              @mouseover="showChooseBorder('Token-Permissions', $event)"
-              @mouseout="hideChooseBorder()"
-            >
-              <div class="border param-name" style="width: 97px">
-                <el-tooltip
-                  :content="i18n.global.t(`tips.scorecard.Token-Permissions`)"
-                  placement="top-start"
-                >
-                  <el-text size="small" line-clamp="3">Token-Permissions</el-text>
-                </el-tooltip>
-              </div>
-              <div v-for="idx in 5" :key="idx" class="param-value border">
-                <div v-if="projects[idx - 1]" class="value-div">
-                  <span
-                    :class="{
-                      good: isGood(
-                        projects[idx - 1].scorecard?.tokenPermissions,
-                        'scorecard.tokenPermissions',
-                      ),
-                    }"
-                  >
-                    {{ formatFloat(projects[idx - 1].scorecard?.tokenPermissions) }} / 10
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div
-              v-show="getShowRow('scorecard.binaryArtifacts')"
-              class="row"
-              @mouseover="showChooseBorder('Binary-Artifacts', $event)"
-              @mouseout="hideChooseBorder()"
-            >
-              <div class="border param-name" style="width: 97px">
-                <el-tooltip
-                  :content="i18n.global.t(`tips.scorecard.Binary-Artifacts`)"
-                  placement="top-start"
-                >
-                  <el-text size="small" line-clamp="3">Binary-Artifacts</el-text>
-                </el-tooltip>
-              </div>
-              <div v-for="idx in 5" :key="idx" class="param-value border">
-                <div v-if="projects[idx - 1]" class="value-div">
-                  <span
-                    :class="{
-                      good: isGood(
-                        projects[idx - 1].scorecard?.binaryArtifacts,
-                        'scorecard.binaryArtifacts',
-                      ),
-                    }"
-                  >
-                    {{ formatFloat(projects[idx - 1].scorecard?.binaryArtifacts) }} / 10
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div
-              v-show="getShowRow('scorecard.fuzzing')"
-              class="row"
-              @mouseover="showChooseBorder('Fuzzing', $event)"
-              @mouseout="hideChooseBorder()"
-            >
-              <div class="border param-name" style="width: 97px">
-                <el-tooltip
-                  :content="i18n.global.t(`tips.scorecard.Fuzzing`)"
-                  placement="top-start"
-                >
-                  <el-text size="small" line-clamp="3">Fuzzing</el-text>
-                </el-tooltip>
-              </div>
-              <div v-for="idx in 5" :key="idx" class="param-value border">
-                <div v-if="projects[idx - 1]" class="value-div">
-                  <span
-                    :class="{
-                      good: isGood(projects[idx - 1].scorecard?.fuzzing, 'scorecard.fuzzing'),
-                    }"
-                  >
-                    {{ formatFloat(projects[idx - 1].scorecard?.fuzzing) }} / 10
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div
-              v-show="getShowRow('scorecard.sast')"
-              class="row"
-              @mouseover="showChooseBorder('SAST', $event)"
-              @mouseout="hideChooseBorder()"
-            >
-              <div class="border param-name" style="width: 97px">
-                <el-tooltip :content="i18n.global.t(`tips.scorecard.SAST`)" placement="top-start">
-                  <el-text size="small" line-clamp="3">SAST</el-text>
-                </el-tooltip>
-              </div>
-              <div v-for="idx in 5" :key="idx" class="param-value border">
-                <div v-if="projects[idx - 1]" class="value-div">
-                  <span
-                    :class="{ good: isGood(projects[idx - 1].scorecard?.sast, 'scorecard.sast') }"
-                  >
-                    {{ formatFloat(projects[idx - 1].scorecard?.sast) }} / 10
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div
-              v-show="getShowRow('scorecard.vulnerabilities')"
-              class="row"
-              @mouseover="showChooseBorder('Vulnerabilities', $event)"
-              @mouseout="hideChooseBorder()"
-            >
-              <div class="border param-name" style="width: 97px">
-                <el-tooltip
-                  :content="i18n.global.t(`tips.scorecard.Vulnerabilities`)"
-                  placement="top-start"
-                >
-                  <el-text size="small" line-clamp="3">Vulnerabilities</el-text>
-                </el-tooltip>
-              </div>
-              <div v-for="idx in 5" :key="idx" class="param-value border">
-                <div v-if="projects[idx - 1]" class="value-div">
-                  <span
-                    :class="{
-                      good: isGood(
-                        projects[idx - 1].scorecard?.vulnerabilities,
-                        'scorecard.vulnerabilities',
-                      ),
-                    }"
-                  >
-                    {{ formatFloat(projects[idx - 1].scorecard?.vulnerabilities) }} / 10
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div
-              v-show="getShowRow('scorecard.pinnedDependencies')"
-              class="row"
-              @mouseover="showChooseBorder('Pinned-Dependencies', $event)"
-              @mouseout="hideChooseBorder()"
-            >
-              <div class="border param-name" style="width: 97px">
-                <el-tooltip
-                  :content="i18n.global.t(`tips.scorecard.Pinned-Dependencies`)"
-                  placement="top-start"
-                >
-                  <el-text size="small" line-clamp="3">Pinned-Dependencies</el-text>
-                </el-tooltip>
-              </div>
-              <div v-for="idx in 5" :key="idx" class="param-value border">
-                <div v-if="projects[idx - 1]" class="value-div">
-                  <span
-                    :class="{
-                      good: isGood(
-                        projects[idx - 1].scorecard?.pinnedDependencies,
-                        'scorecard.pinnedDependencies',
-                      ),
-                    }"
-                  >
-                    {{ formatFloat(projects[idx - 1].scorecard?.pinnedDependencies) }} / 10
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        <div v-show="showQuality" key="2" style="display: flex">
-          <div
-            class="border-left border-top"
-            style="
-              width: 22px;
-              writing-mode: vertical-rl;
-              transform: rotate(180deg);
-              text-align: center;
-            "
-          >
-            SonarCloud Scan
-          </div>
-          <div style="flex: 1">
+          <div key="2" style="display: flex">
             <div
-              v-show="getShowRow('sonarCloudScan.reliabilityRating')"
-              class="row"
-              @mouseover="showChooseBorder('Reliability', $event)"
-              @mouseout="hideChooseBorder()"
+              class="border-left border-top"
+              style="
+                width: 22px;
+                writing-mode: vertical-rl;
+                transform: rotate(180deg);
+                text-align: center;
+              "
             >
-              <div class="border param-name" style="width: 97px">
-                <el-tooltip
-                  :content="i18n.global.t(`tips.sonarCloud.reliability`)"
-                  placement="top-start"
-                >
-                  <el-text size="small" line-clamp="3">Reliability</el-text>
-                </el-tooltip>
-              </div>
-              <div v-for="idx in 5" :key="idx" class="param-value border">
-                <div v-if="projects[idx - 1]" class="value-div">
-                  <div
-                    class="w-30px h-30px border-rd-50% text-center"
-                    :style="{
-                      backgroundColor: getLevelColor(
-                        projects[idx - 1].sonarCloudScan?.reliabilityRating,
-                      ),
-                    }"
+              SonarCloud Scan
+            </div>
+            <div style="flex: 1">
+              <div
+                v-show="getShowRow('sonarCloudScan.reliabilityRating')"
+                class="row"
+                @mouseover="showChooseBorder('Reliability', $event)"
+                @mouseout="hideChooseBorder()"
+              >
+                <div class="border param-name" style="width: 97px">
+                  <el-tooltip
+                    :content="i18n.global.t(`tips.sonarCloud.reliability`)"
+                    placement="top-start"
                   >
-                    <span vertical-middle color-white>{{
-                      formatString(projects[idx - 1].sonarCloudScan?.reliabilityRating)
-                    }}</span>
+                    <el-text size="small" line-clamp="3">Reliability</el-text>
+                  </el-tooltip>
+                </div>
+                <div v-for="idx in 5" :key="idx" class="param-value border">
+                  <div v-if="projects[idx - 1]" class="value-div">
+                    <div
+                      class="w-30px h-30px border-rd-50% text-center"
+                      :style="{
+                        backgroundColor: getLevelColor(
+                          projects[idx - 1].sonarCloudScan?.reliabilityRating,
+                        ),
+                      }"
+                    >
+                      <span vertical-middle color-white>{{
+                        formatString(projects[idx - 1].sonarCloudScan?.reliabilityRating)
+                      }}</span>
+                    </div>
+                    <span>{{ formatNumber(projects[idx - 1].sonarCloudScan?.bugs) }} Bugs</span>
                   </div>
-                  <span>{{ formatNumber(projects[idx - 1].sonarCloudScan?.bugs) }} Bugs</span>
                 </div>
               </div>
-            </div>
-            <div
-              v-show="getShowRow('sonarCloudScan.maintainabilityRating')"
-              class="row"
-              @mouseover="showChooseBorder('Maintainability', $event)"
-              @mouseout="hideChooseBorder()"
-            >
-              <div class="border param-name" style="width: 97px">
-                <el-tooltip
-                  :content="i18n.global.t(`tips.sonarCloud.maintainability`)"
-                  placement="top-start"
-                >
-                  <el-text size="small" line-clamp="2">Maintainability</el-text>
-                </el-tooltip>
-              </div>
-              <div v-for="idx in 5" :key="idx" class="param-value border">
-                <div v-if="projects[idx - 1]" class="value-div">
-                  <div
-                    class="w-30px h-30px border-rd-50% text-center"
-                    :style="{
-                      backgroundColor: getLevelColor(
-                        projects[idx - 1].sonarCloudScan?.maintainabilityRating,
-                      ),
-                    }"
+              <div
+                v-show="getShowRow('sonarCloudScan.maintainabilityRating')"
+                class="row"
+                @mouseover="showChooseBorder('Maintainability', $event)"
+                @mouseout="hideChooseBorder()"
+              >
+                <div class="border param-name" style="width: 97px">
+                  <el-tooltip
+                    :content="i18n.global.t(`tips.sonarCloud.maintainability`)"
+                    placement="top-start"
                   >
-                    <span vertical-middle color-white>{{
-                      formatString(projects[idx - 1].sonarCloudScan?.maintainabilityRating)
-                    }}</span>
+                    <el-text size="small" line-clamp="2">Maintainability</el-text>
+                  </el-tooltip>
+                </div>
+                <div v-for="idx in 5" :key="idx" class="param-value border">
+                  <div v-if="projects[idx - 1]" class="value-div">
+                    <div
+                      class="w-30px h-30px border-rd-50% text-center"
+                      :style="{
+                        backgroundColor: getLevelColor(
+                          projects[idx - 1].sonarCloudScan?.maintainabilityRating,
+                        ),
+                      }"
+                    >
+                      <span vertical-middle color-white>{{
+                        formatString(projects[idx - 1].sonarCloudScan?.maintainabilityRating)
+                      }}</span>
+                    </div>
+                    <span
+                      >{{ formatNumber(projects[idx - 1].sonarCloudScan?.codeSmells) }} Code
+                      Smells</span
+                    >
                   </div>
-                  <span
-                    >{{ formatNumber(projects[idx - 1].sonarCloudScan?.codeSmells) }} Code
-                    Smells</span
-                  >
                 </div>
               </div>
-            </div>
-            <div
-              v-show="getShowRow('sonarCloudScan.securityRating')"
-              class="row"
-              @mouseover="showChooseBorder('Security', $event)"
-              @mouseout="hideChooseBorder()"
-            >
-              <div class="border param-name" style="width: 97px">
-                <el-tooltip
-                  :content="i18n.global.t(`tips.sonarCloud.security`)"
-                  placement="top-start"
-                >
-                  <el-text size="small" line-clamp="3">Security</el-text>
-                </el-tooltip>
-              </div>
-              <div v-for="idx in 5" :key="idx" class="param-value border">
-                <div v-if="projects[idx - 1]" class="value-div">
-                  <div
-                    class="w-30px h-30px border-rd-50% text-center"
-                    :style="{
-                      backgroundColor: getLevelColor(
-                        projects[idx - 1].sonarCloudScan?.securityRating,
-                      ),
-                    }"
+              <div
+                v-show="getShowRow('sonarCloudScan.securityRating')"
+                class="row"
+                @mouseover="showChooseBorder('Security', $event)"
+                @mouseout="hideChooseBorder()"
+              >
+                <div class="border param-name" style="width: 97px">
+                  <el-tooltip
+                    :content="i18n.global.t(`tips.sonarCloud.security`)"
+                    placement="top-start"
                   >
-                    <span vertical-middle color-white>{{
-                      formatString(projects[idx - 1].sonarCloudScan?.securityRating)
-                    }}</span>
+                    <el-text size="small" line-clamp="3">Security</el-text>
+                  </el-tooltip>
+                </div>
+                <div v-for="idx in 5" :key="idx" class="param-value border">
+                  <div v-if="projects[idx - 1]" class="value-div">
+                    <div
+                      class="w-30px h-30px border-rd-50% text-center"
+                      :style="{
+                        backgroundColor: getLevelColor(
+                          projects[idx - 1].sonarCloudScan?.securityRating,
+                        ),
+                      }"
+                    >
+                      <span vertical-middle color-white>{{
+                        formatString(projects[idx - 1].sonarCloudScan?.securityRating)
+                      }}</span>
+                    </div>
+                    <span
+                      >{{
+                        formatNumber(projects[idx - 1].sonarCloudScan?.vulnerabilities)
+                      }}
+                      Vulnerabilities</span
+                    >
                   </div>
-                  <span
-                    >{{
-                      formatNumber(projects[idx - 1].sonarCloudScan?.vulnerabilities)
-                    }}
-                    Vulnerabilities</span
-                  >
                 </div>
               </div>
-            </div>
-            <div
-              v-show="getShowRow('sonarCloudScan.securityReviewRating')"
-              class="row"
-              @mouseover="showChooseBorder('Security Review', $event)"
-              @mouseout="hideChooseBorder()"
-            >
-              <div class="border param-name" style="width: 97px">
-                <el-tooltip
-                  :content="i18n.global.t(`tips.sonarCloud.securityReview`)"
-                  placement="top-start"
-                >
-                  <el-text size="small" line-clamp="3">Security Review</el-text>
-                </el-tooltip>
-              </div>
-              <div v-for="idx in 5" :key="idx" class="param-value border">
-                <div v-if="projects[idx - 1]" class="value-div">
-                  <div
-                    class="w-30px h-30px border-rd-50% text-center"
-                    :style="{
-                      backgroundColor: getLevelColor(
-                        projects[idx - 1].sonarCloudScan?.securityReviewRating,
-                      ),
-                    }"
+              <div
+                v-show="getShowRow('sonarCloudScan.securityReviewRating')"
+                class="row"
+                @mouseover="showChooseBorder('Security Review', $event)"
+                @mouseout="hideChooseBorder()"
+              >
+                <div class="border param-name" style="width: 97px">
+                  <el-tooltip
+                    :content="i18n.global.t(`tips.sonarCloud.securityReview`)"
+                    placement="top-start"
                   >
-                    <span vertical-middle color-white>{{
-                      formatString(projects[idx - 1].sonarCloudScan?.securityReviewRating)
-                    }}</span>
+                    <el-text size="small" line-clamp="3">Security Review</el-text>
+                  </el-tooltip>
+                </div>
+                <div v-for="idx in 5" :key="idx" class="param-value border">
+                  <div v-if="projects[idx - 1]" class="value-div">
+                    <div
+                      class="w-30px h-30px border-rd-50% text-center"
+                      :style="{
+                        backgroundColor: getLevelColor(
+                          projects[idx - 1].sonarCloudScan?.securityReviewRating,
+                        ),
+                      }"
+                    >
+                      <span vertical-middle color-white>{{
+                        formatString(projects[idx - 1].sonarCloudScan?.securityReviewRating)
+                      }}</span>
+                    </div>
+                    <span
+                      >{{
+                        formatNumber(projects[idx - 1].sonarCloudScan?.securityHotspots)
+                      }}
+                      Security Hotspots</span
+                    >
                   </div>
-                  <span
-                    >{{ formatNumber(projects[idx - 1].sonarCloudScan?.securityHotspots) }} Security
-                    Hotspots</span
-                  >
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </TransitionGroup>
+      </el-collapse-transition>
 
       <div class="border categar" @click="showEcology = !showEcology">
         <el-icon style="color: cornflowerblue; margin: 0px 6px">
@@ -1140,398 +1166,425 @@ const getShowRow = (path: string) => {
         生态
       </div>
 
-      <TransitionGroup name="list" tag="div" class="overflow-hidden">
-        <div
-          v-show="showEcology"
-          key="1"
-          class="row"
-          @mouseover="showChooseBorder('成熟度', $event)"
-          @mouseout="hideChooseBorder()"
-        >
-          <div class="border param-name">成熟度</div>
-          <div v-for="idx in 5" :key="idx" class="param-value border">
-            <div v-if="projects[idx - 1]" class="value-div">
-              <div
-                v-show="getShowRow('evaluation.firstCommit')"
-                style="
-                  width: 160px;
-                  display: flex;
-                  flex-direction: column;
-                  justify-content: center;
-                  margin-bottom: 10px;
-                "
-              >
-                <span style="text-align: center; font-weight: bold">{{
-                  dayjs(projects[idx - 1].firstCommit).fromNow()
-                }}</span>
-                <div style="display: inline-flex">
-                  <div i-custom:created-at font-size-6 mr-4 />
-                  <div>创建时间</div>
+      <el-collapse-transition>
+        <div v-show="showEcology">
+          <div
+            key="1"
+            class="row"
+            @mouseover="showChooseBorder('成熟度', $event)"
+            @mouseout="hideChooseBorder()"
+          >
+            <div class="border param-name">成熟度</div>
+            <div v-for="idx in 5" :key="idx" class="param-value border">
+              <div v-if="projects[idx - 1]" class="value-div">
+                <div
+                  v-show="getShowRow('evaluation.firstCommit')"
+                  style="
+                    width: 160px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    margin-bottom: 10px;
+                  "
+                >
+                  <span style="text-align: center; font-weight: bold">{{
+                    dayjs(projects[idx - 1].firstCommit).fromNow()
+                  }}</span>
+                  <div style="display: inline-flex">
+                    <div i-custom:created-at font-size-6 mr-4 />
+                    <div>创建时间</div>
+                  </div>
                 </div>
-              </div>
-              <div
-                v-show="getShowRow('star')"
-                style="
-                  width: 160px;
-                  display: flex;
-                  flex-direction: column;
-                  justify-content: center;
-                  margin-bottom: 10px;
-                "
-              >
-                <span
-                  style="text-align: center; font-weight: bold"
-                  :class="{
-                    good: isGood(projects[idx - 1].star, 'star'),
-                  }"
-                  >{{ toKilo(projects[idx - 1].star) }}
-                </span>
-                <div style="display: inline-flex">
-                  <div i-custom:star font-size-6 mr-4 />
-                  <div>Star数量</div>
+                <div
+                  v-show="getShowRow('star')"
+                  style="
+                    width: 160px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    margin-bottom: 10px;
+                  "
+                >
+                  <span
+                    style="text-align: center; font-weight: bold"
+                    :class="{
+                      good: isGood(projects[idx - 1].star, 'star'),
+                    }"
+                    >{{ toKilo(projects[idx - 1].star) }}
+                  </span>
+                  <div style="display: inline-flex">
+                    <div i-custom:star font-size-6 mr-4 />
+                    <div>Star数量</div>
+                  </div>
                 </div>
-              </div>
 
-              <div
-                v-show="getShowRow('fork')"
-                style="
-                  width: 160px;
-                  display: flex;
-                  flex-direction: column;
-                  justify-content: center;
-                  margin-bottom: 10px;
-                "
-              >
-                <span
-                  style="text-align: center; font-weight: bold"
-                  :class="{
-                    good: isGood(projects[idx - 1].fork, 'fork'),
-                  }"
-                  >{{ toKilo(projects[idx - 1].fork) }}
-                </span>
-                <div style="display: inline-flex">
-                  <div i-custom:fork font-size-6 mr-4 />
-                  <div>Fork数量</div>
-                </div>
-              </div>
-              <div
-                v-show="getShowRow('evaluation.npmDownloads')"
-                style="
-                  width: 160px;
-                  display: flex;
-                  flex-direction: column;
-                  justify-content: center;
-                  margin-bottom: 10px;
-                "
-              >
-                <span
-                  style="text-align: center; font-weight: bold"
-                  :class="{
-                    good: isGood(
-                      projects[idx - 1].evaluation.npmDownloads,
-                      'evaluation.npmDownloads',
-                    ),
-                  }"
-                  >{{ toKilo(projects[idx - 1].evaluation.npmDownloads) }}</span
+                <div
+                  v-show="getShowRow('fork')"
+                  style="
+                    width: 160px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    margin-bottom: 10px;
+                  "
                 >
-                <div style="display: inline-flex">
-                  <div i-custom:download font-size-6 mr-4 />
-                  <div>周下载量</div>
+                  <span
+                    style="text-align: center; font-weight: bold"
+                    :class="{
+                      good: isGood(projects[idx - 1].fork, 'fork'),
+                    }"
+                    >{{ toKilo(projects[idx - 1].fork) }}
+                  </span>
+                  <div style="display: inline-flex">
+                    <div i-custom:fork font-size-6 mr-4 />
+                    <div>Fork数量</div>
+                  </div>
                 </div>
-              </div>
-              <div
-                v-show="getShowRow('evaluation.busFactor')"
-                style="width: 160px; display: flex; flex-direction: column; justify-content: center"
-              >
-                <span
-                  style="text-align: center; font-weight: bold"
-                  :class="{
-                    good: isGood(projects[idx - 1].evaluation.busFactor, 'evaluation.busFactor'),
-                  }"
-                  >{{ formatFloat(projects[idx - 1].evaluation.busFactor) }}</span
+                <div
+                  v-show="getShowRow('evaluation.npmDownloads')"
+                  style="
+                    width: 160px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    margin-bottom: 10px;
+                  "
                 >
-                <div style="display: inline-flex">
-                  <div i-custom:bus font-size-6 mr-4 />
-                  <div>
-                    <el-tooltip :content="i18n.global.t(`tips.ecology.busFactor`)">
-                      巴士系数
-                    </el-tooltip>
+                  <span
+                    style="text-align: center; font-weight: bold"
+                    :class="{
+                      good: isGood(
+                        projects[idx - 1].evaluation.npmDownloads,
+                        'evaluation.npmDownloads',
+                      ),
+                    }"
+                    >{{ toKilo(projects[idx - 1].evaluation.npmDownloads) }}</span
+                  >
+                  <div style="display: inline-flex">
+                    <div i-custom:download font-size-6 mr-4 />
+                    <div>周下载量</div>
+                  </div>
+                </div>
+                <div
+                  v-show="getShowRow('evaluation.busFactor')"
+                  style="
+                    width: 160px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                  "
+                >
+                  <span
+                    style="text-align: center; font-weight: bold"
+                    :class="{
+                      good: isGood(projects[idx - 1].evaluation.busFactor, 'evaluation.busFactor'),
+                    }"
+                    >{{ formatFloat(projects[idx - 1].evaluation.busFactor) }}</span
+                  >
+                  <div style="display: inline-flex">
+                    <div i-custom:bus font-size-6 mr-4 />
+                    <div>
+                      <el-tooltip :content="i18n.global.t(`tips.ecology.busFactor`)">
+                        巴士系数
+                      </el-tooltip>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div
-          v-show="showEcology"
-          key="2"
-          class="row"
-          @mouseover="showChooseBorder('影响力', $event)"
-          @mouseout="hideChooseBorder()"
-        >
-          <div class="border param-name">影响力</div>
-          <div v-for="idx in 5" :key="idx" class="param-value border">
-            <div v-if="projects[idx - 1]" class="value-div">
-              <div
-                v-show="getShowRow('evaluation.criticalityScore')"
-                style="
-                  width: 160px;
-                  display: flex;
-                  flex-direction: column;
-                  justify-content: center;
-                  margin-bottom: 10px;
-                "
-              >
-                <span
-                  style="text-align: center; font-weight: bold"
-                  :class="{
-                    good: isGood(
-                      projects[idx - 1].evaluation.criticalityScore,
-                      'evaluation.criticalityScore',
-                    ),
-                  }"
-                  >{{ formatFloat(projects[idx - 1].evaluation.criticalityScore) }}</span
+          <div
+            key="2"
+            class="row"
+            @mouseover="showChooseBorder('影响力', $event)"
+            @mouseout="hideChooseBorder()"
+          >
+            <div class="border param-name">影响力</div>
+            <div v-for="idx in 5" :key="idx" class="param-value border">
+              <div v-if="projects[idx - 1]" class="value-div">
+                <div
+                  v-show="getShowRow('evaluation.criticalityScore')"
+                  style="
+                    width: 160px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    margin-bottom: 10px;
+                  "
                 >
-                <div style="display: inline-flex">
-                  <div i-custom:trophy font-size-6 mr-4 />
-                  <div>
-                    <el-tooltip :content="i18n.global.t(`tips.ecology.criticality`)">
-                      Criticality得分
-                    </el-tooltip>
+                  <span
+                    style="text-align: center; font-weight: bold"
+                    :class="{
+                      good: isGood(
+                        projects[idx - 1].evaluation.criticalityScore,
+                        'evaluation.criticalityScore',
+                      ),
+                    }"
+                    >{{ formatFloat(projects[idx - 1].evaluation.criticalityScore) }}</span
+                  >
+                  <div style="display: inline-flex">
+                    <div i-custom:trophy font-size-6 mr-4 />
+                    <div>
+                      <el-tooltip :content="i18n.global.t(`tips.ecology.criticality`)">
+                        Criticality得分
+                      </el-tooltip>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div
-                v-show="getShowRow('evaluation.openrank')"
-                style="
-                  width: 160px;
-                  display: flex;
-                  flex-direction: column;
-                  justify-content: center;
-                  margin-bottom: 10px;
-                "
-              >
-                <span
-                  style="text-align: center; font-weight: bold"
-                  :class="{
-                    good: isGood(projects[idx - 1].evaluation.openrank, 'evaluation.openrank'),
-                  }"
-                  >{{ formatFloat(projects[idx - 1].evaluation.openrank) }}</span
+                <div
+                  v-show="getShowRow('evaluation.openrank')"
+                  style="
+                    width: 160px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    margin-bottom: 10px;
+                  "
                 >
-                <div style="display: inline-flex">
-                  <div i-custom:medal font-size-6 mr-4 />
-                  <div>
-                    <el-tooltip :content="i18n.global.t(`tips.ecology.openRank`)">
-                      OpenRank得分
-                    </el-tooltip>
+                  <span
+                    style="text-align: center; font-weight: bold"
+                    :class="{
+                      good: isGood(projects[idx - 1].evaluation.openrank, 'evaluation.openrank'),
+                    }"
+                    >{{ formatFloat(projects[idx - 1].evaluation.openrank) }}</span
+                  >
+                  <div style="display: inline-flex">
+                    <div i-custom:medal font-size-6 mr-4 />
+                    <div>
+                      <el-tooltip :content="i18n.global.t(`tips.ecology.openRank`)">
+                        OpenRank得分
+                      </el-tooltip>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div
-                v-show="getShowRow('contributors')"
-                style="
-                  width: 160px;
-                  display: flex;
-                  flex-direction: column;
-                  justify-content: center;
-                  margin-bottom: 10px;
-                "
-              >
-                <span
-                  style="text-align: center; font-weight: bold"
-                  :class="{
-                    good: isGood(projects[idx - 1].contributors, 'contributors'),
-                  }"
-                  >{{ formatNumber(projects[idx - 1].contributors) }}</span
+                <div
+                  v-show="getShowRow('contributors')"
+                  style="
+                    width: 160px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    margin-bottom: 10px;
+                  "
                 >
-                <div style="display: inline-flex">
-                  <div i-custom:contributor font-size-6 mr-4 />
-                  <div>
-                    <el-tooltip :content="i18n.global.t(`tips.ecology.totalContributor`)">
-                      累计贡献者
-                    </el-tooltip>
+                  <span
+                    style="text-align: center; font-weight: bold"
+                    :class="{
+                      good: isGood(projects[idx - 1].contributors, 'contributors'),
+                    }"
+                    >{{ formatNumber(projects[idx - 1].contributors) }}</span
+                  >
+                  <div style="display: inline-flex">
+                    <div i-custom:contributor font-size-6 mr-4 />
+                    <div>
+                      <el-tooltip :content="i18n.global.t(`tips.ecology.totalContributor`)">
+                        累计贡献者
+                      </el-tooltip>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div
-                v-show="getShowRow('dependentRepositories')"
-                style="width: 160px; display: flex; flex-direction: column; justify-content: center"
-              >
-                <span
-                  style="text-align: center; font-weight: bold"
-                  :class="{
-                    good: isGood(projects[idx - 1].dependentRepositories, 'dependentRepositories'),
-                  }"
-                  >{{ toKilo(projects[idx - 1].dependentRepositories) }}
-                </span>
-                <div style="display: inline-flex">
-                  <div i-custom:link font-size-6 mr-4 />
-                  <div>
-                    <el-tooltip :content="i18n.global.t(`tips.ecology.dependentRepositories`)">
-                      被依赖使用
-                    </el-tooltip>
+                <div
+                  v-show="getShowRow('dependentRepositories')"
+                  style="
+                    width: 160px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                  "
+                >
+                  <span
+                    style="text-align: center; font-weight: bold"
+                    :class="{
+                      good: isGood(
+                        projects[idx - 1].dependentRepositories,
+                        'dependentRepositories',
+                      ),
+                    }"
+                    >{{ toKilo(projects[idx - 1].dependentRepositories) }}
+                  </span>
+                  <div style="display: inline-flex">
+                    <div i-custom:link font-size-6 mr-4 />
+                    <div>
+                      <el-tooltip :content="i18n.global.t(`tips.ecology.dependentRepositories`)">
+                        被依赖使用
+                      </el-tooltip>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div
-          v-show="showEcology"
-          key="2"
-          class="row"
-          @mouseover="showChooseBorder('活跃度', $event)"
-          @mouseout="hideChooseBorder()"
-        >
-          <div class="border param-name">活跃度</div>
-          <div v-for="idx in 5" :key="idx" class="param-value border">
-            <div v-if="projects[idx - 1]" class="value-div">
-              <div
-                v-show="getShowRow('evaluation.openRank')"
-                style="
-                  width: 160px;
-                  display: flex;
-                  flex-direction: column;
-                  justify-content: center;
-                  margin-bottom: 10px;
-                "
-              >
-                <span
-                  style="text-align: center; font-weight: bold"
-                  :class="{
-                    good: isGood(
-                      projects[idx - 1].evaluation.commitFrequency,
-                      'evaluation.commitFrequency',
-                    ),
-                  }"
-                  >{{ formatFloat(projects[idx - 1].evaluation.commitFrequency) }}</span
+          <div
+            key="2"
+            class="row"
+            @mouseover="showChooseBorder('活跃度', $event)"
+            @mouseout="hideChooseBorder()"
+          >
+            <div class="border param-name">活跃度</div>
+            <div v-for="idx in 5" :key="idx" class="param-value border">
+              <div v-if="projects[idx - 1]" class="value-div">
+                <div
+                  v-show="getShowRow('evaluation.openRank')"
+                  style="
+                    width: 160px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    margin-bottom: 10px;
+                  "
                 >
-                <span text-center>
-                  <el-tooltip :content="i18n.global.t(`tips.ecology.commitFrequency`)">
-                    代码提交频率
-                  </el-tooltip>
-                </span>
-              </div>
+                  <span
+                    style="text-align: center; font-weight: bold"
+                    :class="{
+                      good: isGood(
+                        projects[idx - 1].evaluation.commitFrequency,
+                        'evaluation.commitFrequency',
+                      ),
+                    }"
+                    >{{ formatFloat(projects[idx - 1].evaluation.commitFrequency) }}</span
+                  >
+                  <span text-center>
+                    <el-tooltip :content="i18n.global.t(`tips.ecology.commitFrequency`)">
+                      代码提交频率
+                    </el-tooltip>
+                  </span>
+                </div>
 
-              <div
-                v-show="getShowRow('evaluation.orgCount')"
-                style="
-                  width: 160px;
-                  display: flex;
-                  flex-direction: column;
-                  justify-content: center;
-                  margin-bottom: 10px;
-                "
-              >
-                <span
-                  style="text-align: center; font-weight: bold"
-                  :class="{
-                    good: isGood(projects[idx - 1].evaluation.orgCount, 'evaluation.orgCount'),
-                  }"
-                  >{{ formatFloat(projects[idx - 1].evaluation.orgCount) }}</span
+                <div
+                  v-show="getShowRow('evaluation.orgCount')"
+                  style="
+                    width: 160px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    margin-bottom: 10px;
+                  "
                 >
-                <span text-center>
-                  <el-tooltip :content="i18n.global.t(`tips.ecology.orgCount`)">
-                    组织数量
-                  </el-tooltip>
-                </span>
-              </div>
+                  <span
+                    style="text-align: center; font-weight: bold"
+                    :class="{
+                      good: isGood(projects[idx - 1].evaluation.orgCount, 'evaluation.orgCount'),
+                    }"
+                    >{{ formatFloat(projects[idx - 1].evaluation.orgCount) }}</span
+                  >
+                  <span text-center>
+                    <el-tooltip :content="i18n.global.t(`tips.ecology.orgCount`)">
+                      组织数量
+                    </el-tooltip>
+                  </span>
+                </div>
 
-              <div
-                v-show="getShowRow('evaluation.commentFrequency')"
-                style="
-                  width: 160px;
-                  display: flex;
-                  flex-direction: column;
-                  justify-content: center;
-                  margin-bottom: 10px;
-                "
-              >
-                <span
-                  style="text-align: center; font-weight: bold"
-                  :class="{
-                    good: isGood(
-                      projects[idx - 1].evaluation.commentFrequency,
-                      'evaluation.commentFrequency',
-                    ),
-                  }"
-                  >{{ formatFloat(projects[idx - 1].evaluation.commentFrequency) }}</span
+                <div
+                  v-show="getShowRow('evaluation.commentFrequency')"
+                  style="
+                    width: 160px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    margin-bottom: 10px;
+                  "
                 >
-                <span text-center>
-                  <el-tooltip :content="i18n.global.t(`tips.ecology.commentFrequency`)">
-                    Issue评论频率
-                  </el-tooltip>
-                </span>
-              </div>
-              <div
-                v-show="getShowRow('evaluation.updatedIssuesCount')"
-                style="width: 160px; display: flex; flex-direction: column; justify-content: center"
-              >
-                <span
-                  style="text-align: center; font-weight: bold"
-                  :class="{
-                    good: isGood(
-                      projects[idx - 1].evaluation.updatedIssuesCount,
-                      'evaluation.updatedIssuesCount',
-                    ),
-                  }"
-                  >{{ formatNumber(projects[idx - 1].evaluation.updatedIssuesCount) }}</span
+                  <span
+                    style="text-align: center; font-weight: bold"
+                    :class="{
+                      good: isGood(
+                        projects[idx - 1].evaluation.commentFrequency,
+                        'evaluation.commentFrequency',
+                      ),
+                    }"
+                    >{{ formatFloat(projects[idx - 1].evaluation.commentFrequency) }}</span
+                  >
+                  <span text-center>
+                    <el-tooltip :content="i18n.global.t(`tips.ecology.commentFrequency`)">
+                      Issue评论频率
+                    </el-tooltip>
+                  </span>
+                </div>
+                <div
+                  v-show="getShowRow('evaluation.updatedIssuesCount')"
+                  style="
+                    width: 160px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                  "
                 >
-                <span text-center>
-                  <el-tooltip :content="i18n.global.t(`tips.ecology.updatedIssuesCount`)">
-                    Issue更新数量
-                  </el-tooltip>
-                </span>
-              </div>
-              <div
-                v-show="getShowRow('evaluation.closedIssuesCount')"
-                style="width: 160px; display: flex; flex-direction: column; justify-content: center"
-              >
-                <span
-                  style="text-align: center; font-weight: bold"
-                  :class="{
-                    good: isGood(
-                      projects[idx - 1].evaluation.closedIssuesCount,
-                      'evaluation.closedIssuesCount',
-                    ),
-                  }"
-                  >{{ formatNumber(projects[idx - 1].evaluation.closedIssuesCount) }}</span
+                  <span
+                    style="text-align: center; font-weight: bold"
+                    :class="{
+                      good: isGood(
+                        projects[idx - 1].evaluation.updatedIssuesCount,
+                        'evaluation.updatedIssuesCount',
+                      ),
+                    }"
+                    >{{ formatNumber(projects[idx - 1].evaluation.updatedIssuesCount) }}</span
+                  >
+                  <span text-center>
+                    <el-tooltip :content="i18n.global.t(`tips.ecology.updatedIssuesCount`)">
+                      Issue更新数量
+                    </el-tooltip>
+                  </span>
+                </div>
+                <div
+                  v-show="getShowRow('evaluation.closedIssuesCount')"
+                  style="
+                    width: 160px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                  "
                 >
-                <span text-center>
-                  <el-tooltip :content="i18n.global.t(`tips.ecology.closedIssuesCount`)">
-                    Issue关闭数量
-                  </el-tooltip>
-                </span>
-              </div>
-              <div
-                v-show="getShowRow('evaluation.recentReleasesCount')"
-                style="width: 160px; display: flex; flex-direction: column; justify-content: center"
-              >
-                <span
-                  style="text-align: center; font-weight: bold"
-                  :class="{
-                    good: isGood(
-                      projects[idx - 1].evaluation.recentReleasesCount,
-                      'evaluation.recentReleasesCount',
-                    ),
-                  }"
-                  >{{ formatNumber(projects[idx - 1].evaluation.recentReleasesCount) }}</span
+                  <span
+                    style="text-align: center; font-weight: bold"
+                    :class="{
+                      good: isGood(
+                        projects[idx - 1].evaluation.closedIssuesCount,
+                        'evaluation.closedIssuesCount',
+                      ),
+                    }"
+                    >{{ formatNumber(projects[idx - 1].evaluation.closedIssuesCount) }}</span
+                  >
+                  <span text-center>
+                    <el-tooltip :content="i18n.global.t(`tips.ecology.closedIssuesCount`)">
+                      Issue关闭数量
+                    </el-tooltip>
+                  </span>
+                </div>
+                <div
+                  v-show="getShowRow('evaluation.recentReleasesCount')"
+                  style="
+                    width: 160px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                  "
                 >
-                <span text-center>
-                  <el-tooltip :content="i18n.global.t(`tips.ecology.release`)">
-                    最近版本发布数量
-                  </el-tooltip>
-                </span>
+                  <span
+                    style="text-align: center; font-weight: bold"
+                    :class="{
+                      good: isGood(
+                        projects[idx - 1].evaluation.recentReleasesCount,
+                        'evaluation.recentReleasesCount',
+                      ),
+                    }"
+                    >{{ formatNumber(projects[idx - 1].evaluation.recentReleasesCount) }}</span
+                  >
+                  <span text-center>
+                    <el-tooltip :content="i18n.global.t(`tips.ecology.release`)">
+                      最近版本发布数量
+                    </el-tooltip>
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </TransitionGroup>
+      </el-collapse-transition>
 
       <div
         ref="tipDiv"
