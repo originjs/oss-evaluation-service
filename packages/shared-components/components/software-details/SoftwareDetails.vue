@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Plus, Download } from '@element-plus/icons-vue';
-import type { CellStyle } from 'element-plus';
+import type { CellStyle, TableColumnCtx } from 'element-plus';
 import { ElMessage } from 'element-plus';
 import * as echarts from 'echarts';
 import type {
@@ -762,9 +762,10 @@ function processBenchmarkData(benchmarkData?: BenchmarkData, needRetain?: boolea
       const indexName = data[i][j].indexName;
       const displayName = data[i][j].displayName;
       const rawValue = data[i][j].rawValue;
+      const indexCategory = data[i][j].indexCategory;
       if (indexName && displayName) {
         // get row
-        let row = rows[indexName] || { indexName };
+        let row = rows[indexName] || { indexName, indexCategory };
         row = { ...row, [displayName]: rawValue };
         rows[indexName] = row;
 
@@ -803,6 +804,41 @@ const computeColor: CellStyle<BenchmarkCompareRow> = function ({ row, column }) 
     return { backgroundColor: `rgb(${r.toFixed(0)}, ${g.toFixed(0)}, ${b.toFixed(0)})` };
   }
 };
+
+interface SpanMethodProps {
+  row: { indexCategory: string };
+  column: TableColumnCtx<{ indexCategory: string }>;
+  rowIndex: number;
+  columnIndex: number;
+}
+let rowLen = 1;
+const objectSpanMethod = ({ rowIndex, columnIndex }: SpanMethodProps) => {
+  if (columnIndex === 0) {
+    if (rowLen > 1) {
+      rowLen--;
+      return {
+        rowspan: 0,
+        colspan: 0,
+      };
+    }
+    let nextIndex = rowIndex + 1;
+    while (
+      rowIndex < benchmarkCompareTable.value.length &&
+      benchmarkCompareTable.value[rowIndex]?.indexCategory &&
+      benchmarkCompareTable.value[nextIndex]?.indexCategory &&
+      benchmarkCompareTable.value[rowIndex].indexCategory ===
+        benchmarkCompareTable.value[nextIndex].indexCategory
+    ) {
+      nextIndex++;
+      rowLen++;
+    }
+    return {
+      rowspan: rowLen,
+      colspan: 1,
+    };
+  }
+};
+
 function renderLineChart(container: string, data: EcologyActivity[]) {
   const chartDom = softwareDetailsEl.value?.querySelector(container);
   if (!chartDom) {
@@ -1339,11 +1375,18 @@ function cancelFeedback() {
               border
               :max-height="400"
               :cell-style="computeColor"
+              :span-method="objectSpanMethod"
             >
+              <el-table-column :width="50" fixed prop="category" label="分类">
+                <template #header><div class="write-vertical-left">分类</div></template>
+                <template #default="{ row }">
+                  <div class="write-vertical-left">{{ row.indexCategory }}</div>
+                </template>
+              </el-table-column>
               <el-table-column
                 v-for="(column, index) in benchmarkCompareColumns"
-                :width="index == 0 ? '300' : ''"
                 :key="column"
+                :width="index == 0 ? '300' : ''"
                 :prop="column"
               >
                 <template #header>

@@ -153,6 +153,7 @@ export interface BenchmarkData {
   data: {
     displayName: string;
     indexName: string;
+    indexCategory: string | null;
     rawValue: null | string;
   }[][];
 }
