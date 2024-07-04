@@ -132,6 +132,7 @@ export async function getPerformanceBenchmark(repoName: string): Promise<Benchma
   const benchmarkQuery = `
   select if(benchmark.display_name = '',benchmark.project_name,benchmark.display_name) as displayName,
     if(index_name.display_name is null, benchmark.benchmark, index_name.display_name) as indexName,
+       index_name.category as indexCategory,
        benchmark.raw_value as rawValue,
        unit
 from benchmark
@@ -161,12 +162,12 @@ order by benchmark.display_name, index_name.order`;
         : item.unit
           ? `${fixedRound(item.rawValue, 2)} ${item.unit}`
           : `${fixedRound(item.rawValue, 2)}`;
-    const { displayName, indexName, rawValue } = item;
+    const { displayName, indexName, rawValue, indexCategory } = item;
     if (!map.has(displayName)) {
       map.set(displayName, []);
     }
     const data = map.get(displayName);
-    data.push({ displayName, indexName, rawValue });
+    data.push({ displayName, indexName, rawValue, indexCategory });
   });
   const queryBase = `
   select if(index_name.display_name is null, benchmark.benchmark, index_name.display_name) as indexName,
