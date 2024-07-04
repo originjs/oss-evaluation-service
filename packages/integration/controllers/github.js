@@ -107,9 +107,14 @@ function getStarsScope(req) {
 
 async function savaData(projects) {
   let updateOnDuplicate = Object.keys(projects[0]).slice(1);
-  updateOnDuplicate = updateOnDuplicate.filter(
-    fieldName => fieldName != 'integratedState' && fieldName != 'dataType',
-  );
+  // if data type is not 1, remove 'integratedState' and 'dataType'
+  if (projects[0].dataType !== 1) {
+    updateOnDuplicate = updateOnDuplicate.filter(
+      fieldName => fieldName != 'integratedState' && fieldName != 'dataType',
+    );
+  } else {
+    updateOnDuplicate = updateOnDuplicate.filter(fieldName => fieldName != 'integratedState');
+  }
 
   const result = await GithubProjectsTable.bulkCreate(projects, {
     updateOnDuplicate,
