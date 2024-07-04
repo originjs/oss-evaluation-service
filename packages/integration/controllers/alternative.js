@@ -91,8 +91,13 @@ export async function syncSingleProjectAlternative(project) {
 }
 
 async function updateProjectId() {
-  const sql = `UPDATE alternative_projects t1 INNER JOIN github_projects t2 ON t1.alternative_url= t2.html_url
+  const approvedSql = `UPDATE alternative_projects t1 INNER JOIN github_projects t2 ON t1.alternative_url= t2.html_url
   SET t1.alternative_id= t2.id, t1.alternative_name = t2.full_name, t1.approved=1
-	WHERE t1.alternative_id IS NULL AND t1.approved IS NULL`;
-  await sequelize.query(sql);
+	WHERE t1.alternative_id IS NULL`;
+  const notApprovedSql = `UPDATE alternative_projects t1 INNER JOIN github_projects_t t2 ON t1.alternative_url= t2.html_url
+  SET t1.alternative_id= t2.id, t1.alternative_name = t2.full_name, t1.approved=0
+	WHERE t1.alternative_id IS NULL AND t1.approved IS NULL and t2.data_type = 2;`;
+
+  await sequelize.query(approvedSql);
+  await sequelize.query(notApprovedSql);
 }
