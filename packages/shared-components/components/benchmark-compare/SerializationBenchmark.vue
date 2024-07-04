@@ -228,7 +228,7 @@ interface SpanMethodProps {
 
 let rowLen = 1;
 const objectSpanMethod = ({ column, rowIndex, columnIndex }: SpanMethodProps) => {
-  if (columnIndex === 0 && column.label === '类型') {
+  if (columnIndex === 0 && column.label === '分类') {
     if (rowLen > 1) {
       rowLen--;
       return {
@@ -303,14 +303,14 @@ const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
           width="14px"
           fixed
           prop="category"
-          label="类型"
+          label="分类"
         >
-          <template #header><div class="write-vertical-left">类型</div></template>
+          <template #header><div class="write-vertical-left">分类</div></template>
           <template #default="{ row }"
             ><div class="write-vertical-left">{{ row.category }}</div></template
           >
         </el-table-column>
-        <el-table-column fixed prop="benchmarkName" label="Name" width="260">
+        <el-table-column fixed prop="benchmarkName" label="指标" width="260">
           <template #default="{ row }">
             <div class="relative flex justify-between">
               <el-tooltip :content="row.description || row.benchmarkName">
