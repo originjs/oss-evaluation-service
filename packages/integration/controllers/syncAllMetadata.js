@@ -44,6 +44,47 @@ export async function syncBatchProjectAllMetadataHandler(req, res) {
   res.status(200).send('Batch project integrate success');
 }
 
+export async function syncBatchProjectAllMetadataByRepoUrlsHandler(req, res) {
+  const htmlUrls = req.body;
+  if (!htmlUrls?.length) {
+    res.status(200);
+    res.send('empty repoUrl');
+  }
+  for (let i = 0; i < htmlUrls.length; i++) {
+    const htmlUrl = htmlUrls[i];
+    logger.info(
+      `[Batch Integration Process] Process: ${i + 1} / ${htmlUrls.length}, url: ${htmlUrl}`,
+    );
+    await syncSingleProjectAllMetadata({ repoUrl: htmlUrl });
+  }
+  res.status(200);
+  res.send('success');
+}
+
+export async function syncBatchProjectAllMetadataByProjectIdsHandler(req, res) {
+  const projectIds = req.body;
+  if (!projectIds?.length) {
+    res.status(200);
+    res.send('empty projectId');
+  }
+  for (let i = 0; i < projectIds.length; i++) {
+    const projectId = projectIds[i];
+    logger.info(
+      `[Batch Integration Process] Process: ${i + 1} / ${projectIds.length}, projectId: ${projectId}`,
+    );
+    const project = await GithubProjects.findOne({
+      where: {
+        id: projectId,
+      },
+    });
+    if (project) {
+      await syncSingleProjectAllMetadata({ repoUrl: project.htmlUrl});
+    }
+  }
+  res.status(200);
+  res.send('success');
+}
+
 async function syncSingleProjectAllMetadata(options) {
   const { repoUrl, category, subcategory, packageName } = options;
   // 1. GitHub Info

@@ -1,5 +1,5 @@
-import { fetchWithTimeout } from '../../../integration/util/fetchWitTimeout';
-import { Result } from '../../result';
+import { fetchWithTimeout } from '../../../integration/util/fetchWitTimeout.js';
+import { Result } from '../../result.js';
 
 export async function fetchRedirectUrl(url) {
   const response = fetchWithTimeout(url, {
