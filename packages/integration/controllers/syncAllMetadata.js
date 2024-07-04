@@ -78,7 +78,7 @@ export async function syncBatchProjectAllMetadataByProjectIdsHandler(req, res) {
       },
     });
     if (project) {
-      await syncSingleProjectAllMetadata({ repoUrl: project.htmlUrl});
+      await syncSingleProjectAllMetadata({ repoUrl: project.htmlUrl });
     }
   }
   res.status(200);
