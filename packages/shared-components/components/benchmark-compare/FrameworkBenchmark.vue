@@ -324,13 +324,13 @@ const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
         @cell-mouse-enter="({ indexName }) => (hoveringRow = indexName)"
         @cell-mouse-leave="hoveringRow = ''"
       >
-        <el-table-column width="14px" fixed prop="category" label="类型">
-          <template #header><div class="write-vertical-left">类型</div></template>
+        <el-table-column width="14px" fixed prop="category" label="分类">
+          <template #header><div class="write-vertical-left">分类</div></template>
           <template #default="{ row }"
             ><div class="write-vertical-left">{{ row.category }}</div></template
           >
         </el-table-column>
-        <el-table-column fixed prop="benchmarkName" label="Name" width="220">
+        <el-table-column fixed prop="benchmarkName" label="指标" width="220">
           <template #default="{ row }">
             <div class="relative flex justify-between">
               <el-tooltip :content="row.description || row.benchmarkName">
