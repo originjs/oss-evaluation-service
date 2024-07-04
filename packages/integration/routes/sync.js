@@ -50,7 +50,7 @@ import {
 import {
   setCodeSizeOfProject,
   syncAllProjectCodeSizeHandler,
-  syncProjectCodeSizeByProjectIdHandler
+  syncProjectCodeSizeByProjectIdHandler,
 } from '../controllers/projectCodeSize.js';
 import {
   syncAllProjectDependenciesHandler,
@@ -69,6 +69,8 @@ import {
   syncSingleProjectDependentCountHandler,
 } from '../controllers/projectDependentCount.js';
 import syncSingleProjectAllMetadataHandler, {
+  syncBatchProjectAllMetadataByProjectIdsHandler,
+  syncBatchProjectAllMetadataByRepoUrlsHandler,
   syncBatchProjectAllMetadataHandler,
 } from '../controllers/syncAllMetadata.js';
 import {
@@ -152,6 +154,58 @@ router.route('/syncSingleProjectAllMetadata').post(syncSingleProjectAllMetadataH
  *         description: Bad Request
  */
 router.route('/syncBatchProjectAllMetadata').post(syncBatchProjectAllMetadataHandler);
+
+/**
+ * @swagger
+ * tags:
+ *   name: SummaryMetadata
+ * /sync/syncBatchProjectAllMetadataByProjectIds:
+ *   post:
+ *     summary: Batch fetch GitHub projects from specific repositories
+ *     tags: [SummaryMetadata]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *             items: string
+ *     responses:
+ *       200:
+ *         description: Success
+ *       500:
+ *         description: Bad Request
+ */
+router
+  .route('/syncBatchProjectAllMetadataByProjectIds')
+  .post(syncBatchProjectAllMetadataByProjectIdsHandler);
+
+
+/**
+ * @swagger
+ * tags:
+ *   name: SummaryMetadata
+ * /sync/syncBatchProjectAllMetadataByRepoUrls:
+ *   post:
+ *     summary: Batch fetch GitHub projects from specific repositories
+ *     tags: [SummaryMetadata]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *             items: number
+ *     responses:
+ *       200:
+ *         description: Success
+ *       500:
+ *         description: Bad Request
+ */
+router
+  .route('/syncBatchProjectAllMetadataByRepoUrls')
+  .post(syncBatchProjectAllMetadataByRepoUrlsHandler);
+
 
 /**
  * @swagger

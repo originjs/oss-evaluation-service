@@ -3,7 +3,7 @@ import * as fs from 'node:fs';
 import { Octokit } from '@octokit/core';
 import { GithubProjectsTable, logger } from '@orginjs/oss-evaluation-data-model';
 import GithubSdk from '@orginjs/github-sdk/src/index.js';
-import { fetchWithTimeout } from '../util/fetchWitTimeout';
+import { fetchWithTimeout } from '../util/fetchWitTimeout.js';
 
 /**
  *  There are 952 github projects between 1000 and 1130 stars.
