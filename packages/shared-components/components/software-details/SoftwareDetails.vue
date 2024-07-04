@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Plus, Download } from '@element-plus/icons-vue';
-import type { CellStyle } from 'element-plus';
+import type { CellStyle, TableColumnCtx } from 'element-plus';
 import { ElMessage } from 'element-plus';
 import * as echarts from 'echarts';
 import type {
@@ -762,9 +762,10 @@ function processBenchmarkData(benchmarkData?: BenchmarkData, needRetain?: boolea
       const indexName = data[i][j].indexName;
       const displayName = data[i][j].displayName;
       const rawValue = data[i][j].rawValue;
+      const indexCategory = data[i][j].indexCategory;
       if (indexName && displayName) {
         // get row
-        let row = rows[indexName] || { indexName };
+        let row = rows[indexName] || { indexName, indexCategory };
         row = { ...row, [displayName]: rawValue };
         rows[indexName] = row;
 
@@ -794,15 +795,56 @@ const computeColor: CellStyle<BenchmarkCompareRow> = function ({ row, column }) 
     const r = (1.0 - a) * 99 + a * 255;
     const g = (1.0 - a) * 191 + a * 236;
     const b = (1.0 - a) * 124 + a * 132;
-    return { backgroundColor: `rgb(${r.toFixed(0)}, ${g.toFixed(0)}, ${b.toFixed(0)})` };
+    return {
+      backgroundColor: `rgb(${r.toFixed(0)}, ${g.toFixed(0)}, ${b.toFixed(0)})`,
+      padding: '0',
+    };
   } else {
     const a = Math.min((factor - 2.0) / 2.0, 1.0);
     const r = (1.0 - a) * 255 + a * 249;
     const g = (1.0 - a) * 236 + a * 105;
     const b = (1.0 - a) * 132 + a * 108;
-    return { backgroundColor: `rgb(${r.toFixed(0)}, ${g.toFixed(0)}, ${b.toFixed(0)})` };
+    return {
+      backgroundColor: `rgb(${r.toFixed(0)}, ${g.toFixed(0)}, ${b.toFixed(0)})`,
+      padding: '0',
+    };
   }
 };
+
+interface SpanMethodProps {
+  row: { indexCategory: string };
+  column: TableColumnCtx<{ indexCategory: string }>;
+  rowIndex: number;
+  columnIndex: number;
+}
+let rowLen = 1;
+const objectSpanMethod = ({ rowIndex, columnIndex }: SpanMethodProps) => {
+  if (columnIndex === 0) {
+    if (rowLen > 1) {
+      rowLen--;
+      return {
+        rowspan: 0,
+        colspan: 0,
+      };
+    }
+    let nextIndex = rowIndex + 1;
+    while (
+      rowIndex < benchmarkCompareTable.value.length &&
+      benchmarkCompareTable.value[rowIndex]?.indexCategory &&
+      benchmarkCompareTable.value[nextIndex]?.indexCategory &&
+      benchmarkCompareTable.value[rowIndex].indexCategory ===
+        benchmarkCompareTable.value[nextIndex].indexCategory
+    ) {
+      nextIndex++;
+      rowLen++;
+    }
+    return {
+      rowspan: rowLen,
+      colspan: 1,
+    };
+  }
+};
+
 function renderLineChart(container: string, data: EcologyActivity[]) {
   const chartDom = softwareDetailsEl.value?.querySelector(container);
   if (!chartDom) {
@@ -1336,27 +1378,45 @@ function cancelFeedback() {
           <div v-show="showBenchmarkCompare">
             <el-table
               :data="benchmarkCompareTable"
+              class="results"
               border
               :max-height="400"
               :cell-style="computeColor"
+              :span-method="objectSpanMethod"
             >
+              <el-table-column :width="50" fixed prop="category" label="分类">
+                <template #header><div class="write-vertical-left">分类</div></template>
+                <template #default="{ row }">
+                  <div class="write-vertical-left">{{ row.indexCategory }}</div>
+                </template>
+              </el-table-column>
               <el-table-column
-                v-for="(column, index) in benchmarkCompareColumns"
-                :width="index == 0 ? '300' : ''"
+                v-for="column in benchmarkCompareColumns"
                 :key="column"
+                :width="300"
                 :prop="column"
+                :class-name="column === 'indexName' ? '' : 'benchmark-value-cell'"
               >
                 <template #header>
                   <div class="flex items-center justify-center">
-                    <span>{{ column === 'indexName' ? '指标' : column }}</span>
+                    <span v-if="column === 'indexName'">指标</span>
+                    <span v-else style="font-weight: bold; color: var(--el-text-color-regular)">{{
+                      column
+                    }}</span>
                   </div>
                 </template>
                 <template #default="{ row }">
-                  <div v-if="row[column]" class="flex flex-col justify-center">
+                  <div v-if="column === 'indexName'">
                     <span>{{ row[column] }}</span>
-                    <span v-if="column !== 'indexName'">
+                  </div>
+                  <div v-else-if="row[column]" class="text-center">
+                    <div class="font-size-3 h4.5 font-500">{{ row[column] }}</div>
+                    <div
+                      v-if="row[column] !== '--'"
+                      class="flex items-center justify-center font-size-2.5"
+                    >
                       ({{ (removeUnit(row[column]) / minRowValue[row.indexName]).toFixed(2) }})
-                    </span>
+                    </div>
                   </div>
                 </template>
               </el-table-column>
@@ -2138,5 +2198,34 @@ function cancelFeedback() {
   border-bottom: 2px solid #e4e7ed;
   padding-bottom: 10px;
   margin-bottom: 15px;
+}
+
+.results {
+  .col {
+    display: inline-flex;
+    flex-direction: column;
+    border-right: 1px #e6e6e6 solid;
+
+    .benchmark-name {
+      width: 130px;
+    }
+  }
+
+  :deep(.benchmark-value-cell .cell) {
+    padding: 0px !important;
+    .header-move-btn {
+      color: #0000;
+      border-color: #0000;
+      background-color: #0000;
+      position: absolute;
+      top: calc(50% - 16px);
+      left: calc(50% - 16px);
+      &:hover {
+        color: var(--el-button-hover-text-color);
+        border-color: var(--el-button-hover-border-color);
+        background-color: var(--el-button-hover-bg-color);
+      }
+    }
+  }
 }
 </style>
