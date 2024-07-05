@@ -7,7 +7,11 @@ import { getDefaultBranch, scan } from '../services/sonarService.js';
 export class SonarController extends Controller {
   @Post('scan')
   public scan(@Body() info: SonarScanParam): Result<string> {
-    scan(info);
+    try {
+      scan(info);
+    } catch (_) {
+      /* empty */
+    }
     return Result.ok('commit task success');
   }
 

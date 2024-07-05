@@ -77,7 +77,7 @@ export async function getCodeSizeByProject(project) {
 async function getCodeSizeUsingCloc(project) {
   const repoServiceUrl = process.env.REPO_SERVICE_URL;
   if (!repoServiceUrl) {
-    logger.error('no ${REPO_SERVICE_URL} env config, skip local repo cloc');
+    logger.warn('no ${REPO_SERVICE_URL} env config, skip local repo cloc');
     return;
   }
   const response = await fetch(`${repoServiceUrl}/repo/getCodeSize`, {

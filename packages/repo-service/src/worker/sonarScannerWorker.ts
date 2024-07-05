@@ -3,9 +3,7 @@ import type { SonarScanParam } from '../interfaces/param';
 import shelljs from 'shelljs';
 import { Result } from '../utils/result.js';
 import { logger } from '@orginjs/oss-evaluation-data-model';
-import type { LanguageSonarScannerInterface } from '../interfaces/language';
-import { OthersLanguageService } from '../services/sonar-scanner-service/othersLanguage.js';
-import { JavaLanguageService } from '../services/sonar-scanner-service/javaLanguage.js';
+import { getLanguageServiceImpl } from '../services/sonarService.js';
 
 function runSonarScanner(info: SonarScanParam): Result<SonarScanParam> {
   // get language service
@@ -39,21 +37,3 @@ parentPort.on('message', info => {
     parentPort.postMessage(Result.fail(e.message));
   }
 });
-
-function getLanguageServiceImpl(param: SonarScanParam): LanguageSonarScannerInterface {
-  const language = param.language.toUpperCase();
-  switch (language) {
-    case 'JAVA':
-      return new JavaLanguageService(param);
-    case 'C++':
-    case 'C':
-    case 'OBJECT-C':
-    case 'C#':
-    case 'Rust':
-      throw new Error(
-        `unsupported sonar scanner of language:{${language}},project:${param.gitOwner}/${param.repoName} `,
-      );
-    default:
-      return new OthersLanguageService(param);
-  }
-}

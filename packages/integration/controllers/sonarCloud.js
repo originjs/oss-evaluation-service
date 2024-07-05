@@ -309,83 +309,15 @@ export async function updateDefaultBranchAfterImport(req, res) {
   res.send('success');
 }
 
-export async function createAndScanSonarProjectByGithubId(req, res) {
+export async function createAndScanSonarProjectByGithubIdHandler(req, res) {
   const githubIds = req.body;
-  const force = !!req.query.force;
-  const sonarCloudSdk = new SonarCloudSdk();
   for (const githubId of githubIds) {
-    //   query for sonar
-    let sonarProject = await SonarCloudProject.findOne({
-      where: {
-        githubProjectId: githubId,
-      },
-    });
-
     const githubProject = await GithubProjects.findOne({
       where: {
         id: githubId,
       },
     });
-
-    if (null == githubProject) {
-      continue;
-    }
-    let sonarProjectKey = sonarProject?.sonarProjectKey;
-    if (null == sonarProject) {
-      //   create sonar project
-      const param = {
-        name: githubProject.fullName,
-        newCodeDefinitionType: 'previous_version',
-        organization: process.env.SONAR_ORG_NAME,
-        visibility: 'public',
-        newCodeDefinitionValue: 'previous_version',
-        project: `${process.env.SONAR_ORG_NAME}-${githubProject.fullName.replaceAll('/', '_')}`,
-      };
-      // request for creating sonar project
-      const createSonarProjectResponse = await recordTime(
-        sonarCloudSdk.createProject,
-        `create sonar project from gitlab:${githubProject.fullName}`,
-        param,
-      );
-      if (!createSonarProjectResponse.ok) {
-        logger.error(`create sonar project failed , ${await createSonarProjectResponse.text()}`);
-        continue;
-      } else {
-        sonarProjectKey = (await createSonarProjectResponse.json()).project.key;
-      }
-      const createSonarProject = {
-        githubProjectId: githubId,
-        githubFullName: githubProject.fullName,
-        sonarProjectKey: sonarProjectKey,
-      };
-      await SonarCloudProject.create(createSonarProject);
-      sonarProject = createSonarProject;
-    }
-
-    if (!force) {
-      if (!sonarProject.analysisDate) {
-        //  try to collect sonar data
-        await collectSonarCloudDataBySonarKeys([sonarProjectKey]);
-        sonarProject = await SonarCloudProject.findOne({
-          where: {
-            githubProjectId: githubId,
-          },
-        });
-        if (sonarProject.analysisDate) {
-          continue;
-        }
-      }
-    }
-    //   start sonar scanner
-    await startSonarScanner(
-      githubProject.ownerName,
-      githubProject.name,
-      process.env.SONAR_ORG_NAME,
-      sonarProjectKey,
-      'https://sonarcloud.io',
-      githubProject.language,
-      githubProject.id,
-    );
+    await sonarScanByProject(githubProject);
   }
   res.status(200);
   res.json('success');
@@ -473,18 +405,65 @@ export async function setDefaultBranchOfSonar(req, res) {
   });
 }
 
-async function startSonarScanner(owner, repoName, sonarOrg, sonarKey, sonarHostUrl, language, id) {
-  const url = `${process.env.SONAR_SCAN_SERVICE_HOST}/sonar/scan`;
+export async function sonarScanByProject(githubProject) {
+  const sonarScanHost = process.env.REPO_SERVICE_URL;
+  if (!sonarScanHost) {
+    logger.warn(`no env \${REPO_SERVICE_URL},skip sonar!`);
+    return;
+  }
+  const githubId = githubProject.id;
+  const sonarProject = await SonarCloudProject.findOne({
+    where: {
+      githubProjectId: githubId,
+    },
+  });
+  let sonarProjectKey;
+  if (!sonarProject) {
+    const sonarCloudSdk = new SonarCloudSdk();
+    //   create sonar project
+    const param = {
+      name: githubProject.fullName,
+      newCodeDefinitionType: 'previous_version',
+      organization: process.env.SONAR_ORG_NAME,
+      visibility: 'public',
+      newCodeDefinitionValue: 'previous_version',
+      project: `${process.env.SONAR_ORG_NAME}_${githubProject.fullName.replaceAll('/', '-')}`,
+    };
+    // request for creating sonar project
+    const createSonarProjectResponse = await recordTime(
+      sonarCloudSdk.createProject,
+      `create sonar project from gitlab:${githubProject.fullName}`,
+      param,
+    );
+    if (!createSonarProjectResponse.ok) {
+      logger.error(`create sonar project failed , ${await createSonarProjectResponse.text()}`);
+      return;
+    } else {
+      sonarProjectKey = (await createSonarProjectResponse.json()).project.key;
+    }
+    const createSonarProject = {
+      githubProjectId: githubId,
+      githubFullName: githubProject.fullName,
+      sonarProjectKey: sonarProjectKey,
+    };
+    await SonarCloudProject.create(createSonarProject);
+  } else {
+    // sonar project exists
+    if (sonarProject.analysisDate) {
+      return;
+    }
+  }
+  const url = `${sonarScanHost}/sonar/scan`;
   const body = {
-    gitOwner: owner,
-    repoName,
-    sonarOrg,
-    sonarKey,
-    sonarHostUrl,
-    language,
-    id,
+    gitOwner: githubProject.ownerName,
+    repoName: githubProject.name,
+    sonarOrg: process.env.SONAR_ORG_NAME,
+    sonarProjectKey,
+    sonarHostUrl: 'https://sonarcloud.io',
+    language: githubProject.language,
+    id: githubId,
   };
-  return await fetch(url, {
+  await fetch(url, {
     method: 'post',
     headers: {
       accept: 'application/json',
