@@ -26,12 +26,6 @@ async function updateCodeSizeByProjectId(codeLines, projectId) {
     );
   }
 }
-export async function setCodeSizeOfProject(req, res) {
-  const { projectId, codeLines } = req.body;
-  await updateCodeSizeByProjectId(codeLines, projectId);
-  res.status(200);
-  res.json({ ok: true });
-}
 
 async function syncProjectCodeSize(projectIds) {
   logger.info('Sync Project Code Size');
