@@ -9,6 +9,7 @@ import {
   getInnovation,
   getSummaryHighlightInfo,
   prCreatorCompanyAndAreaInfo,
+  allHealthScore,
 } from '../services/ProjectDetailService.js';
 import type {
   EcologyActivityCategory,
@@ -86,6 +87,11 @@ export class ProjectController extends Controller {
     } catch (e) {
       return Result.ok({});
     }
+  }
+
+  @Get('getHealthScore/{repoName}')
+  public async getHealthScore(@Path() repoName: string): Promise<Result<unknown>> {
+    return Result.ignoreErrorWithDefault(() => allHealthScore(repoName), {});
   }
 
   @Post('export/{repoName}')
