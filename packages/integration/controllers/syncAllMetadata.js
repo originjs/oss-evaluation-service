@@ -9,6 +9,7 @@ import { syncSingleProjectDependentCount } from './projectDependentCount.js';
 import {
   CriticalityScore,
   GithubProjects,
+  GithubProjectsTable,
   logger,
   ProjectPackage,
   ProjectTechStack,
@@ -23,6 +24,7 @@ import { syncSingleProjectCompassMetric } from './compass.js';
 import { syncSingleProjectDependencies } from './projectDependencies.js';
 import { syncSingleProjectCreatorsCountries } from './ossinsightCreatorsCountry.js';
 import { syncSingleProjectCreatorsOrg } from './ossinsightCreatorsOrg.js';
+import { sonarScanByProject } from './sonarCloud.js';
 
 export default async function syncSingleProjectAllMetadataHandler(req, res) {
   const options = req.body;
@@ -72,7 +74,7 @@ export async function syncBatchProjectAllMetadataByProjectIdsHandler(req, res) {
     logger.info(
       `[Batch Integration Process] Process: ${i + 1} / ${projectIds.length}, projectId: ${projectId}`,
     );
-    const project = await GithubProjects.findOne({
+    const project = await GithubProjectsTable.findOne({
       where: {
         id: projectId,
       },
@@ -115,6 +117,8 @@ async function syncSingleProjectAllMetadata(options) {
     createNewCriticalityScore,
     // 8. scorecard
     syncSingleProjectScorecardByProject,
+    // 9. sonar
+    sonarScanByProject,
     // 10. compass  -> manual
     syncSingleProjectCompassMetric,
     // 11. sonarCloud -> manual

@@ -36,7 +36,7 @@ import syncProjectCncfDocumentScoreHandler from '../controllers/documentScore.js
 import { refreshMainPackage } from '../controllers/refreshMainPackage.js';
 import {
   collectSonarCloudData,
-  createAndScanSonarProjectByGithubId,
+  createAndScanSonarProjectByGithubIdHandler,
   createGitlabProject,
   deleteSonarByKeys,
   createSonarProjectFromGitlab,
@@ -941,7 +941,7 @@ router.route('/gitlab/importProjectFromUrl/:namespaceId').post(await createGitla
  *       200:
  *         description: success.
  */
-router.route('/sonarCloud/scan').post(await createAndScanSonarProjectByGithubId);
+router.route('/sonarCloud/scan').post(await createAndScanSonarProjectByGithubIdHandler);
 
 /**
  * @swagger

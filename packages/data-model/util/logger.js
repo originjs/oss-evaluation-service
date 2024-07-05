@@ -121,6 +121,9 @@ const logger = {
   error: (...args) => {
     customizedLogger.error(getFileNameAndLineNumber() + util.format(...args));
   },
+  warn: (...args) => {
+    customizedLogger.warn(getFileNameAndLineNumber() + util.format(...args));
+  },
 };
 
 export default logger;
