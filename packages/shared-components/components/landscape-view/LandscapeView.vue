@@ -65,15 +65,11 @@
             }"
           >
             <template v-if="options.enableProjectPopover">
-              <el-popover
+              <project-popover
                 v-for="project in subData.projects"
                 :key="`${data.category}-${subData.subTechStackName}-${project.name}`"
-                :show-after="options.popoverShowDelay"
-                :hide-after="options.popoverHideDelay"
-                :width="450"
-                :teleported="false"
-                :persistent="false"
-                trigger="hover"
+                :project="project"
+                :options="options"
               >
                 <template #reference>
                   <project-thumbnails
@@ -83,15 +79,13 @@
                     @click="clickProject(project)"
                   />
                 </template>
-                <project-popover :project="project" :options="options">
-                  <template #toolbar-left>
-                    <slot name="popover-toolbar-left" :project="project"></slot>
-                  </template>
-                  <template #toolbar-right>
-                    <slot name="popover-toolbar-right" :project="project"></slot>
-                  </template>
-                </project-popover>
-              </el-popover>
+                <template #toolbar-left>
+                  <slot name="popover-toolbar-left" :project="project"></slot>
+                </template>
+                <template #toolbar-right>
+                  <slot name="popover-toolbar-right" :project="project"></slot>
+                </template>
+              </project-popover>
             </template>
             <template v-else>
               <project-thumbnails
@@ -208,8 +202,6 @@ const props = defineProps<{
     hasMore?: boolean;
     enableProjectDialog?: boolean;
     enableProjectPopover?: boolean;
-    popoverShowDelay?: number;
-    popoverHideDelay?: number;
     boxSize?: number; // || {width:number,height:number}
     boxGap?: number;
     borderColor?: string | { [key: string]: string };
@@ -226,8 +218,6 @@ const options = computed(() => ({
   boxSize: props?.options?.boxSize ?? 40,
   boxGap: props?.options?.boxGap ?? 8,
   enableProjectPopover: props?.options?.enableProjectPopover ?? true,
-  popoverShowDelay: props?.options?.popoverShowDelay ?? 0,
-  popoverHideDelay: props?.options?.popoverHideDelay ?? 200,
   colors: props?.options?.colors ?? ['#89bff6', '#89c997', '#e8dd92', '#f0b58e', '#aea3db'],
 }));
 
