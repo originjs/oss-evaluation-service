@@ -486,6 +486,33 @@ export async function prCreatorCompanyAndAreaInfo(repoName: string) {
   return { orgSummaryInfo, countrySummaryInfo };
 }
 
+export async function allHealthScore(repoName: string) {
+  let score = await EvaluationSummary.findOne({
+    where: {
+      projectName: repoName,
+    },
+    attributes: [
+      'projectName',
+      'functionScore',
+      'performanceScore',
+      'qualityScore',
+      'ecologyScore',
+      'innovationScore',
+      'scorecardScore',
+    ],
+  });
+  score = score?.dataValues;
+  if (!score) {
+    return {};
+  }
+  for (const key in score) {
+    if (key.endsWith('Score') && score[key]) {
+      score[key] = fixedRound(score[key], 2);
+    }
+  }
+  return score;
+}
+
 export async function exportScoreExcel(projectName: string) {
   const excelTemplate = readFileSync('./assets/evaluation-template.xlsx');
   const data = await getProjectDetailInfo(projectName);
