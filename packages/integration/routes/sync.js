@@ -48,7 +48,6 @@ import {
   changeSonarKey2OfficialKeys,
 } from '../controllers/sonarCloud.js';
 import {
-  setCodeSizeOfProject,
   syncAllProjectCodeSizeHandler,
   syncProjectCodeSizeByProjectIdHandler,
 } from '../controllers/projectCodeSize.js';
@@ -180,7 +179,6 @@ router
   .route('/syncBatchProjectAllMetadataByProjectIds')
   .post(syncBatchProjectAllMetadataByProjectIdsHandler);
 
-
 /**
  * @swagger
  * tags:
@@ -205,7 +203,6 @@ router
 router
   .route('/syncBatchProjectAllMetadataByRepoUrls')
   .post(syncBatchProjectAllMetadataByRepoUrlsHandler);
-
 
 /**
  * @swagger
@@ -1082,31 +1079,6 @@ router.route('/syncProjectCodeSize').get(syncAllProjectCodeSizeHandler);
  *         description: success.
  */
 router.route('/syncProjectCodeSizeByProjectId').post(syncProjectCodeSizeByProjectIdHandler);
-
-/**
- * @swagger
- * /sync/setProjectCodeLines:
- *   put:
- *     summary: setProjectCodeLines(callback of cloc codeLines)
- *     tags: [CodeLines]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               projectId:
- *                  type: number
- *                  example: 392517209
- *               codeLines:
- *                  type: number
- *     responses:
- *       200:
- *         description: The created book.
- *
- */
-router.route('/setProjectCodeLines').put(setCodeSizeOfProject);
 
 /**
  * @swagger

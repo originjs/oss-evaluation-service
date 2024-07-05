@@ -1,6 +1,6 @@
 import type { GitCloneParam } from '../interfaces/param';
 import { gitCloneThreadPool, shellThreadPool } from '../worker/workers.js';
-import { logger } from '@orginjs/oss-evaluation-data-model';
+import { logger, GithubProjectsTable } from '@orginjs/oss-evaluation-data-model';
 
 export async function getCodeLines(repoInfo: GitCloneParam) {
   repoInfo.shadowClone = true;
@@ -28,32 +28,16 @@ function getClocCommand(repoInfo: GitCloneParam): string {
 
 async function updateCodeLinesOfProject(codeLines: number, repoInfo: GitCloneParam) {
   if (codeLines > 0 && repoInfo.projectId) {
-    const url = process.env.INTEGRATION_URL;
-    if (!url) {
-      logger.error('no ${INTEGRATION_URL} env config, skip local repo cloc');
-      return;
-    }
-    const updateUrl = `${url}/sync/setProjectCodeLines`;
-    const response = await fetch(updateUrl, {
-      method: 'PUT',
-      headers: {
-        Accept: '*/*',
-        'Content-Type': 'application/json',
+    await GithubProjectsTable.update(
+      { codeSize: codeLines },
+      {
+        where: {
+          id: repoInfo.projectId,
+        },
       },
-      body: JSON.stringify({
-        projectId: repoInfo.projectId,
-        codeLines: codeLines,
-      }),
-    });
-
-    if (response.ok) {
-      logger.info(
-        `${repoInfo.owner}/${repoInfo.repoName} cloc codeLines success,codeLines=${codeLines}`,
-      );
-    } else {
-      logger.error(
-        `${repoInfo.owner}/${repoInfo.repoName} cloc codeLines failed,error:${await response.text()}`,
-      );
-    }
+    );
+    logger.info(
+      `${repoInfo.owner}/${repoInfo.repoName} cloc codeLines success,codeLines=${codeLines}`,
+    );
   }
 }

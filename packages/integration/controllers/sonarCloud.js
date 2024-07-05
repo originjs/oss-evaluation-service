@@ -449,6 +449,7 @@ export async function sonarScanByProject(githubProject) {
     await SonarCloudProject.create(createSonarProject);
   } else {
     // sonar project exists
+    sonarProjectKey = sonarProject.sonarProjectKey;
     if (sonarProject.analysisDate) {
       return;
     }
@@ -458,7 +459,7 @@ export async function sonarScanByProject(githubProject) {
     gitOwner: githubProject.ownerName,
     repoName: githubProject.name,
     sonarOrg: process.env.SONAR_ORG_NAME,
-    sonarProjectKey,
+    sonarKey: sonarProjectKey,
     sonarHostUrl: 'https://sonarcloud.io',
     language: githubProject.language,
     id: githubId,
