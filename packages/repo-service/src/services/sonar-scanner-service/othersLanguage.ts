@@ -26,7 +26,7 @@ export class OthersLanguageService implements LanguageSonarScannerInterface {
       -Dsonar.projectKey=${this.param.sonarKey}\
       -Dsonar.sources=.\
       -Dsonar.host.url=${this.param.sonarHostUrl}\
-      -Dsonar.token=${process.env.SONAR_TOKEN}`;
+      -Dsonar.token=${this.param.sonarToken}`;
     return [scanCommand];
   }
   restoreCommand(): string {
