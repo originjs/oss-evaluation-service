@@ -97,7 +97,7 @@ async function getCodeSizeBelow5M(project) {
   const fullName = project.fullName;
   const url = `https://git-cloc.fly.dev/cloc/${fullName}`;
   try {
-    const response = await fetchWithTimeout(url, 10 * 1000);
+    const response = await fetchWithTimeout(url, 3 * 60 * 1000);
     if (response.ok) {
       const text = await response.text();
       // parse html
@@ -117,7 +117,7 @@ async function getCodeSizeBelow500M(project) {
   const fullName = project.fullName;
   const url = `https://api.codetabs.com/v1/loc?github=${fullName}`;
   try {
-    const reponse = await fetchWithTimeout(url, 60 * 1000);
+    const reponse = await fetchWithTimeout(url, 3 * 60 * 1000);
     if (reponse.ok) {
       const json = await reponse.json();
       return json.find(item => item.language === 'Total').linesOfCode;

@@ -41,7 +41,6 @@ import {
   deleteSonarByKeys,
   createSonarProjectFromGitlab,
   createSonarProjectsFromGithub,
-  setDefaultBranchOfSonar,
   updateDefaultBranchAfterImport,
   updateSonarCloudDefaultBranch,
   uploadSonarCiConfigToGitlab,
@@ -863,33 +862,6 @@ router.route('/benchmark/updateScore').post(updateScore);
  *         description: success.
  */
 router.route('/sonarCloud/collect').post(await collectSonarCloudData);
-
-/**
- * @swagger
- * /sync/sonarCloud/setDefaultBranchOfSonar:
- *   post:
- *     summary: update default branch
- *     tags: [Sonar]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               sonarKey:
- *                 type: string
- *                 example: 'oss-evaluation-originjs_vite-plugin-federation'
- *               defaultBranch:
- *                 type: string
- *                 example: 'main'
- *
- *       example: [392517209]
- *     responses:
- *       200:
- *         description: success.
- */
-router.route('/sonarCloud/setDefaultBranchOfSonar').post(await setDefaultBranchOfSonar);
 
 /**
  * @swagger
