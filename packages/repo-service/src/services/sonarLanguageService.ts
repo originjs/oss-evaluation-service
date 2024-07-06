@@ -12,7 +12,7 @@ export function getLanguageServiceImpl(param: SonarScanParam): LanguageSonarScan
     case 'C':
     case 'OBJECT-C':
     case 'C#':
-    case 'Rust':
+    case 'RUST':
       throw new Error(
         `unsupported sonar scanner of language:{${language}},project:${param.gitOwner}/${param.repoName} `,
       );

@@ -179,7 +179,7 @@ importers:
       '@orginjs/oss-evaluation-data-model':
         specifier: workspace:^
         version: link:../data-model
-      '@orginjs/sonarCloud-sdk':
+      '@orginjs/sonar-cloud-sdk':
         specifier: workspace:^
         version: link:../api-sdk/sonarCloud
       async:
@@ -255,6 +255,9 @@ importers:
       '@orginjs/oss-evaluation-data-model':
         specifier: workspace:^
         version: link:../data-model
+      '@orginjs/sonar-cloud-sdk':
+        specifier: workspace:^
+        version: link:../api-sdk/sonarCloud
       '@tsoa/runtime':
         specifier: ^6.2.0
         version: 6.2.0
