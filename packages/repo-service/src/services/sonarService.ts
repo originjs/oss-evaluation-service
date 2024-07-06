@@ -4,9 +4,7 @@ import type { SimpleGitOptions } from 'simple-git';
 import { simpleGit } from 'simple-git';
 import { logger } from '@orginjs/oss-evaluation-data-model';
 import { gitCloneThreadPool, sonarScannerThreadPool } from '../worker/workers.js';
-import type { LanguageSonarScannerInterface } from '../interfaces/language';
-import { JavaLanguageService } from './sonar-scanner-service/javaLanguage.js';
-import { OthersLanguageService } from './sonar-scanner-service/othersLanguage.js';
+import { getLanguageServiceImpl } from './sonarLanguageService.js';
 
 const sleep = ms =>
   new Promise(resolve => {
@@ -14,7 +12,7 @@ const sleep = ms =>
   });
 
 export async function scan(info: SonarScanParam) {
-  // throw error if not support language
+  // throw err if language dont support
   getLanguageServiceImpl(info);
   gitCloneThreadPool
     .run({
@@ -86,22 +84,4 @@ async function updateDefaultBranch(sonarProjectKey: string, defaultBranch: strin
       defaultBranch,
     }),
   });
-}
-
-export function getLanguageServiceImpl(param: SonarScanParam): LanguageSonarScannerInterface {
-  const language = param.language.toUpperCase();
-  switch (language) {
-    case 'JAVA':
-      return new JavaLanguageService(param);
-    case 'C++':
-    case 'C':
-    case 'OBJECT-C':
-    case 'C#':
-    case 'Rust':
-      throw new Error(
-        `unsupported sonar scanner of language:{${language}},project:${param.gitOwner}/${param.repoName} `,
-      );
-    default:
-      return new OthersLanguageService(param);
-  }
 }
