@@ -325,8 +325,8 @@ export async function createAndScanSonarProjectByGithubIdHandler(req, res) {
 
 export async function sonarScanByProject(githubProject) {
   const sonarScanHost = process.env.REPO_SERVICE_URL;
-  if (!sonarScanHost) {
-    logger.warn(`no env \${REPO_SERVICE_URL},skip sonar!`);
+  if (!sonarScanHost || !process.env.SONAR_CLOUD_TOKEN) {
+    logger.warn(`no env \${REPO_SERVICE_URL} or \${SONAR_CLOUD_TOKEN},skip sonar!`);
     return;
   }
   const githubId = githubProject.id;
@@ -381,6 +381,7 @@ export async function sonarScanByProject(githubProject) {
     sonarHostUrl: 'https://sonarcloud.io',
     language: githubProject.language,
     id: githubId,
+    sonarToken: process.env.SONAR_CLOUD_TOKEN,
   };
   await fetch(url, {
     method: 'post',

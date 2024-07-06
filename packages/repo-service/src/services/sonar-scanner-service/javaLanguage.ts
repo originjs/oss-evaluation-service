@@ -75,7 +75,7 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
             -Dsonar.host.url=${this.param.sonarHostUrl}\
             -Dsonar.organization=${this.param.sonarOrg}\
             -Dsonar.projectKey=${this.param.sonarKey}\
-            -Dsonar.token=${process.env.SONAR_TOKEN}`;
+            -Dsonar.token=${this.param.sonarToken}`;
         return [installCommand, sonarCommand];
       }
       case JavaBuildType.GRADLE:
@@ -126,7 +126,7 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
               -Dsonar.host.url=${this.param.sonarHostUrl}\
               -Dsonar.organization=${this.param.sonarOrg}\
               -Dsonar.projectKey=${this.param.sonarKey}\
-              -Dsonar.token=${process.env.SONAR_TOKEN} `;
+              -Dsonar.token=${this.param.sonarToken} `;
         return [sonarCommand];
       }
       default:

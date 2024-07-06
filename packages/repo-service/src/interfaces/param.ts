@@ -9,6 +9,7 @@ export interface SonarProjectInfo {
   sonarOrg: string;
   sonarKey: string;
   sonarHostUrl: string;
+  sonarToken: string;
 }
 
 export interface GitCloneParam {
