@@ -3,7 +3,7 @@ import type { SonarScanParam } from '../interfaces/param';
 import shelljs from 'shelljs';
 import { Result } from '../utils/result.js';
 import { logger } from '@orginjs/oss-evaluation-data-model';
-import { getLanguageServiceImpl } from '../services/sonarService.js';
+import { getLanguageServiceImpl } from '../services/sonarLanguageService.js';
 
 function runSonarScanner(info: SonarScanParam): Result<SonarScanParam> {
   // get language service
