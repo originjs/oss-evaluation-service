@@ -115,18 +115,19 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
         fs.writeFileSync(initFilePath, initContent, 'utf-8');
         const sonarCommand = `
              cd ${dir} &&\
-              ./gradlew --parallel\
-              clean\
-              build\
-              sonar\
-              -x test\
-              -x check\
-              --init-script ${initFilePath} \
-              -Dorg.gradle.daemon=false\
-              -Dsonar.host.url=${this.param.sonarHostUrl}\
-              -Dsonar.organization=${this.param.sonarOrg}\
-              -Dsonar.projectKey=${this.param.sonarKey}\
-              -Dsonar.token=${this.param.sonarToken} `;
+             chmod +x ./gradlew &&\
+             ./gradlew --parallel\
+             clean\
+             build\
+             sonar\
+             -x test\
+             -x check\
+             --init-script ${initFilePath} \
+             -Dorg.gradle.daemon=false\
+             -Dsonar.host.url=${this.param.sonarHostUrl}\
+             -Dsonar.organization=${this.param.sonarOrg}\
+             -Dsonar.projectKey=${this.param.sonarKey}\
+             -Dsonar.token=${this.param.sonarToken} `;
         return [sonarCommand];
       }
       default:
