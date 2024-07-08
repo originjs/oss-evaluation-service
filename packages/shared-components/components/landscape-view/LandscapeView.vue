@@ -104,17 +104,31 @@
 
     <el-dialog v-model="isOpenProjectDialog" width="fit-content">
       <slot name="projectDialogHeader" :project="dialogProject">
-        <div flex min-w-600px>
-          <div class="project-logo" w-70px h-70px mr-10>
-            <el-image :src="dialogProject?.logo" bg-white fit="fill">
+        <div flex min-w-600px class="project-dialog-header">
+          <div
+            class="project-logo"
+            w-80px
+            h-80px
+            mr-4
+            style="border: 1px solid rgb(229, 231, 235)"
+            @click="emit('toDetailsPage', dialogProject)"
+          >
+            <el-image v-if="isOpenProjectDialog" :src="dialogProject?.logo" bg-white fit="contain">
               <template #error>
-                <GenerateProjectAvatar v-model="dialogProject.name" :width="70" :height="70" />
+                <GenerateProjectAvatar v-model="dialogProject.name" :width="80" :height="80" />
               </template>
             </el-image>
           </div>
           <div class="project-info" flex flex-1 flex-col>
             <div flex>
-              <span truncate text-lg fw-bold mr-3>
+              <span
+                truncate
+                text-lg
+                fw-bold
+                mr-3
+                cursor-pointer
+                @click="emit('toDetailsPage', dialogProject)"
+              >
                 {{ dialogProject?.name }}
               </span>
 
@@ -152,6 +166,17 @@
               >
                 {{ label }}
               </el-tag>
+              <template v-if="showProjectType">
+                <el-tag
+                  v-for="(item, idx) in dialogProject?.projectType?.split('|')"
+                  :key="item.trim()"
+                  :type="getTagType(idx + (dialogProject?.labels?.length ?? 0))"
+                  mr-2
+                  mb-2
+                >
+                  {{ item.trim() }}
+                </el-tag>
+              </template>
             </div>
           </div>
         </div>
@@ -181,6 +206,7 @@ interface Project {
   bigProject: string;
   labels: string[];
   language: string;
+  projectType?: string;
 }
 
 type Layout = {
@@ -210,6 +236,7 @@ const props = defineProps<{
     evaluation?: (project: Project) => void;
     goBenchmark?: (project: Project) => void;
   };
+  showProjectType?: boolean;
 }>();
 
 const options = computed(() => ({
@@ -224,6 +251,7 @@ const options = computed(() => ({
 const emit = defineEmits<{
   (e: 'goMore', category: string, subTechStackName: string): void;
   (e: 'clickProject', project: Project): void;
+  (e: 'toDetailsPage', project: Project, hash?: string): void;
 }>();
 
 const landscapeData = ref<Category[]>([]);
@@ -477,7 +505,18 @@ const updateProjects = (projects: Project[]) => {
   });
 };
 
-defineExpose({ updateProjects });
+function toggleDialogVisible(visible?: boolean) {
+  if (typeof visible === 'boolean') {
+    isOpenProjectDialog.value = visible;
+  } else {
+    isOpenProjectDialog.value = !isOpenProjectDialog.value;
+  }
+}
+
+defineExpose({
+  updateProjects,
+  toggleDialogVisible,
+});
 
 function gotoMore(category: string, subTechStackName: string) {
   emit('goMore', category, subTechStackName);
