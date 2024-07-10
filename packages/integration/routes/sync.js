@@ -910,7 +910,7 @@ router.route('/gitlab/importProjectFromUrl/:namespaceId').post(await createGitla
  *       200:
  *         description: success.
  */
-router.route('/sonarCloud/scan').post(await createAndScanSonarProjectByGithubIdHandler);
+router.route('/sonarCloud/scan').post(createAndScanSonarProjectByGithubIdHandler);
 
 /**
  * @swagger
@@ -929,7 +929,7 @@ router.route('/sonarCloud/scan').post(await createAndScanSonarProjectByGithubIdH
  *       200:
  *         description: success.
  */
-router.route('/sonarCloud/createGithubProjects').post(await createSonarProjectsFromGithub);
+router.route('/sonarCloud/createGithubProjects').post(createSonarProjectsFromGithub);
 
 /**
  * @swagger
@@ -948,7 +948,7 @@ router.route('/sonarCloud/createGithubProjects').post(await createSonarProjectsF
  *       200:
  *         description: success.
  */
-router.route('/sonarCloud/changeSonar2OfficialKey').post(await changeSonarKey2OfficialKeys);
+router.route('/sonarCloud/changeSonar2OfficialKey').post(changeSonarKey2OfficialKeys);
 
 /**
  * @swagger
@@ -967,7 +967,7 @@ router.route('/sonarCloud/changeSonar2OfficialKey').post(await changeSonarKey2Of
  *       200:
  *         description: success.
  */
-router.route('/sonarCloud/deleteBySonarKeys').post(await deleteSonarByKeys);
+router.route('/sonarCloud/deleteBySonarKeys').post(deleteSonarByKeys);
 
 /**
  * @swagger
@@ -979,7 +979,7 @@ router.route('/sonarCloud/deleteBySonarKeys').post(await deleteSonarByKeys);
  *       200:
  *         description: success.
  */
-router.route('/gitlab/updateDefaultBranchAfterImport').get(await updateDefaultBranchAfterImport);
+router.route('/gitlab/updateDefaultBranchAfterImport').get(updateDefaultBranchAfterImport);
 
 /**
  * @swagger
@@ -991,7 +991,7 @@ router.route('/gitlab/updateDefaultBranchAfterImport').get(await updateDefaultBr
  *       200:
  *         description: success.
  */
-router.route('/sonarCloud/createSonarProjectFromGitlab').get(await createSonarProjectFromGitlab);
+router.route('/sonarCloud/createSonarProjectFromGitlab').get(createSonarProjectFromGitlab);
 
 /**
  * @swagger
@@ -1005,7 +1005,7 @@ router.route('/sonarCloud/createSonarProjectFromGitlab').get(await createSonarPr
  *       200:
  *         description: success.
  */
-router.route('/gitlab/addSonarCheckPipeline').get(await uploadSonarCiConfigToGitlab);
+router.route('/gitlab/addSonarCheckPipeline').get(uploadSonarCiConfigToGitlab);
 
 /**
  * @swagger
