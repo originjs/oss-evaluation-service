@@ -105,20 +105,17 @@
     <el-dialog v-model="isOpenProjectDialog" width="fit-content">
       <slot name="projectDialogHeader" :project="dialogProject">
         <div flex min-w-600px class="project-dialog-header">
-          <div
+          <project-thumbnails
+            v-if="isOpenProjectDialog"
             class="project-logo"
-            w-80px
-            h-80px
+            :project="dialogProject"
+            :options="{
+              ...options,
+              boxSize: 80,
+            }"
             mr-4
-            style="border: 1px solid rgb(229, 231, 235)"
             @click="emit('toDetailsPage', dialogProject)"
-          >
-            <el-image v-if="isOpenProjectDialog" :src="dialogProject?.logo" bg-white fit="contain">
-              <template #error>
-                <GenerateProjectAvatar v-model="dialogProject.name" :width="80" :height="80" />
-              </template>
-            </el-image>
-          </div>
+          />
           <div class="project-info" flex flex-1 flex-col>
             <div flex>
               <span
@@ -166,17 +163,6 @@
               >
                 {{ label }}
               </el-tag>
-              <template v-if="showProjectType">
-                <el-tag
-                  v-for="(item, idx) in dialogProject?.projectType?.split('|')"
-                  :key="item.trim()"
-                  :type="getTagType(idx + (dialogProject?.labels?.length ?? 0))"
-                  mr-2
-                  mb-2
-                >
-                  {{ item.trim() }}
-                </el-tag>
-              </template>
             </div>
           </div>
         </div>
@@ -187,7 +173,6 @@
 </template>
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import GenerateProjectAvatar from './GenerateProjectAvatar.vue';
 import { getTagType, toKilo } from '@orginjs/oss-evaluation-components-utils';
 import ProjectPopover from './ProjectPopover.vue';
 import type { Category, Subcategory } from './type';
@@ -236,7 +221,6 @@ const props = defineProps<{
     evaluation?: (project: Project) => void;
     goBenchmark?: (project: Project) => void;
   };
-  showProjectType?: boolean;
 }>();
 
 const options = computed(() => ({
@@ -542,6 +526,11 @@ function clickProject(project: Project) {
 .more-btn {
   &:hover {
     cursor: pointer;
+  }
+}
+#landscape {
+  :deep(.el-dialog) {
+    margin: 12px auto 0;
   }
 }
 </style>
