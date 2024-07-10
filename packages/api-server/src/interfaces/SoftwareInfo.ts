@@ -236,5 +236,6 @@ export interface NewProjectApply {
   expandField1?: string;
   createdAt?: Date;
   techStack?: string;
+  employeeNumber?: string;
   subTechStack?: string;
 }
