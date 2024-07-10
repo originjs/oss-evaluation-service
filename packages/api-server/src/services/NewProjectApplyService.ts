@@ -6,10 +6,11 @@ export async function newProjectApply(
   application: NewProjectApplyInterface,
 ): Promise<Result<string>> {
   const repoUrl = application.repoUrl;
-  const applicationEmail = application.applicantEmail;
-  if (!repoUrl || !applicationEmail) {
-    return Result.fail(500, 'repoUrl/application is empty!');
+  const email = application.applicantEmail;
+  if (!repoUrl || !email) {
+    return Result.fail(500, 'repoUrl/email is empty!');
   }
+  application.createdAt = application.createdAt ?? new Date();
   const data = [];
   for (const url of repoUrl.split(';')) {
     data.push({

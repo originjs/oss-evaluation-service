@@ -231,8 +231,10 @@ export interface NewProjectApply {
   comment: string;
   applicantEmail: string;
   username: string;
-  alternativeProjectId: string;
+  alternativeProjectId?: string;
   type: number;
-  expandField1: string;
-  createdAt: Date;
+  expandField1?: string;
+  createdAt?: Date;
+  techStack?: string;
+  subTechStack?: string;
 }
