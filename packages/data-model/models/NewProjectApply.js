@@ -38,6 +38,11 @@ const newProjectApply = sequelize.define(
       allowNull: false,
       defaultValue: '',
     },
+    employeeNumber: {
+      type: DataTypes.STRING(32),
+      allowNull: false,
+      defaultValue: '',
+    },
     createdAt: {
       type: DataTypes.DATE,
       field: 'created_at',
