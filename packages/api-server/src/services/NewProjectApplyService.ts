@@ -1,6 +1,36 @@
 import type { NewProjectApply as NewProjectApplyInterface } from '../interfaces/SoftwareInfo';
-import { NewProjectApply } from '@orginjs/oss-evaluation-data-model';
+import { NewProjectApply, GithubProjectsTable } from '@orginjs/oss-evaluation-data-model';
 import { Result } from '../utils/result.js';
+import moment from 'moment';
+
+export async function getApplyRecordByEmployeeNumber(employeeNumber: string) {
+  const list = await NewProjectApply.findAll({
+    where: {
+      employeeNumber,
+    },
+    attributes: ['type', 'repoUrl', 'alternativeProjectId', 'createdAt', 'state'],
+  });
+
+  if (!list?.length) {
+    return;
+  }
+
+  for (const val of list) {
+    // format date
+    val.dataValues.createdAt = moment(val.createdAt).format('YYYY-MM-DD HH:mm:ss');
+    if (val.type === 2 && val.alternativeProjectId) {
+      const githubProject = await GithubProjectsTable.findOne({
+        where: {
+          id: val.alternativeProjectId,
+        },
+        attributes: ['htmlUrl'],
+      });
+      // set alternative project
+      val.dataValues.alternativeProjectRepoUrl = githubProject?.htmlUrl;
+    }
+  }
+  return list;
+}
 
 export async function newProjectApply(
   application: NewProjectApplyInterface,
