@@ -36,7 +36,6 @@ import {
   getPerformanceModuleInfo,
   getSoftwareInfo,
   getGeoDistributionInfo,
-  submitApplication,
 } from '@orginjs/oss-evaluation-components-api';
 import { CompareFavorites } from '../compare-favorites';
 import {
@@ -55,6 +54,7 @@ import { max } from '@popperjs/core/lib/utils/math';
 import worldMap from '../../assets/json/worldMap.json';
 import countriesNameMap from '../../assets/json/countriesNameMap.json';
 import countriesInfo from '../../assets/json/countriesInfo.json';
+import { ApplyAdd } from '../apply-add';
 
 dayjs.extend(relativeTime);
 const props = defineProps<{ repoName: string }>();
@@ -1037,69 +1037,6 @@ onBeforeUnmount(() => {
   window.removeEventListener('scroll', setbOptionBtnsDomPos);
   window.removeEventListener('resize', setbOptionBtnsDomPos);
 });
-
-const feedbackDialogVisible = ref(false);
-const formInstance = ref();
-const feedbackSubmitting = ref(false);
-const feedbackInfo = reactive({
-  repoUrl: '',
-  comment: '',
-  email: '',
-});
-const formRules = reactive({
-  repoUrl: [
-    {
-      required: true,
-      message: '请输入社区源码仓地址',
-      trigger: 'blur',
-    },
-  ],
-  email: [
-    {
-      required: true,
-      message: '请输入你的邮箱地址',
-      trigger: 'blur',
-    },
-  ],
-});
-
-function submitFeedback() {
-  formInstance.value.validate((valid: boolean) => {
-    if (valid) {
-      feedbackSubmitting.value = true;
-      submitApplication({
-        repoUrl: feedbackInfo.repoUrl,
-        comment: feedbackInfo.comment,
-        applicantEmail: feedbackInfo.email,
-        username: '',
-        alternativeProjectId: String(project.value!.id!),
-        type: 2,
-        expandField1: '',
-        createdAt: new Date(),
-      })
-        .then(res => {
-          if (res.data === 'success') {
-            ElMessage.success('已反馈相似软件');
-            formInstance.value.resetFields();
-            feedbackDialogVisible.value = false;
-          } else {
-            ElMessage.warning('提交失败，请稍后重试');
-          }
-        })
-        .catch(() => {
-          ElMessage.warning('提交失败，请稍后重试');
-        })
-        .finally(() => {
-          feedbackSubmitting.value = false;
-        });
-    }
-  });
-}
-
-function cancelFeedback() {
-  formInstance.value.resetFields();
-  feedbackDialogVisible.value = false;
-}
 </script>
 
 <template>
@@ -1196,57 +1133,20 @@ function cancelFeedback() {
             <InfoFilled />
           </el-icon>
         </el-tooltip>
-        <el-button
-          round
-          ml-3
-          :icon="Plus"
-          size="small"
-          :disabled="isRequestingProjectInfo"
-          @click="feedbackDialogVisible = true"
-        >
-          反馈相似软件
-        </el-button>
-        <el-dialog
-          v-model="feedbackDialogVisible"
-          title="反馈相似软件"
-          destroy-on-close
-          append-to-body
-          @close="cancelFeedback"
-        >
-          <el-form
-            ref="formInstance"
-            :model="feedbackInfo"
-            :rules="formRules"
-            label-position="right"
-            label-width="auto"
+        <slot name="application" :project="project">
+          <ApplyAdd
+            :application-type="2"
+            :alternative-project-id="String(project?.id ?? '')"
+            success-message="已反馈相似软件"
           >
-            <el-form-item label="社区源码仓地址" prop="repoUrl">
-              <el-input
-                v-model="feedbackInfo.repoUrl"
-                type="textarea"
-                :row="3"
-                placeholder="https://github.com/owner-name/repo-name"
-              />
-            </el-form-item>
-            <el-form-item label="描述" prop="comment">
-              <el-input
-                v-model="feedbackInfo.comment"
-                type="textarea"
-                :row="3"
-                placeholder="请输入描述"
-              />
-            </el-form-item>
-            <el-form-item label="邮箱地址" prop="email">
-              <el-input v-model="feedbackInfo.email" placeholder="请输入你的邮箱地址" />
-            </el-form-item>
-          </el-form>
-          <template #footer>
-            <el-button @click="cancelFeedback">取消</el-button>
-            <el-button type="primary" :disabled="feedbackSubmitting" @click="submitFeedback">
-              确定
-            </el-button>
-          </template>
-        </el-dialog>
+            <template #trigger>
+              <el-button round ml-3 :icon="Plus" size="small"> 反馈相似软件 </el-button>
+            </template>
+            <template #dialog-header>
+              <div font-size-18px>反馈相似软件</div>
+            </template>
+          </ApplyAdd>
+        </slot>
       </div>
       <div flex my-5>
         <div v-for="item in alternatives" :key="item.id" class="alter-item" flex>

@@ -8,3 +8,4 @@ export * from './software-details';
 export * from './software-rank';
 export * from './benchmark-compare';
 export * from './landscape-view';
+export * from './apply-add';

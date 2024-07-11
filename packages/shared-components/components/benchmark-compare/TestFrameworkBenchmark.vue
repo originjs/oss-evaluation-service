@@ -13,7 +13,6 @@ import {
 } from '@orginjs/oss-evaluation-components-api';
 import ChooseProjectsDialog from './ChooseProjectsDialog.vue';
 import ChooseBenchmarkDialog from './ChooseBenchmarkDialog.vue';
-import ApplyNewProjectBenchmarkDialog from './ApplyNewProjectBenchmarkDialog.vue';
 import type { TableColumnCtx } from 'element-plus';
 
 const chooseProjectsRef = ref<InstanceType<typeof ChooseProjectsDialog>>();
@@ -189,7 +188,6 @@ watch([projects, benchmarkResultProjectsRaw, sortedRow], () => {
 
 const showChooseProjects = ref(false);
 const showChooseBenchmark = ref(false);
-const submitProjectBenchmark = ref(false);
 
 const computeColor = (scope: { row: any; column: any; $index: number }) => {
   if (scope.row[scope.column.property] === '--') {
@@ -287,9 +285,7 @@ const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
             </div>
           </div>
           <div flex flex-items-center>
-            <el-button type="primary" text @click="submitProjectBenchmark = true"
-              >增加Benchmark软件</el-button
-            >
+            <slot name="application" />
             <el-icon class="cursor-pointer">
               <Setting />
             </el-icon>
@@ -425,7 +421,6 @@ const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
       v-model:benchmark-index="benchmarkIndex"
       :benchmark-index-raw="benchmarkIndexRaw"
     />
-    <ApplyNewProjectBenchmarkDialog v-model="submitProjectBenchmark" category="前端框架" />
   </div>
 </template>
 
