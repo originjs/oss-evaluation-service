@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { SearchSoftware } from '@orginjs/oss-evaluation-components/search-software';
-import { ApplyAddSoftware } from '@orginjs/oss-evaluation-components/apply-add-software';
+import { ApplyAdd } from '@orginjs/oss-evaluation-components/apply-add';
 import type { SoftwareBaseInfo } from '@orginjs/oss-evaluation-api-server';
 
 const router = useRouter();
@@ -24,7 +24,16 @@ const goSoftwareDetails = ({ repoName }: SoftwareBaseInfo) => {
           <p class="text">开源先进性评估</p>
           <div class="actions">
             <SearchSoftware class="w-280px" @change="goSoftwareDetails" />
-            <ApplyAddSoftware class="apply-add" />
+            <ApplyAdd>
+              <template #trigger>
+                <el-button icon="Plus" round color="#646cff" size="large" ml-3>
+                  申请新增软件
+                </el-button>
+              </template>
+              <template #dialog-header>
+                <div font-size-18px>申请新增软件</div>
+              </template>
+            </ApplyAdd>
           </div>
         </div>
         <div class="image">
@@ -128,10 +137,6 @@ const goSoftwareDetails = ({ repoName }: SoftwareBaseInfo) => {
       align-items: center;
       flex-wrap: wrap;
       padding-top: 32px;
-
-      .apply-add {
-        margin-left: 12px;
-      }
     }
   }
 

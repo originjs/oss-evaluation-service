@@ -13,7 +13,6 @@ import {
 } from '@orginjs/oss-evaluation-components-api';
 import ChooseProjectsDialog from './ChooseProjectsDialog.vue';
 import ChooseBenchmarkDialog from './ChooseBenchmarkDialog.vue';
-import ApplyNewProjectBenchmarkDialog from './ApplyNewProjectBenchmarkDialog.vue';
 import type { TableColumnCtx } from 'element-plus';
 
 const chooseProjectsRef = ref<InstanceType<typeof ChooseProjectsDialog>>();
@@ -76,7 +75,7 @@ let benchmarksResultTableDataRaw = ref<any[]>([]); // 表格原始数据，在�
 let benchmarkResultProjectsRaw = ref<BenchmarkResult[]>([]); // 表格列原始数据，按照项目分组后的 benchmarkResult 数据
 watch([projects, benchmarkIndexRaw, benchmarkResult], () => {
   // 待异步数据返回后才往下执行
-  if ( !projects.value.length || !benchmarkResult.value.length || !benchmarkIndexRaw.value.length) {
+  if (!projects.value.length || !benchmarkResult.value.length || !benchmarkIndexRaw.value.length) {
     return [];
   }
   const projectBenchmark: BenchmarkResult[] = [];
@@ -186,7 +185,6 @@ watch([projects, benchmarkResultProjectsRaw, sortedRow], () => {
 
 const showChooseProjects = ref(false);
 const showChooseBenchmark = ref(false);
-const submitProjectBenchmark = ref(false);
 
 const computeColor = (scope: { row: any; column: any; $index: number }) => {
   if (scope.row[scope.column.property] === '--') {
@@ -406,7 +404,6 @@ const getProjectInfoUrl = (project: SoftwareBaseInfo) => {
       v-model:benchmark-index="benchmarkIndex"
       :benchmark-index-raw="benchmarkIndexRaw"
     />
-    <ApplyNewProjectBenchmarkDialog v-model="submitProjectBenchmark" category="前端框架" />
   </div>
 </template>
 

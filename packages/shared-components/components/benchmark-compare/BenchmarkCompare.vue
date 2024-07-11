@@ -4,6 +4,10 @@ import FrameworkBenchmark from './FrameworkBenchmark.vue';
 import BundlerBenchmark from './BundlerBenchmark.vue';
 import TestFrameworkBenchmark from './TestFrameworkBenchmark.vue';
 import SerializationBenchmark from './SerializationBenchmark.vue';
+import { ApplyAdd } from '../apply-add';
+import { createReusableTemplate } from '@vueuse/core';
+
+const [DefineTemplate, ReuseTemplate] = createReusableTemplate();
 
 const activeName = ref('frameworks');
 
@@ -15,15 +19,39 @@ const handleClick = (tab: TabsPaneContext, event: Event) => {
 
 <template>
   <div class="benchmark-compare-main">
+    <DefineTemplate>
+      <slot name="application">
+        <ApplyAdd :application-type="3">
+          <template #trigger>
+            <el-button type="primary" text>申请增加Benchmark软件</el-button>
+          </template>
+          <template #dialog-header>
+            <div font-size-18px>申请增加Benchmark软件</div>
+          </template>
+        </ApplyAdd>
+      </slot>
+    </DefineTemplate>
     <el-tabs v-model="activeName" @tab-click="handleClick">
       <el-tab-pane label="前端框架" name="frameworks">
-        <FrameworkBenchmark></FrameworkBenchmark>
+        <FrameworkBenchmark>
+          <template #application>
+            <ReuseTemplate />
+          </template>
+        </FrameworkBenchmark>
       </el-tab-pane>
       <el-tab-pane label="构建工具" name="bundler">
-        <BundlerBenchmark></BundlerBenchmark>
+        <BundlerBenchmark>
+          <template #application>
+            <ReuseTemplate />
+          </template>
+        </BundlerBenchmark>
       </el-tab-pane>
       <el-tab-pane label="测试框架" name="test_framework">
-        <TestFrameworkBenchmark></TestFrameworkBenchmark>
+        <TestFrameworkBenchmark>
+          <template #application>
+            <ReuseTemplate />
+          </template>
+        </TestFrameworkBenchmark>
       </el-tab-pane>
       <el-tab-pane label="XML序列化" name="terminal_serialization_xml">
         <SerializationBenchmark type="终端序列化XML"></SerializationBenchmark>
