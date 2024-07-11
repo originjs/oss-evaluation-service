@@ -107,7 +107,13 @@ const changeSelectedVersion = (project: ProjectInfo) => {
   );
 };
 
-const cancelSelectedProject = (project: SoftwareBaseInfo) => {
+type CancelProject =
+  | SoftwareBaseInfo
+  | {
+      projectId: string;
+      version: string;
+    };
+const cancelSelectedProject = (project: CancelProject) => {
   showProjects.value?.forEach(p => {
     if (p.projectId !== project.projectId) {
       return;
