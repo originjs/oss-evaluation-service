@@ -1280,7 +1280,6 @@ onBeforeUnmount(() => {
               :data="benchmarkCompareTable"
               class="results"
               border
-              :max-height="400"
               :cell-style="computeColor"
               :span-method="objectSpanMethod"
             >
@@ -1293,7 +1292,7 @@ onBeforeUnmount(() => {
               <el-table-column
                 v-for="column in benchmarkCompareColumns"
                 :key="column"
-                :width="300"
+                :width="column === 'indexName' ? 300 : 'auto'"
                 :prop="column"
                 :class-name="column === 'indexName' ? '' : 'benchmark-value-cell'"
               >
