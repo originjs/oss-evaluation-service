@@ -14,19 +14,21 @@ export async function getApplyRecordByEmployeeNumber(employeeNumber: string) {
   if (!list?.length) {
     return;
   }
-
+  const regexp = new RegExp(/(?<=https?:\/\/github.com\/)[a-zA-Z0-9_-]+?\/[a-zA-Z0-9_-]+/, 'i');
   for (const val of list) {
     // format date
     val.dataValues.createdAt = moment(val.createdAt).format('YYYY-MM-DD HH:mm:ss');
+    val.dataValues.fullName = val.repoUrl?.match(regexp)?.[0];
     if (val.type === 2 && val.alternativeProjectId) {
       const githubProject = await GithubProjectsTable.findOne({
         where: {
           id: val.alternativeProjectId,
         },
-        attributes: ['htmlUrl'],
+        attributes: ['htmlUrl', 'fullName'],
       });
       // set alternative project
       val.dataValues.alternativeProjectRepoUrl = githubProject?.htmlUrl;
+      val.dataValues.alternativeProjectFullName = githubProject?.fullName;
     }
   }
   return list;
