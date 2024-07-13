@@ -22,6 +22,7 @@
   "dependencies": {
     "@orginjs/oss-evaluation-data-model": "workspace:^",
     "@orginjs/sonar-cloud-sdk": "workspace:^",
+    "@orginjs/github-sdk": "workspace:^",
     "@tsoa/runtime": "^6.2.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.1",

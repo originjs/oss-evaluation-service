@@ -10,7 +10,7 @@ export class OthersLanguageService implements LanguageSonarScannerInterface {
   param: SonarScanParam;
 
   sonarCommands(): string[] {
-    const owner = this.param.gitOwner;
+    const owner = this.param.owner;
     const repoName = this.param.repoName;
     const dir = `${process.env.REPO_DIR}/${owner}/${repoName}`;
     const sonarCommand = 'sonar-scanner';
@@ -18,7 +18,7 @@ export class OthersLanguageService implements LanguageSonarScannerInterface {
     const scanCommand = `
       cd ${dir} &&\
       ${sonarCommand}\
-      -Dsonar.exclusions='**/*.java'\
+      -Dsonar.exclusions='**/*.java,**/doc/**/*,**/docs/**/*,**/test/**/*,**/tests/**/*'\
       -Dsonar.c.file.suffixes=-\
       -Dsonar.cpp.file.suffixes=-\
       -Dsonar.objc.file.suffixes=-\

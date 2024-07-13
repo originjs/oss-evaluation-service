@@ -1,25 +1,24 @@
-export interface Param {
-  gitOwner: string;
+export interface GitRepoInfo {
+  owner: string;
   repoName: string;
-  language: string;
-  id: number;
+  language?: string;
+  id?: number;
+  cloneUrl?: string;
+  fullName?: string;
 }
 
 export interface SonarProjectInfo {
-  sonarOrg: string;
-  sonarKey: string;
-  sonarHostUrl: string;
-  sonarToken: string;
+  sonarOrg?: string;
+  sonarKey?: string;
+  sonarHostUrl?: string;
+  sonarToken?: string;
 }
 
-export interface GitCloneParam {
-  owner: string;
-  repoName: string;
+export interface CloneConfig {
   pullIfExists?: boolean;
-  cloneUrl?: string;
-  projectId?: number;
-  sonarKey?: string;
   shadowClone?: boolean;
 }
 
-export type SonarScanParam = SonarProjectInfo & Param;
+export type SonarScanParam = SonarProjectInfo & GitRepoInfo & CloneConfig;
+
+export type RepoCloneParam = GitRepoInfo & CloneConfig;

@@ -1,6 +1,6 @@
 import { gql, request } from 'graphql-request';
 import { authorizationHeader } from '../../api-sdk/util.js';
-import { GithubSdk } from '@orginjs/github-sdk/src/sdk.js';
+import GithubSdk from '@orginjs/github-sdk';
 import {
   GithubProjects,
   GithubProjectsDependencies,
