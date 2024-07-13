@@ -19,7 +19,7 @@ function runSonarScanner(info: SonarScanParam): Result<SonarScanParam> {
       // restore changes
       shelljs.exec(restoreCommand);
       logger.error(
-        `${info.gitOwner}/${info.repoName} run command {${command}} failed:${shellResult?.stderr}`,
+        `${info.owner}/${info.repoName} run command {${command}} failed:${shellResult?.stderr}`,
       );
       throw new Error(`sonar scanner failed ${JSON.stringify(info)}`);
     }

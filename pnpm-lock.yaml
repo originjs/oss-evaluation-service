@@ -255,6 +255,9 @@ importers:
 
   packages/repo-service:
     dependencies:
+      '@orginjs/github-sdk':
+        specifier: workspace:^
+        version: link:../api-sdk/github
       '@orginjs/oss-evaluation-data-model':
         specifier: workspace:^
         version: link:../data-model

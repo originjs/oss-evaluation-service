@@ -12,7 +12,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'path';
 import sonarCloudProject from '@orginjs/oss-evaluation-data-model/models/SonarCloudProject.js';
-import GithubSdk from '@orginjs/github-sdk/src/index.js';
+import GithubSdk from '@orginjs/github-sdk';
 import SonarCloudSdk from '@orginjs/sonar-cloud-sdk';
 
 const getRating = rating => {
@@ -374,13 +374,13 @@ export async function sonarScanByProject(githubProject) {
   }
   const url = `${sonarScanHost}/sonar/scan`;
   const body = {
-    gitOwner: githubProject.ownerName,
+    owner: githubProject.ownerName,
     repoName: githubProject.name,
+    id: githubId,
+    language: githubProject.language,
     sonarOrg: process.env.SONAR_ORG_NAME,
     sonarKey: sonarProjectKey,
     sonarHostUrl: 'https://sonarcloud.io',
-    language: githubProject.language,
-    id: githubId,
     sonarToken: process.env.SONAR_CLOUD_TOKEN,
   };
   await fetch(url, {

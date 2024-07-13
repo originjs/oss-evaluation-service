@@ -81,7 +81,7 @@ async function getCodeSizeUsingCloc(project) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      projectId: project.id,
+      id: project.id,
       owner: project.ownerName,
       repoName: project.name,
     }),
