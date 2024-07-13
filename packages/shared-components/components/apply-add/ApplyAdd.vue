@@ -36,6 +36,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   (e: 'apply-success'): void;
   (e: 'apply-fail'): void;
+  (e: 'cancel'): void;
 }>();
 
 const dialogVisible = ref(false);
@@ -116,7 +117,13 @@ function cancelApply() {
   formInstance.value.resetFields();
   dialogVisible.value = false;
   formVisible.value = false;
+  emit('cancel');
 }
+
+defineExpose({
+  submitApplication,
+  cancelApply,
+});
 </script>
 
 <template>
@@ -166,12 +173,14 @@ function cancelApply() {
         <el-form-item v-if="!email" label="邮箱地址" prop="email">
           <el-input v-model="applicationInfo.email" placeholder="请输入你的邮箱地址" />
         </el-form-item>
-        <el-form-item v-if="!showInDialog" class="form-item-operations">
-          <el-button type="primary" :disabled="applicationSubmitting" @click="submitApplication">
-            确定
-          </el-button>
-          <el-button @click="cancelApply">取消</el-button>
-        </el-form-item>
+        <slot name="operation">
+          <el-form-item v-if="!showInDialog" class="form-item-operations">
+            <el-button type="primary" :disabled="applicationSubmitting" @click="submitApplication">
+              确定
+            </el-button>
+            <el-button @click="cancelApply">取消</el-button>
+          </el-form-item>
+        </slot>
       </el-form>
     </DefineTemplate>
 
