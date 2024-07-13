@@ -30,6 +30,10 @@ getProjectsByTechStack('基础库', '序列化').then(response => {
 });
 
 const onRemoveColumn = ({ projectId, version }: ColumnData) => {
+  if (!(projectId && version)) {
+    return;
+  }
+
   projects.value = projects.value.filter(item => {
     if (projectId === item.projectId) {
       return item.selectedVersions.length > 1 && item.selectedVersions.some(v => version !== v);
@@ -88,7 +92,7 @@ watch([projects, benchmarkIndexRaw, benchmarkResult], () => {
       ...item,
       ...pVersionIdToColumn[pVersionId],
       pVersionId,
-      [item.benchmark]: Number(item.rawValue).toFixed(3),
+      [item.benchmark]: item.rawValue,
     };
   }
 
@@ -103,25 +107,29 @@ watch([projects, benchmarkIndexRaw, benchmarkResult], () => {
       minCellValue: '',
     };
 
+    // 单元格
     const cellValueSet = new Set<number>();
     for (const key of Object.keys(pVersionIdToColumn)) {
       const column = pVersionIdToColumn[key];
       const cellValue =
         Number(column[benchmarkIndexItem.indexName] || 0) === 0 // 考虑3种情况：undefined | '' | '0'
           ? EMPTY_VALUE.EMPTY_CELL
-          : (column[benchmarkIndexItem.indexName] as string);
+          : Number(column[benchmarkIndexItem.indexName]).toFixed(3);
       row[column.pVersionId] = cellValue;
       if (cellValue !== EMPTY_VALUE.EMPTY_CELL) {
         cellValueSet.add(Number(cellValue));
       }
     }
 
+    // 值最小的单元格
     if (cellValueSet.size) {
       row.minCellValue = String(Math.min(...cellValueSet));
     }
 
     tableData.push(row);
   });
+
+  // 完整的表格行列数据
   benchmarksResultTableDataRaw.value = tableData;
   benchmarkResultProjectsRaw.value = Object.values(pVersionIdToColumn);
 });
@@ -148,7 +156,7 @@ const benchmarkResultProjects = ref<ColumnData[]>([]); // 实际表格展示的�
 watch([projects, benchmarkResultProjectsRaw, sortedIndexName], () => {
   const res = benchmarkResultProjectsRaw.value.filter(item =>
     projects.value.some(project => {
-      return project.selectedVersions.includes(item.version);
+      return project.selectedVersions.includes(item.version!);
     }),
   );
 
@@ -161,7 +169,7 @@ watch([projects, benchmarkResultProjectsRaw, sortedIndexName], () => {
         return -1;
       }
       if (sortedIndexName.value == 'score') {
-        return b[sortedIndexName.value] - a[sortedIndexName.value];
+        return b[sortedIndexName.value]! - a[sortedIndexName.value]!;
       }
       return (a[sortedIndexName.value!] as number) - (b[sortedIndexName.value!] as number);
     });
@@ -233,14 +241,6 @@ const onClickColumnHeader = (column: ColumnData) => {
 
 <style scoped lang="less">
 @border-color: #e6e6e6;
-
-// el-table滚动条样式
-:deep(.el-scrollbar) {
-  .el-scrollbar__bar.is-horizontal .el-scrollbar__thumb {
-    height: 8px;
-    background-color: #409eff;
-  }
-}
 
 .tools {
   display: flex;

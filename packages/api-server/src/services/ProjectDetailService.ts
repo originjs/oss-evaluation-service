@@ -134,7 +134,8 @@ export async function getPerformanceBenchmark(repoName: string): Promise<Benchma
     if(index_name.display_name is null, benchmark.benchmark, index_name.display_name) as indexName,
        index_name.category as indexCategory,
        benchmark.raw_value as rawValue,
-       unit
+       unit,
+       description
 from benchmark
        left join benchmark_index index_name
               on benchmark.tech_stack = index_name.tech_stack
@@ -155,19 +156,16 @@ order by benchmark.display_name, index_name.order`;
   }
   const map = new Map();
   benchmarkData.forEach(item => {
-    // fill unit(ms,kb..)
-    item.rawValue =
-      !item.rawValue || item.rawValue === -1
-        ? '--'
-        : item.unit
-          ? `${fixedRound(item.rawValue, 2)} ${item.unit}`
-          : `${fixedRound(item.rawValue, 2)}`;
-    const { displayName, indexName, rawValue, indexCategory } = item;
+    const { displayName, indexName, indexCategory, unit, description } = item;
+    let { rawValue } = item;
+    if (_.isNumber(rawValue)) {
+      rawValue = fixedRound(rawValue, 3);
+    }
     if (!map.has(displayName)) {
       map.set(displayName, []);
     }
     const data = map.get(displayName);
-    data.push({ displayName, indexName, rawValue, indexCategory });
+    data.push({ displayName, indexName, rawValue, indexCategory, unit, description });
   });
   const queryBase = `
   select if(index_name.display_name is null, benchmark.benchmark, index_name.display_name) as indexName,

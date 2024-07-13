@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Plus, Download } from '@element-plus/icons-vue';
-import type { CellStyle, TableColumnCtx } from 'element-plus';
 import { ElMessage } from 'element-plus';
 import * as echarts from 'echarts';
 import type {
@@ -55,6 +54,8 @@ import worldMap from '../../assets/json/worldMap.json';
 import countriesNameMap from '../../assets/json/countriesNameMap.json';
 import countriesInfo from '../../assets/json/countriesInfo.json';
 import { ApplyAdd } from '../apply-add';
+import type { ColumnData, RowData } from '../benchmark-compare/BenchmarkCompareTable.vue';
+import BenchmarkCompareTable, { EMPTY_VALUE } from '../benchmark-compare/BenchmarkCompareTable.vue';
 
 dayjs.extend(relativeTime);
 const props = defineProps<{ repoName: string }>();
@@ -719,13 +720,6 @@ watch(geoActiveTab, tab => {
   });
 });
 
-const showBenchmarkCompare = ref(true);
-
-// remove unit: `999 ms`
-function removeUnit(str: string) {
-  return Number(str.split(' ')[0]);
-}
-
 const performanceModuleInfo = ref<PerformanceInfo>({
   size: 0,
   gzipSize: 0,
@@ -734,14 +728,8 @@ const performanceModuleInfo = ref<PerformanceInfo>({
   benchmarkData: { data: [], base: [] },
 });
 
-type BenchmarkCompareRow = Record<string, string | null>;
-type BenchmarkCompareData = Record<string, BenchmarkCompareRow>;
-type MinRowValue = Record<string, number>;
-
-const benchmarkCompareRows = ref<BenchmarkCompareData>({});
-const benchmarkCompareColumns = ref<Set<string>>(new Set(['indexName']));
-const minRowValue = ref<MinRowValue>({});
-const benchmarkCompareTable = computed(() => Object.values(benchmarkCompareRows.value));
+const benchmarkCompareRows = ref<RowData[]>([]);
+const benchmarkCompareColumns = ref<ColumnData[]>([]);
 
 watchEffect(async () => {
   const { data } = await getPerformanceModuleInfo(encodedRepoName.value);
@@ -750,100 +738,46 @@ watchEffect(async () => {
 });
 
 // Extract table row, min row value and column name from object array data
-function processBenchmarkData(benchmarkData?: BenchmarkData, needRetain?: boolean) {
-  const rows: BenchmarkCompareData = needRetain ? { ...benchmarkCompareRows.value } : {};
-  const columns: Set<string> = needRetain
-    ? new Set([...benchmarkCompareColumns.value])
-    : new Set(['indexName']);
+function processBenchmarkData(benchmarkData?: BenchmarkData) {
+  const rowMap: { [k: string]: RowData } = {};
+  const columnMap: { [k: string]: ColumnData } = {};
+
+  // get min row value
+  const indexNameToMinCellValueMap: { [k: string]: string } = {};
+  (benchmarkData?.base || []).forEach(
+    item => (indexNameToMinCellValueMap[item.indexName] = String(item.bestVal)),
+  );
+
   const data = benchmarkData?.data || [];
-  showBenchmarkCompare.value = data.length !== 0;
   for (let i = 0; i < data.length; i++) {
     for (let j = 0; j < data[i].length; j++) {
-      const indexName = data[i][j].indexName;
-      const displayName = data[i][j].displayName;
-      const rawValue = data[i][j].rawValue;
-      const indexCategory = data[i][j].indexCategory;
+      const { indexName, displayName, rawValue, indexCategory, unit } = data[i][j];
       if (indexName && displayName) {
         // get row
-        let row = rows[indexName] || { indexName, indexCategory };
-        row = { ...row, [displayName]: rawValue };
-        rows[indexName] = row;
+        rowMap[indexName] = {
+          ...rowMap[indexName],
+          ...data[i][j],
+          benchmarkName: unit ? `${indexName} (${unit})` : indexName,
+          category: indexCategory,
+          minCellValue: indexNameToMinCellValueMap[indexName],
+          [displayName]:
+            Number(rawValue || 0) === 0 // 考虑3种情况：undefined | '' | '0'
+              ? EMPTY_VALUE.EMPTY_CELL
+              : Number(rawValue).toFixed(3),
+        } as RowData;
 
         // get column
-        columns.add(displayName);
+        columnMap[displayName] = {
+          projectName: displayName,
+          pVersionId: displayName,
+        };
       }
     }
   }
-  benchmarkCompareRows.value = rows;
-  benchmarkCompareColumns.value = columns;
 
-  // get min row value
-  const minRowV: MinRowValue = needRetain ? { ...minRowValue.value } : {};
-  (benchmarkData?.base || []).forEach(item => (minRowV[item.indexName] = item.bestVal));
-  minRowValue.value = minRowV;
+  benchmarkCompareRows.value = Object.values(rowMap);
+  benchmarkCompareColumns.value = Object.values(columnMap);
 }
-
-const computeColor: CellStyle<BenchmarkCompareRow> = function ({ row, column }) {
-  const cellVal = row[column.property];
-  if (column.property === 'indexName' || !cellVal) {
-    return {};
-  }
-  const min = minRowValue.value[row.indexName!];
-  const factor = removeUnit(cellVal) / min;
-  if (factor < 2.0) {
-    const a = factor - 1.0;
-    const r = (1.0 - a) * 99 + a * 255;
-    const g = (1.0 - a) * 191 + a * 236;
-    const b = (1.0 - a) * 124 + a * 132;
-    return {
-      backgroundColor: `rgb(${r.toFixed(0)}, ${g.toFixed(0)}, ${b.toFixed(0)})`,
-      padding: '0',
-    };
-  } else {
-    const a = Math.min((factor - 2.0) / 2.0, 1.0);
-    const r = (1.0 - a) * 255 + a * 249;
-    const g = (1.0 - a) * 236 + a * 105;
-    const b = (1.0 - a) * 132 + a * 108;
-    return {
-      backgroundColor: `rgb(${r.toFixed(0)}, ${g.toFixed(0)}, ${b.toFixed(0)})`,
-      padding: '0',
-    };
-  }
-};
-
-interface SpanMethodProps {
-  row: { indexCategory: string };
-  column: TableColumnCtx<{ indexCategory: string }>;
-  rowIndex: number;
-  columnIndex: number;
-}
-let rowLen = 1;
-const objectSpanMethod = ({ rowIndex, columnIndex }: SpanMethodProps) => {
-  if (columnIndex === 0) {
-    if (rowLen > 1) {
-      rowLen--;
-      return {
-        rowspan: 0,
-        colspan: 0,
-      };
-    }
-    let nextIndex = rowIndex + 1;
-    while (
-      rowIndex < benchmarkCompareTable.value.length &&
-      benchmarkCompareTable.value[rowIndex]?.indexCategory &&
-      benchmarkCompareTable.value[nextIndex]?.indexCategory &&
-      benchmarkCompareTable.value[rowIndex].indexCategory ===
-        benchmarkCompareTable.value[nextIndex].indexCategory
-    ) {
-      nextIndex++;
-      rowLen++;
-    }
-    return {
-      rowspan: rowLen,
-      colspan: 1,
-    };
-  }
-};
 
 function renderLineChart(container: string, data: EcologyActivity[]) {
   const chartDom = softwareDetailsEl.value?.querySelector(container);
@@ -1235,7 +1169,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
       </el-card>
-      <div v-if="performanceModuleInfo.packageName || showBenchmarkCompare">
+      <div v-if="performanceModuleInfo.packageName || benchmarkCompareRows.length">
         <div id="performance" mt-4 mb-4 font-size-7 font-bold line-height-normal>
           <span class="i-line-md-speedometer-loop" mr-2 />
           <span>性能</span>
@@ -1275,52 +1209,11 @@ onBeforeUnmount(() => {
               </div>
             </div>
           </div>
-          <div v-show="showBenchmarkCompare">
-            <el-table
-              :data="benchmarkCompareTable"
-              class="results"
-              border
-              :cell-style="computeColor"
-              :span-method="objectSpanMethod"
-            >
-              <el-table-column :width="50" fixed prop="category" label="分类">
-                <template #header><div class="write-vertical-left">分类</div></template>
-                <template #default="{ row }">
-                  <div class="write-vertical-left">{{ row.indexCategory }}</div>
-                </template>
-              </el-table-column>
-              <el-table-column
-                v-for="column in benchmarkCompareColumns"
-                :key="column"
-                :width="column === 'indexName' ? 300 : 'auto'"
-                :prop="column"
-                :class-name="column === 'indexName' ? '' : 'benchmark-value-cell'"
-              >
-                <template #header>
-                  <div class="flex items-center justify-center">
-                    <span v-if="column === 'indexName'">指标</span>
-                    <span v-else style="font-weight: bold; color: var(--el-text-color-regular)">{{
-                      column
-                    }}</span>
-                  </div>
-                </template>
-                <template #default="{ row }">
-                  <div v-if="column === 'indexName'">
-                    <span>{{ row[column] }}</span>
-                  </div>
-                  <div v-else-if="row[column]" class="text-center">
-                    <div class="font-size-3 h4.5 font-500">{{ row[column] }}</div>
-                    <div
-                      v-if="row[column] !== '--'"
-                      class="flex items-center justify-center font-size-2.5"
-                    >
-                      ({{ (removeUnit(row[column]) / minRowValue[row.indexName]).toFixed(2) }})
-                    </div>
-                  </div>
-                </template>
-              </el-table-column>
-            </el-table>
-          </div>
+          <BenchmarkCompareTable
+            v-show="benchmarkCompareRows.length"
+            :rows="benchmarkCompareRows"
+            :columns="benchmarkCompareColumns"
+          />
         </el-card>
       </div>
       <div id="quality" mt-4 mb-4 font-size-7 font-bold line-height-normal>

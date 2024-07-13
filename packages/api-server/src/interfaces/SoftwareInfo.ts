@@ -153,8 +153,10 @@ export interface BenchmarkData {
   data: {
     displayName: string;
     indexName: string;
-    indexCategory: string | null;
-    rawValue: null | string;
+    unit: string;
+    description?: string;
+    indexCategory?: string;
+    rawValue?: string;
   }[][];
 }
 
@@ -181,7 +183,7 @@ export interface BenchmarkResult {
 }
 
 export interface BenchmarkIndex {
-  indexName: keyof BenchmarkResult;
+  indexName: string;
   displayName: string;
   unit: string;
   category?: string;
