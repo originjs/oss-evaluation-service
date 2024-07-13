@@ -5,7 +5,7 @@ import {
   getApplyRecordByEmployeeNumber,
   newProjectApply,
 } from '../services/NewProjectApplyService.js';
-import type { Result } from '../utils/result.js';
+import { Result } from '../utils/result.js';
 
 @Tags('新软件申请')
 @Route('newProjectApply')
@@ -22,6 +22,6 @@ export class NewProjectApplyController extends Controller {
 
   @Get('getApplyRecord')
   public async getApplyRecordByEmployeeNumber(@Query() employeeNumber: string) {
-    return getApplyRecordByEmployeeNumber(employeeNumber);
+    return Result.ignoreErrorWithDefault(() => getApplyRecordByEmployeeNumber(employeeNumber), {});
   }
 }
