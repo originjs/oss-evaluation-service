@@ -111,7 +111,20 @@ function compare() {
   //cleanCompareFavorites();
 }
 
-defineExpose({ addProject });
+function togglePanelVisible(visible?: boolean) {
+  if (typeof visible === 'boolean') {
+    visible ? expandPanel() : collapsePanel();
+  } else if (panelState.value === PanelState.expand) {
+    collapsePanel();
+  } else {
+    expandPanel();
+  }
+}
+
+defineExpose({
+  addProject,
+  togglePanelVisible,
+});
 </script>
 
 <template>
