@@ -13,7 +13,7 @@ import {
 import ChooseProjectsDialog from './ChooseProjectsDialog.vue';
 import ChooseBenchmarkDialog from './ChooseBenchmarkDialog.vue';
 import BenchmarkCompareTable, { EMPTY_VALUE } from './BenchmarkCompareTable.vue';
-import type { RowData, ColumnData } from './BenchmarkCompareTable.vue';
+import type { RowData, ColumnData, CallbackFnParams } from './BenchmarkCompareTable.vue';
 
 const chooseProjectsRef = ref<InstanceType<typeof ChooseProjectsDialog>>();
 let projectsRaw = ref<Array<SoftwareBaseInfo & { selected?: boolean }>>([]); // 原始数据，用来展示所有可选项目
@@ -144,12 +144,18 @@ watch([benchmarkIndex, benchmarksResultTableDataRaw], () => {
 });
 
 const sortedIndexName = ref<keyof ColumnData>();
-const onClickIndexName = (indexName: keyof ColumnData) => {
-  if (sortedIndexName.value === indexName) {
-    sortedIndexName.value = undefined;
+const onClickIndexName = ({ row: { benchmarkName, indexName } }: CallbackFnParams) => {
+  if (benchmarkName === '版本') {
     return;
   }
-  sortedIndexName.value = indexName;
+
+  return () => {
+    if (sortedIndexName.value === indexName) {
+      sortedIndexName.value = undefined;
+      return;
+    }
+    sortedIndexName.value = indexName;
+  };
 };
 
 const benchmarkResultProjects = ref<ColumnData[]>([]); // 实际表格展示的列，根据选中的项目，并基于原始表格数据计算更新
@@ -223,7 +229,16 @@ const onClickColumnHeader = (column: ColumnData) => {
         onClickIndexName,
         onRemoveColumn,
       }"
-    />
+    >
+      <template #index-content="{ row, column }">
+        <div
+          v-if="row.benchmarkName === '得分' || row.benchmarkName === '版本'"
+          class="text-center"
+        >
+          {{ row[column.pVersionId] }}
+        </div>
+      </template>
+    </BenchmarkCompareTable>
 
     <ChooseProjectsDialog
       ref="chooseProjectsRef"
