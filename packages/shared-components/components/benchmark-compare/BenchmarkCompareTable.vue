@@ -5,13 +5,16 @@ export enum EMPTY_VALUE {
   EMPTY_CELL = '--',
 }
 
-export type RowData = BenchmarkIndex & {
-  benchmarkName: string;
-  minCellValue: string;
-  [k: string]: string | EMPTY_VALUE.EMPTY_CELL;
-};
+type requiredRowKey = 'category' | 'description' | 'indexName' | 'unit';
+export type RowData = Partial<Omit<BenchmarkIndex, requiredRowKey>> &
+  Pick<BenchmarkIndex, requiredRowKey> & {
+    benchmarkName: string;
+    minCellValue: string;
+    [k: string]: string | EMPTY_VALUE.EMPTY_CELL;
+  };
 
-export type ColumnData = BenchmarkResult & { pVersionId: string };
+export type ColumnData = Partial<Omit<BenchmarkResult, 'projectName'>> &
+  Pick<BenchmarkResult, 'projectName'> & { pVersionId: string; [k: string]: string | number };
 </script>
 
 <script setup lang="ts">
@@ -22,12 +25,17 @@ const props = defineProps<{
   columns: ColumnData[];
   sortedIndexName?: keyof ColumnData;
   options?: {
+    indexNameWidth?: number;
     onClickColumnHeader?: (column: ColumnData) => void;
     onRemoveColumn?: (column: ColumnData) => void;
     onClickIndexName?: (indexName: keyof ColumnData) => void;
   };
 }>();
-const { rows, columns, sortedIndexName, options } = toRefs(props);
+const { rows, columns, sortedIndexName } = toRefs(props);
+const options = computed(() => ({
+  indexNameWidth: 260,
+  ...(props.options || {}),
+}));
 
 interface SpanMethodProps {
   rowIndex: number;
@@ -99,7 +107,7 @@ const computeColor: (row: RowData, column: ColumnData) => string = (row, column)
         ><div class="write-vertical-left">{{ row.category }}</div></template
       >
     </el-table-column>
-    <el-table-column prop="benchmarkName" label="指标" fixed width="260">
+    <el-table-column prop="benchmarkName" label="指标" fixed :width="options.indexNameWidth">
       <template #default="{ row }">
         <div class="relative flex justify-between">
           <el-tooltip :content="row.description || row.benchmarkName">
@@ -172,6 +180,14 @@ const computeColor: (row: RowData, column: ColumnData) => string = (row, column)
 </template>
 
 <style scoped lang="less">
+// el-table滚动条样式
+:deep(.el-scrollbar) {
+  .el-scrollbar__bar.is-horizontal .el-scrollbar__thumb {
+    height: 8px;
+    background-color: #409eff;
+  }
+}
+
 :deep(.benchmark-value-cell .cell) {
   padding: 0;
 }
