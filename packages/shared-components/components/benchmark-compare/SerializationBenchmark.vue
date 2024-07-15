@@ -92,7 +92,7 @@ watch([projects, benchmarkIndexRaw, benchmarkResult], () => {
       ...item,
       ...pVersionIdToColumn[pVersionId],
       pVersionId,
-      [item.benchmark]: item.rawValue,
+      [item.benchmark]: Number(item.rawValue).toFixed(3),
     };
   }
 
@@ -114,7 +114,7 @@ watch([projects, benchmarkIndexRaw, benchmarkResult], () => {
       const cellValue =
         Number(column[benchmarkIndexItem.indexName] || 0) === 0 // 考虑3种情况：undefined | '' | '0'
           ? EMPTY_VALUE.EMPTY_CELL
-          : Number(column[benchmarkIndexItem.indexName]).toFixed(3);
+          : (column[benchmarkIndexItem.indexName] as string);
       row[column.pVersionId] = cellValue;
       if (cellValue !== EMPTY_VALUE.EMPTY_CELL) {
         cellValueSet.add(Number(cellValue));
