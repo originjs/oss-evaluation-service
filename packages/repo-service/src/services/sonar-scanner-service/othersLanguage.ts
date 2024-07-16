@@ -18,7 +18,7 @@ export class OthersLanguageService implements LanguageSonarScannerInterface {
     const scanCommand = `
       cd ${dir} &&\
       ${sonarCommand}\
-      -Dsonar.exclusions='**/*.java,**/doc/**/*,**/docs/**/*,**/test/**/*,**/tests/**/*'\
+      -Dsonar.exclusions='**/*.java,**/doc/**/*,**/docs/**/*,**/*test*/**/*,**/*example*/**/*'\
       -Dsonar.c.file.suffixes=-\
       -Dsonar.cpp.file.suffixes=-\
       -Dsonar.objc.file.suffixes=-\
