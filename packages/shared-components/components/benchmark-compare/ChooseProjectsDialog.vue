@@ -1,157 +1,87 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus';
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 import type { SoftwareBaseInfo } from '@orginjs/oss-evaluation-components-api';
 import { Search } from '@element-plus/icons-vue';
 
-interface ProjectInfo extends SoftwareBaseInfo {
-  selected: boolean;
-  forksCount: number;
-}
+const props = defineProps<{
+  projectsRaw: SoftwareBaseInfo[];
+}>();
+const { projectsRaw } = toRefs(props);
 
-const isSelectedAll = ref(true);
+const projects = defineModel<SoftwareBaseInfo[]>('projects', { required: true });
+
 const onlyShowHasBenchmark = ref(true);
-const showProjects = ref<ProjectInfo[]>();
-let _projects: ProjectInfo[] = [];
 const searchKeyWord = ref('');
-
-const props = defineProps({
-  projects: {
-    type: Array<SoftwareBaseInfo>,
-    require: true,
-  },
-  value: {
-    type: Boolean,
-    defalut: false,
-    require: true,
-  },
+const showProjects = computed<SoftwareBaseInfo[]>(() => {
+  return projectsRaw.value
+    .filter(project => (onlyShowHasBenchmark.value ? project.version : true))
+    .filter(project => project.repoName?.toLowerCase().includes(searchKeyWord.value.toLowerCase()));
 });
 
-const emit = defineEmits<{ (e: 'changeProjects', projects: ProjectInfo[]): void }>();
-
-const getShowProjects = () => {
-  if (!onlyShowHasBenchmark.value) {
-    showProjects.value = _projects;
-    return;
-  }
-  showProjects.value = _projects.filter(project => project.version);
+const findProjectIndex = (projectId?: string) => {
+  return projects.value.findIndex(project => project.projectId === projectId);
 };
 
-watch(
-  () => props.projects,
-  () => {
-    _projects = [];
-    props.projects?.forEach(project => {
-      const _project = project as ProjectInfo;
-      _project['selected'] = false;
-      if (_project.version) {
-        _project['selected'] = true;
-        //_project.selectedVersions = [_project["versionList"][0]];
-      }
-      _projects.push(_project);
-    });
-    getShowProjects();
-  },
-);
-
-const chooseProject = (project: ProjectInfo) => {
+const chooseProject = (project: SoftwareBaseInfo) => {
   if (!project.version) {
-    ElMessage.error('系统缺少评测数据，你可以提交评测申请，我们会尽快处理。');
+    ElMessage.warning('系统缺少评测数据，你可以提交评测申请，我们会尽快处理。');
     return;
   }
-  if (!project.selected && !project.selectedVersions.length) {
-    ElMessage.error('至少选择一个版本');
+
+  const index = findProjectIndex(project.projectId);
+  if (index === -1 && !project.selectedVersions.length) {
+    ElMessage.warning('至少选择一个版本');
     return;
   }
-  project.selected = !project.selected;
-  emit(
-    'changeProjects',
-    showProjects.value!.filter(p => p.selected),
-  );
+
+  if (index === -1) {
+    projects.value.push(project);
+  } else {
+    projects.value.splice(index, 1);
+  }
 };
 
+const isSelectedAll = ref(true);
 const selectAll = () => {
-  showProjects.value?.forEach(project => {
-    if (!isSelectedAll.value || !project.version) {
-      project.selected = false;
-      return;
-    }
+  if (!isSelectedAll.value) {
+    projects.value = [];
+  }
 
-    if (project.selectedVersions.length == 0) {
+  for (const project of showProjects.value) {
+    if (!project.version) {
+      continue;
+    }
+    if (project.selectedVersions.length === 0) {
       project.selectedVersions.push(project.versionList[0]);
     }
-    project.selected = true;
-  });
-
-  emit(
-    'changeProjects',
-    showProjects.value!.filter(p => p.selected),
-  );
-};
-
-const search = (value: string) => {
-  if (!value) {
-    showProjects.value = _projects;
-    return;
+    projects.value.push(project);
   }
-  showProjects.value = _projects.filter(project => project.repoName?.includes(value));
 };
 
-const changeSelectedVersion = (project: ProjectInfo) => {
+const changeSelectedVersion = (project: SoftwareBaseInfo) => {
   if (!project.selectedVersions.length) {
-    project.selected = false;
+    projects.value.splice(findProjectIndex(project.projectId), 1);
   }
-  emit(
-    'changeProjects',
-    showProjects.value!.filter(p => p.selected),
-  );
 };
-
-type CancelProject =
-  | SoftwareBaseInfo
-  | {
-      projectId: string;
-      version: string;
-    };
-const cancelSelectedProject = (project: CancelProject) => {
-  showProjects.value?.forEach(p => {
-    if (p.projectId !== project.projectId) {
-      return;
-    }
-
-    if (p.selectedVersions.length <= 1) {
-      p.selected = false;
-      return;
-    }
-
-    p.selectedVersions = p.selectedVersions.filter(v => v !== project.version);
-  });
-};
-
-defineExpose({ cancelSelectedProject });
 </script>
 
 <template>
-  <el-dialog title="Choose projects" class="choose-projects-dialog">
+  <el-dialog class="choose-projects-dialog" style="min-width: 900px">
     <template #header>
       <div flex flex-items-center>
-        <h4 font-size-18px fw-400 mr-20px>选择要显示的项目</h4>
+        <h4 font-size-18px fw-400 mr-20px>选择要显示的软件</h4>
         <el-checkbox v-model="isSelectedAll" label="全选" @change="selectAll" />
-        <el-checkbox
-          v-model="onlyShowHasBenchmark"
-          label="仅显示有评测数据的项目"
-          @change="getShowProjects"
-        />
+        <el-checkbox v-model="onlyShowHasBenchmark" label="仅显示有评测数据的软件" />
         <el-input
           v-model="searchKeyWord"
           :prefix-icon="Search"
           class="ml-2"
           style="width: 180px"
           size="small"
-          placeholder="Please input project name"
-          @change="search"
+          placeholder="请输入软件名称"
         />
-        <div ml-20px flex flex-items-center>开源项目总数：{{ showProjects?.length }}</div>
+        <div ml-20px flex flex-items-center>开源软件总数：{{ showProjects?.length }}</div>
       </div>
     </template>
     <div overflow-y-scroll h-lg>
@@ -162,7 +92,10 @@ defineExpose({ cancelSelectedProject });
         items-center
         h-80px
         class="project"
-        :class="{ selected: item.selected, disable: !item.version }"
+        :class="{
+          selected: findProjectIndex(item.projectId) !== -1,
+          disable: !item.version,
+        }"
         @click="chooseProject(item)"
       >
         <el-image :src="item.logo" fit="contain" class="w-64px h-64px mr-14px">
@@ -171,19 +104,19 @@ defineExpose({ cancelSelectedProject });
               <el-icon font-size-7 color-gray-400>
                 <Picture />
               </el-icon>
-            </div> </template
-          >ost
+            </div>
+          </template>
         </el-image>
         <div flex flex-col flex-1>
           <div flex items-center justify-between>
             <div flex>
               <b mr-12px font-size-18px>{{ item.repoName }}</b>
               <span mr-4 flex items-center>
-                <div i-custom:star font-size-5 mr-1></div>
+                <span i-custom:star font-size-5 mr-1></span>
                 {{ item.star }}
               </span>
               <span mr-4 flex items-center>
-                <div i-custom:fork font-size-5 mr-1></div>
+                <span i-custom:fork font-size-5 mr-1></span>
                 {{ item.forksCount }}
               </span>
             </div>
@@ -191,11 +124,11 @@ defineExpose({ cancelSelectedProject });
               <span mr-4 flex items-center>
                 <el-select
                   v-model="item.selectedVersions"
-                  placeholder="Select version"
+                  placeholder="选择版本"
                   size="small"
                   collapse-tags
                   collapse-tags-tooltip
-                  style="width: 120px"
+                  style="width: 220px"
                   multiple
                   @change="changeSelectedVersion(item)"
                 >
@@ -217,7 +150,7 @@ defineExpose({ cancelSelectedProject });
           </el-text>
         </div>
         <div
-          v-if="item.selected"
+          v-if="findProjectIndex(item.projectId) !== -1"
           i-custom:choose
           font-size-12
           position-absolute
@@ -233,7 +166,7 @@ defineExpose({ cancelSelectedProject });
 .choose-projects-dialog {
   .project {
     border: 1px solid #ccc;
-    padding: 0px 10px;
+    padding: 0 10px;
     margin-bottom: 5px;
     position: relative;
 
@@ -248,6 +181,7 @@ defineExpose({ cancelSelectedProject });
   }
 
   .disable {
+    cursor: not-allowed;
     background-color: #f2f2f2;
 
     &:hover {

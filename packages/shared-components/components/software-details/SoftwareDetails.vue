@@ -769,7 +769,7 @@ function processBenchmarkData(benchmarkData?: BenchmarkData) {
         // get column
         columnMap[displayName] = {
           projectName: displayName,
-          pVersionId: displayName,
+          prop: displayName,
         };
       }
     }
