@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { TabsPaneContext } from 'element-plus';
 import FrameworkBenchmark from './FrameworkBenchmark.vue';
 import BundlerBenchmark from './BundlerBenchmark.vue';
 import TestFrameworkBenchmark from './TestFrameworkBenchmark.vue';
@@ -10,11 +9,6 @@ import { createReusableTemplate } from '@vueuse/core';
 const [DefineTemplate, ReuseTemplate] = createReusableTemplate();
 
 const activeName = ref('frameworks');
-
-const handleClick = (tab: TabsPaneContext, event: Event) => {
-  /* eslint-disable no-console */
-  console.log(tab, event);
-};
 </script>
 
 <template>
@@ -31,7 +25,7 @@ const handleClick = (tab: TabsPaneContext, event: Event) => {
         </ApplyAdd>
       </slot>
     </DefineTemplate>
-    <el-tabs v-model="activeName" @tab-click="handleClick">
+    <el-tabs v-model="activeName">
       <el-tab-pane label="前端框架" name="frameworks">
         <FrameworkBenchmark>
           <template #application>

@@ -15,6 +15,7 @@ export interface SoftwareBaseInfo {
   versionList: string[];
   selectedVersion: string;
   selectedVersions: string[];
+  forksCount: number;
 }
 
 export interface SoftwareInfo extends SoftwareBaseInfo {

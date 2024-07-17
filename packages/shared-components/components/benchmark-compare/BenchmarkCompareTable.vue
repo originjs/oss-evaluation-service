@@ -14,24 +14,24 @@ export type RowData = Partial<Omit<BenchmarkIndex, requiredRowKey>> &
   };
 
 export type ColumnData = Partial<Omit<BenchmarkResult, 'projectName'>> &
-  Pick<BenchmarkResult, 'projectName'> & { pVersionId: string; [k: string]: string | number };
+  Pick<BenchmarkResult, 'projectName'> & { prop: string; [k: string]: string | number };
 
 export type CallbackFnParams = { row: RowData; column: ColumnData };
+export type CallbackFn<T> = (params: CallbackFnParams) => T | void;
 </script>
 
 <script setup lang="ts">
 import { Close } from '@element-plus/icons-vue';
 
-type CallbackFn<T> = (params: CallbackFnParams) => T | void;
 const props = defineProps<{
   rows: RowData[];
   columns: ColumnData[];
   sortedIndexName?: keyof ColumnData;
   options?: {
     indexNameWidth?: number;
-    onClickColumnHeader?: (column: ColumnData) => void;
-    onRemoveColumn?: (column: ColumnData) => void;
-    onClickIndexName?: CallbackFn<() => void>;
+    clickColumnHeader?: (column: ColumnData) => void;
+    removeColumn?: (column: ColumnData) => void;
+    clickIndexName?: CallbackFn<() => void>;
   };
 }>();
 const { rows, columns, sortedIndexName } = toRefs(props);
@@ -75,7 +75,7 @@ const objectSpanMethod = ({ rowIndex, columnIndex }: SpanMethodProps) => {
 const hoveringIndexName = ref('');
 
 const computeColor: (row: RowData, column: ColumnData) => string = (row, column) => {
-  const cellVal = Number(row[column.pVersionId]);
+  const cellVal = Number(row[column.prop]);
   const min = Number(row.minCellValue);
   const factor = cellVal / min;
   let a, r, g, b;
@@ -117,59 +117,59 @@ const computeColor: (row: RowData, column: ColumnData) => string = (row, column)
             <span class="flex-1">{{ row.benchmarkName }}</span>
           </el-tooltip>
           <span
-            v-if="options?.onClickIndexName?.({ row, column })"
+            v-if="options?.clickIndexName?.({ row, column })"
             v-show="hoveringIndexName === row.indexName || sortedIndexName === row.indexName"
             :class="{
-              'cursor-pointer': options.onClickIndexName,
+              'cursor-pointer': options.clickIndexName,
               'i-custom:sorted-thumb': sortedIndexName === row.indexName,
               'i-custom:sort-thumb': sortedIndexName !== row.indexName,
             }"
             class="right-[-6px] absolute top-50% transform-translate-y-[-50%] ml-2 h-5 w-5"
-            @click="options.onClickIndexName({ row, column })?.()"
+            @click="options.clickIndexName({ row, column })?.()"
           />
         </div>
       </template>
     </el-table-column>
     <el-table-column
       v-for="column of columns"
-      :key="column.pVersionId"
-      :prop="column.pVersionId"
+      :key="column.prop"
+      :prop="column.prop"
       :label="column.projectName"
       class-name="benchmark-value-cell"
     >
       <template #header>
         <div class="text-center">
           <el-link
-            v-if="options?.onClickColumnHeader"
+            v-if="options?.clickColumnHeader"
             :underline="false"
             target="_blank"
             class="font-bold"
-            @click="options?.onClickColumnHeader(column)"
+            @click="options?.clickColumnHeader(column)"
           >
             {{ column.projectName }}
           </el-link>
           <span v-else class="font-bold">{{ column.projectName }}</span>
           <el-icon
-            v-if="options?.onRemoveColumn"
+            v-if="options?.removeColumn"
             class="cursor-pointer hover-color-#F56C6C"
-            @click="options?.onRemoveColumn(column)"
+            @click="options?.removeColumn(column)"
           >
             <Close />
           </el-icon>
         </div>
       </template>
       <template #default="{ row }">
-        <slot name="index-content" :row="row" :column="column">
-          <div v-if="row[column.pVersionId] === EMPTY_VALUE.EMPTY_CELL" class="text-center">
-            <div class="font-size-3 h4.5 font-500">{{ row[column.pVersionId] }}</div>
+        <slot name="cell-content" :row="row" :column="column">
+          <div v-if="row[column.prop] === EMPTY_VALUE.EMPTY_CELL" class="text-center">
+            <div class="font-size-3 h4.5 font-500">{{ row[column.prop] }}</div>
           </div>
           <div v-else :style="computeColor(row, column)" class="text-center">
-            <div class="font-size-3 h4.5 font-500">{{ row[column.pVersionId] }}{{ row.unit }}</div>
+            <div class="font-size-3 h4.5 font-500">{{ row[column.prop] }}{{ row.unit }}</div>
             <div
               class="flex items-center justify-center font-size-2.5"
-              :class="{ good: Number(row.minCellValue) === Number(row[column.pVersionId]) }"
+              :class="{ good: Number(row.minCellValue) === Number(row[column.prop]) }"
             >
-              ({{ (row[column.pVersionId] / row.minCellValue).toFixed(2) }})
+              ({{ (row[column.prop] / row.minCellValue).toFixed(2) }})
             </div>
           </div>
         </slot>
