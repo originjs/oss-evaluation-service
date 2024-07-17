@@ -24,7 +24,7 @@ const props = defineProps<{
 }>();
 
 const envInfo = ref<string>();
-getProjectsByTechStack('基础库', '序列化').then(response => {
+getProjectsByTechStack('基础库', '序列化-JSON').then(response => {
   projectsRaw.value = [...response.data]; // 使用 ... 运算符断开引用，防止原始数据被修改
   projects.value = response.data;
 });
