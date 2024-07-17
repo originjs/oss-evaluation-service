@@ -15,11 +15,14 @@ export type RowData = Partial<Omit<BenchmarkIndex, requiredRowKey>> &
 
 export type ColumnData = Partial<Omit<BenchmarkResult, 'projectName'>> &
   Pick<BenchmarkResult, 'projectName'> & { pVersionId: string; [k: string]: string | number };
+
+export type CallbackFnParams = { row: RowData; column: ColumnData };
 </script>
 
 <script setup lang="ts">
 import { Close } from '@element-plus/icons-vue';
 
+type CallbackFn<T> = (params: CallbackFnParams) => T | void;
 const props = defineProps<{
   rows: RowData[];
   columns: ColumnData[];
@@ -28,7 +31,7 @@ const props = defineProps<{
     indexNameWidth?: number;
     onClickColumnHeader?: (column: ColumnData) => void;
     onRemoveColumn?: (column: ColumnData) => void;
-    onClickIndexName?: (indexName: keyof ColumnData) => void;
+    onClickIndexName?: CallbackFn<() => void>;
   };
 }>();
 const { rows, columns, sortedIndexName } = toRefs(props);
@@ -108,13 +111,13 @@ const computeColor: (row: RowData, column: ColumnData) => string = (row, column)
       >
     </el-table-column>
     <el-table-column prop="benchmarkName" label="指标" fixed :width="options.indexNameWidth">
-      <template #default="{ row }">
+      <template #default="{ row, column }">
         <div class="relative flex justify-between">
           <el-tooltip :content="row.description || row.benchmarkName">
             <span class="flex-1">{{ row.benchmarkName }}</span>
           </el-tooltip>
           <span
-            v-if="options?.onClickIndexName && row.benchmarkName != '版本'"
+            v-if="options?.onClickIndexName?.({ row, column })"
             v-show="hoveringIndexName === row.indexName || sortedIndexName === row.indexName"
             :class="{
               'cursor-pointer': options.onClickIndexName,
@@ -122,7 +125,7 @@ const computeColor: (row: RowData, column: ColumnData) => string = (row, column)
               'i-custom:sort-thumb': sortedIndexName !== row.indexName,
             }"
             class="right-[-6px] absolute top-50% transform-translate-y-[-50%] ml-2 h-5 w-5"
-            @click="options.onClickIndexName(row.indexName)"
+            @click="options.onClickIndexName({ row, column })?.()"
           />
         </div>
       </template>
@@ -156,24 +159,20 @@ const computeColor: (row: RowData, column: ColumnData) => string = (row, column)
         </div>
       </template>
       <template #default="{ row }">
-        <div
-          v-if="row.benchmarkName === '得分' || row.benchmarkName === '版本'"
-          class="text-center"
-        >
-          {{ row[column.pVersionId] }}
-        </div>
-        <div v-else-if="row[column.pVersionId] === EMPTY_VALUE.EMPTY_CELL" class="text-center">
-          <div class="font-size-3 h4.5 font-500">{{ row[column.pVersionId] }}</div>
-        </div>
-        <div v-else :style="computeColor(row, column)" class="text-center">
-          <div class="font-size-3 h4.5 font-500">{{ row[column.pVersionId] }}{{ row.unit }}</div>
-          <div
-            class="flex items-center justify-center font-size-2.5"
-            :class="{ good: Number(row.minCellValue) === Number(row[column.pVersionId]) }"
-          >
-            ({{ (row[column.pVersionId] / row.minCellValue).toFixed(2) }})
+        <slot name="index-content" :row="row" :column="column">
+          <div v-if="row[column.pVersionId] === EMPTY_VALUE.EMPTY_CELL" class="text-center">
+            <div class="font-size-3 h4.5 font-500">{{ row[column.pVersionId] }}</div>
           </div>
-        </div>
+          <div v-else :style="computeColor(row, column)" class="text-center">
+            <div class="font-size-3 h4.5 font-500">{{ row[column.pVersionId] }}{{ row.unit }}</div>
+            <div
+              class="flex items-center justify-center font-size-2.5"
+              :class="{ good: Number(row.minCellValue) === Number(row[column.pVersionId]) }"
+            >
+              ({{ (row[column.pVersionId] / row.minCellValue).toFixed(2) }})
+            </div>
+          </div>
+        </slot>
       </template>
     </el-table-column>
   </el-table>
