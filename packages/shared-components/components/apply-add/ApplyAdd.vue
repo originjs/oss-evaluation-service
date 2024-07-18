@@ -29,8 +29,8 @@ const props = withDefaults(defineProps<Props>(), {
   expandField1: '',
   alternativeProjectId: '',
   showInDialog: true,
-  successMessage: '已提交申请',
-  failMessage: '提交申请失败，请稍后重试',
+  successMessage: '提交成功',
+  failMessage: '提交失败，请稍后重试',
 });
 
 const emit = defineEmits<{
