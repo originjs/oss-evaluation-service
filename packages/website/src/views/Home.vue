@@ -27,11 +27,11 @@ const goSoftwareDetails = ({ repoName }: SoftwareBaseInfo) => {
             <ApplyAdd>
               <template #trigger>
                 <el-button icon="Plus" round color="#646cff" size="large" ml-3>
-                  申请新增软件
+                  新增软件
                 </el-button>
               </template>
               <template #dialog-header>
-                <div font-size-18px>申请新增软件</div>
+                <div font-size-18px>新增软件</div>
               </template>
             </ApplyAdd>
           </div>

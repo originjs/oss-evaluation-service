@@ -17,10 +17,10 @@ const activeName = ref('frameworks');
       <slot name="application">
         <ApplyAdd :application-type="3">
           <template #trigger>
-            <el-button type="primary" text>申请增加Benchmark软件</el-button>
+            <el-button type="primary" text>新增Benchmark</el-button>
           </template>
           <template #dialog-header>
-            <div font-size-18px>申请增加Benchmark软件</div>
+            <div font-size-18px>新增Benchmark</div>
           </template>
         </ApplyAdd>
       </slot>
