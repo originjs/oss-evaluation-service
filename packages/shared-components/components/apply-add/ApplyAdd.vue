@@ -74,6 +74,20 @@ const formRules = reactive({
       trigger: 'blur',
     },
   ],
+  techStack: [
+    {
+      required: true,
+      message: '请输入技术栈',
+      trigger: 'blur',
+    },
+  ],
+  subTechStack: [
+    {
+      required: true,
+      message: '请输入子技术栈',
+      trigger: 'blur',
+    },
+  ],
 });
 function submitApplication() {
   formInstance.value.validate((valid: boolean) => {
@@ -150,12 +164,7 @@ defineExpose({
             placeholder="https://github.com/owner-name/repo-name"
           />
         </el-form-item>
-        <template
-          v-if="
-            applicationType === ApplicationType.Evaluation ||
-            applicationType === ApplicationType.Benchmark
-          "
-        >
+        <template v-if="applicationType === ApplicationType.Evaluation">
           <el-form-item label="技术栈" prop="techStack" class="form-item-tech-stack">
             <el-input v-model="applicationInfo.techStack" placeholder="请输入技术栈" />
           </el-form-item>
