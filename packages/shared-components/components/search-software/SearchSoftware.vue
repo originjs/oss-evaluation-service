@@ -19,7 +19,7 @@ const searchValue = ref('');
 const softwareBaseInfoList = ref<SoftwareBaseInfo[]>([]);
 const loadingInfo = ref(false);
 
-const getSoftwareBaseInfoList: PromisifyFn<(query: string) => Promise<void>> = useDebounceFn(
+const getSoftwareBaseInfoList: PromisifyFn<(query?: string) => Promise<void>> = useDebounceFn(
   async (query: string) => {
     if (!query) {
       softwareBaseInfoList.value = [];
@@ -40,6 +40,7 @@ const getSoftwareBaseInfoList: PromisifyFn<(query: string) => Promise<void>> = u
 
 const onClickSoftware = (info: SoftwareBaseInfo) => {
   searchValue.value = '';
+  getSoftwareBaseInfoList();
   emit('change', info);
   showSearchBox.value = false;
 };
@@ -80,7 +81,7 @@ const onClickSoftware = (info: SoftwareBaseInfo) => {
         />
         <el-scrollbar v-loading="loadingInfo" :max-height="400">
           <div class="text-center pt-10px line-height-50px">
-            <span v-show="!softwareBaseInfoList.length">暂无最近搜索记录...</span>
+            <span v-show="!softwareBaseInfoList.length">暂无数据...</span>
             <span v-show="loadingInfo">搜索中...</span>
           </div>
           <el-menu>
