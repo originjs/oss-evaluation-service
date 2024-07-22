@@ -2,7 +2,11 @@ import type { NewProjectApply as NewProjectApplyInterface } from '../interfaces/
 import { NewProjectApply, GithubProjectsTable } from '@orginjs/oss-evaluation-data-model';
 import { Result } from '../utils/result.js';
 import moment from 'moment';
+import type { UploadedFile } from 'express-fileupload';
+import { dirname } from 'path';
+import { existsSync, mkdirSync } from 'node:fs';
 
+const uploadDir = process.env.UPLOAD_DIR;
 export async function getApplyRecordByEmployeeNumber(employeeNumber: string) {
   const list = await NewProjectApply.findAll({
     where: {
@@ -36,6 +40,7 @@ export async function getApplyRecordByEmployeeNumber(employeeNumber: string) {
 
 export async function newProjectApply(
   application: NewProjectApplyInterface,
+  file: UploadedFile,
 ): Promise<Result<string>> {
   const repoUrl = application.repoUrl;
   const email = application.applicantEmail;
@@ -44,11 +49,33 @@ export async function newProjectApply(
   }
   application.createdAt = application.createdAt ?? new Date();
   const data = [];
-  for (const url of repoUrl.split(';')) {
-    data.push({
-      ...application,
-      repoUrl: url,
-    });
+  if (application?.type !== 3) {
+    // handle batch apply
+    for (const url of repoUrl.split(';')) {
+      data.push({
+        ...application,
+        repoUrl: url,
+      });
+    }
+  } else {
+    // benchmark type
+    const allowedMimeTypes = [
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ];
+    // not excel file
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      return Result.fail(400, 'Invalid file type. Only Excel files are allowed.');
+    }
+    const filename = `${moment(new Date()).format('YYYY-MM-DD_HH:mm:ss')}-${Buffer.from(file.name, 'latin1').toString('utf8')}`;
+    const mvFilePath = `${uploadDir}/benchmark/${filename}`;
+    const dir = dirname(mvFilePath);
+    if (!existsSync(dir)) {
+      mkdirSync(dir);
+    }
+    await file.mv(mvFilePath);
+    application.filename = filename;
+    data.push(application);
   }
   await NewProjectApply.bulkCreate(data);
   return Result.ok(`success`);

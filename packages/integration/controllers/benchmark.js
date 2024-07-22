@@ -1,5 +1,11 @@
 import dayjs from 'dayjs';
-import { Benchmark, logger, ProjectTechStack, sequelize } from '@orginjs/oss-evaluation-data-model';
+import {
+  Benchmark,
+  BenchmarkIndex,
+  logger,
+  ProjectTechStack,
+  sequelize,
+} from '@orginjs/oss-evaluation-data-model';
 import BenchmarkVersionScore from '@orginjs/oss-evaluation-data-model/models/BenchmarkVersionScore.js';
 import { ServerError } from '../util/error.js';
 
@@ -217,4 +223,11 @@ async function genBenchmarkList(projectName, techStack, platform, patchId, list)
     benchmarkList.push(item);
   }
   return benchmarkList;
+}
+
+export async function importBenchmarkByExcelJSONHandler(req, res) {
+  const { benchmark, index } = req.body;
+  await Benchmark.bulkCreate(benchmark);
+  await BenchmarkIndex.bulkCreate(index);
+  res.status(200).send('success');
 }

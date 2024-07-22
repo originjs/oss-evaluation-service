@@ -158,8 +158,10 @@ async function activeAutoSonarScan(repoInfo: GitRepoInfo, sonarScanInfo: SonarSc
       `success created sonarCloud project of sonarKey:{${JSON.stringify(createSonarParam)}}`,
     );
     await sleep(5 * 1000);
-    const branchName = await getDefaultBranchName(`${process.env.REPO_DIR}/${sonarScanInfo.owner}/${sonarScanInfo.repoName}`)
-    await updateDefaultBranch(sonarKey , branchName)
+    const branchName = await getDefaultBranchName(
+      `${process.env.REPO_DIR}/${sonarScanInfo.owner}/${sonarScanInfo.repoName}`,
+    );
+    await updateDefaultBranch(sonarKey, branchName);
     //   active auto scan
     const activeResult = await sonarCloudSdk.activeAutoScanInternalApi(sonarKey);
     if (activeResult.ok) {

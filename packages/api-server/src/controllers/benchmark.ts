@@ -1,8 +1,9 @@
-import { Controller, Path, Route, Get } from 'tsoa';
+import { Controller, Path, Route, Get, Put } from 'tsoa';
 import {
   queryProjectsByTechStack,
   queryIndexByTechStack,
   getBenchmarkResultByTechStack,
+  importBenchmarkFromExcel as importBenchmarkFromExcelHandler,
 } from '../services/BenchmarkService.js';
 import type {
   SoftwareBaseInfo,
@@ -37,5 +38,15 @@ export class BenchmarkController extends Controller {
   ): Promise<Result<Array<BenchmarkResult>>> {
     const data = await getBenchmarkResultByTechStack(techStack);
     return Result.ok(data);
+  }
+
+  @Put('importBenchmarkFromExcel/{filename}')
+  public async importBenchmarkFromExcel(@Path() filename: string): Promise<any> {
+    try {
+      const data = await importBenchmarkFromExcelHandler(filename);
+      return Result.ok(data);
+    } catch (e) {
+      return Result.fail(400, e.message);
+    }
   }
 }

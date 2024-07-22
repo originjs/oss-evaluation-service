@@ -189,6 +189,7 @@ export interface BenchmarkIndex {
   unit: string;
   category?: string;
   description?: string;
+  order?: number;
 }
 
 export interface InnovationCompaniesInfo {
@@ -230,10 +231,10 @@ export interface SummaryHighlightInfo {
 }
 
 export interface NewProjectApply {
-  repoUrl: string;
-  comment: string;
+  repoUrl?: string;
+  comment?: string;
   applicantEmail: string;
-  username: string;
+  username?: string;
   alternativeProjectId?: string;
   type: number;
   expandField1?: string;
@@ -241,4 +242,6 @@ export interface NewProjectApply {
   techStack?: string;
   employeeNumber?: string;
   subTechStack?: string;
+  filename?: string;
+  envInfo?: string;
 }

@@ -24,6 +24,9 @@ export default sequelize.define(
     unit: {
       type: DataTypes.STRING(128),
     },
+    category: {
+      type: DataTypes.STRING(256),
+    },
   },
   {
     tableName: 'benchmark_index',

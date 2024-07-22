@@ -8,10 +8,11 @@ import 'express-async-errors';
 import { RegisterRoutes } from './build/routes.js';
 import { logger } from '@orginjs/oss-evaluation-data-model';
 import swaggerConfig from './build/swagger.json' assert { type: 'json' };
+import fileupload from 'express-fileupload';
 
 const port = process.env.PORT || '3000';
 const app = express();
-
+app.use(fileupload());
 app.use(cors());
 app.use(
   morgan('dev', {
