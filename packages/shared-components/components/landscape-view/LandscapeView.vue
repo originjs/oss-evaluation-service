@@ -220,16 +220,18 @@ const props = defineProps<{
     autoLayout?: AutoLayout;
     evaluation?: (project: Project) => void;
     goBenchmark?: (project: Project) => void;
+    sortProject?: (p1: Project, p2: Project) => number;
   };
 }>();
 
 const options = computed(() => ({
-  ...(props?.options || {}),
-  hasMore: props?.options?.hasMore ?? true,
-  boxSize: props?.options?.boxSize ?? 40,
-  boxGap: props?.options?.boxGap ?? 8,
-  enableProjectPopover: props?.options?.enableProjectPopover ?? true,
-  colors: props?.options?.colors ?? ['#89bff6', '#89c997', '#e8dd92', '#f0b58e', '#aea3db'],
+  sortProject: (p1: Project, p2: Project) => p1.name.localeCompare(p2.name),
+  hasMore: true,
+  boxSize: 40,
+  boxGap: 8,
+  enableProjectPopover: true,
+  colors: ['#89bff6', '#89c997', '#e8dd92', '#f0b58e', '#aea3db'],
+  ...props.options, // 用户自定义的配置，覆盖默认配置
 }));
 
 const emit = defineEmits<{
@@ -443,6 +445,7 @@ const processLandscapeData = (
 
   _landscapeData.forEach(data => {
     data.subcategory.forEach(subcategory => {
+      subcategory.projects.sort(options.value.sortProject);
       if (!subcategory.hasBigProject) {
         return;
       }
