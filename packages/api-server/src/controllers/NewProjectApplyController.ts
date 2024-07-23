@@ -1,8 +1,6 @@
-import type { Request as ExRequest } from 'express';
-import type { UploadedFile } from 'express-fileupload';
 import { existsSync, readFileSync } from 'fs';
 import { Readable } from 'node:stream';
-import { Body, Controller, Get, Path, Post, Query, Request, Route, Tags } from 'tsoa';
+import { Controller, FormField, Get, Path, Post, Query, Route, Tags, UploadedFile } from 'tsoa';
 import type { NewProjectApply } from '../interfaces/SoftwareInfo.js';
 import {
   existsApplication,
@@ -16,14 +14,36 @@ import { Result } from '../utils/result.js';
 export class NewProjectApplyController extends Controller {
   @Post('submitApplication')
   public async newProjectApply(
-    @Body() application: NewProjectApply,
-    @Request() req: ExRequest,
+    @FormField() applicantEmail: string,
+    @FormField() type: number,
+    @UploadedFile() file?: Express.Multer.File,
+    @FormField() repoUrl?: string,
+    @FormField() comment?: string,
+    @FormField() username?: string,
+    @FormField() alternativeProjectId?: string,
+    @FormField() expandField1?: string,
+    @FormField() techStack?: string,
+    @FormField() employeeNumber?: string,
+    @FormField() subTechStack?: string,
+    @FormField() envInfo?: string,
   ): Promise<Result<string>> {
-    const file = req.files?.['file'] as UploadedFile;
-    if (application.type === 3 && !file) {
+    const apply = {
+      repoUrl,
+      comment,
+      applicantEmail,
+      username,
+      alternativeProjectId,
+      expandField1,
+      techStack,
+      employeeNumber,
+      subTechStack,
+      envInfo,
+      type: Number(type),
+    } as NewProjectApply;
+    if (apply.type === 3 && !file) {
       return Result.fail(400, 'no benchmark file!');
     }
-    return newProjectApply(application, file);
+    return newProjectApply(apply, file);
   }
 
   @Get('existsApplication')
@@ -41,7 +61,7 @@ export class NewProjectApplyController extends Controller {
     if (!filename) {
       return Result.fail(400, 'filename is empty');
     }
-    const filePath = `${process.env.UPLOAD_DIR}/benchmark/${filename}`;
+    const filePath = `${process.env.UPLOAD_PATH}/benchmark/${filename}`;
     if (!existsSync(filePath)) {
       return Result.fail(400, 'file doesnt exist');
     }

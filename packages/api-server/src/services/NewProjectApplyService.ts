@@ -2,11 +2,7 @@ import type { NewProjectApply as NewProjectApplyInterface } from '../interfaces/
 import { NewProjectApply, GithubProjectsTable } from '@orginjs/oss-evaluation-data-model';
 import { Result } from '../utils/result.js';
 import moment from 'moment';
-import type { UploadedFile } from 'express-fileupload';
-import { dirname } from 'path';
-import { existsSync, mkdirSync } from 'node:fs';
-
-const uploadDir = process.env.UPLOAD_DIR;
+import { existsSync, mkdirSync, writeFileSync } from 'fs';
 export async function getApplyRecordByEmployeeNumber(employeeNumber: string) {
   const list = await NewProjectApply.findAll({
     where: {
@@ -40,16 +36,19 @@ export async function getApplyRecordByEmployeeNumber(employeeNumber: string) {
 
 export async function newProjectApply(
   application: NewProjectApplyInterface,
-  file: UploadedFile,
+  file: Express.Multer.File,
 ): Promise<Result<string>> {
-  const repoUrl = application.repoUrl;
   const email = application.applicantEmail;
-  if (!repoUrl || !email) {
-    return Result.fail(500, 'repoUrl/email is empty!');
+  if (!email) {
+    return Result.fail(500, 'email is empty!');
   }
   application.createdAt = application.createdAt ?? new Date();
   const data = [];
   if (application?.type !== 3) {
+    const repoUrl = application.repoUrl;
+    if (!repoUrl) {
+      return Result.fail(500, 'repoUrl is empty!');
+    }
     // handle batch apply
     for (const url of repoUrl.split(';')) {
       data.push({
@@ -67,14 +66,14 @@ export async function newProjectApply(
     if (!allowedMimeTypes.includes(file.mimetype)) {
       return Result.fail(400, 'Invalid file type. Only Excel files are allowed.');
     }
-    const filename = `${moment(new Date()).format('YYYY-MM-DD_HH:mm:ss')}-${Buffer.from(file.name, 'latin1').toString('utf8')}`;
-    const mvFilePath = `${uploadDir}/benchmark/${filename}`;
-    const dir = dirname(mvFilePath);
+    // move file
+    application.filename = `${moment(new Date()).format('yyyyMMDDHHmmssSSS')}_${Buffer.from(file.originalname, 'latin1').toString()}`;
+    const dir = `${process.env.UPLOAD_PATH}/benchmark`;
+    const filePath = `${dir}/${application.filename}`;
     if (!existsSync(dir)) {
-      mkdirSync(dir);
+      mkdirSync(dir, { recursive: true });
     }
-    await file.mv(mvFilePath);
-    application.filename = filename;
+    writeFileSync(filePath, file.buffer);
     data.push(application);
   }
   await NewProjectApply.bulkCreate(data);

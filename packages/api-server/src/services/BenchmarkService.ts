@@ -1,16 +1,14 @@
-import { sequelize } from '@orginjs/oss-evaluation-data-model';
+import { GithubProjects, NewProjectApply, sequelize } from '@orginjs/oss-evaluation-data-model';
+import { randomUUID } from 'crypto';
+import exceljs from 'exceljs';
+import moment from 'moment';
+import { isNumber } from 'underscore';
 import type {
-  SoftwareBaseInfo,
   BenchmarkIndex,
   BenchmarkResult,
+  SoftwareBaseInfo,
 } from '../interfaces/SoftwareInfo.js';
-import { isNumber } from 'underscore';
 import { fixedRound } from '../utils/math.js';
-import { existsSync } from 'fs';
-import exceljs from 'exceljs';
-import { randomUUID } from 'crypto';
-import { GithubProjects } from '@orginjs/oss-evaluation-data-model';
-import moment from 'moment';
 
 /**
  * query projects by tech stack
@@ -149,13 +147,47 @@ interface BenchmarkValue {
   benchmarm: string;
 }
 
-export async function importBenchmarkFromExcel(filename: string) {
-  const filePath = `${process.env.UPLOAD_DIR}/benchmark/${filename}`;
-  if (!existsSync(filePath)) {
-    throw new Error(`no file named ${filename}`);
+export async function importBenchmarkFromExcel(file: Express.Multer.File) {
+  if (!file) {
+    throw new Error(`file is empty`);
   }
+  const allowedMimeTypes = [
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  ];
+  // not excel file
+  if (!allowedMimeTypes.includes(file.mimetype)) {
+    throw new Error(`Please upload an Excel type file`);
+  }
+  const filename = `${Buffer.from(file.originalname, 'latin1').toString('utf8')}`;
+  const apply = await NewProjectApply.findOne({
+    where: {
+      filename,
+    },
+  });
+  // err if no benchmark apply with filename
+  if (!apply) {
+    throw new Error(`no benchmark apply with filename:${filename}`);
+  }
+  const data = await parseBenchmarkExcel2JSON(file.buffer);
+  await setOthersParam4Benchmark(data.benchmark);
+  // call integration url to import benchmark data
+  await importBenchmarkData(data);
+  // set integration finished time if not err
+  await NewProjectApply.update(
+    { integrationFinishedTime: new Date() },
+    {
+      where: {
+        filename,
+      },
+    },
+  );
+  return data;
+}
+
+async function parseBenchmarkExcel2JSON(buffer: Buffer) {
   const workbook = new exceljs.Workbook();
-  await workbook.xlsx.readFile(filePath);
+  await workbook.xlsx.load(buffer);
   const sheet = workbook.getWorksheet(1);
   const rowCount = sheet.actualRowCount;
   const columnCount = sheet.actualColumnCount;
@@ -208,12 +240,30 @@ export async function importBenchmarkFromExcel(filename: string) {
     indexData.push(index);
     benchmarkData.push(...softwareName2Data.values());
   }
-  // set project id
-  await setOthersParam4Benchmark(benchmarkData);
-  const data = { benchmark: benchmarkData, index: indexData };
-  return data;
+  return { benchmark: benchmarkData, index: indexData };
 }
 
+/**
+ * call integration api to import benchmark
+ * @param data benchmarData
+ */
+async function importBenchmarkData(data: { benchmark: BenchmarkValue[]; index: BenchmarkIndex[] }) {
+  const importResponse = await fetch(
+    `${process.env.INTEGRATION_URL}/benchmark/importBenchmarkByExcelJSON`,
+    {
+      method: 'POST',
+      body: JSON.stringify(data),
+    },
+  );
+  if (!importResponse.ok) {
+    throw new Error(`call api to import benchmark data failed! , ${await importResponse.text()}`);
+  }
+}
+
+/**
+ * set projectId and patchId for benchmark
+ * @param data benchmarkData
+ */
 async function setOthersParam4Benchmark(data: BenchmarkValue[]) {
   if (!data?.length) {
     throw new Error(`[benchmark import] no data for set project id`);

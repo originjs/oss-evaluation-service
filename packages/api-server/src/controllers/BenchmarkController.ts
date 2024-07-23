@@ -1,18 +1,18 @@
-import { Controller, Path, Route, Get, Put } from 'tsoa';
-import {
-  queryProjectsByTechStack,
-  queryIndexByTechStack,
-  getBenchmarkResultByTechStack,
-  importBenchmarkFromExcel as importBenchmarkFromExcelHandler,
-} from '../services/BenchmarkService.js';
+import { Controller, Get, Path, Post, Route, Tags, UploadedFile } from 'tsoa';
 import type {
-  SoftwareBaseInfo,
   BenchmarkIndex,
   BenchmarkResult,
+  SoftwareBaseInfo,
 } from '../interfaces/SoftwareInfo.js';
+import {
+  getBenchmarkResultByTechStack,
+  queryIndexByTechStack,
+  queryProjectsByTechStack,
+} from '../services/BenchmarkService.js';
 
 import { Result } from '../utils/result.js';
 
+@Tags('benchamrk')
 @Route('benchmark')
 export class BenchmarkController extends Controller {
   @Get('techstack/{category}/{techStack}')
@@ -40,11 +40,11 @@ export class BenchmarkController extends Controller {
     return Result.ok(data);
   }
 
-  @Put('importBenchmarkFromExcel/{filename}')
-  public async importBenchmarkFromExcel(@Path() filename: string): Promise<any> {
+  @Post('importBenchmarkByExcel')
+  public async importBenchmarkByExcelHandler(@UploadedFile('file') file: Express.Multer.File) {
     try {
-      const data = await importBenchmarkFromExcelHandler(filename);
-      return Result.ok(data);
+      // await importBenchmarkFromExcel(file);
+      return Result.ok('ok');
     } catch (e) {
       return Result.fail(400, e.message);
     }
