@@ -39,8 +39,8 @@ export async function newProjectApply(
   file: Express.Multer.File,
 ): Promise<Result<string>> {
   const email = application.applicantEmail;
-  if (!email) {
-    return Result.fail(500, 'email is empty!');
+  if (!email?.includes('@')) {
+    return Result.fail(500, 'email is invalid!');
   }
   application.createdAt = application.createdAt ?? new Date();
   const data = [];
@@ -65,6 +65,9 @@ export async function newProjectApply(
     // not excel file
     if (!allowedMimeTypes.includes(file.mimetype)) {
       return Result.fail(400, 'Invalid file type. Only Excel files are allowed.');
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      return Result.fail(400, 'File size is too large');
     }
     // move file
     application.filename = `${moment(new Date()).format('yyyyMMDDHHmmssSSS')}_${Buffer.from(file.originalname, 'latin1').toString()}`;

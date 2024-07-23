@@ -9,6 +9,7 @@ import type {
   SoftwareBaseInfo,
 } from '../interfaces/SoftwareInfo.js';
 import { fixedRound } from '../utils/math.js';
+import { Op } from 'sequelize';
 
 /**
  * query projects by tech stack
@@ -163,11 +164,14 @@ export async function importBenchmarkFromExcel(file: Express.Multer.File) {
   const apply = await NewProjectApply.findOne({
     where: {
       filename,
+      integrationFinishedTime: {
+        [Op.is]: null,
+      },
     },
   });
   // err if no benchmark apply with filename
   if (!apply) {
-    throw new Error(`no benchmark apply with filename:${filename}`);
+    throw new Error(`no benchmark apply with filename:{${filename}} or this file is imported`);
   }
   const data = await parseBenchmarkExcel2JSON(file.buffer);
   await setOthersParam4Benchmark(data.benchmark);
@@ -248,13 +252,18 @@ async function parseBenchmarkExcel2JSON(buffer: Buffer) {
  * @param data benchmarData
  */
 async function importBenchmarkData(data: { benchmark: BenchmarkValue[]; index: BenchmarkIndex[] }) {
-  const importResponse = await fetch(
-    `${process.env.INTEGRATION_URL}/benchmark/importBenchmarkByExcelJSON`,
-    {
-      method: 'POST',
-      body: JSON.stringify(data),
+  if (!process.env.INTEGRATION_URL) {
+    throw new Error('no env named {INTEGRATION_URL} , skip import');
+  }
+  const url = `${process.env.INTEGRATION_URL}/sync/benchmark/importBenchmarkByExcelJSON`;
+  const importResponse = await fetch(url, {
+    method: 'POST',
+    headers: {
+      accept: '*/*',
+      'Content-Type': 'application/json',
     },
-  );
+    body: JSON.stringify(data),
+  });
   if (!importResponse.ok) {
     throw new Error(`call api to import benchmark data failed! , ${await importResponse.text()}`);
   }

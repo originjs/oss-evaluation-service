@@ -6,6 +6,7 @@ import type {
 } from '../interfaces/SoftwareInfo.js';
 import {
   getBenchmarkResultByTechStack,
+  importBenchmarkFromExcel,
   queryIndexByTechStack,
   queryProjectsByTechStack,
 } from '../services/BenchmarkService.js';
@@ -41,9 +42,9 @@ export class BenchmarkController extends Controller {
   }
 
   @Post('importBenchmarkByExcel')
-  public async importBenchmarkByExcelHandler(@UploadedFile('file') file: Express.Multer.File) {
+  public async importBenchmarkByExcelHandler(@UploadedFile() file: Express.Multer.File) {
     try {
-      // await importBenchmarkFromExcel(file);
+      await importBenchmarkFromExcel(file);
       return Result.ok('ok');
     } catch (e) {
       return Result.fail(400, e.message);
