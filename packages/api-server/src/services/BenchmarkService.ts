@@ -176,9 +176,14 @@ export async function importBenchmarkFromExcel(file: Express.Multer.File) {
   await setOthersParam4Benchmark(data.benchmark);
   // call integration url to import benchmark data
   await importBenchmarkData(data);
+  const projectIds = data.benchmark.map(benchmark => benchmark.projectId);
   // set integration finished time if not err
   await NewProjectApply.update(
-    { integrationFinishedTime: new Date() },
+    {
+      integrationFinishedTime: new Date(),
+      // set imported projectId for this apply
+      alternativeProjectId: [...new Set(projectIds)].join(','),
+    },
     {
       where: {
         filename,
