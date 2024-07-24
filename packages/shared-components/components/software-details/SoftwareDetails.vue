@@ -128,6 +128,10 @@ watchEffect(async () => {
       value: dayjs(data.firstCommit).format('YYYY-MM-DD'),
     },
     {
+      label: '最近代码提交',
+      value: dayjs(data.lastCommit).format('YYYY-MM-DD'),
+    },
+    {
       label: 'License',
       value: data.license,
     },
@@ -1927,6 +1931,9 @@ onBeforeUnmount(() => {
   }
   .table-base-info {
     width: 935px;
+    :deep(.cell) {
+      line-height: 18px;
+    }
   }
   .btn-add-benchmark {
     cursor: pointer;

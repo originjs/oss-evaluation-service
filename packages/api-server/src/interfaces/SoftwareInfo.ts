@@ -21,6 +21,7 @@ export interface SoftwareBaseInfo {
 export interface SoftwareInfo extends SoftwareBaseInfo {
   language: string;
   firstCommit: string;
+  lastCommit: string;
   license: string;
   tags: string;
   codeLines: number;

@@ -28,6 +28,10 @@ export default sequelize.define(
       type: DataTypes.STRING(512),
       field: 'created_at',
     },
+    lastCommit: {
+      type: DataTypes.STRING(512),
+      field: 'pushed_at',
+    },
     star: {
       type: DataTypes.INTEGER,
       field: 'stargazers_count',
