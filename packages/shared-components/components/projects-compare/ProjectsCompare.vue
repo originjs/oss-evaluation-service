@@ -285,15 +285,7 @@ const getShowRow = (path: string) => {
         </div>
         <div v-for="idx in 5" :key="idx" class="param-value border">
           <div v-if="projects[idx - 1]" class="value-div">
-            <span
-              :class="{
-                good: isGood(
-                  projects[idx - 1].evaluation?.functionScore,
-                  'evaluation.functionScore',
-                ),
-              }"
-              >{{ formatFloat(projects[idx - 1].evaluation?.functionScore) }}/100</span
-            >
+            <span>{{ formatFloat(projects[idx - 1].evaluation?.functionScore) }}/100</span>
           </div>
         </div>
       </div>
