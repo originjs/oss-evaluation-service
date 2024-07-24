@@ -243,5 +243,6 @@ export interface NewProjectApply {
   employeeNumber?: string;
   subTechStack?: string;
   filename?: string;
+  file?: File;
   envInfo?: string;
 }

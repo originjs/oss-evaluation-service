@@ -1,7 +1,12 @@
 <script lang="ts" setup>
-import { submitApplication as submit } from '@orginjs/oss-evaluation-components-api';
+import {
+  submitApplication as submit,
+  downloadExcelTemplate,
+} from '@orginjs/oss-evaluation-components-api';
 import { ElMessage } from 'element-plus';
+import type { UploadFile, UploadRawFile, UploadInstance } from 'element-plus';
 import { createReusableTemplate } from '@vueuse/core';
+import { saveAs } from 'file-saver';
 
 enum ApplicationType {
   Evaluation = 1,
@@ -57,6 +62,7 @@ const applicationInfo = reactive({
   techStack: '',
   subTechStack: '',
   email: '',
+  file: undefined as File | undefined,
 });
 const formRules = reactive({
   repoUrl: [
@@ -88,6 +94,13 @@ const formRules = reactive({
       trigger: 'blur',
     },
   ],
+  file: [
+    {
+      required: true,
+      message: '请上传文件',
+      trigger: 'blur',
+    },
+  ],
 });
 function submitApplication() {
   formInstance.value.validate((valid: boolean) => {
@@ -105,6 +118,7 @@ function submitApplication() {
         type: props.applicationType,
         expandField1: props.expandField1,
         createdAt: new Date(),
+        file: applicationInfo.file,
       })
         .then(res => {
           if (res.data === 'success') {
@@ -135,6 +149,22 @@ function cancelApply() {
   emit('cancel');
 }
 
+const uploadInstance = ref<UploadInstance>();
+
+function handleUploadExceed(files: Array<UploadRawFile>) {
+  uploadInstance.value!.clearFiles();
+  uploadInstance.value!.handleStart(files[0]);
+}
+
+function handleUploadChange(uploadFile: UploadFile) {
+  applicationInfo.file = uploadFile.raw;
+}
+
+async function downloadExcel() {
+  const blob = await downloadExcelTemplate();
+  saveAs(blob as unknown as Blob, 'benchmark_template.xlsx');
+}
+
 defineExpose({
   submitApplication,
   cancelApply,
@@ -156,7 +186,15 @@ defineExpose({
         label-width="auto"
         class="form-apply"
       >
-        <el-form-item label="社区源码仓地址" prop="repoUrl" class="form-item-repo">
+        <el-form-item
+          v-if="
+            applicationType === ApplicationType.Evaluation ||
+            applicationType === ApplicationType.Similar
+          "
+          label="社区源码仓地址"
+          prop="repoUrl"
+          class="form-item-repo"
+        >
           <el-input
             v-model="applicationInfo.repoUrl"
             type="textarea"
@@ -172,13 +210,57 @@ defineExpose({
             <el-input v-model="applicationInfo.subTechStack" placeholder="请输入子技术栈" />
           </el-form-item>
         </template>
-        <el-form-item label="描述" prop="comment" class="form-item-comment">
+        <el-form-item
+          v-if="
+            applicationType === ApplicationType.Evaluation ||
+            applicationType === ApplicationType.Similar
+          "
+          label="描述"
+          prop="comment"
+          class="form-item-comment"
+        >
           <el-input
             v-model="applicationInfo.comment"
             type="textarea"
             :row="3"
             placeholder="请输入描述"
           />
+        </el-form-item>
+        <el-form-item
+          v-if="applicationType === ApplicationType.Benchmark"
+          label="上传文件"
+          prop="file"
+          class="form-item-file"
+        >
+          <el-upload
+            ref="uploadInstance"
+            :auto-upload="false"
+            accept=".xlsx"
+            :limit="1"
+            drag
+            w-full
+            :on-exceed="handleUploadExceed"
+            :on-change="handleUploadChange"
+          >
+            <el-icon class="el-icon--upload">
+              <upload-filled />
+            </el-icon>
+            <div class="el-upload__text">
+              <span>将文件拖拽到此处，或</span>
+              <em>点击上传</em>
+            </div>
+            <template #tip>
+              <div mt-7px>
+                <span>请上传小于10M的Excel文件 </span>
+                <span
+                  style="color: var(--el-color-primary); cursor: pointer"
+                  @click="downloadExcel"
+                >
+                  (点击下载模板)
+                </span>
+              </div>
+            </template>
+          </el-upload>
         </el-form-item>
         <el-form-item v-if="!email" label="邮箱地址" prop="email">
           <el-input v-model="applicationInfo.email" placeholder="请输入你的邮箱地址" />

@@ -62,5 +62,16 @@ export function getGeoDistributionInfo(repoName: string) {
 }
 
 export function submitApplication(param: NewProjectApply) {
-  return HttpRequest.post<string>('/newProjectApply/submitApplication', param);
+  const formData = new FormData();
+  for (const [key, value] of Object.entries(param)) {
+    formData.append(key, value);
+  }
+
+  return HttpRequest.post<string>('/newProjectApply/submitApplication', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+}
+
+export function downloadExcelTemplate() {
+  return HttpRequest.get<Blob>(`/benchmark/downloadExcelTemplate`, { responseType: 'blob' });
 }
