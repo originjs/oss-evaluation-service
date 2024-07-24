@@ -12,6 +12,9 @@ import {
 } from '../services/BenchmarkService.js';
 
 import { Result } from '../utils/result.js';
+import { existsSync, readFileSync } from 'node:fs';
+import { Readable } from 'node:stream';
+import { basename, resolve } from 'node:path';
 
 @Tags('benchamrk')
 @Route('benchmark')
@@ -49,5 +52,38 @@ export class BenchmarkController extends Controller {
     } catch (e) {
       return Result.fail(400, e.message);
     }
+  }
+
+  @Get('downloadBenchmarkFile/{filename}')
+  public async donwloadBenchmarkFile(@Path() filename: string) {
+    if (!filename) {
+      return Result.fail(400, 'filename is empty');
+    }
+    const filePath = `${process.env.UPLOAD_PATH}/benchmark/${filename}`;
+    if (!existsSync(filePath)) {
+      return Result.fail(400, 'file doesnt exist');
+    }
+    return Readable.from(this.file2Buffer(filePath));
+  }
+
+  @Get('downloadExcelTemplate')
+  public async downloadExcelTemplate() {
+    const filename = 'benchmark_template.xlsx';
+    const filePath = `${resolve()}/template/excel/${filename}`;
+    if (!existsSync(filePath)) {
+      return Result.fail(400, 'file doesnt exist');
+    }
+    return Readable.from(this.file2Buffer(filePath));
+  }
+
+  file2Buffer(filePath: string) {
+    const buffer = Buffer.from(readFileSync(filePath));
+    const filename = basename(filePath);
+    this.setHeader('Content-Disposition', `attachment; filename=${encodeURIComponent(filename)}`);
+    this.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    return buffer;
   }
 }

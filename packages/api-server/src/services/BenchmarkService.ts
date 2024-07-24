@@ -145,7 +145,6 @@ interface BenchmarkValue {
   platform: string;
   projectId: number;
   patchId: string;
-  benchmarm: string;
 }
 
 export async function importBenchmarkFromExcel(file: Express.Multer.File) {
@@ -208,7 +207,11 @@ async function parseBenchmarkExcel2JSON(buffer: Buffer) {
     const softwareName2Data = new Map<string, BenchmarkValue>();
     const index = {} as BenchmarkIndex;
     row.eachCell(async (cell, num) => {
-      const cellVal = cell.value?.toString();
+      const cellVal = cell.value?.toString()?.trim();
+      // skip notes
+      if (cellVal.startsWith('注意事项')) {
+        return;
+      }
       if (!cellVal) {
         return;
       }
@@ -241,9 +244,15 @@ async function parseBenchmarkExcel2JSON(buffer: Buffer) {
         }
       }
     });
-    indexData.push(index);
+    if (Object.getOwnPropertyNames(index).length !== 0) {
+      indexData.push(index);
+    }
     benchmarkData.push(...softwareName2Data.values());
   }
+  // sort benchmark by softwareName
+  benchmarkData.sort((a, b) => {
+    return a.displayName.localeCompare(b.displayName);
+  });
   return { benchmark: benchmarkData, index: indexData };
 }
 

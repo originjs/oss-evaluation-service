@@ -1,6 +1,4 @@
-import { existsSync, readFileSync } from 'fs';
-import { Readable } from 'node:stream';
-import { Controller, FormField, Get, Path, Post, Query, Route, Tags, UploadedFile } from 'tsoa';
+import { Controller, FormField, Get, Post, Query, Route, Tags, UploadedFile } from 'tsoa';
 import type { NewProjectApply } from '../interfaces/SoftwareInfo.js';
 import {
   existsApplication,
@@ -54,23 +52,5 @@ export class NewProjectApplyController extends Controller {
   @Get('getApplyRecord')
   public async getApplyRecordByEmployeeNumber(@Query() employeeNumber: string) {
     return Result.ignoreErrorWithDefault(() => getApplyRecordByEmployeeNumber(employeeNumber), {});
-  }
-
-  @Get('downloadBenchmarkFile/{filename}')
-  public async donwloadBenchmarkFile(@Path() filename: string) {
-    if (!filename) {
-      return Result.fail(400, 'filename is empty');
-    }
-    const filePath = `${process.env.UPLOAD_PATH}/benchmark/${filename}`;
-    if (!existsSync(filePath)) {
-      return Result.fail(400, 'file doesnt exist');
-    }
-    const buffer = Buffer.from(readFileSync(filePath));
-    this.setHeader('Content-Disposition', `attachment; filename=${encodeURIComponent(filename)}`);
-    this.setHeader(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    );
-    return Readable.from(buffer);
   }
 }
