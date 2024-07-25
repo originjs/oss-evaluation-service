@@ -71,7 +71,7 @@ export async function newProjectApply(
     }
     // move file
     application.filename = `${moment(new Date()).format('yyyyMMDDHHmmssSSS')}_${Buffer.from(file.originalname, 'latin1').toString()}`;
-    const dir = `${process.env.UPLOAD_PATH}/benchmark`;
+    const dir = `${process.env.UPLOAD_PATH ?? '/root/upload'}/benchmark`;
     const filePath = `${dir}/${application.filename}`;
     if (!existsSync(dir)) {
       mkdirSync(dir, { recursive: true });
