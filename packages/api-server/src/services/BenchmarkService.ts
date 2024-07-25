@@ -11,6 +11,10 @@ import type {
 import { fixedRound } from '../utils/math.js';
 import { Op } from 'sequelize';
 
+const sleep = ms =>
+  new Promise(resolve => {
+    setTimeout(resolve, ms);
+  });
 /**
  * query projects by tech stack
  *
@@ -269,17 +273,41 @@ async function importBenchmarkData(data: { benchmark: BenchmarkValue[]; index: B
   if (!process.env.INTEGRATION_URL) {
     throw new Error('no env named {INTEGRATION_URL} , skip import');
   }
-  const url = `${process.env.INTEGRATION_URL}/sync/benchmark/importBenchmarkByExcelJSON`;
-  const importResponse = await fetch(url, {
-    method: 'POST',
-    headers: {
-      accept: '*/*',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
-  });
-  if (!importResponse.ok) {
-    throw new Error(`call api to import benchmark data failed! , ${await importResponse.text()}`);
+  const requestFn = async (urlParam: string, arr: unknown[]) => {
+    for (const obj of arr) {
+      const url = new URL(urlParam);
+      Object.getOwnPropertyNames(obj).forEach(key => {
+        url.searchParams.append(key, obj[key]);
+      });
+      const importResponse = await fetch(url.href, {
+        method: 'GET',
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Accept-Encoding': 'gzip, deflate, br',
+          Connection: 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
+          'Cache-Control': 'max-age=0',
+        },
+      });
+      if (!importResponse.ok) {
+        throw new Error(
+          `call api to import benchmark data failed ${url.href}! , ${await importResponse.text()}`,
+        );
+      }
+      await sleep(1000);
+    }
+  };
+  if (data.index?.length > 0) {
+    await requestFn(`${process.env.INTEGRATION_URL}/sync/benchmark/getBenchmarkIndex`, data.index);
+  }
+  if (data.benchmark?.length > 0) {
+    await requestFn(
+      `${process.env.INTEGRATION_URL}/sync/benchmark/getBenchmarkValue`,
+      data.benchmark,
+    );
   }
 }
 
