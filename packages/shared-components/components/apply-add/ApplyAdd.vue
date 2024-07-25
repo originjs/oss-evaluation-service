@@ -79,6 +79,11 @@ const formRules = reactive({
       message: '请输入你的邮箱地址',
       trigger: 'blur',
     },
+    {
+      pattern: /^.*@.*/,
+      message: '邮箱地址格式错误',
+      trigger: 'blur',
+    },
   ],
   techStack: [
     {
@@ -157,7 +162,17 @@ function handleUploadExceed(files: Array<UploadRawFile>) {
 }
 
 function handleUploadChange(uploadFile: UploadFile) {
+  const fileSize = uploadFile.raw!.size;
+  if (fileSize / 1024 / 1024 > 10) {
+    ElMessage.warning('文件大小超过10M，请重新上传');
+    uploadInstance.value!.clearFiles();
+    return;
+  }
   applicationInfo.file = uploadFile.raw;
+}
+
+function handleFileRemove() {
+  applicationInfo.file = undefined;
 }
 
 async function downloadExcel() {
@@ -239,8 +254,10 @@ defineExpose({
             :limit="1"
             drag
             w-full
-            :on-exceed="handleUploadExceed"
+            mb--15px
             :on-change="handleUploadChange"
+            :on-exceed="handleUploadExceed"
+            :on-remove="handleFileRemove"
           >
             <el-icon class="el-icon--upload">
               <upload-filled />
