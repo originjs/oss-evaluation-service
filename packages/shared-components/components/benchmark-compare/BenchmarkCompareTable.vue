@@ -10,7 +10,7 @@ export type RowData = Partial<Omit<BenchmarkIndex, requiredRowKey>> &
   Pick<BenchmarkIndex, requiredRowKey> & {
     benchmarkName: string;
     minCellValue: string;
-    [k: string]: string | EMPTY_VALUE.EMPTY_CELL;
+    [k: string]: BenchmarkIndex[keyof BenchmarkIndex] | EMPTY_VALUE.EMPTY_CELL;
   };
 
 export type ColumnData = Partial<Omit<BenchmarkResult, 'projectName'>> &
