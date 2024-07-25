@@ -1,4 +1,4 @@
-import { DataTypes } from 'sequelize';
+import { DataTypes} from 'sequelize';
 import sequelize from '../util/database.js';
 
 const newProjectApply = sequelize.define(
@@ -52,6 +52,20 @@ const newProjectApply = sequelize.define(
       type: DataTypes.TINYINT,
       allowNull: false,
       defaultValue: 1,
+    },
+    integrationFinishedTime: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    filename: {
+      type: DataTypes.STRING(256),
+      allowNull: false,
+      defaultValue: '',
+    },
+    envInfo: {
+      type: DataTypes.STRING(512),
+      allowNull: false,
+      defaultValue: '',
     },
   },
   {

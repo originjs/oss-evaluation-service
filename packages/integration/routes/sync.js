@@ -28,6 +28,7 @@ import {
 import {
   bulkAddBenchmarkHandler,
   getPatchId,
+  importBenchmarkByExcelJSONHandler,
   syncBenchmarkHandler,
   updateScore,
 } from '../controllers/benchmark.js';
@@ -1311,5 +1312,31 @@ router.route('/syncAllProjectCreatorsCountries').post(syncAllProjectCreatorsCoun
  *         description: Success
  */
 router.route('/github/searchAndIntegrationGithubProjects').get(searchAndIntegrationGithubProjects);
+
+
+/**
+ * @swagger
+ * /sync/benchmark/importBenchmarkByExcelJSON:
+ *   post:
+ *     tags: [Benchmark]
+ *     summary: import benchmark by excel
+ *     description: import from excel json
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               index:
+ *                 type: array
+ *               benchmark:
+ *                 type: array
+ *     responses:
+ *       200:
+ *         description: File uploaded successfully
+ *       400:
+ *         description: Bad request
+ */
+router.route('/benchmark/importBenchmarkByExcelJSON').post(importBenchmarkByExcelJSONHandler);
 
 export default router;

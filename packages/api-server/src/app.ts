@@ -11,7 +11,6 @@ import swaggerConfig from './build/swagger.json' assert { type: 'json' };
 
 const port = process.env.PORT || '3000';
 const app = express();
-
 app.use(cors());
 app.use(
   morgan('dev', {
