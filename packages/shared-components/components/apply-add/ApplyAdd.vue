@@ -63,6 +63,7 @@ const applicationInfo = reactive({
   subTechStack: '',
   email: '',
   file: undefined as File | undefined,
+  envInfo: '',
 });
 const formRules = reactive({
   repoUrl: [
@@ -106,6 +107,13 @@ const formRules = reactive({
       trigger: 'blur',
     },
   ],
+  envInfo: [
+    {
+      required: true,
+      message: '请输入测试环境信息',
+      trigger: 'blur',
+    },
+  ],
 });
 function submitApplication() {
   formInstance.value.validate((valid: boolean) => {
@@ -124,6 +132,7 @@ function submitApplication() {
         expandField1: props.expandField1,
         createdAt: new Date(),
         file: applicationInfo.file,
+        envInfo: applicationInfo.envInfo,
       })
         .then(res => {
           if (res.data === 'success') {
@@ -241,44 +250,48 @@ defineExpose({
             placeholder="请输入描述"
           />
         </el-form-item>
-        <el-form-item
-          v-if="applicationType === ApplicationType.Benchmark"
-          label="上传文件"
-          prop="file"
-          class="form-item-file"
-        >
-          <el-upload
-            ref="uploadInstance"
-            :auto-upload="false"
-            accept=".xlsx"
-            :limit="1"
-            drag
-            w-full
-            mb--15px
-            :on-change="handleUploadChange"
-            :on-exceed="handleUploadExceed"
-            :on-remove="handleFileRemove"
+        <template v-if="applicationType === ApplicationType.Benchmark">
+          <el-form-item
+            label="上传文件"
+            prop="file"
+            class="form-item-file"
           >
-            <el-icon class="el-icon--upload">
-              <upload-filled />
-            </el-icon>
-            <div class="el-upload__text">
-              <span>将文件拖拽到此处，或</span>
-              <em>点击上传</em>
-            </div>
-            <template #tip>
-              <div mt-7px>
-                <span>请上传小于10M的Excel文件 </span>
-                <span
-                  style="color: var(--el-color-primary); cursor: pointer"
-                  @click="downloadExcel"
-                >
-                  (点击下载模板)
-                </span>
+            <el-upload
+              ref="uploadInstance"
+              :auto-upload="false"
+              accept=".xlsx"
+              :limit="1"
+              drag
+              w-full
+              mb--15px
+              :on-change="handleUploadChange"
+              :on-exceed="handleUploadExceed"
+              :on-remove="handleFileRemove"
+            >
+              <el-icon class="el-icon--upload">
+                <upload-filled />
+              </el-icon>
+              <div class="el-upload__text">
+                <span>将文件拖拽到此处，或</span>
+                <em>点击上传</em>
               </div>
-            </template>
-          </el-upload>
-        </el-form-item>
+              <template #tip>
+                <div mt-7px>
+                  <span>请上传小于10M的Excel文件 </span>
+                  <span
+                    style="color: var(--el-color-primary); cursor: pointer"
+                    @click="downloadExcel"
+                  >
+                    (点击下载模板)
+                  </span>
+                </div>
+              </template>
+            </el-upload>
+          </el-form-item>
+          <el-form-item label="测试环境信息" prop="envInfo">
+            <el-input v-model="applicationInfo.envInfo" placeholder="The benchmark was run on GitHub-hosted runners(16 GB RAM, 4 Cores, ubuntu-22.04)." />
+          </el-form-item>
+        </template>
         <el-form-item v-if="!email" label="邮箱地址" prop="email">
           <el-input v-model="applicationInfo.email" placeholder="请输入你的邮箱地址" />
         </el-form-item>
