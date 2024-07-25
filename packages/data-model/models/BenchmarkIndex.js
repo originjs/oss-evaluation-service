@@ -6,7 +6,7 @@ export default sequelize.define(
   {
     id: {
       type: DataTypes.BIGINT,
-      allowNull: false,
+      allowNull: true,
       primaryKey: true,
     },
     techStack: {
