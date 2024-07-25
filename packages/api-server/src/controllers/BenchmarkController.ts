@@ -59,7 +59,7 @@ export class BenchmarkController extends Controller {
     if (!filename) {
       return Result.fail(400, 'filename is empty');
     }
-    const filePath = `${process.env.UPLOAD_PATH}/benchmark/${filename}`;
+    const filePath = `${process.env.UPLOAD_PATH ?? '/root/upload'}/benchmark/${filename}`;
     if (!existsSync(filePath)) {
       return Result.fail(400, 'file doesnt exist');
     }
