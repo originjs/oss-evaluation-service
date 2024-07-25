@@ -288,7 +288,7 @@ defineExpose({
               </template>
             </el-upload>
           </el-form-item>
-          <el-form-item label="测试环境信息" prop="envInfo">
+          <el-form-item label="环境信息" prop="envInfo">
             <el-input v-model="applicationInfo.envInfo" placeholder="The benchmark was run on GitHub-hosted runners(16 GB RAM, 4 Cores, ubuntu-22.04)." />
           </el-form-item>
         </template>
