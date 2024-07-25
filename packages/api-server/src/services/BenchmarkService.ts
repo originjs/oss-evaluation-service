@@ -149,6 +149,7 @@ interface BenchmarkValue {
   platform: string;
   projectId: number;
   patchId: string;
+  envInfo: string;
 }
 
 export async function importBenchmarkFromExcel(file: Express.Multer.File) {
@@ -177,7 +178,7 @@ export async function importBenchmarkFromExcel(file: Express.Multer.File) {
     throw new Error(`no benchmark apply with filename:{${filename}} or this file is imported`);
   }
   const data = await parseBenchmarkExcel2JSON(file.buffer);
-  await setOthersParam4Benchmark(data.benchmark);
+  await setOthersParam4Benchmark(data.benchmark, apply);
   // call integration url to import benchmark data
   await importBenchmarkData(data);
   const projectIds = data.benchmark.map(benchmark => benchmark.projectId);
@@ -315,7 +316,7 @@ async function importBenchmarkData(data: { benchmark: BenchmarkValue[]; index: B
  * set projectId and patchId for benchmark
  * @param data benchmarkData
  */
-async function setOthersParam4Benchmark(data: BenchmarkValue[]) {
+async function setOthersParam4Benchmark(data: BenchmarkValue[], apply: any) {
   if (!data?.length) {
     throw new Error(`[benchmark import] no data for set project id`);
   }
@@ -323,6 +324,7 @@ async function setOthersParam4Benchmark(data: BenchmarkValue[]) {
   const patchId = moment(new Date()).format('YYYYMMDDHHmmssSSS');
   for (const benchmark of data) {
     const fullName = benchmark.projectName;
+    benchmark.platform = apply.envInfo;
     if (!softwareName2Id.has(fullName)) {
       const project = await GithubProjects.findOne({
         where: {
