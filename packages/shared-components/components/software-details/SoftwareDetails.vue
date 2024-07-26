@@ -1224,17 +1224,19 @@ onBeforeUnmount(() => {
             :rows="benchmarkCompareRows"
             :columns="benchmarkCompareColumns"
           />
-          <ApplyAdd v-else :application-type="3">
-            <template #trigger>
-              <span>
-                <span>暂无性能数据，</span>
-                <span class="btn-add-benchmark">点击新增Benchmark</span>
-              </span>
-            </template>
-            <template #dialog-header>
-              <div font-size-18px>新增Benchmark</div>
-            </template>
-          </ApplyAdd>
+          <slot v-else name="benchmark" :project="project">
+            <ApplyAdd :application-type="3">
+              <template #trigger>
+                <span>
+                  <span>暂无性能数据，</span>
+                  <span class="btn-add-benchmark">点击新增Benchmark</span>
+                </span>
+              </template>
+              <template #dialog-header>
+                <div font-size-18px>新增Benchmark</div>
+              </template>
+            </ApplyAdd>
+          </slot>
         </el-card>
       </div>
       <div id="quality" mt-4 mb-4 font-size-7 font-bold line-height-normal>
