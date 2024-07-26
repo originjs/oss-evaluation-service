@@ -1170,12 +1170,30 @@ onBeforeUnmount(() => {
         </div>
       </el-card>
       <div>
-        <div id="performance" mt-4 mb-4 font-size-7 font-bold line-height-normal>
-          <span class="i-line-md-speedometer-loop" mr-2 />
-          <span>性能</span>
-          <span font-size-5 float-right
-            >{{ formatFloat(project?.evaluation?.performanceScore) }}/100</span
-          >
+        <div
+          id="performance"
+          mt-4
+          mb-4
+          font-size-7
+          font-bold
+          line-height-normal
+          flex
+          flex-items-center
+          justify-between
+        >
+          <div flex flex-items-center>
+            <span class="i-line-md-speedometer-loop" mr-2 />
+            <span mr-4>性能</span>
+            <ApplyAdd v-if="!benchmarkCompareRows.length" :application-type="3">
+              <template #trigger>
+                <el-button type="primary" plain size="large">新增Benchmark</el-button>
+              </template>
+              <template #dialog-header>
+                <div font-size-18px>新增Benchmark</div>
+              </template>
+            </ApplyAdd>
+          </div>
+          <span font-size-5>{{ formatFloat(project?.evaluation?.performanceScore) }}/100</span>
         </div>
         <el-card v-if="performanceModuleInfo.packageName || benchmarkCompareRows.length">
           <div v-if="performanceModuleInfo.packageName">
@@ -1215,14 +1233,6 @@ onBeforeUnmount(() => {
             :columns="benchmarkCompareColumns"
           />
         </el-card>
-        <ApplyAdd v-else :application-type="3">
-          <template #trigger>
-            <el-button type="primary" plain>新增Benchmark</el-button>
-          </template>
-          <template #dialog-header>
-            <div font-size-18px>新增Benchmark</div>
-          </template>
-        </ApplyAdd>
       </div>
       <div id="quality" mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-custom:quality mr-2 />
