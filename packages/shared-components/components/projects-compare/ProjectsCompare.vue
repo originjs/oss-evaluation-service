@@ -359,6 +359,32 @@ const getShowRow = (path: string) => {
         </div>
       </div>
 
+      <div
+        v-show="getShowRow('evaluation.innovationScore')"
+        class="row"
+        @mouseover="showChooseBorder('创新', $event)"
+        @mouseout="hideChooseBorder()"
+      >
+        <div class="border param-name">
+          <span i-custom:ecology mr-2 />
+          <span>创新</span>
+        </div>
+        <div v-for="idx in 5" :key="idx" class="param-value border">
+          <div v-if="projects[idx - 1]" class="value-div">
+            <span
+              :class="{
+                good: isGood(
+                  projects[idx - 1].evaluation?.innovationScore,
+                  'evaluation.innovationScore',
+                ),
+              }"
+            >
+              {{ formatFloat(projects[idx - 1].evaluation?.innovationScore) }}/100
+            </span>
+          </div>
+        </div>
+      </div>
+
       <div class="border categar" @click="showBasic = !showBasic">
         <el-icon style="color: cornflowerblue; margin: 0px 6px">
           <ArrowDown v-show="showBasic" />

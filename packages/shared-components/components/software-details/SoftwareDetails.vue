@@ -264,7 +264,7 @@ function renderSoftwareRadarChart() {
               formatFloat(project.value?.evaluation?.functionScore),
               formatFloat(project.value?.evaluation?.qualityScore),
               formatFloat(project.value?.evaluation?.ecologyScore),
-              formatFloat(project.value?.evaluation?.innovationValue),
+              formatFloat(project.value?.evaluation?.innovationScore),
               formatFloat(project.value?.evaluation?.performanceScore),
             ],
             name: '分数',

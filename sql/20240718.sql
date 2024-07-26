@@ -10,3 +10,8 @@ alter table new_project_apply
 
 alter table new_project_apply
     add env_info varchar(512) default '' not null comment 'benchmark的环境信息';
+
+ALTER TABLE oss_evaluation_summary ADD COLUMN `star_rate` double NULL;
+ALTER TABLE oss_evaluation_summary ADD COLUMN `download_rate` double NULL;
+ALTER TABLE oss_evaluation_summary ADD COLUMN `creator_orgs` double NULL;
+ALTER TABLE oss_evaluation_summary ADD COLUMN `creator_countries` double NULL;
