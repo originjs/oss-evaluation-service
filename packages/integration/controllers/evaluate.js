@@ -261,7 +261,7 @@ export async function evaluateBenchmark(model, options) {
     const performanceValue = await getDimensionScore(
       benchmarkVersion,
       'performance',
-      techStack,
+      benchmarkVersion.techStack,
       model,
       bId,
     );
@@ -292,6 +292,8 @@ export async function syncSingleProjectEvaluation(project) {
   const projectId = project.id;
   const summary = await EvaluationSummary.findOne({ where: { projectId } });
   const model = await loadModel();
+  // evaluate benchmark
+  evaluateBenchmark(model, { projectId });
   return await doSingleProjectEvaluation(summary, model);
 }
 
@@ -333,6 +335,7 @@ async function getDimensionScore(project, dimension, techStack, model, bId) {
     } else {
       let rawValue;
       if (techStack !== 'common') {
+        // for performance score
         const { projectId } = project;
         rawValue = await getPerformanceRawValue(projectId, field, techStack, bId);
         if (rawValue == null || rawValue < 0) {

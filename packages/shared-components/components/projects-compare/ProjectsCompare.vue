@@ -366,7 +366,7 @@ const getShowRow = (path: string) => {
         @mouseout="hideChooseBorder()"
       >
         <div class="border param-name">
-          <span i-custom:ecology mr-2 />
+          <span i-ph:lightbulb-filament-bold mr-2 />
           <span>创新</span>
         </div>
         <div v-for="idx in 5" :key="idx" class="param-value border">
