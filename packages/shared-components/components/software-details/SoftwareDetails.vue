@@ -1215,7 +1215,7 @@ onBeforeUnmount(() => {
             :columns="benchmarkCompareColumns"
           />
         </el-card>
-        <ApplyAdd :application-type="3">
+        <ApplyAdd v-else :application-type="3">
           <template #trigger>
             <el-button type="primary" plain>新增Benchmark</el-button>
           </template>
