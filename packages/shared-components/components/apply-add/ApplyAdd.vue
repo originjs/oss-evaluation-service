@@ -251,11 +251,7 @@ defineExpose({
           />
         </el-form-item>
         <template v-if="applicationType === ApplicationType.Benchmark">
-          <el-form-item
-            label="上传文件"
-            prop="file"
-            class="form-item-file"
-          >
+          <el-form-item label="上传文件" prop="file" class="form-item-file">
             <el-upload
               ref="uploadInstance"
               :auto-upload="false"
@@ -289,7 +285,10 @@ defineExpose({
             </el-upload>
           </el-form-item>
           <el-form-item label="环境信息" prop="envInfo">
-            <el-input v-model="applicationInfo.envInfo" placeholder="The benchmark was run on GitHub-hosted runners(16 GB RAM, 4 Cores, ubuntu-22.04)." />
+            <el-input
+              v-model="applicationInfo.envInfo"
+              placeholder="The benchmark was run on GitHub-hosted runners(16 GB RAM, 4 Cores, ubuntu-22.04)."
+            />
           </el-form-item>
         </template>
         <el-form-item v-if="!email" label="邮箱地址" prop="email">

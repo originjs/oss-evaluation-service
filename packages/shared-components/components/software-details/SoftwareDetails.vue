@@ -1169,7 +1169,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
       </el-card>
-      <div v-if="performanceModuleInfo.packageName || benchmarkCompareRows.length">
+      <div>
         <div id="performance" mt-4 mb-4 font-size-7 font-bold line-height-normal>
           <span class="i-line-md-speedometer-loop" mr-2 />
           <span>性能</span>
@@ -1177,7 +1177,7 @@ onBeforeUnmount(() => {
             >{{ formatFloat(project?.evaluation?.performanceScore) }}/100</span
           >
         </div>
-        <el-card>
+        <el-card v-if="performanceModuleInfo.packageName || benchmarkCompareRows.length">
           <div v-if="performanceModuleInfo.packageName">
             <div>
               包大小{{
@@ -1215,6 +1215,14 @@ onBeforeUnmount(() => {
             :columns="benchmarkCompareColumns"
           />
         </el-card>
+        <ApplyAdd :application-type="3">
+          <template #trigger>
+            <el-button type="primary" plain>新增Benchmark</el-button>
+          </template>
+          <template #dialog-header>
+            <div font-size-18px>新增Benchmark</div>
+          </template>
+        </ApplyAdd>
       </div>
       <div id="quality" mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-custom:quality mr-2 />
