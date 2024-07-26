@@ -75,10 +75,10 @@ export function getDurationInMilliseconds(start) {
 
 let transports = [];
 // Do not output log to console in the production environment
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV == 'development') {
   transports = [consoleTransport];
 } else {
-  transports = [transportError, transportInfo];
+  transports = [consoleTransport, transportError, transportInfo];
 }
 
 const customizedLogger = winston.createLogger({
