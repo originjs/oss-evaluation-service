@@ -1184,18 +1184,10 @@ onBeforeUnmount(() => {
           <div flex flex-items-center>
             <span class="i-line-md-speedometer-loop" mr-2 />
             <span mr-4>性能</span>
-            <ApplyAdd v-if="!benchmarkCompareRows.length" :application-type="3">
-              <template #trigger>
-                <el-button type="primary" plain size="large">新增Benchmark</el-button>
-              </template>
-              <template #dialog-header>
-                <div font-size-18px>新增Benchmark</div>
-              </template>
-            </ApplyAdd>
           </div>
           <span font-size-5>{{ formatFloat(project?.evaluation?.performanceScore) }}/100</span>
         </div>
-        <el-card v-if="performanceModuleInfo.packageName || benchmarkCompareRows.length">
+        <el-card>
           <div v-if="performanceModuleInfo.packageName">
             <div>
               包大小{{
@@ -1228,10 +1220,21 @@ onBeforeUnmount(() => {
             </div>
           </div>
           <BenchmarkCompareTable
-            v-show="benchmarkCompareRows.length"
+            v-if="benchmarkCompareRows.length"
             :rows="benchmarkCompareRows"
             :columns="benchmarkCompareColumns"
           />
+          <ApplyAdd v-else :application-type="3">
+            <template #trigger>
+              <span>
+                <span>暂无性能数据，</span>
+                <span class="btn-add-benchmark">点击新增Benchmark</span>
+              </span>
+            </template>
+            <template #dialog-header>
+              <div font-size-18px>新增Benchmark</div>
+            </template>
+          </ApplyAdd>
         </el-card>
       </div>
       <div id="quality" mt-4 mb-4 font-size-7 font-bold line-height-normal>
@@ -1922,6 +1925,10 @@ onBeforeUnmount(() => {
   }
   .table-base-info {
     width: 935px;
+  }
+  .btn-add-benchmark {
+    cursor: pointer;
+    color: var(--el-color-primary);
   }
 }
 
