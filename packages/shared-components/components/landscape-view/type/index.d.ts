@@ -17,11 +17,9 @@ export interface Subcategory {
   subTechStackName: string;
   projects: Project[];
   width?: number;
-  normalizedProjectsCount?: number;
   hasBigProject?: boolean;
+  count: number; // 所有项目数量
+  displayCount: number; // 展示项目数量
 }
 
-export interface Category {
-  category: string;
-  subcategory: Subcategory[];
-}
+export type Category = Record<string, Record<string, Subcategory>>;

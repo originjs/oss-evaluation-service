@@ -1,6 +1,12 @@
 <template>
   <div id="landscape" w-full>
-    <div v-for="(data, index) in landscapeData" :key="data.category" w-full flex mb-16px>
+    <div
+      v-for="(categoryName, index) in Object.keys(landscapeData)"
+      :key="categoryName"
+      w-full
+      flex
+      mb-16px
+    >
       <div
         :style="`background-color:${options.colors[index % options.colors.length]}`"
         w-32px
@@ -17,14 +23,14 @@
           class="landscape-category-name"
           style="transform: rotate(180deg)"
           write-vertical-right
-          >{{ data.category }}</span
+          >{{ categoryName }}</span
         >
       </div>
       <div flex-1 flex flex-wrap justify-between>
         <div
-          v-for="subData in data.subcategory"
-          :key="`${data.category}-${subData.subTechStackName}`"
-          :style="`width: ${subData.width}px;`"
+          v-for="subcategoryName in Object.keys(landscapeData[categoryName])"
+          :key="`${categoryName}-${subcategoryName}`"
+          :style="`width: ${landscapeData[categoryName][subcategoryName].width}px;`"
         >
           <div
             :style="`background-color:${options.colors[index % options.colors.length]}`"
@@ -38,9 +44,8 @@
             mb-10px
           >
             <span
-              >{{ subData.subTechStackName }} ({{
-                totalSubcategoryProjectsCount[`${data.category}###${subData.subTechStackName}`] ||
-                0
+              >{{ subcategoryName }} ({{
+                landscapeData[categoryName][subcategoryName].count || 0
               }})</span
             >
             <el-tooltip
@@ -51,10 +56,13 @@
             >
               <div
                 class="more-btn i-custom:more font-size-4 ml-2"
-                @click="gotoMore(data.category, subData.subTechStackName)"
+                @click="gotoMore(categoryName, subcategoryName)"
               />
             </el-tooltip>
-            <slot name="subTechStackTitleExtend" :sub-tech-stack="subData"></slot>
+            <slot
+              name="subTechStackTitleExtend"
+              :sub-tech-stack="landscapeData[categoryName][subcategoryName]"
+            ></slot>
           </div>
           <div
             style="display: grid; margin-bottom: 10px"
@@ -66,8 +74,8 @@
           >
             <template v-if="options.enableProjectPopover">
               <project-popover
-                v-for="project in subData.projects"
-                :key="`${data.category}-${subData.subTechStackName}-${project.name}`"
+                v-for="project in landscapeData[categoryName][subcategoryName].projects"
+                :key="`${categoryName}-${subcategoryName}-${project.name}`"
                 :project="project"
                 :options="options"
               >
@@ -89,8 +97,8 @@
             </template>
             <template v-else>
               <project-thumbnails
-                v-for="project in subData.projects"
-                :key="`${data.category}-${subData.subTechStackName}-${project.name}`"
+                v-for="project in landscapeData[categoryName][subcategoryName].projects"
+                :key="`${categoryName}-${subcategoryName}-${project.name}`"
                 class="project-logo"
                 :project="project"
                 :options="options"
@@ -225,7 +233,7 @@ const props = defineProps<{
 }>();
 
 const options = computed(() => ({
-  sortProject: (p1: Project, p2: Project) => p1.name.localeCompare(p2.name),
+  sortProject: (p1: Project, p2: Project) => p1.name.localeCompare(p2.name), // 默认按名称排序
   hasMore: true,
   boxSize: 40,
   boxGap: 8,
@@ -240,7 +248,7 @@ const emit = defineEmits<{
   (e: 'toDetailsPage', project: Project, hash?: string): void;
 }>();
 
-const landscapeData = ref<Category[]>([]);
+const landscapeData = ref<Category>({});
 const dialogProject = ref<Project>({
   category: '',
   subcategory: '',
@@ -256,7 +264,6 @@ const dialogProject = ref<Project>({
   language: '',
 });
 const isOpenProjectDialog = ref(false);
-const totalSubcategoryProjectsCount = ref<{ [key: string]: number }>({});
 
 const getLandscapeWidth = () => {
   let width = (document.getElementById('landscape')?.offsetWidth || 1280) - 32;
@@ -268,38 +275,36 @@ const DEFAULT_MAX_COLUMN = 2; // 默认一行展示的最大列数（子类别�
 const MIN_COLUMN_PROJECTS = 4; // 一列中至少要展示多少个项目数，用来计算最小列宽
 
 // 计算 landscape 中每个子类别所占的宽度
-const calcWidth: (data: Category[], autoLayout?: AutoLayout) => Category[] = (data, autoLayout) => {
+const calcWidth: (projects: Project[], category: Category, autoLayout?: AutoLayout) => Category = (
+  projects,
+  category,
+  autoLayout,
+) => {
   const width = getLandscapeWidth();
-  for (const categoryData of data) {
-    const maxCol = (autoLayout && autoLayout[categoryData.category]) || DEFAULT_MAX_COLUMN;
-    const rowCount = Math.ceil(categoryData.subcategory.length / maxCol); // 根据最大列数计算得到子类别应该有几行
-    let totalProjectsCount = 0;
+  for (const categoryName of Object.keys(category)) {
+    const maxCol = (autoLayout && autoLayout[categoryName]) || DEFAULT_MAX_COLUMN;
+    const rowCount = Math.ceil(Object.keys(category[categoryName]).length / maxCol); // 根据最大列数计算得到子类别应该有几行
 
-    // 计算 projects 数量
-    for (const subcategoryData of categoryData.subcategory) {
-      let count = subcategoryData.projects.reduce((t, p) => (t += p.bigProject === 'Y' ? 2 : 1), 0); // 计算数量时 bigProjects 计为 2
-      subcategoryData.normalizedProjectsCount = count; // 子类别中的项目数
-      totalProjectsCount += count; // 所有子类别中的项目总数
-    }
-
-    // 按照 projects 数量排序
-    categoryData.subcategory.sort(
-      (a, b) => b.normalizedProjectsCount! - a.normalizedProjectsCount!,
-    );
-
-    // 生成行列信息，保存到 rows 中，列代表子类别
+    // 二维数组结构，保存行列信息，行代表当前大类别，列代表子类别
     const rows: (Subcategory & { weight: number; width: number })[][] = Array.from(
       { length: rowCount },
       () => [],
     );
-    let currentRow = 0;
-    for (const subcategoryData of categoryData.subcategory) {
-      rows[currentRow].push({
-        ...subcategoryData,
+    let rowIndex = 0;
+    // 循环子类别，把信息填充到二维数组中
+    for (const subcategoryName of Object.keys(category[categoryName])) {
+      const subcategory = category[categoryName][subcategoryName];
+
+      rows[rowIndex].push({
+        ...subcategory,
         width: 0,
-        weight: subcategoryData.normalizedProjectsCount! / totalProjectsCount, // 子类别的权重，等于 projects 数量 / projects 总数
+        weight: subcategory.displayCount / projects.length, // 子类别的权重，等于 projects 数量 / projects 总数
       });
-      currentRow = currentRow === rows.length - 1 ? 0 : currentRow + 1;
+
+      if (rows[rowIndex].length === maxCol) {
+        // 当前行已满，换行
+        rowIndex++;
+      }
     }
 
     // 根据子类别所占的权重，计算得到其宽度
@@ -350,105 +355,96 @@ const calcWidth: (data: Category[], autoLayout?: AutoLayout) => Category[] = (da
       }
     }
 
-    categoryData.subcategory = rows.flat();
+    // 把计算好的子类别宽度设置到 category 中
+    for (const row of rows) {
+      for (const col of row) {
+        category[categoryName][col.subTechStackName] = col;
+      }
+    }
   }
 
-  return data;
-};
-
-const countProjects = (item: Project) => {
-  const key = `${item.category}###${item.subcategory}`;
-  let currCount = totalSubcategoryProjectsCount.value[key] || 0;
-  ++currCount;
-  totalSubcategoryProjectsCount.value[key] = currCount;
+  return category;
 };
 
 const processLandscapeData = (
   projects: Project[],
   { layout, autoLayout, isInit }: { layout?: Layout; autoLayout?: AutoLayout; isInit?: boolean },
-) => {
-  let width = getLandscapeWidth();
-  const indexMapping: { [key: string]: { index: number; subIndex: { [key: string]: number } } } =
-    {};
-  const _landscapeData: Category[] = [];
-  const projectCategories = new Set(projects.map(p => p.category));
-  const projectSubCategories = new Set(projects.map(p => p.subcategory));
-  let category;
-  let subcategory;
-  let subcategoryArray;
+): Category => {
+  const width = getLandscapeWidth();
+  const category: Category = {}; // 处理后的数据
+
+  // 根据 layout 初始化 category
   if (layout) {
-    for (category in layout) {
-      if (!projectCategories.has(category)) {
-        continue;
-      }
+    for (const categoryName of Object.keys(layout)) {
+      category[categoryName] = {};
 
-      indexMapping[category] = {
-        index: _landscapeData.length,
-        subIndex: {},
-      };
-
-      subcategoryArray = [];
-      for (subcategory in layout[category]) {
-        if (!projectSubCategories.has(subcategory)) {
-          continue;
-        }
-
-        indexMapping[category].subIndex[subcategory] = subcategoryArray.length;
-        subcategoryArray.push({
-          subTechStackName: subcategory,
+      for (const subcategoryName of Object.keys(layout[categoryName])) {
+        category[categoryName][subcategoryName] = {
+          subTechStackName: subcategoryName,
           hasBigProject: false,
-          width: width * layout[category][subcategory] - 10,
           projects: [],
-        });
+          count: 0,
+          displayCount: 0,
+          width: width * layout[categoryName][subcategoryName] - 10,
+        };
       }
-
-      _landscapeData.push({ category: category, subcategory: subcategoryArray });
     }
   }
 
-  totalSubcategoryProjectsCount.value = {};
-  projects.forEach((item: Project) => {
-    countProjects(item);
-
-    if (typeof indexMapping[item.category] === 'undefined') {
-      indexMapping[item.category] = {
-        index: _landscapeData.length,
-        subIndex: {},
-      };
-      _landscapeData.push({ category: item.category, subcategory: [] });
+  // 根据 projects 填充 category 数据
+  projects.forEach(item => {
+    // 初始化没有经过 layout 处理的类别数据
+    if (!category[item.category]) {
+      category[item.category] = {};
     }
-    category = _landscapeData[indexMapping[item.category].index];
-
-    if (typeof indexMapping[item.category].subIndex[item.subcategory] === 'undefined') {
-      indexMapping[item.category].subIndex[item.subcategory] = category.subcategory.length;
-      category.subcategory.push({
+    if (!category[item.category][item.subcategory]) {
+      category[item.category][item.subcategory] = {
         subTechStackName: item.subcategory,
         hasBigProject: false,
         projects: [],
-      });
+        count: 0,
+        displayCount: 0,
+      };
     }
 
-    subcategory = category.subcategory[indexMapping[item.category].subIndex[item.subcategory]];
+    const subcategory = category[item.category][item.subcategory];
+    subcategory.count++; // 计算子类别项目总数
 
-    if (!subcategory.hasBigProject && item.bigProject === 'Y') {
+    const isBigProject = item.bigProject === 'Y';
+    if (isBigProject) {
+      // 当前子类别有大项目
       subcategory.hasBigProject = true;
     }
 
     if (
-      item.bigProject === 'Y' ||
+      isBigProject ||
       !props.options?.maxProjects ||
       subcategory.projects.length < props.options?.maxProjects
     ) {
+      // 大项目 或者 还没有达到最大项目数才添加
       subcategory.projects.push(item);
+      subcategory.displayCount++; // 计算子类别展示项目总数
     }
   });
 
-  _landscapeData.forEach(data => {
-    data.subcategory.forEach(subcategory => {
-      subcategory.projects.sort(options.value.sortProject);
-      if (!subcategory.hasBigProject) {
-        return;
+  // 对填充完成的 category 数据进一步处理
+  for (const categoryName of Object.keys(category)) {
+    for (const subcategoryName of Object.keys(category[categoryName])) {
+      const subcategory = category[categoryName][subcategoryName];
+      if (!subcategory.projects.length) {
+        // 删除没有项目的子类别
+        delete category[categoryName][subcategoryName];
+        continue;
       }
+
+      // 先按 sortProject 排序项目；默认按名称排序
+      subcategory.projects.sort(options.value.sortProject);
+
+      if (!subcategory.hasBigProject) {
+        continue;
+      }
+
+      // 再按 bigProject 排序项目
       subcategory.projects.sort((p1, p2) => {
         if (p1.bigProject === 'Y' && p2.bigProject !== 'Y') {
           return -1;
@@ -458,14 +454,19 @@ const processLandscapeData = (
           return 0;
         }
       });
-    });
-  });
+    }
 
-  if (!layout || !isInit) {
-    return calcWidth(_landscapeData, autoLayout);
+    // 删除没有子类别的类别
+    if (!Object.keys(category[categoryName]).length) {
+      delete category[categoryName];
+    }
   }
 
-  return _landscapeData;
+  if (!layout || !isInit) {
+    return calcWidth(projects, category, autoLayout);
+  }
+
+  return category;
 };
 
 const initLandscape = () => {
@@ -522,7 +523,7 @@ function clickProject(project: Project) {
 .project-logo {
   &:hover {
     cursor: pointer;
-    box-shadow: 0px 0px 7px 0px rgba(0, 0, 0, 0.14);
+    box-shadow: 0 0 7px 0 rgba(0, 0, 0, 0.14);
   }
 }
 
