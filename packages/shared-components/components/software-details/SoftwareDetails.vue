@@ -747,23 +747,24 @@ function processBenchmarkData(benchmarkData?: BenchmarkData) {
   const columnMap: { [k: string]: ColumnData } = {};
 
   // get min row value
-  const indexNameToMinCellValueMap: { [k: string]: string } = {};
+  const minRowValueMap: { [k: string]: string } = {};
   (benchmarkData?.base || []).forEach(
-    item => (indexNameToMinCellValueMap[item.indexName] = String(item.bestVal)),
+    item => (minRowValueMap[item.indexCategory + item.indexName] = String(item.bestVal)),
   );
 
   const data = benchmarkData?.data || [];
   for (let i = 0; i < data.length; i++) {
     for (let j = 0; j < data[i].length; j++) {
       const { indexName, displayName, rawValue, indexCategory, unit } = data[i][j];
-      if (indexName && displayName) {
+      if (indexCategory && indexName && displayName) {
+        const mapKey = indexCategory + indexName;
         // get row
-        rowMap[indexName] = {
-          ...rowMap[indexName],
+        rowMap[mapKey] = {
+          ...rowMap[mapKey],
           ...data[i][j],
           benchmarkName: unit ? `${indexName} (${unit})` : indexName,
           category: indexCategory,
-          minCellValue: indexNameToMinCellValueMap[indexName],
+          minCellValue: minRowValueMap[mapKey],
           [displayName]:
             Number(rawValue || 0) === 0 // 考虑3种情况：undefined | '' | '0'
               ? EMPTY_VALUE.EMPTY_CELL

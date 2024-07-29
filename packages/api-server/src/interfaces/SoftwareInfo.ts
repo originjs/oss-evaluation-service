@@ -151,7 +151,7 @@ export interface InnovationData {
 }
 
 export interface BenchmarkData {
-  base: { indexName: string; bestVal: number }[];
+  base: { indexCategory: string; indexName: string; bestVal: number }[];
   data: {
     displayName: string;
     indexName: string;
