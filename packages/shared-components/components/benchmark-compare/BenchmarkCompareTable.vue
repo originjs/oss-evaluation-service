@@ -104,15 +104,21 @@ const computeColor: (row: RowData, column: ColumnData) => string = (row, column)
     @cell-mouse-enter="({ indexName }) => (hoveringIndexName = indexName)"
     @cell-mouse-leave="hoveringIndexName = ''"
   >
-    <el-table-column prop="category" label="分类" fixed width="48px">
+    <el-table-column
+      v-if="rows.some(item => item.category)"
+      prop="category"
+      label="分类"
+      fixed
+      width="48px"
+    >
       <template #header><div class="write-vertical-left">分类</div></template>
       <template #default="{ row }"
-        ><div class="write-vertical-left">{{ row.category }}</div></template
+        ><div class="py-8px write-vertical-left">{{ row.category }}</div></template
       >
     </el-table-column>
     <el-table-column prop="benchmarkName" label="指标" fixed :width="options.indexNameWidth">
       <template #default="{ row, column }">
-        <div class="relative flex justify-between">
+        <div class="relative flex justify-between text-center">
           <el-tooltip :content="row.description || row.benchmarkName">
             <span class="flex-1">{{ row.benchmarkName }}</span>
           </el-tooltip>
