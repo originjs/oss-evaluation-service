@@ -185,7 +185,8 @@ export async function importBenchmarkFromExcel(file: Express.Multer.File) {
   // set integration finished time if not err
   await NewProjectApply.update(
     {
-      integrationFinishedTime: new Date(),
+      // dont set finishedTime, bacause need time to sync data from outer into inner
+      // integrationFinishedTime: new Date(),
       // set imported projectId for this apply
       alternativeProjectId: [...new Set(projectIds)].join(','),
     },
