@@ -36,6 +36,7 @@
     "swagger-ui-express": "^5.0.0",
     "tsoa": "^6.2.0",
     "underscore": "^1.13.6",
+    "undici": "^6.19.4",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
