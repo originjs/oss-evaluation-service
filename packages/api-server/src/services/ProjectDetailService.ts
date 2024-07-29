@@ -169,6 +169,7 @@ order by benchmark.display_name, index_name.order`;
   });
   const queryBase = `
   select if(index_name.display_name is null, benchmark.benchmark, index_name.display_name) as indexName,
+       category as indexCategory, 
        min(benchmark.raw_value)                                                          as bestVal
 from benchmark
          left join benchmark_index index_name
@@ -176,7 +177,7 @@ from benchmark
                        and benchmark.benchmark = index_name.index_name
 where benchmark.patch_id = :patchId
   and benchmark.raw_value is not null
-group by if(index_name.display_name is null, benchmark.benchmark, index_name.display_name)`;
+group by category,if(index_name.display_name is null, benchmark.benchmark, index_name.display_name)`;
   const bestVal = await sequelize.query(queryBase, {
     type: sequelize.QueryTypes.SELECT,
     replacements: {
