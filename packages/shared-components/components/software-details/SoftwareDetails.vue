@@ -749,15 +749,15 @@ function processBenchmarkData(benchmarkData?: BenchmarkData) {
   // get min row value
   const minRowValueMap: { [k: string]: string } = {};
   (benchmarkData?.base || []).forEach(
-    item => (minRowValueMap[item.indexCategory + item.indexName] = String(item.bestVal)),
+    item => (minRowValueMap[(item.indexCategory || '') + item.indexName] = String(item.bestVal)),
   );
 
   const data = benchmarkData?.data || [];
   for (let i = 0; i < data.length; i++) {
     for (let j = 0; j < data[i].length; j++) {
       const { indexName, displayName, rawValue, indexCategory, unit } = data[i][j];
-      if (indexCategory && indexName && displayName) {
-        const mapKey = indexCategory + indexName;
+      if (indexName && displayName) {
+        const mapKey = (indexCategory || '') + indexName;
         // get row
         rowMap[mapKey] = {
           ...rowMap[mapKey],
