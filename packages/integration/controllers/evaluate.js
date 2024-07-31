@@ -300,7 +300,8 @@ export async function syncSingleProjectEvaluation(project) {
 async function doSingleProjectEvaluation(summary, model) {
   logger.info(`doSingleProjectEvaluation: ${summary.projectId}`);
   /* eslint-disable no-param-reassign */
-  summary.starRate = await getGithubStarRate(summary.projectId);
+  // move to getStargazersTrend to improve performance
+  // summary.starRate = await getGithubStarRate(summary.projectId);
   summary.functionValue = await getDimensionScore(summary, 'function', 'common', model);
   summary.qualityValue = await getDimensionScore(summary, 'quality', 'common', model);
   summary.ecologyValue = await getDimensionScore(summary, 'ecology', 'common', model);
@@ -367,6 +368,7 @@ async function getPerformanceRawValue(projectId, field, techStack, bId) {
   return rawData.rawValue;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function getGithubStarRate(projectId) {
   const sql = `SELECT date,stargazers,LAG(stargazers,3) OVER(ORDER BY date) AS lastQuote 
   FROM github_projects_stargazers_trend WHERE project_id=${projectId} ORDER BY date DESC LIMIT 1`;
