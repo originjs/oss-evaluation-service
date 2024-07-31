@@ -171,6 +171,24 @@
               >
                 {{ label }}
               </el-tag>
+              <el-tooltip
+                v-for="(item, idx) in dialogProject?.osInfo || []"
+                :key="idx"
+                :content="`自 ${item.os} ${item.introduceVersion} 版本开始引入`"
+                effect="light"
+              >
+                <el-tag :type="getSystemTagType(item.os)" mr-2 mb-2 class="tag-system">
+                  <span
+                    pr-6px
+                    :style="{
+                      'border-right': `1px solid var(--el-color-${getSystemTagType(item.os)}-light-7)`,
+                    }"
+                  >
+                    {{ item.os }}
+                  </span>
+                  <span pl-6px>{{ item.introduceVersion }}</span>
+                </el-tag>
+              </el-tooltip>
             </div>
           </div>
         </div>
@@ -181,7 +199,7 @@
 </template>
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { getTagType, toKilo } from '@orginjs/oss-evaluation-components-utils';
+import { getTagType, toKilo, getSystemTagType } from '@orginjs/oss-evaluation-components-utils';
 import ProjectPopover from './ProjectPopover.vue';
 import type { Category, Subcategory } from './type';
 import ProjectThumbnails from './ProjectThumbnails.vue';
@@ -200,6 +218,10 @@ interface Project {
   labels: string[];
   language: string;
   projectType?: string;
+  osInfo?: Array<{
+    os: string;
+    introduceVersion: string;
+  }>;
 }
 
 type Layout = {
@@ -535,6 +557,13 @@ function clickProject(project: Project) {
 #landscape {
   :deep(.el-dialog) {
     margin: 12px auto 0;
+  }
+}
+.tag-system {
+  span {
+    display: inline-block;
+    height: 22px;
+    line-height: 22px;
   }
 }
 </style>
