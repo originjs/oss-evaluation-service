@@ -28,6 +28,20 @@ export function getTagType(idx: number) {
   }
 }
 
+export function getSystemTagType(system: string) {
+  system = system.toUpperCase();
+  switch (system) {
+    case 'IOS':
+      return 'primary';
+    case 'HOS':
+      return 'success';
+    case 'AOSP':
+      return 'warning';
+    default:
+      return 'primary';
+  }
+}
+
 export function scorecardProgressColor(score: number) {
   if (score < 2) {
     return '#f43146';
