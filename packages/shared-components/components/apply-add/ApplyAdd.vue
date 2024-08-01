@@ -333,5 +333,9 @@ defineExpose({
 :deep(.dialog-apply) {
   min-width: 600px;
   border-radius: 6px;
+  .el-dialog__header {
+    margin-bottom: 16px;
+    border-bottom: 1px solid #f2f3f5;
+  }
 }
 </style>
