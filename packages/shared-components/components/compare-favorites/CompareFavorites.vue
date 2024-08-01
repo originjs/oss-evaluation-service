@@ -281,7 +281,6 @@ defineExpose({
             }
 
             .project-desc {
-              flex: 1;
               overflow: hidden;
               text-overflow: ellipsis;
               display: -webkit-box;
