@@ -165,9 +165,9 @@ function cancelApply() {
 
 const uploadInstance = ref<UploadInstance>();
 
-function handleUploadExceed(files: Array<UploadRawFile>) {
+function handleUploadExceed(files: Array<File>) {
   uploadInstance.value!.clearFiles();
-  uploadInstance.value!.handleStart(files[0]);
+  uploadInstance.value!.handleStart(files[0] as UploadRawFile);
 }
 
 function handleUploadChange(uploadFile: UploadFile) {
