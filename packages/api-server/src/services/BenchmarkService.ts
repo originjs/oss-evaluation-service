@@ -1,4 +1,9 @@
-import { GithubProjects, NewProjectApply, sequelize } from '@orginjs/oss-evaluation-data-model';
+import {
+  GithubProjects,
+  NewProjectApply,
+  BenchmarkIndex as BenchmarkIndexPo,
+  sequelize,
+} from '@orginjs/oss-evaluation-data-model';
 import { randomUUID } from 'crypto';
 import exceljs from 'exceljs';
 import moment from 'moment';
@@ -70,24 +75,13 @@ INNER JOIN project_tech_stack pts
  * @param techStack Tech stack
  * @returns indexs
  */
-export async function queryIndexByTechStack(techStack: string): Promise<Array<BenchmarkIndex>> {
-  const sql = `
-  SELECT t.index_name   as indexName,
-    t.display_name as displayName,
-    t.unit,
-    t.category,
-    t.description
-  FROM benchmark_index t
-  WHERE t.tech_stack = :techStack
-  ORDER BY t.order;
-  `;
-
-  const indexs = await sequelize.query(sql, {
-    replacements: { techStack },
-    type: sequelize.QueryTypes.SELECT,
+export async function getIndexByTechStack(techStack: string): Promise<Array<BenchmarkIndex>> {
+  return await BenchmarkIndexPo.findAll({
+    where: {
+      techStack,
+    },
+    order: [['order']],
   });
-
-  return indexs;
 }
 
 /**
@@ -110,7 +104,8 @@ export async function getBenchmarkResultByTechStack(
           bt.platform,
           bvst.version,
           bvst.env_info AS envInfo,
-          bvst.score
+          bvst.score,
+          github_projects.full_name as fullName
       FROM benchmark bt
 INNER JOIN (
     SELECT st.project_id,
@@ -122,23 +117,25 @@ INNER JOIN (
      WHERE st.tech_stack = :techStack
   GROUP BY st.project_id, st.VERSION) bvst
         ON bvst.b_id = bt.b_id
+    join github_projects
+                  on bt.project_id = github_projects.id
      WHERE bt.raw_value IS NOT NULL
   ORDER BY bt.project_id, bt.benchmark,bt.created_at;`;
 
-  const indexes = await sequelize.query(sql, {
+  const benchmark = await sequelize.query(sql, {
     replacements: { techStack },
     type: sequelize.QueryTypes.SELECT,
   });
 
   // format val
-  for (const index of indexes) {
+  for (const index of benchmark) {
     if (isNumber(index?.rawValue)) {
       // rounding
       index.rawValue = fixedRound(index.rawValue, 3);
     }
   }
 
-  return indexes;
+  return benchmark;
 }
 
 interface BenchmarkValue {
@@ -349,4 +346,88 @@ async function setOthersParam4Benchmark(data: BenchmarkValue[], apply: any) {
     benchmark.projectId = softwareName2Id.get(fullName);
     benchmark.patchId = patchId;
   }
+}
+
+export async function exportBenchmrkByTechStackHandler(techStack: string) {
+  const indices = await getIndexByTechStack(techStack);
+  const benchmarkResult = await getBenchmarkResultByTechStack(techStack);
+  if (indices?.length === 0 || benchmarkResult?.length === 0) {
+    throw new Error('benchmark data is empty');
+  }
+  const workbook = new exceljs.Workbook();
+  // write header
+  const fullNames = new Set(benchmarkResult.map(item => item.fullName));
+  const sheet = workbook.addWorksheet(`<${techStack}>`);
+  const headerArr = ['指标分类', '指标名称', '指标单位', ...fullNames];
+  const headerRow = sheet.addRow(headerArr);
+  const headerLenght = headerArr.length;
+
+  // set header style
+  for (let i = 0; i < headerLenght; i++) {
+    const cellIndex = i + 1;
+    const cell = headerRow.getCell(cellIndex);
+    if (cellIndex <= 3) {
+      cell.font = { name: '黑体', size: 14 };
+    } else {
+      cell.font = { name: '黑体', size: 11 };
+    }
+    cell.alignment = {
+      horizontal: 'center',
+      vertical: 'middle',
+    };
+    cell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      // red bgColor
+      fgColor: { argb: 'EF949F' },
+    };
+  }
+
+  // Map<indexName,Map<fullName,rawValue>>
+  const benchmarkMap = new Map<string, Map<string, number>>();
+  for (const benchmark of benchmarkResult) {
+    const indexName = benchmark.benchmark;
+    if (!benchmarkMap.has(indexName)) {
+      benchmarkMap.set(indexName, new Map<string, number>());
+    }
+    const dataMap = benchmarkMap.get(indexName);
+    dataMap.set(benchmark.fullName, benchmark.rawValue);
+  }
+
+  // write excel content
+  const afterSortIndex = indices.sort((a, b) => a.order - b.order);
+  for (const index of afterSortIndex) {
+    const excelRow = [index.category, index.displayName, index.unit] as (string | number)[];
+    for (const fullName of fullNames) {
+      const val = benchmarkMap.get(index.indexName)?.get(fullName);
+      excelRow.push(val ? parseFloat(fixedRound(val, 2)) : null);
+    }
+    const row = sheet.addRow(excelRow);
+    // set content stype
+    row.font = { name: '黑体', size: 11 };
+  }
+
+  // auto adjust column width
+  for (let i = 0; i < headerLenght; i++) {
+    const columnIndex = i + 1;
+    const column = sheet.getColumn(columnIndex);
+    const defaultWidth = 20;
+    let maxLength = defaultWidth;
+    column.eachCell({ includeEmpty: false }, (cell, rowNum) => {
+      const cellWidth = cell.value ? cell.value.toString().length : defaultWidth;
+      maxLength = Math.max(maxLength, cellWidth);
+      // for content style
+      if (i >= 3 && rowNum > 1) {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          // red bgColor
+          fgColor: { argb: 'ADD88D' },
+        };
+      }
+    });
+    column.width = maxLength;
+  }
+
+  return workbook.xlsx.writeBuffer();
 }

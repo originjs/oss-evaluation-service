@@ -182,6 +182,7 @@ export interface BenchmarkResult {
   version: string;
   envInfo: string;
   score: number;
+  fullName: string;
 }
 
 export interface BenchmarkIndex {
