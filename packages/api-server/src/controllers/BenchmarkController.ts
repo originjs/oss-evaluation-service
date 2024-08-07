@@ -7,14 +7,16 @@ import type {
 import {
   getBenchmarkResultByTechStack,
   importBenchmarkFromExcel,
-  queryIndexByTechStack,
+  getIndexByTechStack,
   queryProjectsByTechStack,
+  exportBenchmrkByTechStackHandler,
 } from '../services/BenchmarkService.js';
 
 import { Result } from '../utils/result.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { Readable } from 'node:stream';
 import { basename, resolve } from 'node:path';
+import moment from 'moment';
 
 @Tags('benchamrk')
 @Route('benchmark')
@@ -32,7 +34,7 @@ export class BenchmarkController extends Controller {
   public async getIndexByTechStack(
     @Path() techStack: string,
   ): Promise<Result<Array<BenchmarkIndex>>> {
-    const data = await queryIndexByTechStack(techStack);
+    const data = await getIndexByTechStack(techStack);
     return Result.ok(data);
   }
 
@@ -85,5 +87,25 @@ export class BenchmarkController extends Controller {
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     );
     return buffer;
+  }
+
+  @Get('exportByTechStack/{techStack}')
+  public async exportBenchmrkByTechStack(@Path('techStack') techStack: string) {
+    if (!techStack) {
+      return Result.fail(400, 'techStack is empty!');
+    }
+    try {
+      const buffer = await exportBenchmrkByTechStackHandler(techStack);
+      const filename = `${techStack}_${moment(new Date()).format('yyyyMMddHHmmSSS')}`;
+      this.setHeader('Content-Disposition', `attachment; filename=${encodeURIComponent(filename)}`);
+      this.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+      return Readable.from(Buffer.from(buffer));
+    } catch (e) {
+      // return Result.fail(400, 'export failed');
+      return Result.fail(400, e.message);
+    }
   }
 }
