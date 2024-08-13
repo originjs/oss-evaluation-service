@@ -426,6 +426,7 @@ const processLandscapeData = (
         projects: [],
         count: 0,
         displayCount: 0,
+        width: width - 10,
       };
     }
 
