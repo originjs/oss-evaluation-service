@@ -33,5 +33,10 @@ export const JobConfig = {
       cronScheduleTime: '0 0 * * 6', // 周六 00:00
       enabled: isProduction, // only start in production environment
     },
+    {
+      name: 'evaluateTimer',
+      cronScheduleTime: '0 0 1 * *', // 每月1号 00:00
+      enabled: isProduction, // only start in production environment
+    }
   ],
 };

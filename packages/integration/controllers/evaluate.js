@@ -483,3 +483,15 @@ function calCriticalityScore(x, threshold, isDesc) {
     return Math.log(1.0 + Math.min(x, threshold)) / Math.log(1.0 + x);
   }
 }
+
+export async function evaluateTimer() {
+  logger.info('start')
+  const startTime = process.hrtime();
+  logger.info('[Calculation][Evaluate] Calculation Job start');
+  await syncAllProjectEvaluation();
+  logger.info('[Calculation][Evaluate] Calculation Job end');
+  const endTime = process.hrtime(startTime);
+  logger.info(
+    `[Calculation][Evaluate] The total time spent on calculation : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
+  );
+}
