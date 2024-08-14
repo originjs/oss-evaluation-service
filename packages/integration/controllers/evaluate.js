@@ -485,7 +485,6 @@ function calCriticalityScore(x, threshold, isDesc) {
 }
 
 export async function evaluateTimer() {
-  logger.info('start')
   const startTime = process.hrtime();
   logger.info('[Calculation][Evaluate] Calculation Job start');
   await syncAllProjectEvaluation();
