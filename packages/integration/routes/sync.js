@@ -15,7 +15,10 @@ import {
   syncPackageSizeHandler,
   syncSingleProjectPackageSizeHandler,
 } from '../controllers/packageSize.js';
-import { syncProjectCompassMetricHandler } from '../controllers/compass.js';
+import {
+  syncAllProjectCompassSubstituteHandler,
+  syncProjectCompassMetricHandler,
+} from '../controllers/compass.js';
 import { syncStateOfJsData } from '../controllers/stateofjs.js';
 import { syncStackOverFlowResultData } from '../controllers/stackoverflow.js';
 import {
@@ -260,6 +263,17 @@ router.route('/CNCFDocumentScore').post(syncProjectCncfDocumentScoreHandler);
  *         description: Compass activity metric synchronized
  */
 router.route('/compass').post(syncProjectCompassMetricHandler);
+
+/**
+ * @swagger
+ * /sync/substitute:
+ *   get:
+ *     summary: syncAllProjectCompassSubstituteHandler
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/substitute').get(syncAllProjectCompassSubstituteHandler);
 
 /**
  * @swagger
