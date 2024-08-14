@@ -65,7 +65,6 @@ INNER JOIN project_tech_stack pts
     element['selectedVersions'] = [];
     element.selectedVersion && element['selectedVersions'].push(element.selectedVersion);
   });
-
   return projects;
 }
 
@@ -211,10 +210,14 @@ async function parseBenchmarkExcel2JSON(buffer: Buffer) {
   const softwareReg = /.+(?=[(（].+[)）])/;
   const benchmarkData: BenchmarkValue[] = [];
   const indexData: BenchmarkIndex[] = [];
+  const techStackName: string = sheet.name.match(/(?<=<).+(?=>)/)?.[0];
   let i = 1;
   for (const row of rows) {
     const softwareName2Data = new Map<string, BenchmarkValue>();
     const index = {} as BenchmarkIndex;
+    if (techStackName) {
+      index.techStack = techStackName;
+    }
     row.eachCell(async (cell, num) => {
       const cellVal = cell.value?.toString()?.trim();
       // skip notes
@@ -239,7 +242,8 @@ async function parseBenchmarkExcel2JSON(buffer: Buffer) {
         default: {
           // get softwareName
           const softwareNameAndVersion = header.getCell(cell.col).value.toString();
-          const fullSoftwareName = softwareNameAndVersion.match(softwareReg)?.[0];
+          const fullSoftwareName =
+            softwareNameAndVersion.match(softwareReg)?.[0] ?? softwareNameAndVersion;
           if (!softwareName2Data.has(softwareNameAndVersion)) {
             softwareName2Data.set(softwareNameAndVersion, {
               benchmark: index.indexName,
@@ -330,7 +334,9 @@ async function setOthersParam4Benchmark(data: BenchmarkValue[], apply: any) {
   const patchId = moment(new Date()).format('YYYYMMDDHHmmssSSS');
   for (const benchmark of data) {
     const fullName = benchmark.projectName;
-    benchmark.platform = apply.envInfo;
+    if (apply?.envInfo) {
+      benchmark.platform = apply.envInfo;
+    }
     if (!softwareName2Id.has(fullName)) {
       const project = await GithubProjects.findOne({
         where: {
