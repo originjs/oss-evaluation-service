@@ -192,6 +192,7 @@ export interface BenchmarkIndex {
   category?: string;
   description?: string;
   order?: number;
+  techStack?: string;
 }
 
 export interface InnovationCompaniesInfo {
