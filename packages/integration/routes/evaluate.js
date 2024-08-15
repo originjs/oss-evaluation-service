@@ -3,6 +3,7 @@ import {
   syncProjectEvaluationHandler,
   evaluateBenchmarkHandler,
   setAllMedianAndP10,
+  storeAllEvaluationHistoryHandler,
 } from '../controllers/evaluate.js';
 
 const router = express.Router();
@@ -70,5 +71,19 @@ router.route('/benchmark').post(evaluateBenchmarkHandler);
  *         description: Success
  */
 router.route('/setAllMedianAndP10').get(setAllMedianAndP10);
+
+/**
+ * @swagger
+ * tags:
+ *   name: Evaluate
+ * /eval/storeAllEvaluationHistroy:
+ *   get:
+ *     summary: Store current evaluation score for all projects
+ *     tags: [Evaluate]
+ *     responses:
+ *       200:
+ *         description: Success
+ */
+router.route('/storeAllEvaluationHistroy').get(storeAllEvaluationHistoryHandler);
 
 export default router;
