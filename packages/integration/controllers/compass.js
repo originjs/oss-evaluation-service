@@ -215,9 +215,10 @@ export async function syncAllProjectCompassSubstituteHandler(req, res) {
 }
 
 async function syncAllProjectCompassSubstitute() {
+  logger.info('syncAllProjectCompassSubstitute start');
   logger.info('Add full_name field');
   const sql1 = `
-    update compass_activity_detail_substitute detail
+    update \`oss-eval-inner\`.compass_activity_detail_substitute detail
     set full_name = substring_index(detail.repo_url, 'https://github.com/', -1)
     where isnull(project_id);
   `;
@@ -225,9 +226,9 @@ async function syncAllProjectCompassSubstitute() {
 
   logger.info('Add project_id field');
   const sql2 = `
-    update compass_activity_detail_substitute detail
-        inner join github_projects projects on detail.repo_url = html_url
-    set detail.project_id = projects.project_id
+    update \`oss-eval-inner\`.compass_activity_detail_substitute detail
+        inner join \`oss-eval\`.github_projects projects on detail.repo_url = html_url
+    set detail.project_id = projects.id
     where isnull(project_id);
   `;
   await sequelizeExt.query(sql2, { type: sequelize.QueryTypes.UPDATE });
@@ -256,4 +257,6 @@ async function syncAllProjectCompassSubstitute() {
   `;
 
   await sequelizeExt.query(sql3, { type: sequelize.QueryTypes.UPDATE });
+
+  logger.info('syncAllProjectCompassSubstitute finished');
 }
