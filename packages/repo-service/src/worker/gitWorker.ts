@@ -1,5 +1,5 @@
 import { parentPort } from 'worker_threads';
-import type { GitCloneParam } from '../interfaces/param';
+import type { GitRepoInfo, RepoCloneParam } from '../interfaces/param';
 import fs from 'node:fs';
 import process from 'node:process';
 import type { SimpleGit, SimpleGitOptions } from 'simple-git';
@@ -13,9 +13,7 @@ function getNotHiddenFileCount(dir: string) {
   return files.filter(file => !file.startsWith('.')).length;
 }
 
-export async function cloneRepoIfNotExist(
-  cloneInfo: GitCloneParam,
-): Promise<Result<GitCloneParam>> {
+export async function cloneRepoIfNotExist(cloneInfo: RepoCloneParam): Promise<Result<GitRepoInfo>> {
   const owner = cloneInfo.owner;
   const repoName = cloneInfo.repoName;
   const pullIfExists = cloneInfo.pullIfExists;
@@ -61,7 +59,7 @@ export async function cloneRepoIfNotExist(
   throw new Error(`clone repo failed:${JSON.stringify(cloneInfo)}`);
 }
 
-async function clone(cloneInfo: GitCloneParam, retryUrl: string, gitClient: SimpleGit) {
+async function clone(cloneInfo: RepoCloneParam, retryUrl: string, gitClient: SimpleGit) {
   try {
     const options = cloneInfo.shadowClone ? { '--depth': 1 } : {};
     await gitClient.clone(retryUrl, '.', options);
@@ -70,7 +68,7 @@ async function clone(cloneInfo: GitCloneParam, retryUrl: string, gitClient: Simp
   }
 }
 
-async function pull(cloneInfo: GitCloneParam, gitClient: SimpleGit) {
+async function pull(cloneInfo: RepoCloneParam, gitClient: SimpleGit) {
   try {
     await gitClient.pull();
     return true;

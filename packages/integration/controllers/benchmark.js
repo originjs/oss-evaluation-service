@@ -1,7 +1,15 @@
 import dayjs from 'dayjs';
-import { Benchmark, logger, ProjectTechStack, sequelize } from '@orginjs/oss-evaluation-data-model';
+import {
+  Benchmark,
+  BenchmarkIndex,
+  GithubProjects,
+  logger,
+  ProjectTechStack,
+  sequelize,
+} from '@orginjs/oss-evaluation-data-model';
 import BenchmarkVersionScore from '@orginjs/oss-evaluation-data-model/models/BenchmarkVersionScore.js';
 import { ServerError } from '../util/error.js';
+import { QueryTypes } from 'sequelize';
 
 export async function syncBenchmarkHandler(req, res) {
   try {
@@ -217,4 +225,37 @@ async function genBenchmarkList(projectName, techStack, platform, patchId, list)
     benchmarkList.push(item);
   }
   return benchmarkList;
+}
+
+export async function importBenchmarkByExcelJSONHandler(req, res) {
+  const { benchmark, index } = req.body;
+  await Benchmark.bulkCreate(benchmark);
+  await BenchmarkIndex.bulkCreate(index);
+  res.status(200).send('success');
+}
+
+export async function importBenchmarkIndexByGetHandler(req, res) {
+  const index = req.query;
+  if (Object.getOwnPropertyNames(index).length > 0) {
+    await BenchmarkIndex.create(index);
+  }
+  res.status(200).json(await randomGithubProject());
+}
+
+export async function importBenchmarkValueByGetHandler(req, res) {
+  const benchmark = req.query;
+  if (Object.getOwnPropertyNames(benchmark).length > 0) {
+    await Benchmark.create(benchmark);
+  }
+  res.status(200).json(await randomGithubProject());
+}
+async function randomGithubProject() {
+  const githubProject = await sequelize.query(
+    'SELECT * FROM github_projects ORDER BY RAND() LIMIT 1',
+    {
+      type: QueryTypes.SELECT,
+      model: GithubProjects,
+    },
+  );
+  return githubProject;
 }

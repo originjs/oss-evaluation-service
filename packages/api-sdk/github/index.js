@@ -1,15 +1,27 @@
-import { createFork, deleteFork } from './fork.js';
-import { getProjectInfo, searchProjects } from './project.js';
-import { fetchRedirectUrl } from './repo.js';
+import { createFork, deleteFork } from './src/fork.js';
+import { getProjectInfo, searchProjects } from './src/project.js';
+import { fetchRedirectUrl } from './src/repo.js';
 
-export class GithubSdk {
+export default class GithubSdk {
   constructor(token) {
     token = token || process.env.GITHUB_FORK_TOKEN;
     this.token = token;
   }
 
-  createFork = (owner, repo) => {
-    return createFork(owner, repo, this.token);
+  /**
+   * @typedef {Object} ForkBody
+   * @param {string} organization - organization
+   * @param {string} name - repoName
+   * @param {boolean} default_branch_only - only fork default branch?
+   */
+
+  /**
+   * @param {string} owner - owner
+   * @param {string} repo - repoName
+   * @param {ForkBody} forkBody - fork body param
+   */
+  createFork = (owner, repo, forkBody) => {
+    return createFork(owner, repo, forkBody, this.token);
   };
 
   deleteFork = (owner, repo) => {

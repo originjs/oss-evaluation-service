@@ -15,7 +15,10 @@ import {
   syncPackageSizeHandler,
   syncSingleProjectPackageSizeHandler,
 } from '../controllers/packageSize.js';
-import { syncProjectCompassMetricHandler } from '../controllers/compass.js';
+import {
+  syncAllProjectCompassSubstituteHandler,
+  syncProjectCompassMetricHandler,
+} from '../controllers/compass.js';
 import { syncStateOfJsData } from '../controllers/stateofjs.js';
 import { syncStackOverFlowResultData } from '../controllers/stackoverflow.js';
 import {
@@ -28,6 +31,9 @@ import {
 import {
   bulkAddBenchmarkHandler,
   getPatchId,
+  importBenchmarkByExcelJSONHandler,
+  importBenchmarkIndexByGetHandler,
+  importBenchmarkValueByGetHandler,
   syncBenchmarkHandler,
   updateScore,
 } from '../controllers/benchmark.js';
@@ -36,19 +42,17 @@ import syncProjectCncfDocumentScoreHandler from '../controllers/documentScore.js
 import { refreshMainPackage } from '../controllers/refreshMainPackage.js';
 import {
   collectSonarCloudData,
-  createAndScanSonarProjectByGithubId,
+  createAndScanSonarProjectByGithubIdHandler,
   createGitlabProject,
   deleteSonarByKeys,
   createSonarProjectFromGitlab,
   createSonarProjectsFromGithub,
-  setDefaultBranchOfSonar,
   updateDefaultBranchAfterImport,
   updateSonarCloudDefaultBranch,
   uploadSonarCiConfigToGitlab,
   changeSonarKey2OfficialKeys,
 } from '../controllers/sonarCloud.js';
 import {
-  setCodeSizeOfProject,
   syncAllProjectCodeSizeHandler,
   syncProjectCodeSizeByProjectIdHandler,
 } from '../controllers/projectCodeSize.js';
@@ -180,7 +184,6 @@ router
   .route('/syncBatchProjectAllMetadataByProjectIds')
   .post(syncBatchProjectAllMetadataByProjectIdsHandler);
 
-
 /**
  * @swagger
  * tags:
@@ -205,7 +208,6 @@ router
 router
   .route('/syncBatchProjectAllMetadataByRepoUrls')
   .post(syncBatchProjectAllMetadataByRepoUrlsHandler);
-
 
 /**
  * @swagger
@@ -261,6 +263,17 @@ router.route('/CNCFDocumentScore').post(syncProjectCncfDocumentScoreHandler);
  *         description: Compass activity metric synchronized
  */
 router.route('/compass').post(syncProjectCompassMetricHandler);
+
+/**
+ * @swagger
+ * /sync/substitute:
+ *   get:
+ *     summary: syncAllProjectCompassSubstituteHandler
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/substitute').get(syncAllProjectCompassSubstituteHandler);
 
 /**
  * @swagger
@@ -869,33 +882,6 @@ router.route('/sonarCloud/collect').post(await collectSonarCloudData);
 
 /**
  * @swagger
- * /sync/sonarCloud/setDefaultBranchOfSonar:
- *   post:
- *     summary: update default branch
- *     tags: [Sonar]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               sonarKey:
- *                 type: string
- *                 example: 'oss-evaluation-originjs_vite-plugin-federation'
- *               defaultBranch:
- *                 type: string
- *                 example: 'main'
- *
- *       example: [392517209]
- *     responses:
- *       200:
- *         description: success.
- */
-router.route('/sonarCloud/setDefaultBranchOfSonar').post(await setDefaultBranchOfSonar);
-
-/**
- * @swagger
  * /sync/gitlab/importProjectFromUrl/{namespaceId}:
  *  post:
  *     summary: import Github projects for github
@@ -941,7 +927,7 @@ router.route('/gitlab/importProjectFromUrl/:namespaceId').post(await createGitla
  *       200:
  *         description: success.
  */
-router.route('/sonarCloud/scan').post(await createAndScanSonarProjectByGithubId);
+router.route('/sonarCloud/scan').post(createAndScanSonarProjectByGithubIdHandler);
 
 /**
  * @swagger
@@ -960,7 +946,7 @@ router.route('/sonarCloud/scan').post(await createAndScanSonarProjectByGithubId)
  *       200:
  *         description: success.
  */
-router.route('/sonarCloud/createGithubProjects').post(await createSonarProjectsFromGithub);
+router.route('/sonarCloud/createGithubProjects').post(createSonarProjectsFromGithub);
 
 /**
  * @swagger
@@ -979,7 +965,7 @@ router.route('/sonarCloud/createGithubProjects').post(await createSonarProjectsF
  *       200:
  *         description: success.
  */
-router.route('/sonarCloud/changeSonar2OfficialKey').post(await changeSonarKey2OfficialKeys);
+router.route('/sonarCloud/changeSonar2OfficialKey').post(changeSonarKey2OfficialKeys);
 
 /**
  * @swagger
@@ -998,7 +984,7 @@ router.route('/sonarCloud/changeSonar2OfficialKey').post(await changeSonarKey2Of
  *       200:
  *         description: success.
  */
-router.route('/sonarCloud/deleteBySonarKeys').post(await deleteSonarByKeys);
+router.route('/sonarCloud/deleteBySonarKeys').post(deleteSonarByKeys);
 
 /**
  * @swagger
@@ -1010,7 +996,7 @@ router.route('/sonarCloud/deleteBySonarKeys').post(await deleteSonarByKeys);
  *       200:
  *         description: success.
  */
-router.route('/gitlab/updateDefaultBranchAfterImport').get(await updateDefaultBranchAfterImport);
+router.route('/gitlab/updateDefaultBranchAfterImport').get(updateDefaultBranchAfterImport);
 
 /**
  * @swagger
@@ -1022,7 +1008,7 @@ router.route('/gitlab/updateDefaultBranchAfterImport').get(await updateDefaultBr
  *       200:
  *         description: success.
  */
-router.route('/sonarCloud/createSonarProjectFromGitlab').get(await createSonarProjectFromGitlab);
+router.route('/sonarCloud/createSonarProjectFromGitlab').get(createSonarProjectFromGitlab);
 
 /**
  * @swagger
@@ -1036,7 +1022,7 @@ router.route('/sonarCloud/createSonarProjectFromGitlab').get(await createSonarPr
  *       200:
  *         description: success.
  */
-router.route('/gitlab/addSonarCheckPipeline').get(await uploadSonarCiConfigToGitlab);
+router.route('/gitlab/addSonarCheckPipeline').get(uploadSonarCiConfigToGitlab);
 
 /**
  * @swagger
@@ -1082,31 +1068,6 @@ router.route('/syncProjectCodeSize').get(syncAllProjectCodeSizeHandler);
  *         description: success.
  */
 router.route('/syncProjectCodeSizeByProjectId').post(syncProjectCodeSizeByProjectIdHandler);
-
-/**
- * @swagger
- * /sync/setProjectCodeLines:
- *   put:
- *     summary: setProjectCodeLines(callback of cloc codeLines)
- *     tags: [CodeLines]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               projectId:
- *                  type: number
- *                  example: 392517209
- *               codeLines:
- *                  type: number
- *     responses:
- *       200:
- *         description: The created book.
- *
- */
-router.route('/setProjectCodeLines').put(setCodeSizeOfProject);
 
 /**
  * @swagger
@@ -1367,5 +1328,60 @@ router.route('/syncAllProjectCreatorsCountries').post(syncAllProjectCreatorsCoun
  *         description: Success
  */
 router.route('/github/searchAndIntegrationGithubProjects').get(searchAndIntegrationGithubProjects);
+
+/**
+ * @swagger
+ * /sync/benchmark/importBenchmarkByExcelJSON:
+ *   post:
+ *     tags: [Benchmark]
+ *     summary: import benchmark by excel
+ *     description: import from excel json
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               index:
+ *                 type: array
+ *               benchmark:
+ *                 type: array
+ *     responses:
+ *       200:
+ *         description: File uploaded successfully
+ *       400:
+ *         description: Bad request
+ */
+router.route('/benchmark/importBenchmarkByExcelJSON').post(importBenchmarkByExcelJSONHandler);
+
+/**
+ * @swagger
+ * /sync/benchmark/getBenchmarkValue:
+ *   get:
+ *     tags: [Benchmark]
+ *     summary: import benchmark by excel
+ *     description: import from excel json
+ *     responses:
+ *       200:
+ *         description: File uploaded successfully
+ *       400:
+ *         description: Bad request
+ */
+router.route('/benchmark/getBenchmarkValue').get(importBenchmarkValueByGetHandler);
+
+/**
+ * @swagger
+ * /sync/benchmark/getBenchmarkIndex:
+ *   get:
+ *     tags: [Benchmark]
+ *     summary: import benchmark by excel
+ *     description: import from excel json
+ *     responses:
+ *       200:
+ *         description: File uploaded successfully
+ *       400:
+ *         description: Bad request
+ */
+router.route('/benchmark/getBenchmarkIndex').get(importBenchmarkIndexByGetHandler);
 
 export default router;

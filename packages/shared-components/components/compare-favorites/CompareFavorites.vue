@@ -22,7 +22,6 @@ const options = computed(() => ({
 }));
 
 enum PanelState {
-  hide = 0,
   collapse = 1,
   expand = 2,
 }
@@ -39,9 +38,6 @@ const projects: Array<CompareProject> = reactive(
 );
 
 const getPanelState = () => {
-  if (!projects.length) {
-    return PanelState.hide;
-  }
   const state = localStorage.getItem('oss-evaluation-compare-panel-state');
   if (state) {
     return Number(state);
@@ -50,10 +46,6 @@ const getPanelState = () => {
 };
 
 let panelState = ref<PanelState>(getPanelState());
-
-const calcPanelState = () => {
-  panelState.value = getPanelState();
-};
 
 function removeProject(project: CompareProject) {
   let index = projects.findIndex(item => item.url === project.url);
@@ -106,7 +98,6 @@ const onClickProject = async (software: SoftwareBaseInfo) => {
 function collapsePanel() {
   panelState.value = PanelState.collapse;
   localStorage.setItem('oss-evaluation-compare-panel-state', String(PanelState.collapse));
-  calcPanelState(); // 如何没有项目了，直接隐藏不收缩了
 }
 
 function expandPanel() {
@@ -120,11 +111,24 @@ function compare() {
   //cleanCompareFavorites();
 }
 
-defineExpose({ addProject });
+function togglePanelVisible(visible?: boolean) {
+  if (typeof visible === 'boolean') {
+    visible ? expandPanel() : collapsePanel();
+  } else if (panelState.value === PanelState.expand) {
+    collapsePanel();
+  } else {
+    expandPanel();
+  }
+}
+
+defineExpose({
+  addProject,
+  togglePanelVisible,
+});
 </script>
 
 <template>
-  <div v-if="panelState !== PanelState.hide" class="main">
+  <div class="main">
     <div class="title-main">
       <div class="title-name-div">
         <span class="title">待对比软件</span>
@@ -277,7 +281,6 @@ defineExpose({ addProject });
             }
 
             .project-desc {
-              flex: 1;
               overflow: hidden;
               text-overflow: ellipsis;
               display: -webkit-box;

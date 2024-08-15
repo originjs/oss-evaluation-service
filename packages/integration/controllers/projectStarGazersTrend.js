@@ -89,6 +89,14 @@ async function getStargazersTrend(startDate, startId, endId) {
         });
       }
     }
+    if (trendList.length >= 4) {
+      const addedStars =
+        trendList[trendList.length - 1].stargazers - trendList[trendList.length - 4].stargazers;
+      sequelize.query(
+        `UPDATE oss_evaluation_summary SET star_rate = ${addedStars} WHERE project_id = ${project.id}`,
+      );
+    }
+
     logger.info(
       'total:' +
         needSyncProject.length +

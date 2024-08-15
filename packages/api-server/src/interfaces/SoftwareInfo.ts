@@ -15,11 +15,13 @@ export interface SoftwareBaseInfo {
   versionList: string[];
   selectedVersion: string;
   selectedVersions: string[];
+  forksCount: number;
 }
 
 export interface SoftwareInfo extends SoftwareBaseInfo {
   language: string;
   firstCommit: string;
+  lastCommit: string;
   license: string;
   tags: string;
   codeLines: number;
@@ -149,12 +151,14 @@ export interface InnovationData {
 }
 
 export interface BenchmarkData {
-  base: { indexName: string; bestVal: number }[];
+  base: { indexCategory: string; indexName: string; bestVal: number }[];
   data: {
     displayName: string;
     indexName: string;
-    indexCategory: string | null;
-    rawValue: null | string;
+    unit: string;
+    description?: string;
+    indexCategory?: string;
+    rawValue?: string;
   }[][];
 }
 
@@ -178,14 +182,17 @@ export interface BenchmarkResult {
   version: string;
   envInfo: string;
   score: number;
+  fullName: string;
 }
 
 export interface BenchmarkIndex {
-  indexName: keyof BenchmarkResult;
+  indexName: string;
   displayName: string;
   unit: string;
   category?: string;
   description?: string;
+  order?: number;
+  techStack?: string;
 }
 
 export interface InnovationCompaniesInfo {
@@ -227,12 +234,18 @@ export interface SummaryHighlightInfo {
 }
 
 export interface NewProjectApply {
-  repoUrl: string;
-  comment: string;
+  repoUrl?: string;
+  comment?: string;
   applicantEmail: string;
-  username: string;
-  alternativeProjectId: string;
+  username?: string;
+  alternativeProjectId?: string;
   type: number;
-  expandField1: string;
-  createdAt: Date;
+  expandField1?: string;
+  createdAt?: Date;
+  techStack?: string;
+  employeeNumber?: string;
+  subTechStack?: string;
+  filename?: string;
+  file?: File;
+  envInfo?: string;
 }

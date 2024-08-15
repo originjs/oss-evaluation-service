@@ -127,7 +127,7 @@ export async function syncProjectEvaluationHandler(req, res) {
 
 async function loadModel() {
   const metricList = await EvaluationModel.findAll({
-    where: { type: { [Op.gt]: MetricType.L0 } },
+    where: { type: { [Op.gte]: MetricType.L0 } },
   });
   const model = {};
   for (const metric of metricList) {
@@ -194,7 +194,6 @@ async function updateAllEvaluationSummary() {
   t1.commit_frequency= t2.commit_frequency, t1.comment_frequency= t2.comment_frequency,
   t1.code_review_count= t2.code_review_count, t1.org_count= t2.org_count,
   t1.updated_issues_count= t2.updated_issues_count, t1.recent_releases_count= t2.recent_releases_count`);
-
   // update github star, fork, create/update time
   await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN github_projects t2
   ON t1.project_id= t2.id SET t1.stargazers_count= t2.stargazers_count,
@@ -207,6 +206,18 @@ async function updateAllEvaluationSummary() {
   (SELECT project_id, AVG( downloads ) AS npm_downloads FROM package_download_count a 
   WHERE end_date > '${last3month}' GROUP BY project_id) t2
   ON t1.project_id = t2.project_id SET t1.npm_downloads = t2.npm_downloads`);
+
+  // 4. innovation metrics
+  // update creator_orgs
+  await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN
+  (SELECT project_id, COUNT(1) AS orgs FROM ossinsight_creators_organizations a 
+  WHERE type =0 GROUP BY project_id) t2
+  ON t1.project_id = t2.project_id SET t1.creator_orgs = t2.orgs`);
+  // update creator_countries
+  await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN
+      (SELECT project_id, COUNT(1) AS countries FROM ossinsight_creators_countries a 
+      WHERE type =0 GROUP BY project_id) t2
+      ON t1.project_id = t2.project_id SET t1.creator_countries = t2.countries`);
 }
 
 export async function syncAllProjectEvaluation() {
@@ -250,7 +261,7 @@ export async function evaluateBenchmark(model, options) {
     const performanceValue = await getDimensionScore(
       benchmarkVersion,
       'performance',
-      techStack,
+      benchmarkVersion.techStack,
       model,
       bId,
     );
@@ -281,28 +292,31 @@ export async function syncSingleProjectEvaluation(project) {
   const projectId = project.id;
   const summary = await EvaluationSummary.findOne({ where: { projectId } });
   const model = await loadModel();
+  // evaluate benchmark
+  evaluateBenchmark(model, { projectId });
   return await doSingleProjectEvaluation(summary, model);
 }
+
 async function doSingleProjectEvaluation(summary, model) {
+  logger.info(`doSingleProjectEvaluation: ${summary.projectId}`);
   /* eslint-disable no-param-reassign */
+  // move to getStargazersTrend to improve performance
+  // summary.starRate = await getGithubStarRate(summary.projectId);
   summary.functionValue = await getDimensionScore(summary, 'function', 'common', model);
   summary.qualityValue = await getDimensionScore(summary, 'quality', 'common', model);
   summary.ecologyValue = await getDimensionScore(summary, 'ecology', 'common', model);
   summary.innovationValue = await getDimensionScore(summary, 'innovation', 'common', model);
 
-  let metric = await EvaluationModel.findOne({
-    where: { type: MetricType.L0, dimension: 'function' },
-  });
+  let metric = model['function'][0];
   summary.functionScore =
     calLighthouseScore(summary.functionValue, metric.p10, metric.median) * 100;
-  metric = await EvaluationModel.findOne({
-    where: { type: MetricType.L0, dimension: 'quality' },
-  });
+  metric = model['quality'][0];
   summary.qualityScore = calLighthouseScore(summary.qualityValue, metric.p10, metric.median) * 100;
-  metric = await EvaluationModel.findOne({
-    where: { type: MetricType.L0, dimension: 'ecology' },
-  });
+  metric = model['ecology'][0];
   summary.ecologyScore = calLighthouseScore(summary.ecologyValue, metric.p10, metric.median) * 100;
+  metric = model['innovation'][0];
+  summary.innovationScore =
+    calLighthouseScore(summary.innovationValue, metric.p10, metric.median) * 100;
   // update score to database
   await summary.save();
   return summary;
@@ -322,6 +336,7 @@ async function getDimensionScore(project, dimension, techStack, model, bId) {
     } else {
       let rawValue;
       if (techStack !== 'common') {
+        // for performance score
         const { projectId } = project;
         rawValue = await getPerformanceRawValue(projectId, field, techStack, bId);
         if (rawValue == null || rawValue < 0) {
@@ -351,6 +366,21 @@ async function getPerformanceRawValue(projectId, field, techStack, bId) {
     return null;
   }
   return rawData.rawValue;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function getGithubStarRate(projectId) {
+  const sql = `SELECT date,stargazers,LAG(stargazers,3) OVER(ORDER BY date) AS lastQuote 
+  FROM github_projects_stargazers_trend WHERE project_id=${projectId} ORDER BY date DESC LIMIT 1`;
+  const result = await sequelize.query(sql, { type: sequelize.QueryTypes.SELECT });
+  let rate = 0;
+  if (result && result.length > 0) {
+    rate = result[0].stargazers - (result[0].lastQuote ? result[0].lastQuote : 0);
+  }
+  if (isNaN(rate)) {
+    rate = 0;
+  }
+  return rate;
 }
 
 /**
@@ -452,4 +482,15 @@ function calCriticalityScore(x, threshold, isDesc) {
     // Smaller the data the better
     return Math.log(1.0 + Math.min(x, threshold)) / Math.log(1.0 + x);
   }
+}
+
+export async function evaluateTimer() {
+  const startTime = process.hrtime();
+  logger.info('[Calculation][Evaluate] Calculation Job start');
+  await syncAllProjectEvaluation();
+  logger.info('[Calculation][Evaluate] Calculation Job end');
+  const endTime = process.hrtime(startTime);
+  logger.info(
+    `[Calculation][Evaluate] The total time spent on calculation : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
+  );
 }

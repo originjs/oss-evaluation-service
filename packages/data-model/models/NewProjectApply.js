@@ -1,7 +1,7 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../util/database.js';
 
-let newProjectApply = sequelize.define(
+const newProjectApply = sequelize.define(
   'NewProjectApply',
   {
     repoUrl: {
@@ -22,16 +22,50 @@ let newProjectApply = sequelize.define(
     },
     type: {
       type: DataTypes.INTEGER,
-      allowNull: false
+      allowNull: false,
     },
     expandField1: {
       type: DataTypes.STRING(255),
       field: 'expand_field1',
     },
+    techStack: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      defaultValue: '',
+    },
+    subTechStack: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      defaultValue: '',
+    },
+    employeeNumber: {
+      type: DataTypes.STRING(32),
+      allowNull: false,
+      defaultValue: '',
+    },
     createdAt: {
       type: DataTypes.DATE,
       field: 'created_at',
       allowNull: false,
+    },
+    state: {
+      type: DataTypes.TINYINT,
+      allowNull: false,
+      defaultValue: 1,
+    },
+    integrationFinishedTime: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    filename: {
+      type: DataTypes.STRING(256),
+      allowNull: false,
+      defaultValue: '',
+    },
+    envInfo: {
+      type: DataTypes.STRING(512),
+      allowNull: false,
+      defaultValue: '',
     },
   },
   {

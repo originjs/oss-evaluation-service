@@ -12,8 +12,8 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'path';
 import sonarCloudProject from '@orginjs/oss-evaluation-data-model/models/SonarCloudProject.js';
-import GithubSdk from '@orginjs/github-sdk/src/index.js';
-import SonarCloudSdk from '@orginjs/sonarCloud-sdk/src/index.js';
+import GithubSdk from '@orginjs/github-sdk';
+import SonarCloudSdk from '@orginjs/sonar-cloud-sdk';
 
 const getRating = rating => {
   switch (rating) {
@@ -309,182 +309,81 @@ export async function updateDefaultBranchAfterImport(req, res) {
   res.send('success');
 }
 
-export async function createAndScanSonarProjectByGithubId(req, res) {
+export async function createAndScanSonarProjectByGithubIdHandler(req, res) {
   const githubIds = req.body;
-  const force = !!req.query.force;
-  const sonarCloudSdk = new SonarCloudSdk();
   for (const githubId of githubIds) {
-    //   query for sonar
-    let sonarProject = await SonarCloudProject.findOne({
-      where: {
-        githubProjectId: githubId,
-      },
-    });
-
     const githubProject = await GithubProjects.findOne({
       where: {
         id: githubId,
       },
     });
-
-    if (null == githubProject) {
-      continue;
-    }
-    let sonarProjectKey = sonarProject?.sonarProjectKey;
-    if (null == sonarProject) {
-      //   create sonar project
-      const param = {
-        name: githubProject.fullName,
-        newCodeDefinitionType: 'previous_version',
-        organization: process.env.SONAR_ORG_NAME,
-        visibility: 'public',
-        newCodeDefinitionValue: 'previous_version',
-        project: `${process.env.SONAR_ORG_NAME}-${githubProject.fullName.replaceAll('/', '_')}`,
-      };
-      // request for creating sonar project
-      const createSonarProjectResponse = await recordTime(
-        sonarCloudSdk.createProject,
-        `create sonar project from gitlab:${githubProject.fullName}`,
-        param,
-      );
-      if (!createSonarProjectResponse.ok) {
-        logger.error(`create sonar project failed , ${await createSonarProjectResponse.text()}`);
-        continue;
-      } else {
-        sonarProjectKey = (await createSonarProjectResponse.json()).project.key;
-      }
-      const createSonarProject = {
-        githubProjectId: githubId,
-        githubFullName: githubProject.fullName,
-        sonarProjectKey: sonarProjectKey,
-      };
-      await SonarCloudProject.create(createSonarProject);
-      sonarProject = createSonarProject;
-    }
-
-    if (!force) {
-      if (!sonarProject.analysisDate) {
-        //  try to collect sonar data
-        await collectSonarCloudDataBySonarKeys([sonarProjectKey]);
-        sonarProject = await SonarCloudProject.findOne({
-          where: {
-            githubProjectId: githubId,
-          },
-        });
-        if (sonarProject.analysisDate) {
-          continue;
-        }
-      }
-    }
-    //   start sonar scanner
-    await startSonarScanner(
-      githubProject.ownerName,
-      githubProject.name,
-      process.env.SONAR_ORG_NAME,
-      sonarProjectKey,
-      'https://sonarcloud.io',
-      githubProject.language,
-      githubProject.id,
-    );
+    await sonarScanByProject(githubProject);
   }
   res.status(200);
   res.json('success');
 }
 
-export async function setDefaultBranchOfSonar(req, res) {
-  const { sonarProjectKey, defaultBranch } = req.body;
+export async function sonarScanByProject(githubProject) {
+  const sonarScanHost = process.env.REPO_SERVICE_URL;
+  if (!sonarScanHost || !process.env.SONAR_CLOUD_TOKEN) {
+    logger.warn(`no env \${REPO_SERVICE_URL} or \${SONAR_CLOUD_TOKEN},skip sonar!`);
+    return;
+  }
+  const githubId = githubProject.id;
   const sonarProject = await SonarCloudProject.findOne({
     where: {
-      sonarProjectKey,
+      githubProjectId: githubId,
     },
   });
-
-  if (sonarProject.defaultBranch !== defaultBranch) {
+  let sonarProjectKey;
+  if (!sonarProject) {
     const sonarCloudSdk = new SonarCloudSdk();
-    const listSonarBranches = await recordTime(
-      sonarCloudSdk.listProjectBranches,
-      `list sonar branches of ${sonarProjectKey}`,
-      sonarProjectKey,
+    //   create sonar project
+    const param = {
+      name: githubProject.fullName,
+      newCodeDefinitionType: 'previous_version',
+      organization: process.env.SONAR_ORG_NAME,
+      visibility: 'public',
+      newCodeDefinitionValue: 'previous_version',
+      project: `${process.env.SONAR_ORG_NAME}_${githubProject.fullName.replaceAll('/', '-')}`,
+    };
+    // request for creating sonar project
+    const createSonarProjectResponse = await recordTime(
+      sonarCloudSdk.createProject,
+      `create sonar project from gitlab:${githubProject.fullName}`,
+      param,
     );
-    await sleep(Math.floor(Math.random() * 500) + 100);
-    if (!listSonarBranches.ok) {
-      logger.error(`get sonar project branches info failed`, await listSonarBranches.text());
-    }
-    const sonarBranches = (await listSonarBranches.json()).branches;
-    const mainBranch = sonarBranches.find(item => item.isMain);
-    if (sonarBranches.length > 1) {
-      //   delete all non-primary branches
-      for (const branch of sonarBranches.filter(item => !item.isMain)) {
-        const deleteResponse = await recordTime(
-          sonarCloudSdk.deleteBranch,
-          `delete sonar branch:${branch.name} of ${sonarProjectKey}`,
-          sonarProjectKey,
-          branch.name,
-        );
-        await sleep(Math.floor(Math.random() * 500) + 100);
-        if (!deleteResponse.ok) {
-          logger.error(`delete sonar project branch failed`, await listSonarBranches.text());
-        }
-      }
-    }
-    if (mainBranch.name === defaultBranch) {
-      await SonarCloudProject.update(
-        {
-          defaultBranch: defaultBranch,
-        },
-        {
-          where: {
-            sonarProjectKey,
-          },
-        },
-      );
+    if (!createSonarProjectResponse.ok) {
+      logger.error(`create sonar project failed , ${await createSonarProjectResponse.text()}`);
+      return;
     } else {
-      //   change sonar primary branch name to default branch
-      const renameResponse = await recordTime(
-        sonarCloudSdk.renameMainBranch,
-        `rename sonar project:${sonarProjectKey} branch:${mainBranch.name} to ${defaultBranch}`,
-        sonarProjectKey,
-        defaultBranch,
-      );
-      await sleep(Math.floor(Math.random() * 500) + 100);
-      if (!renameResponse.ok) {
-        logger.error(
-          `rename sonar project:${sonarProjectKey} branch:${mainBranch.name} to ${defaultBranch}`,
-          await renameResponse.text(),
-        );
-      }
-      await SonarCloudProject.update(
-        {
-          defaultBranch: defaultBranch,
-        },
-        {
-          where: {
-            sonarProjectKey,
-          },
-        },
-      );
-      await sleep(Math.floor(Math.random() * 500) + 100);
+      sonarProjectKey = (await createSonarProjectResponse.json()).project.key;
+    }
+    const createSonarProject = {
+      githubProjectId: githubId,
+      githubFullName: githubProject.fullName,
+      sonarProjectKey: sonarProjectKey,
+    };
+    await SonarCloudProject.create(createSonarProject);
+  } else {
+    // sonar project exists
+    sonarProjectKey = sonarProject.sonarProjectKey;
+    if (sonarProject.analysisDate) {
+      return;
     }
   }
-  res.status(200);
-  res.json({
-    ok: true,
-    msg: `set default branch:${defaultBranch} of sonar project:${sonarProjectKey} success`,
-  });
-}
-
-async function startSonarScanner(owner, repoName, sonarOrg, sonarKey, sonarHostUrl, language, id) {
-  const url = `${process.env.SONAR_SCAN_SERVICE_HOST}/sonar/scan`;
+  const url = `${sonarScanHost}/sonar/scan`;
   const body = {
-    gitOwner: owner,
-    repoName,
-    sonarOrg,
-    sonarKey,
-    sonarHostUrl,
-    language,
-    id,
+    owner: githubProject.ownerName,
+    repoName: githubProject.name,
+    id: githubId,
+    language: githubProject.language,
+    sonarOrg: process.env.SONAR_ORG_NAME,
+    sonarKey: sonarProjectKey,
+    sonarHostUrl: 'https://sonarcloud.io',
+    sonarToken: process.env.SONAR_CLOUD_TOKEN,
   };
-  return await fetch(url, {
+  await fetch(url, {
     method: 'post',
     headers: {
       accept: 'application/json',

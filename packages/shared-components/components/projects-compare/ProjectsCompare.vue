@@ -285,15 +285,7 @@ const getShowRow = (path: string) => {
         </div>
         <div v-for="idx in 5" :key="idx" class="param-value border">
           <div v-if="projects[idx - 1]" class="value-div">
-            <span
-              :class="{
-                good: isGood(
-                  projects[idx - 1].evaluation?.functionScore,
-                  'evaluation.functionScore',
-                ),
-              }"
-              >{{ formatFloat(projects[idx - 1].evaluation?.functionScore) }}/100</span
-            >
+            <span>{{ formatFloat(projects[idx - 1].evaluation?.functionScore) }}/100</span>
           </div>
         </div>
       </div>
@@ -362,6 +354,32 @@ const getShowRow = (path: string) => {
               }"
             >
               {{ formatFloat(projects[idx - 1].evaluation?.ecologyScore) }}/100
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div
+        v-show="getShowRow('evaluation.innovationScore')"
+        class="row"
+        @mouseover="showChooseBorder('创新', $event)"
+        @mouseout="hideChooseBorder()"
+      >
+        <div class="border param-name">
+          <span i-ph:lightbulb-filament-bold mr-2 />
+          <span>创新</span>
+        </div>
+        <div v-for="idx in 5" :key="idx" class="param-value border">
+          <div v-if="projects[idx - 1]" class="value-div">
+            <span
+              :class="{
+                good: isGood(
+                  projects[idx - 1].evaluation?.innovationScore,
+                  'evaluation.innovationScore',
+                ),
+              }"
+            >
+              {{ formatFloat(projects[idx - 1].evaluation?.innovationScore) }}/100
             </span>
           </div>
         </div>

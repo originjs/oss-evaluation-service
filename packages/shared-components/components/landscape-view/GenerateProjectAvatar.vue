@@ -44,5 +44,7 @@ watch(model, async newProjectName => {
     computedStyle();
   });
 });
+
+watch(() => [props.width, props.height], computedStyle);
 </script>
 <style scoped lang="less"></style>

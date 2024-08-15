@@ -1,8 +1,8 @@
-import type { GitCloneParam } from '../interfaces/param';
+import type { RepoCloneParam } from '../interfaces/param.js';
 import { gitCloneThreadPool, shellThreadPool } from '../worker/workers.js';
-import { logger } from '@orginjs/oss-evaluation-data-model';
+import { logger, GithubProjectsTable } from '@orginjs/oss-evaluation-data-model';
 
-export async function getCodeLines(repoInfo: GitCloneParam) {
+export async function getCodeLines(repoInfo: RepoCloneParam) {
   repoInfo.shadowClone = true;
   repoInfo.pullIfExists = false;
   gitCloneThreadPool
@@ -15,7 +15,7 @@ export async function getCodeLines(repoInfo: GitCloneParam) {
     .catch(err => logger.error(err));
 }
 
-function getClocCommand(repoInfo: GitCloneParam): string {
+function getClocCommand(repoInfo: RepoCloneParam): string {
   const dir = `${process.env.REPO_DIR}/${repoInfo.owner}/${repoInfo.repoName}`;
   const cdCommand = `cd ${dir}`;
   // timeout = 0 to allow unlimited time
@@ -26,34 +26,18 @@ function getClocCommand(repoInfo: GitCloneParam): string {
   `;
 }
 
-async function updateCodeLinesOfProject(codeLines: number, repoInfo: GitCloneParam) {
-  if (codeLines > 0 && repoInfo.projectId) {
-    const url = process.env.INTEGRATION_URL;
-    if (!url) {
-      logger.error('no ${INTEGRATION_URL} env config, skip local repo cloc');
-      return;
-    }
-    const updateUrl = `${url}/sync/setProjectCodeLines`;
-    const response = await fetch(updateUrl, {
-      method: 'PUT',
-      headers: {
-        Accept: '*/*',
-        'Content-Type': 'application/json',
+async function updateCodeLinesOfProject(codeLines: number, repoInfo: RepoCloneParam) {
+  if (codeLines > 0 && repoInfo.id) {
+    await GithubProjectsTable.update(
+      { codeSize: codeLines },
+      {
+        where: {
+          id: repoInfo.id,
+        },
       },
-      body: JSON.stringify({
-        projectId: repoInfo.projectId,
-        codeLines: codeLines,
-      }),
-    });
-
-    if (response.ok) {
-      logger.info(
-        `${repoInfo.owner}/${repoInfo.repoName} cloc codeLines success,codeLines=${codeLines}`,
-      );
-    } else {
-      logger.error(
-        `${repoInfo.owner}/${repoInfo.repoName} cloc codeLines failed,error:${await response.text()}`,
-      );
-    }
+    );
+    logger.info(
+      `${repoInfo.owner}/${repoInfo.repoName} cloc codeLines success,codeLines=${codeLines}`,
+    );
   }
 }

@@ -6,7 +6,7 @@ export default sequelize.define(
   {
     id: {
       type: DataTypes.BIGINT,
-      allowNull: false,
+      allowNull: true,
       primaryKey: true,
     },
     techStack: {
@@ -23,6 +23,9 @@ export default sequelize.define(
     },
     unit: {
       type: DataTypes.STRING(128),
+    },
+    category: {
+      type: DataTypes.STRING(256),
     },
   },
   {

@@ -1,7 +1,7 @@
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { WorkerPool } from './workerPool.js';
-import type { SonarScanParam, GitCloneParam } from '../interfaces/param';
+import type { SonarScanParam, RepoCloneParam} from '../interfaces/param';
 import type { Result } from '../utils/result';
 
 // thread pool for git and sonar scanner
@@ -16,7 +16,7 @@ const sonarScannerThreadPool = new WorkerPool<SonarScanParam, Result<SonarScanPa
   sonarScannerWorkerPath,
   1,
 );
-const gitThreadPool = new WorkerPool<GitCloneParam, Result<GitCloneParam>>(
+const gitThreadPool = new WorkerPool<RepoCloneParam, Result<RepoCloneParam>>(
   'git clone workers',
   gitWorkerPath,
   1,

@@ -26,7 +26,7 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
   }
 
   restoreCommand(): string {
-    const dir = `${process.env.REPO_DIR}/${this.param.gitOwner}/${this.param.repoName}`;
+    const dir = `${process.env.REPO_DIR}/${this.param.owner}/${this.param.repoName}`;
     if (this.buildType === JavaBuildType.GRADLE || this.buildType === JavaBuildType.GRADLE_KTS) {
       return `rm ${dir}/${initGradleFileName}`;
     } else {
@@ -38,7 +38,7 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
    * get sonar command
    */
   sonarCommands(): string[] {
-    const owner = this.param.gitOwner;
+    const owner = this.param.owner;
     const repoName = this.param.repoName;
     const dir = `${process.env.REPO_DIR}/${owner}/${repoName}`;
     let mvnCommand = 'mvn';
@@ -75,7 +75,7 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
             -Dsonar.host.url=${this.param.sonarHostUrl}\
             -Dsonar.organization=${this.param.sonarOrg}\
             -Dsonar.projectKey=${this.param.sonarKey}\
-            -Dsonar.token=${process.env.SONAR_TOKEN}`;
+            -Dsonar.token=${this.param.sonarToken}`;
         return [installCommand, sonarCommand];
       }
       case JavaBuildType.GRADLE:
@@ -115,18 +115,19 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
         fs.writeFileSync(initFilePath, initContent, 'utf-8');
         const sonarCommand = `
              cd ${dir} &&\
-              ./gradlew --parallel\
-              clean\
-              build\
-              sonar\
-              -x test\
-              -x check\
-              --init-script ${initFilePath} \
-              -Dorg.gradle.daemon=false\
-              -Dsonar.host.url=${this.param.sonarHostUrl}\
-              -Dsonar.organization=${this.param.sonarOrg}\
-              -Dsonar.projectKey=${this.param.sonarKey}\
-              -Dsonar.token=${process.env.SONAR_TOKEN} `;
+             chmod +x ./gradlew &&\
+             ./gradlew --parallel\
+             clean\
+             build\
+             sonar\
+             -x test\
+             -x check\
+             --init-script ${initFilePath} \
+             -Dorg.gradle.daemon=false\
+             -Dsonar.host.url=${this.param.sonarHostUrl}\
+             -Dsonar.organization=${this.param.sonarOrg}\
+             -Dsonar.projectKey=${this.param.sonarKey}\
+             -Dsonar.token=${this.param.sonarToken} `;
         return [sonarCommand];
       }
       default:
@@ -154,7 +155,7 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
   }
 
   configBuildType(param: SonarScanParam): void {
-    const dir = `${process.env.REPO_DIR}/${param.gitOwner}/${param.repoName}`;
+    const dir = `${process.env.REPO_DIR}/${param.owner}/${param.repoName}`;
     if (this.isMavenProject(dir)) {
       this.buildType = JavaBuildType.MAVEN;
       this.buildConfigFile = `${dir}/pom.xml`;
@@ -165,7 +166,7 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
       this.buildType = JavaBuildType.GRADLE_KTS;
       this.buildConfigFile = `${dir}/build.gradle.kts`;
     } else {
-      throw new Error(`unknown java project:{${param.gitOwner}/${param.repoName}} build type`);
+      throw new Error(`unknown java project:{${param.owner}/${param.repoName}} build type`);
     }
   }
 }

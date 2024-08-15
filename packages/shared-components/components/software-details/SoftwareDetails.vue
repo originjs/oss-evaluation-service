@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Plus, Download } from '@element-plus/icons-vue';
-import type { CellStyle, TableColumnCtx } from 'element-plus';
 import { ElMessage } from 'element-plus';
 import * as echarts from 'echarts';
 import type {
@@ -36,7 +35,6 @@ import {
   getPerformanceModuleInfo,
   getSoftwareInfo,
   getGeoDistributionInfo,
-  submitApplication,
 } from '@orginjs/oss-evaluation-components-api';
 import { CompareFavorites } from '../compare-favorites';
 import {
@@ -55,6 +53,9 @@ import { max } from '@popperjs/core/lib/utils/math';
 import worldMap from '../../assets/json/worldMap.json';
 import countriesNameMap from '../../assets/json/countriesNameMap.json';
 import countriesInfo from '../../assets/json/countriesInfo.json';
+import { ApplyAdd } from '../apply-add';
+import type { ColumnData, RowData } from '../benchmark-compare/BenchmarkCompareTable.vue';
+import BenchmarkCompareTable, { EMPTY_VALUE } from '../benchmark-compare/BenchmarkCompareTable.vue';
 
 dayjs.extend(relativeTime);
 const props = defineProps<{ repoName: string }>();
@@ -125,6 +126,10 @@ watchEffect(async () => {
     {
       label: '首次提交',
       value: dayjs(data.firstCommit).format('YYYY-MM-DD'),
+    },
+    {
+      label: '最近代码提交',
+      value: dayjs(data.lastCommit).format('YYYY-MM-DD'),
     },
     {
       label: 'License',
@@ -259,7 +264,7 @@ function renderSoftwareRadarChart() {
               formatFloat(project.value?.evaluation?.functionScore),
               formatFloat(project.value?.evaluation?.qualityScore),
               formatFloat(project.value?.evaluation?.ecologyScore),
-              formatFloat(project.value?.evaluation?.innovationValue),
+              formatFloat(project.value?.evaluation?.innovationScore),
               formatFloat(project.value?.evaluation?.performanceScore),
             ],
             name: '分数',
@@ -719,13 +724,6 @@ watch(geoActiveTab, tab => {
   });
 });
 
-const showBenchmarkCompare = ref(true);
-
-// remove unit: `999 ms`
-function removeUnit(str: string) {
-  return Number(str.split(' ')[0]);
-}
-
 const performanceModuleInfo = ref<PerformanceInfo>({
   size: 0,
   gzipSize: 0,
@@ -734,14 +732,8 @@ const performanceModuleInfo = ref<PerformanceInfo>({
   benchmarkData: { data: [], base: [] },
 });
 
-type BenchmarkCompareRow = Record<string, string | null>;
-type BenchmarkCompareData = Record<string, BenchmarkCompareRow>;
-type MinRowValue = Record<string, number>;
-
-const benchmarkCompareRows = ref<BenchmarkCompareData>({});
-const benchmarkCompareColumns = ref<Set<string>>(new Set(['indexName']));
-const minRowValue = ref<MinRowValue>({});
-const benchmarkCompareTable = computed(() => Object.values(benchmarkCompareRows.value));
+const benchmarkCompareRows = ref<RowData[]>([]);
+const benchmarkCompareColumns = ref<ColumnData[]>([]);
 
 watchEffect(async () => {
   const { data } = await getPerformanceModuleInfo(encodedRepoName.value);
@@ -750,100 +742,47 @@ watchEffect(async () => {
 });
 
 // Extract table row, min row value and column name from object array data
-function processBenchmarkData(benchmarkData?: BenchmarkData, needRetain?: boolean) {
-  const rows: BenchmarkCompareData = needRetain ? { ...benchmarkCompareRows.value } : {};
-  const columns: Set<string> = needRetain
-    ? new Set([...benchmarkCompareColumns.value])
-    : new Set(['indexName']);
+function processBenchmarkData(benchmarkData?: BenchmarkData) {
+  const rowMap: { [k: string]: RowData } = {};
+  const columnMap: { [k: string]: ColumnData } = {};
+
+  // get min row value
+  const minRowValueMap: { [k: string]: string } = {};
+  (benchmarkData?.base || []).forEach(
+    item => (minRowValueMap[(item.indexCategory || '') + item.indexName] = String(item.bestVal)),
+  );
+
   const data = benchmarkData?.data || [];
-  showBenchmarkCompare.value = data.length !== 0;
   for (let i = 0; i < data.length; i++) {
     for (let j = 0; j < data[i].length; j++) {
-      const indexName = data[i][j].indexName;
-      const displayName = data[i][j].displayName;
-      const rawValue = data[i][j].rawValue;
-      const indexCategory = data[i][j].indexCategory;
+      const { indexName, displayName, rawValue, indexCategory, unit } = data[i][j];
       if (indexName && displayName) {
+        const mapKey = (indexCategory || '') + indexName;
         // get row
-        let row = rows[indexName] || { indexName, indexCategory };
-        row = { ...row, [displayName]: rawValue };
-        rows[indexName] = row;
+        rowMap[mapKey] = {
+          ...rowMap[mapKey],
+          ...data[i][j],
+          benchmarkName: unit ? `${indexName} (${unit})` : indexName,
+          category: indexCategory,
+          minCellValue: minRowValueMap[mapKey],
+          [displayName]:
+            Number(rawValue || 0) === 0 // 考虑3种情况：undefined | '' | '0'
+              ? EMPTY_VALUE.EMPTY_CELL
+              : Number(rawValue).toFixed(3),
+        } as RowData;
 
         // get column
-        columns.add(displayName);
+        columnMap[displayName] = {
+          projectName: displayName,
+          prop: displayName,
+        };
       }
     }
   }
-  benchmarkCompareRows.value = rows;
-  benchmarkCompareColumns.value = columns;
 
-  // get min row value
-  const minRowV: MinRowValue = needRetain ? { ...minRowValue.value } : {};
-  (benchmarkData?.base || []).forEach(item => (minRowV[item.indexName] = item.bestVal));
-  minRowValue.value = minRowV;
+  benchmarkCompareRows.value = Object.values(rowMap);
+  benchmarkCompareColumns.value = Object.values(columnMap);
 }
-
-const computeColor: CellStyle<BenchmarkCompareRow> = function ({ row, column }) {
-  const cellVal = row[column.property];
-  if (column.property === 'indexName' || !cellVal) {
-    return {};
-  }
-  const min = minRowValue.value[row.indexName!];
-  const factor = removeUnit(cellVal) / min;
-  if (factor < 2.0) {
-    const a = factor - 1.0;
-    const r = (1.0 - a) * 99 + a * 255;
-    const g = (1.0 - a) * 191 + a * 236;
-    const b = (1.0 - a) * 124 + a * 132;
-    return {
-      backgroundColor: `rgb(${r.toFixed(0)}, ${g.toFixed(0)}, ${b.toFixed(0)})`,
-      padding: '0',
-    };
-  } else {
-    const a = Math.min((factor - 2.0) / 2.0, 1.0);
-    const r = (1.0 - a) * 255 + a * 249;
-    const g = (1.0 - a) * 236 + a * 105;
-    const b = (1.0 - a) * 132 + a * 108;
-    return {
-      backgroundColor: `rgb(${r.toFixed(0)}, ${g.toFixed(0)}, ${b.toFixed(0)})`,
-      padding: '0',
-    };
-  }
-};
-
-interface SpanMethodProps {
-  row: { indexCategory: string };
-  column: TableColumnCtx<{ indexCategory: string }>;
-  rowIndex: number;
-  columnIndex: number;
-}
-let rowLen = 1;
-const objectSpanMethod = ({ rowIndex, columnIndex }: SpanMethodProps) => {
-  if (columnIndex === 0) {
-    if (rowLen > 1) {
-      rowLen--;
-      return {
-        rowspan: 0,
-        colspan: 0,
-      };
-    }
-    let nextIndex = rowIndex + 1;
-    while (
-      rowIndex < benchmarkCompareTable.value.length &&
-      benchmarkCompareTable.value[rowIndex]?.indexCategory &&
-      benchmarkCompareTable.value[nextIndex]?.indexCategory &&
-      benchmarkCompareTable.value[rowIndex].indexCategory ===
-        benchmarkCompareTable.value[nextIndex].indexCategory
-    ) {
-      nextIndex++;
-      rowLen++;
-    }
-    return {
-      rowspan: rowLen,
-      colspan: 1,
-    };
-  }
-};
 
 function renderLineChart(container: string, data: EcologyActivity[]) {
   const chartDom = softwareDetailsEl.value?.querySelector(container);
@@ -1037,69 +976,6 @@ onBeforeUnmount(() => {
   window.removeEventListener('scroll', setbOptionBtnsDomPos);
   window.removeEventListener('resize', setbOptionBtnsDomPos);
 });
-
-const feedbackDialogVisible = ref(false);
-const formInstance = ref();
-const feedbackSubmitting = ref(false);
-const feedbackInfo = reactive({
-  repoUrl: '',
-  comment: '',
-  email: '',
-});
-const formRules = reactive({
-  repoUrl: [
-    {
-      required: true,
-      message: '请输入社区源码仓地址',
-      trigger: 'blur',
-    },
-  ],
-  email: [
-    {
-      required: true,
-      message: '请输入你的邮箱地址',
-      trigger: 'blur',
-    },
-  ],
-});
-
-function submitFeedback() {
-  formInstance.value.validate((valid: boolean) => {
-    if (valid) {
-      feedbackSubmitting.value = true;
-      submitApplication({
-        repoUrl: feedbackInfo.repoUrl,
-        comment: feedbackInfo.comment,
-        applicantEmail: feedbackInfo.email,
-        username: '',
-        alternativeProjectId: String(project.value!.id!),
-        type: 2,
-        expandField1: '',
-        createdAt: new Date(),
-      })
-        .then(res => {
-          if (res.data === 'success') {
-            ElMessage.success('已反馈相似软件');
-            formInstance.value.resetFields();
-            feedbackDialogVisible.value = false;
-          } else {
-            ElMessage.warning('提交失败，请稍后重试');
-          }
-        })
-        .catch(() => {
-          ElMessage.warning('提交失败，请稍后重试');
-        })
-        .finally(() => {
-          feedbackSubmitting.value = false;
-        });
-    }
-  });
-}
-
-function cancelFeedback() {
-  formInstance.value.resetFields();
-  feedbackDialogVisible.value = false;
-}
 </script>
 
 <template>
@@ -1196,57 +1072,20 @@ function cancelFeedback() {
             <InfoFilled />
           </el-icon>
         </el-tooltip>
-        <el-button
-          round
-          ml-3
-          :icon="Plus"
-          size="small"
-          :disabled="isRequestingProjectInfo"
-          @click="feedbackDialogVisible = true"
-        >
-          反馈相似软件
-        </el-button>
-        <el-dialog
-          v-model="feedbackDialogVisible"
-          title="反馈相似软件"
-          destroy-on-close
-          append-to-body
-          @close="cancelFeedback"
-        >
-          <el-form
-            ref="formInstance"
-            :model="feedbackInfo"
-            :rules="formRules"
-            label-position="right"
-            label-width="auto"
+        <slot name="application" :project="project">
+          <ApplyAdd
+            :application-type="2"
+            :alternative-project-id="String(project?.id ?? '')"
+            success-message="已反馈相似软件"
           >
-            <el-form-item label="社区源码仓地址" prop="repoUrl">
-              <el-input
-                v-model="feedbackInfo.repoUrl"
-                type="textarea"
-                :row="3"
-                placeholder="https://github.com/owner-name/repo-name"
-              />
-            </el-form-item>
-            <el-form-item label="描述" prop="comment">
-              <el-input
-                v-model="feedbackInfo.comment"
-                type="textarea"
-                :row="3"
-                placeholder="请输入描述"
-              />
-            </el-form-item>
-            <el-form-item label="邮箱地址" prop="email">
-              <el-input v-model="feedbackInfo.email" placeholder="请输入你的邮箱地址" />
-            </el-form-item>
-          </el-form>
-          <template #footer>
-            <el-button @click="cancelFeedback">取消</el-button>
-            <el-button type="primary" :disabled="feedbackSubmitting" @click="submitFeedback">
-              确定
-            </el-button>
-          </template>
-        </el-dialog>
+            <template #trigger>
+              <el-button round ml-3 :icon="Plus" size="small"> 反馈相似软件 </el-button>
+            </template>
+            <template #dialog-header>
+              <div font-size-18px>反馈相似软件</div>
+            </template>
+          </ApplyAdd>
+        </slot>
       </div>
       <div flex my-5>
         <div v-for="item in alternatives" :key="item.id" class="alter-item" flex>
@@ -1335,13 +1174,23 @@ function cancelFeedback() {
           </div>
         </div>
       </el-card>
-      <div v-if="performanceModuleInfo.packageName || showBenchmarkCompare">
-        <div id="performance" mt-4 mb-4 font-size-7 font-bold line-height-normal>
-          <span class="i-line-md-speedometer-loop" mr-2 />
-          <span>性能</span>
-          <span font-size-5 float-right
-            >{{ formatFloat(project?.evaluation?.performanceScore) }}/100</span
-          >
+      <div>
+        <div
+          id="performance"
+          mt-4
+          mb-4
+          font-size-7
+          font-bold
+          line-height-normal
+          flex
+          flex-items-center
+          justify-between
+        >
+          <div flex flex-items-center>
+            <span class="i-line-md-speedometer-loop" mr-2 />
+            <span mr-4>性能</span>
+          </div>
+          <span font-size-5>{{ formatFloat(project?.evaluation?.performanceScore) }}/100</span>
         </div>
         <el-card>
           <div v-if="performanceModuleInfo.packageName">
@@ -1375,53 +1224,24 @@ function cancelFeedback() {
               </div>
             </div>
           </div>
-          <div v-show="showBenchmarkCompare">
-            <el-table
-              :data="benchmarkCompareTable"
-              class="results"
-              border
-              :max-height="400"
-              :cell-style="computeColor"
-              :span-method="objectSpanMethod"
-            >
-              <el-table-column :width="50" fixed prop="category" label="分类">
-                <template #header><div class="write-vertical-left">分类</div></template>
-                <template #default="{ row }">
-                  <div class="write-vertical-left">{{ row.indexCategory }}</div>
-                </template>
-              </el-table-column>
-              <el-table-column
-                v-for="column in benchmarkCompareColumns"
-                :key="column"
-                :width="300"
-                :prop="column"
-                :class-name="column === 'indexName' ? '' : 'benchmark-value-cell'"
-              >
-                <template #header>
-                  <div class="flex items-center justify-center">
-                    <span v-if="column === 'indexName'">指标</span>
-                    <span v-else style="font-weight: bold; color: var(--el-text-color-regular)">{{
-                      column
-                    }}</span>
-                  </div>
-                </template>
-                <template #default="{ row }">
-                  <div v-if="column === 'indexName'">
-                    <span>{{ row[column] }}</span>
-                  </div>
-                  <div v-else-if="row[column]" class="text-center">
-                    <div class="font-size-3 h4.5 font-500">{{ row[column] }}</div>
-                    <div
-                      v-if="row[column] !== '--'"
-                      class="flex items-center justify-center font-size-2.5"
-                    >
-                      ({{ (removeUnit(row[column]) / minRowValue[row.indexName]).toFixed(2) }})
-                    </div>
-                  </div>
-                </template>
-              </el-table-column>
-            </el-table>
-          </div>
+          <BenchmarkCompareTable
+            v-if="benchmarkCompareRows.length"
+            :rows="benchmarkCompareRows"
+            :columns="benchmarkCompareColumns"
+          />
+          <slot v-else name="benchmark" :project="project">
+            <ApplyAdd :application-type="3">
+              <template #trigger>
+                <span>
+                  <span>暂无性能数据，</span>
+                  <span class="btn-add-benchmark">点击新增Benchmark</span>
+                </span>
+              </template>
+              <template #dialog-header>
+                <div font-size-18px>新增Benchmark</div>
+              </template>
+            </ApplyAdd>
+          </slot>
         </el-card>
       </div>
       <div id="quality" mt-4 mb-4 font-size-7 font-bold line-height-normal>
@@ -2112,6 +1932,13 @@ function cancelFeedback() {
   }
   .table-base-info {
     width: 935px;
+    :deep(.cell) {
+      line-height: 18px;
+    }
+  }
+  .btn-add-benchmark {
+    cursor: pointer;
+    color: var(--el-color-primary);
   }
 }
 

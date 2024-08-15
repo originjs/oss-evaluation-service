@@ -1,5 +1,11 @@
 import { gql, request } from 'graphql-request';
-import { CompassActivity, GithubProjects, logger } from '@orginjs/oss-evaluation-data-model';
+import {
+  CompassActivity,
+  GithubProjects,
+  logger,
+  sequelizeExt,
+  sequelize,
+} from '@orginjs/oss-evaluation-data-model';
 import { getProjectByUrl, sleep } from '../util/util.js';
 
 const query = gql`
@@ -201,4 +207,53 @@ export async function compassTimer(
       logger.error('[Integration][Compass] compass integration unknown error, please checks');
     }
   }
+}
+
+export async function syncAllProjectCompassSubstituteHandler(req, res) {
+  await syncAllProjectCompassSubstitute();
+  res.status(200).json('ok');
+}
+
+async function syncAllProjectCompassSubstitute() {
+  logger.info('Add full_name field');
+  const sql1 = `
+    update compass_activity_detail_substitute detail
+    set full_name = substring_index(detail.repo_url, 'https://github.com/', -1)
+    where isnull(project_id);
+  `;
+  await sequelizeExt.query(sql1, { type: sequelize.QueryTypes.UPDATE });
+
+  logger.info('Add project_id field');
+  const sql2 = `
+    update compass_activity_detail_substitute detail
+        inner join github_projects projects on detail.repo_url = html_url
+    set detail.project_id = projects.project_id
+    where isnull(project_id);
+  `;
+  await sequelizeExt.query(sql2, { type: sequelize.QueryTypes.UPDATE });
+
+  logger.info('enrich evaluation_summary field');
+  const sql3 = `
+    update \`oss-eval\`.oss_evaluation_summary t1 inner join
+      (
+        select a.*
+        from \`oss-eval-inner\`.compass_activity_detail_substitute a,
+        (select project_id, Max(grimoire_creation_date) grimoire_creation_date
+        from \`oss-eval-inner\`.compass_activity_detail_substitute
+        group by project_id
+        )b
+        where a.project_id = b.project_id
+        and a.grimoire_creation_date = b.grimoire_creation_date
+      )t2 on t1.project_id = t2.project_id
+    set t1.contributor_count = t2.contributor_count,
+    t1.closed_issues_count = t2.closed_issues_count,
+    t1.commit_frequency = t2.commit_frequency,
+    t1.comment_frequency = t2.comment_frequency,
+    t1.code_review_count = t2.code_review_count,
+    t1.org_count = t2.org_count,
+    t1.updated_issues_count = t2.updated_issues_count,
+    t1.recent_releases_count = t2.recent_releases_count
+  `;
+
+  await sequelizeExt.query(sql3, { type: sequelize.QueryTypes.UPDATE });
 }

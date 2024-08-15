@@ -26,12 +26,6 @@ async function updateCodeSizeByProjectId(codeLines, projectId) {
     );
   }
 }
-export async function setCodeSizeOfProject(req, res) {
-  const { projectId, codeLines } = req.body;
-  await updateCodeSizeByProjectId(codeLines, projectId);
-  res.status(200);
-  res.json({ ok: true });
-}
 
 async function syncProjectCodeSize(projectIds) {
   logger.info('Sync Project Code Size');
@@ -77,7 +71,7 @@ export async function getCodeSizeByProject(project) {
 async function getCodeSizeUsingCloc(project) {
   const repoServiceUrl = process.env.REPO_SERVICE_URL;
   if (!repoServiceUrl) {
-    logger.error('no ${REPO_SERVICE_URL} env config, skip local repo cloc');
+    logger.warn('no ${REPO_SERVICE_URL} env config, skip local repo cloc');
     return;
   }
   const response = await fetch(`${repoServiceUrl}/repo/getCodeSize`, {
@@ -87,7 +81,7 @@ async function getCodeSizeUsingCloc(project) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      projectId: project.id,
+      id: project.id,
       owner: project.ownerName,
       repoName: project.name,
     }),
@@ -103,7 +97,7 @@ async function getCodeSizeBelow5M(project) {
   const fullName = project.fullName;
   const url = `https://git-cloc.fly.dev/cloc/${fullName}`;
   try {
-    const response = await fetchWithTimeout(url, 10 * 1000);
+    const response = await fetchWithTimeout(url, 3 * 60 * 1000);
     if (response.ok) {
       const text = await response.text();
       // parse html
@@ -123,7 +117,7 @@ async function getCodeSizeBelow500M(project) {
   const fullName = project.fullName;
   const url = `https://api.codetabs.com/v1/loc?github=${fullName}`;
   try {
-    const reponse = await fetchWithTimeout(url, 60 * 1000);
+    const reponse = await fetchWithTimeout(url, 3 * 60 * 1000);
     if (reponse.ok) {
       const json = await reponse.json();
       return json.find(item => item.language === 'Total').linesOfCode;

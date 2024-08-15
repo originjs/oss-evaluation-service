@@ -113,6 +113,18 @@ export default sequelize.define(
     marketShare: {
       type: DataTypes.DOUBLE,
     },
+    starRate: {
+      type: DataTypes.DOUBLE,
+    },
+    downloadRate: {
+      type: DataTypes.DOUBLE,
+    },
+    creatorOrgs: {
+      type: DataTypes.DOUBLE,
+    },
+    creatorCountries: {
+      type: DataTypes.DOUBLE,
+    },
   },
   {
     tableName: 'oss_evaluation_summary',
