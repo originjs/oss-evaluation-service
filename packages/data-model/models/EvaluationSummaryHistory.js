@@ -1,0 +1,35 @@
+import { DataTypes } from 'sequelize';
+import sequelize from '../util/database.js';
+
+export default sequelize.define(
+  'EvaluationSummaryHistory',
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+    },
+    projectId: {
+      type: DataTypes.INTEGER,
+    },
+    date: {
+      type: DataTypes.DATE,
+    },
+    functionScore: {
+      type: DataTypes.DOUBLE,
+    },
+    qualityScore: {
+      type: DataTypes.DOUBLE,
+    },
+    ecologyScore: {
+      type: DataTypes.DOUBLE,
+    },
+    innovationScore: {
+      type: DataTypes.DOUBLE,
+    },
+  },
+  {
+    tableName: 'oss_evaluate_summary_history',
+    underscored: true,
+    timestamps: false,
+  },
+);

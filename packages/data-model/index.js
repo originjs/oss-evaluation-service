@@ -10,6 +10,7 @@ export { default as PackageSizeDetail } from './models/PackageSizeDetail.js';
 export { default as Scorecard } from './models/Scorecard.js';
 export { default as PackageDownloadCount } from './models/PackageDownloadCount.js';
 export { default as EvaluationSummary } from './models/EvaluationSummary.js';
+export { default as EvaluationSummaryHistory } from './models/EvaluationSummaryHistory.js';
 export { default as Benchmark } from './models/Benchmark.js';
 export { default as CncfDocumentScoreOnly } from './models/CncfDocumentScoreOnly.js';
 export { default as CompassActivity } from './models/CompassActivity.js';
