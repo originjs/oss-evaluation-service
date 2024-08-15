@@ -238,6 +238,21 @@ export async function syncAllProjectEvaluation() {
   evaluateBenchmark(model, {});
 }
 
+async function storeAllEvaluationSummaryHistory() {
+  // store evaluation score for all projects
+  logger.info('start mysql');
+  await sequelize.query(`INSERT IGNORE INTO
+  oss_evaluate_summary_history(project_id, date, function_score, quality_score, ecology_score, innovation_score)
+  SELECT project_id, CURDATE(), function_score, quality_score, ecology_score, innovation_score
+  FROM oss_evaluation_summary`);
+}
+
+export async function storeAllEvaluationHistoryHandler(req, res) {
+  logger.info('start handler store');
+  await storeAllEvaluationSummaryHistory();
+  res.status(200).json('ok');
+}
+
 export async function evaluateBenchmarkHandler(req, res) {
   const model = await loadModel();
   await evaluateBenchmark(model, req.body);
@@ -492,5 +507,16 @@ export async function evaluateTimer() {
   const endTime = process.hrtime(startTime);
   logger.info(
     `[Calculation][Evaluate] The total time spent on calculation : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
+  );
+}
+
+export async function evaluateHistoryTimer() {
+  const startTime = process.hrtime();
+  logger.info('[Integration][EvaluateHistory] Integration Job start');
+  await storeAllEvaluationSummaryHistory();
+  logger.info('[Integration][Evaluate] Integration Job end');
+  const endTime = process.hrtime(startTime);
+  logger.info(
+    `[Integration][Evaluate] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
   );
 }
