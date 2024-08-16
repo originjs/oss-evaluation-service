@@ -514,9 +514,9 @@ export async function evaluateHistoryTimer() {
   const startTime = process.hrtime();
   logger.info('[Integration][EvaluateHistory] Integration Job start');
   await storeAllEvaluationSummaryHistory();
-  logger.info('[Integration][Evaluate] Integration Job end');
+  logger.info('[Integration][EvaluateHistory] Integration Job end');
   const endTime = process.hrtime(startTime);
   logger.info(
-    `[Integration][Evaluate] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
+    `[Integration][EvaluateHistory] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
   );
 }
