@@ -500,23 +500,20 @@ function calCriticalityScore(x, threshold, isDesc) {
 }
 
 export async function evaluateTimer() {
-  const startTime = process.hrtime();
+  const startCalculateTime = process.hrtime();
   logger.info('[Calculation][Evaluate] Calculation Job start');
   await syncAllProjectEvaluation();
   logger.info('[Calculation][Evaluate] Calculation Job end');
-  const endTime = process.hrtime(startTime);
+  const endCalculateTime = process.hrtime(startCalculateTime);
   logger.info(
-    `[Calculation][Evaluate] The total time spent on calculation : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
+    `[Calculation][Evaluate] The total time spent on calculation : ${endCalculateTime[0]}s ${endCalculateTime[1] / 1e6}ms`,
   );
-}
-
-export async function evaluateHistoryTimer() {
-  const startTime = process.hrtime();
+  const startStoreTime = process.hrtime();
   logger.info('[Integration][EvaluateHistory] Integration Job start');
   await storeAllEvaluationSummaryHistory();
   logger.info('[Integration][EvaluateHistory] Integration Job end');
-  const endTime = process.hrtime(startTime);
+  const endStoreTime = process.hrtime(startStoreTime);
   logger.info(
-    `[Integration][EvaluateHistory] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
+    `[Integration][EvaluateHistory] The total time spent on integration : ${endStoreTime[0]}s ${endStoreTime[1] / 1e6}ms`,
   );
 }
