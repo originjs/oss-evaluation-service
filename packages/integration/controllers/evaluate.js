@@ -241,10 +241,12 @@ export async function syncAllProjectEvaluation() {
 async function storeAllEvaluationSummaryHistory() {
   // store evaluation score for all projects
   logger.info('start mysql');
-  await sequelize.query(`INSERT IGNORE INTO
+  await sequelize.query(`INSERT INTO
   oss_evaluate_summary_history(project_id, date, function_score, quality_score, ecology_score, innovation_score)
   SELECT project_id, CURDATE(), function_score, quality_score, ecology_score, innovation_score
-  FROM oss_evaluation_summary`);
+  FROM oss_evaluation_summary ON DUPLICATE KEY UPDATE
+  date = CURDATE(), function_score = VALUES(function_score), quality_score = VALUES(quality_score),
+  ecology_score = VALUES(ecology_score), innovation_score = VALUES(innovation_score)`);
 }
 
 export async function storeAllEvaluationHistoryHandler(req, res) {
