@@ -74,8 +74,8 @@
           >
             <template v-if="options.enableProjectPopover">
               <project-popover
-                v-for="project in landscapeData[categoryName][subcategoryName].projects"
-                :key="`${categoryName}-${subcategoryName}-${project.name}`"
+                v-for="(project, pIndex) in landscapeData[categoryName][subcategoryName].projects"
+                :key="`${categoryName}-${subcategoryName}-${project.name}-${pIndex}`"
                 :project="project"
                 :options="options"
               >
@@ -97,8 +97,8 @@
             </template>
             <template v-else>
               <project-thumbnails
-                v-for="project in landscapeData[categoryName][subcategoryName].projects"
-                :key="`${categoryName}-${subcategoryName}-${project.name}`"
+                v-for="(project, pIndex) in landscapeData[categoryName][subcategoryName].projects"
+                :key="`${categoryName}-${subcategoryName}-${project.name}-${pIndex}`"
                 class="project-logo"
                 :project="project"
                 :options="options"
