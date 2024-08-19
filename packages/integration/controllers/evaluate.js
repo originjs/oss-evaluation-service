@@ -245,7 +245,7 @@ async function storeAllEvaluationSummaryHistory() {
   oss_evaluate_summary_history(project_id, date, function_score, quality_score, ecology_score, innovation_score)
   SELECT project_id, CURDATE(), function_score, quality_score, ecology_score, innovation_score
   FROM oss_evaluation_summary ON DUPLICATE KEY UPDATE
-  date = CURDATE(), function_score = VALUES(function_score), quality_score = VALUES(quality_score),
+  function_score = VALUES(function_score), quality_score = VALUES(quality_score),
   ecology_score = VALUES(ecology_score), innovation_score = VALUES(innovation_score)`);
 }
 
