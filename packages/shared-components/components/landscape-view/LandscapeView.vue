@@ -412,7 +412,7 @@ const calcWidth = (category: Category, calcCategory: Category) => {
     }
   }
 
-  return calcCategory;
+  return category;
 };
 
 const processLandscapeData = (projects: Project[], isInit?: boolean) => {
