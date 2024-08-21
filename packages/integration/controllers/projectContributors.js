@@ -75,13 +75,22 @@ async function getProjectContributors(url) {
           log.info(`web crawler: Request to ${request.url} failed...`);
         },
         async requestHandler({ request, $, log }) {
-          const content = $('a:contains("Contributors") span');
-          if (content) {
-            const contributorsArrays = content.text().match(/\d+/g);
-            contributors =
-              contributorsArrays != undefined && contributorsArrays.length > 0
-                ? contributorsArrays.join('')
-                : '';
+          const repoName = url.match(/\/github\.com\/(.*)/)[1];
+          const content = $(`a[href="/${repoName}/graphs/contributors"]`).text();
+          if (content.length !== 0) {
+            const regex = /(\d{1,3}(,\d{3})*(\.\d+)?)/g;
+            const contributorsArrays = content.match(regex);
+            let contributorsNumber1, contributorsNumber2;
+            contributorsNumber1 = contributorsArrays[0] ? contributorsArrays[0].replace(/,/g, '') : null;
+            contributorsNumber2 = contributorsArrays[1] ? contributorsArrays[1].replace(/,/g, '') : null;
+            // contributorsNumber1 will be 5000 when it more than 5000, use contributorsNumber2 to get realNumber
+            let realNumber;
+            if (contributorsNumber1 === '5000') {
+              realNumber = parseInt(contributorsNumber2) + 14;
+            } else {
+              realNumber = parseInt(contributorsNumber1);
+            }
+            contributors = realNumber.toString();
           }
           log.info(`web crawler: contributors of ${request.loadedUrl} is ${contributors}`);
         },
@@ -101,17 +110,28 @@ async function getProjectContributors(url) {
 }
 
 async function getContributors(repoName, page = 1) {
+  const header = process.env.GITHUB_TOKEN ? {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`
+  } : {
+    'Content-Type': 'application/json',
+  }
+
   const request = await fetch(
     `https://api.github.com/repos/${repoName}/contributors?per_page=100&page=${page}&anon=true`,
     {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: header,
     },
   );
 
-  const contributorsList = await request.json();
+  let contributorsList;
+  // avoid situations where the project is empty
+  if (request.length > 0) {
+    contributorsList = await request.json();
+  } else {
+    contributorsList = [];
+  }
   return contributorsList;
 }
 
