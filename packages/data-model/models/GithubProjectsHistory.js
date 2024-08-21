@@ -1,0 +1,27 @@
+import { DataTypes } from 'sequelize';
+import sequelize from '../util/database.js';
+
+export default sequelize.define(
+  'GithubProjectsHistory',
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    projectId: {
+      type: DataTypes.INTEGER,
+    },
+    date: {
+      type: DataTypes.DATE,
+    },
+    contributors: {
+      type: DataTypes.INTEGER,
+    },
+  },
+  {
+    tableName: 'github_projects_history',
+    underscored: true,
+    timestamps: false,
+  },
+);
