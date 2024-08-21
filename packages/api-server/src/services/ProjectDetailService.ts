@@ -514,6 +514,18 @@ export async function allHealthScore(repoName: string) {
 
 export async function exportScoreExcel(projectName: string) {
   const excelTemplate = readFileSync('./assets/evaluation-template.xlsx');
+  const data = await queryExportSoftwareInfo(projectName);
+  if (!data) {
+    return;
+  }
+  try {
+    return ejsExcel.renderExcel(excelTemplate, data);
+  } catch (err) {
+    logger.error(err);
+  }
+}
+
+async function queryExportSoftwareInfo(projectName: string) {
   const data = await getProjectDetailInfo(projectName);
   const packageName = await getMainPackageByRepoName(projectName);
   let packageSize = null;
@@ -544,11 +556,33 @@ export async function exportScoreExcel(projectName: string) {
   data.evaluation.innovationScore = Number(
     fixedRound(data.evaluation.innovationScore, DECIMAL_PLACES),
   );
-  if (!data) {
+  return data;
+}
+
+export async function compareExportScoreExcel(projectNameList: string[]) {
+  const excelTemplate = readFileSync('./assets/evaluation-compare-template.xlsx');
+  const resMap: Map<string, any> = new Map();
+  for (const projectName of projectNameList) {
+    const data = await queryExportSoftwareInfo(projectName);
+    for (const key in data) {
+      if (!resMap.get(key)) {
+        resMap.set(key, []);
+      }
+      resMap.get(key).push(data[key]);
+    }
+  }
+  if (!resMap) {
     return;
   }
+  // 补充title
+  const indicatorTitle = [];
+  for (let i = 0; i < projectNameList.length; i++) {
+    indicatorTitle.push('指标值');
+  }
+  resMap.set('indicatorTitle', indicatorTitle);
+  const res = Object.fromEntries(resMap);
   try {
-    return ejsExcel.renderExcel(excelTemplate, data);
+    return ejsExcel.renderExcel(excelTemplate, res);
   } catch (err) {
     logger.error(err);
   }
