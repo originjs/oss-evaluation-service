@@ -77,21 +77,26 @@ async function getProjectContributors(url) {
         async requestHandler({ request, $, log }) {
           const repoName = url.match(/\/github\.com\/(.*)/)[1];
           const content = $(`a[href="/${repoName}/graphs/contributors"]`).text();
-          if (content.length !== 0) {
-            const regex = /(\d{1,3}(,\d{3})*(\.\d+)?)/g;
-            const contributorsArrays = content.match(regex);
-            let contributorsNumber1, contributorsNumber2;
-            contributorsNumber1 = contributorsArrays[0] ? contributorsArrays[0].replace(/,/g, '') : null;
-            contributorsNumber2 = contributorsArrays[1] ? contributorsArrays[1].replace(/,/g, '') : null;
-            // contributorsNumber1 will be 5000 when it more than 5000, use contributorsNumber2 to get realNumber
-            let realNumber;
-            if (contributorsNumber1 === '5000') {
-              realNumber = parseInt(contributorsNumber2) + 14;
-            } else {
-              realNumber = parseInt(contributorsNumber1);
-            }
-            contributors = realNumber.toString();
+          
+          if (content.length === 0) {
+            log.info(`web crawler: ${request.url} does not provide contributors...`);
+            return contributors;
           }
+          
+          const regex = /(\d{1,3}(,\d{3})*(\.\d+)?)/g;
+          const contributorsArrays = content.match(regex);
+          let contributorsNumMain, contributorsNumSub;
+          contributorsNumMain = contributorsArrays[0]?.replace(/,/g, '');
+          contributorsNumSub = contributorsArrays[1]?.replace(/,/g, '');
+          // contributorsNumMain will be 5000 when it more than 5000, use contributorsNumSub to get realNumber
+          let realNumber;
+          if (contributorsNumMain === '5000') {
+            realNumber = parseInt(contributorsNumSub) + 14;
+          } else {
+            realNumber = parseInt(contributorsNumMain);
+          }
+          contributors = realNumber.toString();
+          
           log.info(`web crawler: contributors of ${request.loadedUrl} is ${contributors}`);
         },
         requestHandlerTimeoutSecs: 60,
@@ -125,14 +130,8 @@ async function getContributors(repoName, page = 1) {
     },
   );
 
-  let contributorsList;
   // avoid situations where the project is empty
-  if (request.length > 0) {
-    contributorsList = await request.json();
-  } else {
-    contributorsList = [];
-  }
-  return contributorsList;
+  return request.length > 0?await request.json():[]
 }
 
 async function getAlllContributors(repoName) {
