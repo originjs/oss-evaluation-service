@@ -67,6 +67,8 @@ import {
 import {
   syncSingleProjectContributorsHandler,
   syncAllProjectContributorsHandler,
+  storeSingleProjectContributorsHandler,
+  storeAllProjectContributorsHandler,
 } from '../controllers/projectContributors.js';
 import {
   syncAllProjectDependentCountHandler,
@@ -1145,6 +1147,34 @@ router.route('/syncAllProjectContributors').get(syncAllProjectContributorsHandle
  *         description: success.
  */
 router.route('/syncSingleProjectContributors/:repoUrl').get(syncSingleProjectContributorsHandler);
+
+/**
+ * @swagger
+ * /sync/storeAllProjectContributors:
+ *   get:
+ *     summary: store contributors of project
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/storeAllProjectContributors').get(storeAllProjectContributorsHandler);
+
+/**
+ * @swagger
+ * /sync/storeSingleProjectContributors/{repoUrl}:
+ *   get:
+ *     summary: store contributors of project
+ *     parameters:
+ *      - in: path
+ *        name: repoUrl
+ *        type: string
+ *        required: true
+ *        example: https://github.com/vuejs/router
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/storeSingleProjectContributors/:repoUrl').get(storeSingleProjectContributorsHandler);
 
 /**
  * @swagger
