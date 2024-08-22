@@ -32,8 +32,8 @@ async function getProjectList(projectId) {
     attributes: ['id', 'htmlUrl', 'fullName', 'contributors'],
     where: projectId
       ? {
-        id: projectId,
-      }
+          id: projectId,
+        }
       : {},
   });
   return projectList;
@@ -122,12 +122,12 @@ async function getProjectContributors(url) {
 async function getContributors(repoName, page = 1) {
   const header = process.env.GITHUB_TOKEN
     ? {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
-    }
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+      }
     : {
-      'Content-Type': 'application/json',
-    };
+        'Content-Type': 'application/json',
+      };
 
   const request = await fetch(
     `https://api.github.com/repos/${repoName}/contributors?per_page=100&page=${page}&anon=true`,
