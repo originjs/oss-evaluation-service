@@ -6,7 +6,10 @@ import { compassTimer } from '../controllers/compass.js';
 import { packageDownloadCountTimer } from '../controllers/downloadCount.js';
 import { projectDependentCountTimer } from '../controllers/projectDependentCount.js';
 import { projectCodeSizeTimer } from '../controllers/projectCodeSize.js';
-import { projectContributorsTimer } from '../controllers/projectContributors.js';
+import {
+  projectContributorsTimer,
+  projectContributorsHistoryTimer,
+} from '../controllers/projectContributors.js';
 import { evaluateTimer } from '../controllers/evaluate.js';
 
 function createTimer(name, pattern, timer) {
@@ -38,6 +41,7 @@ const taskFactory = {
   projectCodeSizeTimer,
   projectDependentCountTimer,
   projectContributorsTimer,
+  projectContributorsHistoryTimer,
   evaluateTimer,
   createTask: function (taskName) {
     if (!this[taskName]) {
