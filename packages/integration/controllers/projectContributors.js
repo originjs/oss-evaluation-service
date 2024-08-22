@@ -203,6 +203,7 @@ async function getAlllContributors(repoName) {
   }
   return contributors;
 }
+
 export async function projectContributorsTimer() {
   const startTime = process.hrtime();
   logger.info('[Integration][ProjectContributors] Integration Job start');
@@ -211,5 +212,16 @@ export async function projectContributorsTimer() {
   const endTime = process.hrtime(startTime);
   logger.info(
     `[Integration][ProjectContributors] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
+  );
+}
+
+export async function projectContributorsHistoryTimer() {
+  const startTime = process.hrtime();
+  logger.info('[Integration][ProjectContributorsHistory] Integration Job start');
+  await storeProjectContributors();
+  logger.info('[Integration][ProjectContributorsHistory] Integration Job end');
+  const endTime = process.hrtime(startTime);
+  logger.info(
+    `[Integration][ProjectContributorsHistory] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
   );
 }
