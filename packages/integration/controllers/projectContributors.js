@@ -27,17 +27,22 @@ export async function syncAllProjectContributors() {
   await syncProjectContributors();
 }
 
-export default async function syncProjectContributors(projectId) {
-  logger.info('Sync Project Contributors');
-  // 1. get all github project
+async function getProjectList(projectId) {
   const projectList = await GithubProjects.findAll({
     attributes: ['id', 'htmlUrl', 'fullName', 'contributors'],
     where: projectId
       ? {
-          id: projectId,
-        }
+        id: projectId,
+      }
       : {},
   });
+  return projectList;
+}
+
+export default async function syncProjectContributors(projectId) {
+  logger.info('Sync Project Contributors');
+  // 1. get all github project
+  const projectList = await getProjectList(projectId);
   const sumOfProject = projectList.length;
   logger.info(`The Number of Project : ${sumOfProject}`);
   let count = 1;
@@ -77,12 +82,12 @@ async function getProjectContributors(url) {
         async requestHandler({ request, $, log }) {
           const repoName = url.match(/\/github\.com\/(.*)/)[1];
           const content = $(`a[href="/${repoName}/graphs/contributors"]`).text();
-          
+
           if (content.length === 0) {
             log.info(`web crawler: ${request.url} does not provide contributors...`);
             return contributors;
           }
-          
+
           const regex = /(\d{1,3}(,\d{3})*(\.\d+)?)/g;
           const contributorsArrays = content.match(regex);
           let contributorsNumMain, contributorsNumSub;
@@ -96,7 +101,7 @@ async function getProjectContributors(url) {
             realNumber = parseInt(contributorsNumMain);
           }
           contributors = realNumber.toString();
-          
+
           log.info(`web crawler: contributors of ${request.loadedUrl} is ${contributors}`);
         },
         requestHandlerTimeoutSecs: 60,
@@ -115,12 +120,14 @@ async function getProjectContributors(url) {
 }
 
 async function getContributors(repoName, page = 1) {
-  const header = process.env.GITHUB_TOKEN ? {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`
-  } : {
-    'Content-Type': 'application/json',
-  }
+  const header = process.env.GITHUB_TOKEN
+    ? {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+    }
+    : {
+      'Content-Type': 'application/json',
+    };
 
   const request = await fetch(
     `https://api.github.com/repos/${repoName}/contributors?per_page=100&page=${page}&anon=true`,
@@ -131,7 +138,7 @@ async function getContributors(repoName, page = 1) {
   );
 
   // avoid situations where the project is empty
-  return request.length > 0?await request.json():[]
+  return request.length > 0 ? await request.json() : [];
 }
 
 async function getAlllContributors(repoName) {
