@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { Close, Switch, ArrowDown } from '@element-plus/icons-vue';
+import { Close, Switch, ArrowDown, Download } from '@element-plus/icons-vue';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import type { SoftwareBaseInfo, SoftwareInfo } from '@orginjs/oss-evaluation-components-api';
+import { exportSoftwareCompareFileApi } from '@orginjs/oss-evaluation-components-api';
 import type { ResultData } from '../../api';
 import { getSoftwareInfo } from '@orginjs/oss-evaluation-components-api';
 import {
@@ -17,6 +18,7 @@ import { get as _get } from 'lodash-es';
 import { SearchSoftware } from '../search-software';
 import BenchmarkCompare from '../benchmark-compare/BenchmarkCompare.vue';
 import i18n from '../../i18n';
+import { saveAs } from 'file-saver';
 
 const emit = defineEmits<{
   removeRepo: [repoName: string];
@@ -178,10 +180,29 @@ const getShowRow = (path: string) => {
   const res = new Set(projects.map(item => _get(item, path)));
   return res.size > 1;
 };
+async function exportSoftwareCompareToExcel() {
+  let repoNameList = [];
+  for (let project of projects) {
+    repoNameList.push(project.repoName);
+  }
+  try {
+    const data = await exportSoftwareCompareFileApi(repoNameList);
+    saveAs(data, 'projectCompare.xlsx');
+    ElMessage.success('导出成功');
+  } catch (e) {
+    ElMessage.error('导出失败');
+  }
+}
 </script>
 
 <template>
   <div class="main">
+    <div ref="optionBtnsDom" class="btn-options-floating">
+      <el-button type="primary" plain :icon="Download" @click="exportSoftwareCompareToExcel"
+        >导出报告</el-button
+      >
+    </div>
+
     <div class="page-title flex justify-between items-center">
       <div>
         <span class="menu">开源软件对比</span>
@@ -1623,6 +1644,20 @@ const getShowRow = (path: string) => {
   margin: 20px auto;
   border-top: 1px @border-color solid;
   border-left: 1px @border-color solid;
+  .btn-options-floating {
+    position: fixed;
+    margin-right: 100px;
+    top: 113px;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    left: 155px;
+    align-items: center;
+    :deep(.el-button) {
+      margin: 0 0 16px;
+      width: 120px;
+    }
+  }
 
   .menu {
     height: 50px;

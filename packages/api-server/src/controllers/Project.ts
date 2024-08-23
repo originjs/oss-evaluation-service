@@ -1,15 +1,15 @@
-import { Controller, Path, Route, Get, Post } from 'tsoa';
+import { Controller, Path, Route, Get, Post, Body } from 'tsoa';
 import {
   getProjectDetailInfo,
   getSoftwareActivity,
   getSoftwareInnovate,
   getPerformance,
-  exportScoreExcel,
   exportBenchmarkExcel,
   getInnovation,
   getSummaryHighlightInfo,
   prCreatorCompanyAndAreaInfo,
   allHealthScore,
+  compareExportScoreExcel,
 } from '../services/ProjectDetailService.js';
 import type {
   EcologyActivityCategory,
@@ -96,7 +96,7 @@ export class ProjectController extends Controller {
 
   @Post('export/{repoName}')
   public async exportReport(@Path() repoName: string): Promise<Readable> {
-    const scoreExcel = await exportScoreExcel(repoName);
+    const scoreExcel = await compareExportScoreExcel([repoName]);
     const benchmarkExcel = await exportBenchmarkExcel(repoName);
     let exportBuffer;
 
@@ -118,5 +118,20 @@ export class ProjectController extends Controller {
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     );
     return Readable.from(exportBuffer);
+  }
+
+  @Post('compareExport')
+  public async compareExportReport(@Body() repoNameList: string[]): Promise<Readable> {
+    const scoreExcel = await compareExportScoreExcel(repoNameList);
+    const fileName = repoNameList.join('-');
+    this.setHeader(
+      'Content-Disposition',
+      `attachment; filename=softwareCompare-${encodeURIComponent(fileName)}.xlsx`,
+    );
+    this.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    return Readable.from(scoreExcel);
   }
 }
