@@ -194,14 +194,23 @@ async function getAlllContributors(repoName) {
 }
 
 export async function projectContributorsTimer() {
-  const startTime = process.hrtime();
-  logger.info('[Integration][ProjectContributors] Integration Job start');
-  await syncAllProjectContributors();
-  logger.info('[Integration][ProjectContributors] Integration Job end');
-  const endTime = process.hrtime(startTime);
-  logger.info(
-    `[Integration][ProjectContributors] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
-  );
+  const now = new Date();
+  const currentDate = now.getDate();
+  const currentDay = now.getDay();
+  if (currentDate === 1 || currentDay === 6) {
+    const startTime = process.hrtime();
+    logger.info('[Integration][ProjectContributors] Integration Job start');
+    await syncAllProjectContributors();
+    logger.info('[Integration][ProjectContributors] Integration Job end');
+    const endTime = process.hrtime(startTime);
+    logger.info(
+      `[Integration][ProjectContributors] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
+    );
+  } else {
+    logger.info(
+      '[Integration][ProjectContributors] Integration Job will be performed every Saturday or the first of every month',
+    );
+  }
 }
 
 export async function projectContributorsHistoryTimer() {
