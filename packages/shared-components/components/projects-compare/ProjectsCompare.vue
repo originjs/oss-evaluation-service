@@ -197,13 +197,16 @@ async function exportSoftwareCompareToExcel() {
 
 <template>
   <div class="main">
+    <div ref="optionBtnsDom" class="btn-options-floating">
+      <el-button type="primary" plain :icon="Download" @click="exportSoftwareCompareToExcel"
+        >导出报告</el-button
+      >
+    </div>
+
     <div class="page-title flex justify-between items-center">
       <div>
         <span class="menu">开源软件对比</span>
       </div>
-      <el-button type="primary" plain :icon="Download" @click="exportSoftwareCompareToExcel"
-        >导出报告</el-button
-      >
       <div v-if="pageName === 'ProjectsCompare'">
         <div class="mr-12px flex items-center">
           <el-switch v-model="isShowDiff" style="--el-switch-on-color: #13ce66" />
@@ -1641,6 +1644,20 @@ async function exportSoftwareCompareToExcel() {
   margin: 20px auto;
   border-top: 1px @border-color solid;
   border-left: 1px @border-color solid;
+  .btn-options-floating {
+    position: fixed;
+    margin-right: 100px;
+    top: 113px;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    left: 155px;
+    align-items: center;
+    :deep(.el-button) {
+      margin: 0 0 16px;
+      width: 120px;
+    }
+  }
 
   .menu {
     height: 50px;
