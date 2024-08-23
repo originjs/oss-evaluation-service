@@ -187,7 +187,7 @@ async function exportSoftwareCompareToExcel() {
   }
   try {
     const data = await exportSoftwareCompareFileApi(repoNameList);
-    saveAs(data, 'projectCompare.xlsx');
+    saveAs(data, '开源软件对比导出报告.xlsx');
     ElMessage.success('导出成功');
   } catch (e) {
     ElMessage.error('导出失败');

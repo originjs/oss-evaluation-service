@@ -31,6 +31,8 @@ import { getAlternativeProjects } from './AlternativeProjectService.js';
 import { fixedRound } from '../utils/math.js';
 import { Op } from 'sequelize';
 import _ from 'underscore';
+import dayjs from 'dayjs';
+import packageJson from '../../package.json';
 
 ProjectInfo.hasOne(Scorecard, { foreignKey: 'project_id', as: 'scorecard' });
 ProjectInfo.hasOne(SonarCloudProjectMin, { foreignKey: 'github_project_id', as: 'sonarCloudScan' });
@@ -568,11 +570,16 @@ export async function compareExportScoreExcel(projectNameList: string[]) {
   }
   resMap.set('indicatorTitle', indicatorTitle);
   const res = Object.fromEntries(resMap);
+  await exportFieldSupplement(res);
   try {
     return ejsExcel.renderExcel(excelTemplate, res);
   } catch (err) {
     logger.error(err);
   }
+}
+async function exportFieldSupplement(data: any) {
+  data.time = dayjs().format('YYYY-MM-DD HH:mm:ss');
+  data.version = packageJson.version;
 }
 
 export async function exportBenchmarkExcel(repoName: string) {
