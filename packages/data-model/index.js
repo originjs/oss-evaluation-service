@@ -35,4 +35,5 @@ export { default as OssinsightPullRequestCreatorsCountries } from './models/Ossi
 export { default as OssinsightCreatorsOrganizations } from './models/OssinsightCreatorsOrganizations.js';
 export { default as OssinsightCreatorsCountries } from './models/OssinsightCreatorsCountries.js';
 export { default as GithubProjectsRank } from './models/GithubProjectsRank.js';
+export { default as TrendHistory } from './models/TrendHistory.js';
 export { default as NewProjectApply } from './models/NewProjectApply.js';
