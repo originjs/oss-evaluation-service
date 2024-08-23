@@ -20,7 +20,6 @@ export const timer = (fn, param, ms) =>
  */
 export async function getProjectByUrl(repoUrl) {
   const project = await GithubProjects.findOne({
-    attributes: ['id', 'name', 'ownerName', 'ownerType', 'fullName', 'htmlUrl', 'language'],
     where: {
       htmlUrl: repoUrl,
     },
