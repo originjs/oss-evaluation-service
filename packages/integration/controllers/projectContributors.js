@@ -198,6 +198,7 @@ export async function projectContributorsTimer() {
   const currentDate = now.getDate();
   const currentDay = now.getDay();
   if (currentDate === 1 || currentDay === 6) {
+    // sync contributors
     const startTime = process.hrtime();
     logger.info('[Integration][ProjectContributors] Integration Job start');
     await syncAllProjectContributors();
@@ -206,20 +207,20 @@ export async function projectContributorsTimer() {
     logger.info(
       `[Integration][ProjectContributors] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
     );
+    if (currentDate === 1) {
+      // store contributors
+      const startStoreTime = process.hrtime();
+      logger.info('[Integration][ProjectContributorsHistory] Integration Job start');
+      await storeProjectContributors();
+      logger.info('[Integration][ProjectContributorsHistory] Integration Job end');
+      const endStoreTime = process.hrtime(startStoreTime);
+      logger.info(
+        `[Integration][ProjectContributorsHistory] The total time spent on integration : ${endStoreTime[0]}s ${endStoreTime[1] / 1e6}ms`,
+      );
+    }
   } else {
     logger.info(
       '[Integration][ProjectContributors] Integration Job will be performed every Saturday or the first of every month',
     );
   }
-}
-
-export async function projectContributorsHistoryTimer() {
-  const startTime = process.hrtime();
-  logger.info('[Integration][ProjectContributorsHistory] Integration Job start');
-  await storeProjectContributors();
-  logger.info('[Integration][ProjectContributorsHistory] Integration Job end');
-  const endTime = process.hrtime(startTime);
-  logger.info(
-    `[Integration][ProjectContributorsHistory] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
-  );
 }
