@@ -512,19 +512,6 @@ export async function allHealthScore(repoName: string) {
   return score;
 }
 
-export async function exportScoreExcel(projectName: string) {
-  const excelTemplate = readFileSync('./assets/evaluation-template.xlsx');
-  const data = await queryExportSoftwareInfo(projectName);
-  if (!data) {
-    return;
-  }
-  try {
-    return ejsExcel.renderExcel(excelTemplate, data);
-  } catch (err) {
-    logger.error(err);
-  }
-}
-
 async function queryExportSoftwareInfo(projectName: string) {
   const data = await getProjectDetailInfo(projectName);
   const packageName = await getMainPackageByRepoName(projectName);

@@ -4,7 +4,6 @@ import {
   getSoftwareActivity,
   getSoftwareInnovate,
   getPerformance,
-  exportScoreExcel,
   exportBenchmarkExcel,
   getInnovation,
   getSummaryHighlightInfo,
@@ -97,7 +96,7 @@ export class ProjectController extends Controller {
 
   @Post('export/{repoName}')
   public async exportReport(@Path() repoName: string): Promise<Readable> {
-    const scoreExcel = await exportScoreExcel(repoName);
+    const scoreExcel = await compareExportScoreExcel([repoName]);
     const benchmarkExcel = await exportBenchmarkExcel(repoName);
     let exportBuffer;
 
