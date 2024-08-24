@@ -47,19 +47,16 @@ export default async function syncProjectHistory(projectId) {
     // 2. get project information
     let [contributors, stars] = await getProjectInformation(project.htmlUrl);
     // check contributors
-    if (contributors == '' || contributors == undefined) {
+    if (!contributors) {
       contributors = (await getAlllContributors(project.fullName)).length;
       logger.info(`GitHub API : contributors of ${project.htmlUrl} is ${contributors}`);
     }
-    if (contributors == '' || contributors == undefined) {
-      continue;
-    }
     // check stars
-    if (stars == '' || stars == undefined) {
+    if (!stars) {
       stars = await getStars(project.fullName);
       logger.info(`GitHub API : stars of ${project.htmlUrl} is ${stars}`);
     }
-    if (stars == '' || stars == undefined) {
+    if (!contributors && !stars) {
       continue;
     }
     // refresh github_projects_t
@@ -122,7 +119,7 @@ async function getProjectInformation(url) {
       }
       // get star
       const spanStar = $('#repo-stars-counter-star');
-      if (spanStar === null) {
+      if (!spanStar) {
         logger.info(`web crawler: ${url} does not provide stars...`);
       } else {
         const starValueOrigin = spanStar.attr('title');

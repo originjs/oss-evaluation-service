@@ -127,8 +127,7 @@ async function getContributors(repoName, page = 1) {
   );
   // avoid situations where the project is empty
   try {
-    const content = await request.json();
-    return content;
+    return await request.json();
   } catch (error) {
     logger.error('The project is empty:', error);
     return [];
