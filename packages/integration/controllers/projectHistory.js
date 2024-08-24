@@ -103,7 +103,6 @@ async function getProjectInformation(url) {
       const content = $(`a[href="/${repoName}/graphs/contributors"]`).text();
       if (content.length === 0) {
         logger.info(`web crawler: ${url} does not provide contributors...`);
-        return contributors;
       } else {
         const regex = /(\d{1,3}(,\d{3})*(\.\d+)?)/g;
         const contributorsArrays = content.match(regex);
