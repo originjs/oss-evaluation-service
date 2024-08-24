@@ -18,6 +18,9 @@ export default sequelize.define(
     contributors: {
       type: DataTypes.INTEGER,
     },
+    stars: {
+      type: DataTypes.INTEGER,
+    },
   },
   {
     tableName: 'github_projects_history',
