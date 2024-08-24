@@ -125,9 +125,15 @@ async function getContributors(repoName, page = 1) {
       headers: header,
     },
   );
-
   // avoid situations where the project is empty
-  return request.length > 0 ? await request.json() : [];
+  try {
+    const content = await request.json();
+    logger.info(content.length);
+    return content;
+  } catch (error) {
+    logger.error('The project is empty:', error);
+    return [];
+  }
 }
 
 export async function getAlllContributors(repoName) {
