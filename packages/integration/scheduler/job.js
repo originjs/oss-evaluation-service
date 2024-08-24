@@ -8,6 +8,7 @@ import { projectDependentCountTimer } from '../controllers/projectDependentCount
 import { projectCodeSizeTimer } from '../controllers/projectCodeSize.js';
 import { projectContributorsTimer } from '../controllers/projectContributors.js';
 import { evaluateTimer } from '../controllers/evaluate.js';
+import { projectHistoryTimer } from '../controllers/projectHistory.js';
 
 function createTimer(name, pattern, timer) {
   if (!pattern) {
@@ -39,6 +40,7 @@ const taskFactory = {
   projectDependentCountTimer,
   projectContributorsTimer,
   evaluateTimer,
+  projectHistoryTimer,
   createTask: function (taskName) {
     if (!this[taskName]) {
       throw new Error(`Task ${taskName} not found`);

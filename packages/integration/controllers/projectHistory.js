@@ -1,20 +1,24 @@
 import {
   GithubProjects,
   GithubProjectsHistory,
+  GithubProjectsTable,
   sequelize,
   logger,
 } from '@orginjs/oss-evaluation-data-model';
 import { getProjectByUrl } from '../util/util.js';
+import { fetchWithTimeout } from '../util/fetchWitTimeout.js';
+import { getAlllContributors } from './projectContributors.js';
+import * as cheerio from 'cheerio';
 
-export async function storeSingleProjectContributorsHandler(req, res) {
+export async function syncSingleProjectHistoryHandler(req, res) {
   const { repoUrl: repoUrl } = req.params;
   const project = await getProjectByUrl(repoUrl);
-  await storeProjectContributors(project.id);
+  await syncProjectHistory(project.id);
   res.status(200).send('success');
 }
 
-export async function storeAllProjectContributorsHandler(req, res) {
-  await storeProjectContributors();
+export async function syncAllProjectHistoryHandler(req, res) {
+  await syncProjectHistory();
   res.status(200).send('success');
 }
 
@@ -30,8 +34,8 @@ async function getProjectList(projectId) {
   return projectList;
 }
 
-export async function storeProjectContributors(projectId) {
-  logger.info('Store Project Contributors');
+export default async function syncProjectHistory(projectId) {
+  logger.info('Sync Project Contributors');
   // 1. get all github project
   const projectList = await getProjectList(projectId);
   const sumOfProject = projectList.length;
@@ -40,13 +44,41 @@ export async function storeProjectContributors(projectId) {
   for (const project of projectList) {
     logger.info('**Current Progress**: ', `${count}/${sumOfProject}`);
     count += 1;
-    // 2. update project contributors
+    // 2. get project information
+    let [contributors, stars] = await getProjectInformation(project.htmlUrl);
+    // check contributors
+    if (contributors == '' || contributors == undefined) {
+      contributors = (await getAlllContributors(project.fullName)).length;
+      logger.info(`GitHub API : contributors of ${project.htmlUrl} is ${contributors}`);
+    }
+    if (contributors == '' || contributors == undefined) {
+      continue;
+    }
+    // check stars
+    if (stars == '' || stars == undefined) {
+      stars = await getStars(project.fullName);
+      logger.info(`GitHub API : stars of ${project.htmlUrl} is ${stars}`);
+    }
+    if (stars == '' || stars == undefined) {
+      continue;
+    }
+    // refresh github_projects_t
+    await GithubProjectsTable.update(
+      { contributors: contributors },
+      {
+        where: {
+          id: project.id,
+        },
+      },
+    );
+    // store github_projects_history
     const currentDate = sequelize.literal('CURDATE()');
     await GithubProjectsHistory.upsert(
       {
         projectId: project.id,
         date: currentDate,
-        contributors: project.contributors ? project.contributors : 0,
+        contributors: contributors ? contributors : 0,
+        stars: stars ? stars : 0,
       },
       {
         where: {
@@ -58,13 +90,79 @@ export async function storeProjectContributors(projectId) {
   }
 }
 
-export async function projectContributorsHistoryTimer() {
-  const startStoreTime = process.hrtime();
-  logger.info('[Integration][ProjectContributorsHistory] Integration Job start');
-  await storeProjectContributors();
-  logger.info('[Integration][ProjectContributorsHistory] Integration Job end');
-  const endStoreTime = process.hrtime(startStoreTime);
+async function getProjectInformation(url) {
+  let contributors, stars;
+  try {
+    const response = await fetchWithTimeout(url, 3 * 60 * 1000);
+    if (response.ok) {
+      const text = await response.text();
+      // parse html
+      const $ = cheerio.load(text);
+      const repoName = url.match(/\/github\.com\/(.*)/)[1];
+      // get contributor
+      const content = $(`a[href="/${repoName}/graphs/contributors"]`).text();
+      if (content.length === 0) {
+        logger.info(`web crawler: ${url} does not provide contributors...`);
+        return contributors;
+      } else {
+        const regex = /(\d{1,3}(,\d{3})*(\.\d+)?)/g;
+        const contributorsArrays = content.match(regex);
+        let contributorsNumMain, contributorsNumSub;
+        contributorsNumMain = contributorsArrays[0]?.replace(/,/g, '');
+        contributorsNumSub = contributorsArrays[1]?.replace(/,/g, '');
+        // contributorsNumMain will be 5000 when it more than 5000, use contributorsNumSub to get realNumber
+        let realNumber;
+        if (contributorsNumMain === '5000') {
+          realNumber = parseInt(contributorsNumSub) + 14;
+        } else {
+          realNumber = parseInt(contributorsNumMain);
+        }
+        contributors = realNumber.toString();
+
+        logger.info(`web crawler: contributors of ${url} is ${contributors}`);
+      }
+      // get star
+      const spanStar = $('#repo-stars-counter-star');
+      if (spanStar === null) {
+        logger.info(`web crawler: ${url} does not provide stars...`);
+      } else {
+        const starValueOrigin = spanStar.attr('title');
+        stars = starValueOrigin.replace(/,/g, '');
+        logger.info(`web crawler: stars of ${url} is ${stars}`);
+      }
+    }
+  } catch (e) {
+    logger.error(`**web crawler: Url get contributors is failed !** :${url}`);
+  }
+  return [contributors, stars];
+}
+
+async function getStars(repoName) {
+  const header = process.env.GITHUB_TOKEN
+    ? {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+      }
+    : {
+        'Content-Type': 'application/json',
+      };
+
+  const request = await fetch(`https://api.github.com/repos/${repoName}`, {
+    method: 'GET',
+    headers: header,
+  });
+
+  const content = await request.json();
+  return content.stargazers_count;
+}
+
+export async function projectHistoryTimer() {
+  const startTime = process.hrtime();
+  logger.info('[Integration][ProjectHistory] Integration Job start');
+  await syncProjectHistory();
+  logger.info('[Integration][ProjectHistory] Integration Job end');
+  const endTime = process.hrtime(startTime);
   logger.info(
-    `[Integration][ProjectContributorsHistory] The total time spent on integration : ${endStoreTime[0]}s ${endStoreTime[1] / 1e6}ms`,
+    `[Integration][ProjectHistory] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
   );
 }
