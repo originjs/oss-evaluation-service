@@ -1,10 +1,4 @@
-import {
-  GithubProjects,
-  GithubProjectsTable,
-  GithubProjectsHistory,
-  sequelize,
-  logger,
-} from '@orginjs/oss-evaluation-data-model';
+import { GithubProjects, GithubProjectsTable, logger } from '@orginjs/oss-evaluation-data-model';
 import { getProjectByUrl } from '../util/util.js';
 import { fetchWithTimeout } from '../util/fetchWitTimeout.js';
 import * as cheerio from 'cheerio';
@@ -18,18 +12,6 @@ export async function syncSingleProjectContributorsHandler(req, res) {
 
 export async function syncAllProjectContributorsHandler(req, res) {
   await syncAllProjectContributors();
-  res.status(200).send('success');
-}
-
-export async function storeSingleProjectContributorsHandler(req, res) {
-  const { repoUrl: repoUrl } = req.params;
-  const project = await getProjectByUrl(repoUrl);
-  await storeProjectContributors(project.id);
-  res.status(200).send('success');
-}
-
-export async function storeAllProjectContributorsHandler(req, res) {
-  await storeProjectContributors();
   res.status(200).send('success');
 }
 
@@ -56,34 +38,6 @@ async function getProjectList(projectId) {
       : {},
   });
   return projectList;
-}
-
-export async function storeProjectContributors(projectId) {
-  logger.info('Store Project Contributors');
-  // 1. get all github project
-  const projectList = await getProjectList(projectId);
-  const sumOfProject = projectList.length;
-  logger.info(`The Number of Project : ${sumOfProject}`);
-  let count = 1;
-  for (const project of projectList) {
-    logger.info('**Current Progress**: ', `${count}/${sumOfProject}`);
-    count += 1;
-    // 2. update project contributors
-    const currentDate = sequelize.literal('CURDATE()');
-    await GithubProjectsHistory.upsert(
-      {
-        projectId: project.id,
-        date: currentDate,
-        contributors: project.contributors ? project.contributors : 0,
-      },
-      {
-        where: {
-          projectId: project.id,
-          date: currentDate,
-        },
-      },
-    );
-  }
 }
 
 export default async function syncProjectContributors(projectId) {
@@ -194,33 +148,12 @@ async function getAlllContributors(repoName) {
 }
 
 export async function projectContributorsTimer() {
-  const now = new Date();
-  const currentDate = now.getDate();
-  const currentDay = now.getDay();
-  if (currentDate === 1 || currentDay === 6) {
-    // sync contributors
-    const startTime = process.hrtime();
-    logger.info('[Integration][ProjectContributors] Integration Job start');
-    await syncAllProjectContributors();
-    logger.info('[Integration][ProjectContributors] Integration Job end');
-    const endTime = process.hrtime(startTime);
-    logger.info(
-      `[Integration][ProjectContributors] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
-    );
-    if (currentDate === 1) {
-      // store contributors
-      const startStoreTime = process.hrtime();
-      logger.info('[Integration][ProjectContributorsHistory] Integration Job start');
-      await storeProjectContributors();
-      logger.info('[Integration][ProjectContributorsHistory] Integration Job end');
-      const endStoreTime = process.hrtime(startStoreTime);
-      logger.info(
-        `[Integration][ProjectContributorsHistory] The total time spent on integration : ${endStoreTime[0]}s ${endStoreTime[1] / 1e6}ms`,
-      );
-    }
-  } else {
-    logger.info(
-      '[Integration][ProjectContributors] Integration Job will be performed every Saturday or the first of every month',
-    );
-  }
+  const startTime = process.hrtime();
+  logger.info('[Integration][ProjectContributors] Integration Job start');
+  await syncAllProjectContributors();
+  logger.info('[Integration][ProjectContributors] Integration Job end');
+  const endTime = process.hrtime(startTime);
+  logger.info(
+    `[Integration][ProjectContributors] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
+  );
 }

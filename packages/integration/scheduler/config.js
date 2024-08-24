@@ -30,7 +30,7 @@ export const JobConfig = {
     },
     {
       name: 'projectContributorsTimer',
-      cronScheduleTime: '0 0 * * *', // 每天 00:00 启动, 内部判断是否执行(周六或每月1号)
+      cronScheduleTime: '0 0 * * 6', // 周六 00:00
       enabled: isProduction, // only start in production environment
     },
     {
