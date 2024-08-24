@@ -69,8 +69,8 @@ import {
   syncAllProjectContributorsHandler,
 } from '../controllers/projectContributors.js';
 import {
-  storeSingleProjectContributorsHandler,
-  storeAllProjectContributorsHandler,
+  syncSingleProjectHistoryHandler,
+  syncAllProjectHistoryHandler,
 } from '../controllers/projectHistory.js';
 import {
   syncAllProjectDependentCountHandler,
@@ -1152,20 +1152,20 @@ router.route('/syncSingleProjectContributors/:repoUrl').get(syncSingleProjectCon
 
 /**
  * @swagger
- * /sync/storeAllProjectContributors:
+ * /sync/syncAllProjectHistory:
  *   get:
- *     summary: store contributors of project
+ *     summary: sync project information - contributors, stars
  *     responses:
  *       200:
  *         description: success.
  */
-router.route('/storeAllProjectContributors').get(storeAllProjectContributorsHandler);
+router.route('/syncAllProjectHistory').get(syncAllProjectHistoryHandler);
 
 /**
  * @swagger
- * /sync/storeSingleProjectContributors/{repoUrl}:
+ * /sync/syncSingleProjectHistory/{repoUrl}:
  *   get:
- *     summary: store contributors of project
+ *     summary: sync project information - contributors, stars
  *     parameters:
  *      - in: path
  *        name: repoUrl
@@ -1176,7 +1176,7 @@ router.route('/storeAllProjectContributors').get(storeAllProjectContributorsHand
  *       200:
  *         description: success.
  */
-router.route('/storeSingleProjectContributors/:repoUrl').get(storeSingleProjectContributorsHandler);
+router.route('/syncSingleProjectHistory/:repoUrl').get(syncSingleProjectHistoryHandler);
 
 /**
  * @swagger

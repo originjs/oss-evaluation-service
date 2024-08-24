@@ -130,7 +130,7 @@ async function getContributors(repoName, page = 1) {
   return request.length > 0 ? await request.json() : [];
 }
 
-async function getAlllContributors(repoName) {
+export async function getAlllContributors(repoName) {
   let contributors = [];
   let page = 1;
   let list;
