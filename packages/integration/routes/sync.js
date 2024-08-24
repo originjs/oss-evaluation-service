@@ -67,9 +67,11 @@ import {
 import {
   syncSingleProjectContributorsHandler,
   syncAllProjectContributorsHandler,
+} from '../controllers/projectContributors.js';
+import {
   storeSingleProjectContributorsHandler,
   storeAllProjectContributorsHandler,
-} from '../controllers/projectContributors.js';
+} from '../controllers/projectHistory.js';
 import {
   syncAllProjectDependentCountHandler,
   syncSingleProjectDependentCountHandler,
