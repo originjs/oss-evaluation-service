@@ -49,6 +49,13 @@ export async function storeTrendHistory(projectId) {
   }
 }
 
+/**
+ * Build a query to capture data from the last two years
+ *
+ * @param {*} projectId
+ * @param {*} currentYear
+ * @return {*}
+ */
 async function getQuery(projectId, currentYear) {
   const query = {
     where: {
@@ -74,6 +81,12 @@ async function getQuery(projectId, currentYear) {
   return query;
 }
 
+/**
+ * Remove duplicate data by year-month
+ *
+ * @param {*} dataList
+ * @return {*}
+ */
 async function uniqueYearMonth(dataList) {
   const uniqueData = new Map();
 
@@ -90,6 +103,13 @@ async function uniqueYearMonth(dataList) {
   return result;
 }
 
+/**
+ * Get data for the current month and the last month
+ *
+ * @param {*} currentDate
+ * @param {*} dataList
+ * @return {*}
+ */
 async function getMonthData(currentDate, dataList) {
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth() + 1;
@@ -115,6 +135,14 @@ async function getMonthData(currentDate, dataList) {
   return [currentMonthData, lastMonthData];
 }
 
+/**
+ * Calculate the increase and total amount by month
+ *
+ * @param {*} monthDataField
+ * @param {*} field
+ * @param {*} currentMonthData
+ * @param {*} lastMonthData
+ */
 async function initializeMonthData(monthDataField, field, currentMonthData, lastMonthData) {
   if (currentMonthData) {
     monthDataField.current = currentMonthData[field] !== -1 ? currentMonthData[field] : null;
@@ -127,6 +155,14 @@ async function initializeMonthData(monthDataField, field, currentMonthData, last
   }
 }
 
+/**
+ * Calculate the increase and total amount by year
+ *
+ * @param {*} yearDataField
+ * @param {*} field
+ * @param {*} dataList
+ * @param {*} currentYear
+ */
 async function initializeYearData(yearDataField, field, dataList, currentYear) {
   dataList.forEach(item => {
     const date = new Date(item.date);
@@ -146,13 +182,22 @@ async function initializeYearData(yearDataField, field, dataList, currentYear) {
   }
 }
 
+/**
+ * Get parameters needed to build upsert
+ *
+ * @param {*} projectId
+ * @param {*} data
+ * @param {*} dataType
+ * @param {*} dateType
+ * @return {*}
+ */
 async function getDumpQuery(projectId, data, dataType, dateType) {
   const currentDate = sequelize.literal('CURDATE()');
   const insertedData = {
     projectId: projectId,
     date: currentDate,
-    dateType: 2,
-    dataType: 1,
+    dateType: dateType,
+    dataType: dataType,
     increasedValue: data.increase ? data.increase : null,
     totalValue: data.current ? data.current : null,
   };
@@ -235,6 +280,7 @@ async function storeGithubHistory(projectId) {
   };
   await initializeYearData(yearData.star, 'stars', githubHistoryList, currentYear);
   await initializeYearData(yearData.contributor, 'contributors', githubHistoryList, currentYear);
+  // 存入数据表
   await dumpGithubHistoryTable(projectId, monthData, yearData);
 }
 
@@ -280,5 +326,17 @@ async function storeEvaluateScore(projectId) {
   };
   await initializeYearData(yearData.ecology, 'ecologyScore', evaluationHistoryList, currentYear);
   await initializeYearData(yearData.quality, 'qualityScore', evaluationHistoryList, currentYear);
+  // 存入数据表
   await dumpEvaluateHistoryTable(projectId, monthData, yearData);
+}
+
+export async function trendHistoryTimer() {
+  const startTime = process.hrtime();
+  logger.info('[Integration][TrendHistory] Integration Job start');
+  await storeTrendHistory();
+  logger.info('[Integration][TrendHistory] Integration Job end');
+  const endTime = process.hrtime(startTime);
+  logger.info(
+    `[Integration][TrendHistory] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
+  );
 }
