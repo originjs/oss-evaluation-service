@@ -4,7 +4,6 @@ import {
   getSoftwareActivity,
   getSoftwareInnovate,
   getPerformance,
-  exportBenchmarkExcel,
   getInnovation,
   getSummaryHighlightInfo,
   prCreatorCompanyAndAreaInfo,
@@ -19,7 +18,6 @@ import type {
   SoftwareInfo,
   SummaryHighlightInfo,
 } from '../interfaces/SoftwareInfo.js';
-import { appendSheet } from '../utils/excel.js';
 import { Result } from '../utils/result.js';
 import { Readable } from 'stream';
 
@@ -97,18 +95,6 @@ export class ProjectController extends Controller {
   @Post('export/{repoName}')
   public async exportReport(@Path() repoName: string): Promise<Readable> {
     const scoreExcel = await compareExportScoreExcel([repoName]);
-    const benchmarkExcel = await exportBenchmarkExcel(repoName);
-    let exportBuffer;
-
-    if (!scoreExcel) {
-      throw new Error(`no data for export excel,repo name :${repoName}`);
-    }
-    if (benchmarkExcel) {
-      //   merge scoreExcel and benchmarkExcel into one excel
-      exportBuffer = appendSheet(scoreExcel, benchmarkExcel);
-    } else {
-      exportBuffer = scoreExcel;
-    }
     this.setHeader(
       'Content-Disposition',
       `attachment; filename=${encodeURIComponent(repoName)}.xlsx`,
@@ -117,7 +103,7 @@ export class ProjectController extends Controller {
       'Content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     );
-    return Readable.from(exportBuffer);
+    return Readable.from(scoreExcel);
   }
 
   @Post('compareExport')
