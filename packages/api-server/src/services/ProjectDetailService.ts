@@ -571,7 +571,9 @@ export async function compareExportScoreExcel(projectNameList: string[]) {
   }
 }
 async function exportFieldSupplement(data: any) {
-  data.title = `先进性评估报告 评估时间：${dayjs().format('YYYY-MM-DD HH:mm:ss')}`;
+  const packageJson = readFileSync('../api-server/package.json', 'utf-8');
+  const packageInfo = JSON.parse(packageJson);
+  data.title = `先进性评估报告 v${packageInfo.version} 评估时间：${dayjs().format('YYYY-MM-DD HH:mm:ss')}`;
 }
 
 export async function exportBenchmarkExcel(repoName: string) {
