@@ -90,6 +90,10 @@ import {
   syncAllProjectCreatorsCountriesHandler,
 } from '../controllers/ossinsightCreatorsCountry.js';
 import { syncCriticalityScoreHandler } from '../controllers/criticalitryScore.js';
+import {
+  storeSingleProjectTrendHandler,
+  storeAllProjectTrendHandler,
+} from '../controllers/trendHistory.js';
 
 const router = express.Router();
 
@@ -1415,5 +1419,33 @@ router.route('/benchmark/getBenchmarkValue').get(importBenchmarkValueByGetHandle
  *         description: Bad request
  */
 router.route('/benchmark/getBenchmarkIndex').get(importBenchmarkIndexByGetHandler);
+
+/**
+ * @swagger
+ * /sync/storeAllProjectTrend:
+ *   get:
+ *     summary: store trend history of project
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/storeAllProjectTrend').get(storeAllProjectTrendHandler);
+
+/**
+ * @swagger
+ * /sync/storeSingleProjectTrend/{repoUrl}:
+ *   get:
+ *     summary: store trend history of project
+ *     parameters:
+ *      - in: path
+ *        name: repoUrl
+ *        type: string
+ *        required: true
+ *        example: https://github.com/vuejs/router
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/storeSingleProjectTrend/:repoUrl').get(storeSingleProjectTrendHandler);
 
 export default router;
