@@ -17,6 +17,7 @@ import {
 import { ServerError } from '../util/error.js';
 import { getProjectByUrl } from '../util/util.js';
 import BenchmarkVersionScore from '@orginjs/oss-evaluation-data-model/models/BenchmarkVersionScore.js';
+import { storeEvaluateTrendHistory } from './trendHistory.js';
 
 const MetricType = Object.freeze({
   L0: 0, // L0: Function / Quality / Performance / Ecology / Innovation
@@ -247,6 +248,8 @@ async function storeAllEvaluationSummaryHistory() {
   FROM oss_evaluation_summary ON DUPLICATE KEY UPDATE
   function_score = VALUES(function_score), quality_score = VALUES(quality_score),
   ecology_score = VALUES(ecology_score), innovation_score = VALUES(innovation_score)`);
+  // store evaluation score to trend history
+  await storeEvaluateTrendHistory();
 }
 
 export async function storeAllEvaluationHistoryHandler(req, res) {

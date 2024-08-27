@@ -9,6 +9,7 @@ import { getProjectByUrl } from '../util/util.js';
 import { fetchWithTimeout } from '../util/fetchWitTimeout.js';
 import { getAlllContributors } from './projectContributors.js';
 import * as cheerio from 'cheerio';
+import { storeGithubHistory } from './trendHistory.js';
 
 export async function syncSingleProjectHistoryHandler(req, res) {
   const { repoUrl: repoUrl } = req.params;
@@ -84,6 +85,7 @@ export default async function syncProjectHistory(projectId) {
         },
       },
     );
+    await storeGithubHistory(project.id);
   }
 }
 
