@@ -32,7 +32,6 @@ import { fixedRound } from '../utils/math.js';
 import { Op } from 'sequelize';
 import _ from 'underscore';
 import dayjs from 'dayjs';
-import packageJson from '../../package.json';
 
 ProjectInfo.hasOne(Scorecard, { foreignKey: 'project_id', as: 'scorecard' });
 ProjectInfo.hasOne(SonarCloudProjectMin, { foreignKey: 'github_project_id', as: 'sonarCloudScan' });
@@ -563,12 +562,6 @@ export async function compareExportScoreExcel(projectNameList: string[]) {
   if (!resMap) {
     return;
   }
-  // 补充title
-  const indicatorTitle = [];
-  for (let i = 0; i < projectNameList.length; i++) {
-    indicatorTitle.push('指标值');
-  }
-  resMap.set('indicatorTitle', indicatorTitle);
   const res = Object.fromEntries(resMap);
   await exportFieldSupplement(res);
   try {
@@ -578,8 +571,9 @@ export async function compareExportScoreExcel(projectNameList: string[]) {
   }
 }
 async function exportFieldSupplement(data: any) {
-  data.time = dayjs().format('YYYY-MM-DD HH:mm:ss');
-  data.version = packageJson.version;
+  const packageJson = readFileSync('../api-server/package.json', 'utf-8');
+  const packageInfo = JSON.parse(packageJson);
+  data.title = `先进性评估报告 v${packageInfo.version} 评估时间：${dayjs().format('YYYY-MM-DD HH:mm:ss')}`;
 }
 
 export async function exportBenchmarkExcel(repoName: string) {
