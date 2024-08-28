@@ -1,6 +1,7 @@
 import { GithubProjects, GithubProjectsTable, logger } from '@orginjs/oss-evaluation-data-model';
 import { getProjectByUrl } from '../util/util.js';
 import { fetchWithTimeout } from '../util/fetchWitTimeout.js';
+import { fetchWithRetries } from '../util/fetchWithRetries.js';
 import * as cheerio from 'cheerio';
 
 export async function syncSingleProjectContributorsHandler(req, res) {
@@ -118,7 +119,7 @@ async function getContributors(repoName, page = 1) {
         'Content-Type': 'application/json',
       };
 
-  const request = await fetch(
+  const request = await fetchWithRetries(
     `https://api.github.com/repos/${repoName}/contributors?per_page=100&page=${page}&anon=true`,
     {
       method: 'GET',
