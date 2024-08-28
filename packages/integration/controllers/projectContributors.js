@@ -124,7 +124,7 @@ async function getContributors(repoName, page = 1) {
       method: 'GET',
       headers: header,
     },
-  );
+  ).catch(error => logger.error('Error in fetch REST API:', error));
   // avoid situations where the project is empty
   try {
     return await request.json();
