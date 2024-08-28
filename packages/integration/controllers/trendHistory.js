@@ -153,55 +153,41 @@ async function getMonthData(dataList) {
 }
 
 /**
- * Calculate the increase and total amount by month
+ * Get data for the January of current year and January of last year
  *
- * @param {*} monthDataField
- * @param {*} field
- * @param {*} currentMonthData
- * @param {*} lastMonthData
+ * @param {*} dataList
+ * @return {*}
  */
-async function initializeMonthData(monthDataField, field, currentMonthData, lastMonthData) {
-  if (currentMonthData) {
-    monthDataField.current = currentMonthData[field];
-  }
-  if (lastMonthData) {
-    monthDataField.last = lastMonthData[field];
-  }
-  if (monthDataField.current && monthDataField.last) {
-    monthDataField.increase = monthDataField.current - monthDataField.last;
-  }
+async function getYearData(dataList) {
+  const currentYear = dayjs().year();
+  const lastYear = currentYear - 1;
+  const currentYearData = dataList.find(
+    item =>
+      new Date(item.date).getMonth() === 0 && new Date(item.date).getFullYear() === currentYear,
+  );
+  const lastYearData = dataList.find(
+    item => new Date(item.date).getMonth() === 0 && new Date(item.date).getFullYear() === lastYear,
+  );
+  return [currentYearData, lastYearData];
 }
 
 /**
- * Calculate the increase and total amount by year
+ * Calculate the increase and current amount
  *
- * @param {*} yearDataField
+ * @param {*} dataField
  * @param {*} field
- * @param {*} dataList
+ * @param {*} currentData
+ * @param {*} lastData
  */
-async function initializeYearData(yearDataField, field, dataList) {
-  const currentYear = dayjs().year();
-  dataList.forEach(item => {
-    const date = new Date(item.date);
-    const year = date.getFullYear();
-    if (year === currentYear) {
-      if (item[field]) {
-        if (!yearDataField.current) {
-          yearDataField.current = 0;
-        }
-        yearDataField.current += item[field];
-      }
-    } else if (year === currentYear - 1) {
-      if (item[field]) {
-        if (!yearDataField.last) {
-          yearDataField.last = 0;
-        }
-        yearDataField.last += item[field];
-      }
-    }
-  });
-  if (yearDataField.current && yearDataField.last) {
-    yearDataField.increase = yearDataField.current - yearDataField.last;
+async function initializeData(dataField, field, currentData, lastData) {
+  if (currentData) {
+    dataField.current = currentData[field];
+  }
+  if (lastData) {
+    dataField.last = lastData[field];
+  }
+  if (dataField.current && dataField.last) {
+    dataField.increase = dataField.current - dataField.last;
   }
 }
 
@@ -235,7 +221,7 @@ async function getDumpQuery(projectId, data, dataType, dateType) {
   return [insertedData, condition];
 }
 
-async function dumpGithubHistoryTable(projectId, monthData, yearData) {
+async function dumpGithubHistoryMonthTable(projectId, monthData) {
   // 存入月相关数据
   const queryStarMonth = await getDumpQuery(
     projectId,
@@ -251,6 +237,9 @@ async function dumpGithubHistoryTable(projectId, monthData, yearData) {
   );
   await TrendHistory.upsert(queryStarMonth[0], queryStarMonth[1]);
   await TrendHistory.upsert(queryContributorMonth[0], queryContributorMonth[1]);
+}
+
+async function dumpGithubHistoryYearTable(projectId, yearData) {
   // 存入年相关数据
   const queryStarYear = await getDumpQuery(
     projectId,
@@ -268,7 +257,7 @@ async function dumpGithubHistoryTable(projectId, monthData, yearData) {
   await TrendHistory.upsert(queryContributorYear[0], queryContributorYear[1]);
 }
 
-async function dumpEvaluateHistoryTable(projectId, monthData, yearData) {
+async function dumpEvaluateHistoryTable(projectId, monthData) {
   // 存入月相关数据
   const queryEcologyMonth = await getDumpQuery(
     projectId,
@@ -284,21 +273,6 @@ async function dumpEvaluateHistoryTable(projectId, monthData, yearData) {
   );
   await TrendHistory.upsert(queryEcologyMonth[0], queryEcologyMonth[1]);
   await TrendHistory.upsert(queryQualityMonth[0], queryQualityMonth[1]);
-  // 存入年相关数据
-  const queryEcologyYear = await getDumpQuery(
-    projectId,
-    yearData.ecology,
-    DATA_TYPE.ECOLOGY,
-    DATE_TYPE.YEAR,
-  );
-  const queryQualityYear = await getDumpQuery(
-    projectId,
-    yearData.quality,
-    DATA_TYPE.QUALITY,
-    DATE_TYPE.YEAR,
-  );
-  await TrendHistory.upsert(queryEcologyYear[0], queryEcologyYear[1]);
-  await TrendHistory.upsert(queryQualityYear[0], queryQualityYear[1]);
 }
 
 export async function storeGithubHistory(projectId) {
@@ -309,7 +283,6 @@ export async function storeGithubHistory(projectId) {
   const monthRawData = await getMonthData(githubHistoryList);
   const currentMonthData = monthRawData[0];
   const lastMonthData = monthRawData[1];
-
   // 当月总量和增长量
   const monthData = {
     star: {
@@ -323,9 +296,20 @@ export async function storeGithubHistory(projectId) {
       increase: null,
     },
   };
-  await initializeMonthData(monthData.star, 'stars', currentMonthData, lastMonthData);
-  await initializeMonthData(monthData.contributor, 'contributors', currentMonthData, lastMonthData);
+  await initializeData(monthData.star, 'stars', currentMonthData, lastMonthData);
+  await initializeData(monthData.contributor, 'contributors', currentMonthData, lastMonthData);
+  // 存入数据表
+  await dumpGithubHistoryMonthTable(projectId, monthData);
 
+  const currentMonth = dayjs().month();
+  // 仅在1月计算年相关数据
+  if (currentMonth !== 0) {
+    return;
+  }
+  // 当年和上年数据
+  const yearRawData = await getYearData(githubHistoryList);
+  const currentYearData = yearRawData[0];
+  const lastYearData = yearRawData[1];
   // 当年总量和增长量
   const yearData = {
     star: {
@@ -339,10 +323,10 @@ export async function storeGithubHistory(projectId) {
       increase: null,
     },
   };
-  await initializeYearData(yearData.star, 'stars', githubHistoryList);
-  await initializeYearData(yearData.contributor, 'contributors', githubHistoryList);
+  await initializeData(yearData.star, 'stars', currentYearData, lastYearData);
+  await initializeData(yearData.contributor, 'contributors', currentYearData, lastYearData);
   // 存入数据表
-  await dumpGithubHistoryTable(projectId, monthData, yearData);
+  await dumpGithubHistoryYearTable(projectId, yearData);
 }
 
 export async function storeEvaluateScore(projectId) {
@@ -367,24 +351,9 @@ export async function storeEvaluateScore(projectId) {
       increase: null,
     },
   };
-  await initializeMonthData(monthData.ecology, 'ecologyScore', currentMonthData, lastMonthData);
-  await initializeMonthData(monthData.quality, 'qualityScore', currentMonthData, lastMonthData);
+  await initializeData(monthData.ecology, 'ecologyScore', currentMonthData, lastMonthData);
+  await initializeData(monthData.quality, 'qualityScore', currentMonthData, lastMonthData);
 
-  // 当年总量和增长量
-  const yearData = {
-    ecology: {
-      current: null,
-      last: null,
-      increase: null,
-    },
-    quality: {
-      current: null,
-      last: null,
-      increase: null,
-    },
-  };
-  await initializeYearData(yearData.ecology, 'ecologyScore', evaluationHistoryList);
-  await initializeYearData(yearData.quality, 'qualityScore', evaluationHistoryList);
   // 存入数据表
-  await dumpEvaluateHistoryTable(projectId, monthData, yearData);
+  await dumpEvaluateHistoryTable(projectId, monthData);
 }
