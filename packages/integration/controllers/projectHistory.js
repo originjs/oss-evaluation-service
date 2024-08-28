@@ -11,6 +11,7 @@ import { fetchWithRetries } from '../util/fetchWithRetries.js';
 import { getAlllContributors } from './projectContributors.js';
 import * as cheerio from 'cheerio';
 import { storeGithubHistory } from './trendHistory.js';
+import { Op } from 'sequelize';
 
 export async function syncSingleProjectHistoryHandler(req, res) {
   const { repoUrl: repoUrl } = req.params;
@@ -38,9 +39,17 @@ async function getProjectList(projectId) {
 
 async function getExistRecord() {
   const existRecordList = await GithubProjectsHistory.findAll({
-    where: sequelize.literal(
-      'DATE(Date) = CURDATE() AND contributors IS NOT NULL and stars IS NOT NULL',
-    ),
+    where: {
+      contributors: {
+        [Op.ne]: null,
+      },
+      stars: {
+        [Op.ne]: null,
+      },
+      date: {
+        [Op.eq]: sequelize.fn('CURDATE'),
+      },
+    },
   }).catch(err => {
     logger.error('Error in query: ', err);
   });
@@ -60,12 +69,12 @@ export default async function syncProjectHistory(projectId) {
     logger.info('**Current Progress**: ', `${count}/${sumOfProject}`);
     count += 1;
     // 3. determine whether integration is required
-    if (existRecordList) {
-      const existData = existRecordList.find(item => item.projectId === project.id);
-      if (existData) {
-        logger.info('Record already exists, ignore this project.');
-        continue;
-      }
+    const existData = existRecordList
+      ? existRecordList.find(item => item.projectId === project.id)
+      : null;
+    if (existData) {
+      logger.info('Record already exists, ignore this project.');
+      continue;
     }
     // 4. get project information
     let [contributors, stars] = await getProjectInformation(project.htmlUrl);
