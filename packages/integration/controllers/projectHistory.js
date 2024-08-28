@@ -7,6 +7,7 @@ import {
 } from '@orginjs/oss-evaluation-data-model';
 import { getProjectByUrl } from '../util/util.js';
 import { fetchWithTimeout } from '../util/fetchWitTimeout.js';
+import { fetchWithRetries } from '../util/fetchWithRetries.js';
 import { getAlllContributors } from './projectContributors.js';
 import * as cheerio from 'cheerio';
 import { storeGithubHistory } from './trendHistory.js';
@@ -166,13 +167,18 @@ async function getStars(repoName) {
         'Content-Type': 'application/json',
       };
 
-  const request = await fetch(`https://api.github.com/repos/${repoName}`, {
+  const request = await fetchWithRetries(`https://api.github.com/repos/${repoName}`, {
     method: 'GET',
     headers: header,
   }).catch(error => logger.error('Error in fetch REST API:', error));
-
-  const content = await request.json();
-  return content.stargazers_count;
+  // avoid situations where the project is empty
+  try {
+    const content = await request.json();
+    return content.stargazers_count;
+  } catch (error) {
+    logger.error('The project is empty:', error);
+    return null;
+  }
 }
 
 export async function projectHistoryTimer() {
