@@ -399,7 +399,8 @@ const calcWidth = (category: Category, calcCategory: Category) => {
         // 未占满一行，则把 layout 设置的类别中的最后一个子类别的宽度占满一行
         const originalWidthRate = layout[calcCategoryName][lastSubcategoryName];
         const restWidthRate = 1 - decimalPart;
-        const widthRate = originalWidthRate + restWidthRate;
+        let widthRate = originalWidthRate + restWidthRate;
+        widthRate = widthRate > 1 ? 1 : widthRate;
         category[calcCategoryName][lastSubcategoryName].width = width * widthRate - 10;
       }
     }
