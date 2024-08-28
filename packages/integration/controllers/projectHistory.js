@@ -37,7 +37,9 @@ async function getProjectList(projectId) {
 
 async function getExistRecord() {
   const existRecordList = await GithubProjectsHistory.findAll({
-    where: sequelize.literal('DATE(Date) = CURDATE()'),
+    where: sequelize.literal(
+      'DATE(Date) = CURDATE() AND contributors IS NOT NULL and stars IS NOT NULL',
+    ),
   }).catch(err => {
     logger.error('Error in query: ', err);
   });
@@ -53,7 +55,6 @@ export default async function syncProjectHistory(projectId) {
   let count = 1;
   // 2. get the exist record
   const existRecordList = await getExistRecord();
-  logger.info(existRecordList);
   for (const project of projectList) {
     logger.info('**Current Progress**: ', `${count}/${sumOfProject}`);
     count += 1;
