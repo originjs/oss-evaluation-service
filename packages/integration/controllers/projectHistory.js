@@ -35,6 +35,15 @@ async function getProjectList(projectId) {
   return projectList;
 }
 
+async function getExistRecord() {
+  const existRecordList = await GithubProjectsHistory.findAll({
+    where: sequelize.literal('DATE(Date) = CURDATE()'),
+  }).catch(err => {
+    logger.error('Error in query: ', err);
+  });
+  return existRecordList;
+}
+
 export default async function syncProjectHistory(projectId) {
   logger.info('Sync Project Contributors');
   // 1. get all github project
@@ -42,10 +51,21 @@ export default async function syncProjectHistory(projectId) {
   const sumOfProject = projectList.length;
   logger.info(`The Number of Project : ${sumOfProject}`);
   let count = 1;
+  // 2. get the exist record
+  const existRecordList = await getExistRecord();
+  logger.info(existRecordList);
   for (const project of projectList) {
     logger.info('**Current Progress**: ', `${count}/${sumOfProject}`);
     count += 1;
-    // 2. get project information
+    // 3. determine whether integration is required
+    if (existRecordList) {
+      const existData = existRecordList.find(item => item.projectId === project.id);
+      if (existData) {
+        logger.info('Record already exists, ignore this project.');
+        continue;
+      }
+    }
+    // 4. get project information
     let [contributors, stars] = await getProjectInformation(project.htmlUrl);
     // check contributors
     if (!contributors) {
@@ -148,7 +168,7 @@ async function getStars(repoName) {
   const request = await fetch(`https://api.github.com/repos/${repoName}`, {
     method: 'GET',
     headers: header,
-  });
+  }).catch(error => logger.error('Error in fetch REST API:', error));
 
   const content = await request.json();
   return content.stargazers_count;
