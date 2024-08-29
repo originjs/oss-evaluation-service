@@ -38,6 +38,7 @@ async function getProjectList(projectId) {
 }
 
 async function getExistRecord() {
+  const currentDate = new Date();
   const existRecordList = await GithubProjectsHistory.findAll({
     where: {
       contributors: {
@@ -46,9 +47,7 @@ async function getExistRecord() {
       stars: {
         [Op.ne]: null,
       },
-      date: {
-        [Op.eq]: sequelize.fn('CURDATE'),
-      },
+      date: currentDate,
     },
   }).catch(err => {
     logger.error('Error in query: ', err);
