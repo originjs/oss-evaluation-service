@@ -13,7 +13,7 @@ export default sequelize.define(
       type: DataTypes.INTEGER,
     },
     date: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY,
     },
     functionScore: {
       type: DataTypes.DOUBLE,
