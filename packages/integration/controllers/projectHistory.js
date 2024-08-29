@@ -2,7 +2,6 @@ import {
   GithubProjects,
   GithubProjectsHistory,
   GithubProjectsTable,
-  sequelize,
   logger,
 } from '@orginjs/oss-evaluation-data-model';
 import { getProjectByUrl } from '../util/util.js';
@@ -100,7 +99,7 @@ export default async function syncProjectHistory(projectId) {
       },
     );
     // store github_projects_history
-    const currentDate = sequelize.literal('CURDATE()');
+    const currentDate = new Date();
     await GithubProjectsHistory.upsert(
       {
         projectId: project.id,

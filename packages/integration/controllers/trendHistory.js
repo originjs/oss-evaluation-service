@@ -3,7 +3,6 @@ import {
   GithubProjectsHistory,
   EvaluationSummaryHistory,
   TrendHistory,
-  sequelize,
   logger,
 } from '@orginjs/oss-evaluation-data-model';
 import { getProjectByUrl } from '../util/util.js';
@@ -201,7 +200,7 @@ async function initializeData(dataField, field, currentData, lastData) {
  * @return {*}
  */
 async function getDumpQuery(projectId, data, dataType, dateType) {
-  const currentDate = sequelize.literal('CURDATE()');
+  const currentDate = new Date();
   const insertedData = {
     projectId: projectId,
     date: currentDate,
