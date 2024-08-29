@@ -5,6 +5,7 @@ import {
   Benchmark,
   EvaluationModel,
   EvaluationSummary,
+  EvaluationSummaryHistory,
   Scorecard,
   CriticalityScore,
   OpenDigger,
@@ -242,12 +243,28 @@ export async function syncAllProjectEvaluation() {
 async function storeAllEvaluationSummaryHistory() {
   // store evaluation score for all projects
   logger.info('start mysql');
-  await sequelize.query(`INSERT INTO
-  oss_evaluate_summary_history(project_id, date, function_score, quality_score, ecology_score, innovation_score)
-  SELECT project_id, CURDATE(), function_score, quality_score, ecology_score, innovation_score
-  FROM oss_evaluation_summary ON DUPLICATE KEY UPDATE
-  function_score = VALUES(function_score), quality_score = VALUES(quality_score),
-  ecology_score = VALUES(ecology_score), innovation_score = VALUES(innovation_score)`);
+  const currentDate = new Date();
+  const projectList = await EvaluationSummary.findAll({
+    attributes: ['projectId', 'functionScore', 'qualityScore', 'ecologyScore', 'innovationScore'],
+  });
+  for (const project of projectList) {
+    await EvaluationSummaryHistory.upsert(
+      {
+        projectId: project.projectId,
+        date: currentDate,
+        qualityScore: project.qualityScore ? project.qualityScore : 0,
+        functionScore: project.functionScore ? project.functionScore : 0,
+        ecologyScore: project.ecologyScore ? project.ecologyScore : 0,
+        innovationScore: project.innovationScore ? project.innovationScore : 0,
+      },
+      {
+        where: {
+          projectId: project.projectId,
+          date: currentDate,
+        },
+      },
+    );
+  }
   // store evaluation score to trend history
   await storeEvaluateTrendHistory();
 }
