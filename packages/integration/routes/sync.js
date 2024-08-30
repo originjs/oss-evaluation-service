@@ -27,6 +27,8 @@ import {
   syncProjectByRepo,
   syncProjectByUserStar,
   searchAndIntegrationGithubProjects,
+  syncGithubProjectsDailyHandler,
+  syncGithubProjectsWeeklyHandler,
 } from '../controllers/github.js';
 import {
   bulkAddBenchmarkHandler,
@@ -1447,5 +1449,27 @@ router.route('/storeAllProjectTrend').get(storeAllProjectTrendHandler);
  *         description: success.
  */
 router.route('/storeSingleProjectTrend/:repoUrl').get(storeSingleProjectTrendHandler);
+
+/**
+ * @swagger
+ * /sync/syncGithubProjectsDaily:
+ *   get:
+ *     summary: integration of github daily trends and oss trends
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/syncGithubProjectsDaily').get(syncGithubProjectsDailyHandler);
+
+/**
+ * @swagger
+ * /sync/syncGithubProjectsWeekly:
+ *   get:
+ *     summary: integration of github weekly trends, github monthly trends and oss collection trends
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/syncGithubProjectsWeekly').get(syncGithubProjectsWeeklyHandler);
 
 export default router;

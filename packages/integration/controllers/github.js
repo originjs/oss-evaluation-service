@@ -3,6 +3,8 @@ import * as fs from 'node:fs';
 import { Octokit } from '@octokit/core';
 import { GithubProjectsTable, logger } from '@orginjs/oss-evaluation-data-model';
 import GithubSdk from '@orginjs/github-sdk';
+import { fetchWithRetries } from '../util/fetchWithRetries.js';
+import * as cheerio from 'cheerio';
 
 /**
  *  There are 952 github projects between 1000 and 1130 stars.
@@ -28,6 +30,12 @@ const dataTypes = {
   hiddenRepo: 4,
   // Newly integrated github repository, but no other statistics yet
   needIntegration: 9,
+};
+
+const periodTypes = {
+  day: 'daily',
+  week: 'weekly',
+  month: 'mongthly',
 };
 
 export async function observeProjectsByStar(req, res) {
@@ -346,4 +354,170 @@ function parseLinks(linksStr) {
     links[key] = value;
   });
   return links;
+}
+
+async function getGithubTrendProjects(period = periodTypes.day) {
+  let projectsList = [];
+
+  const url = `https://github.com/trending?since=${period}&spoken_language_code=`;
+  const response = await fetchWithRetries(url);
+  if (!response) {
+    logger.info('The network is faulty and the github projects trending list cannot be obtained');
+    return projectsList;
+  }
+
+  const content = await response.text();
+  const $ = cheerio.load(content);
+
+  // get the project list
+  $('article.Box-row').each((index, element) => {
+    const h2Element = $(element).find('h2.h3.lh-condensed');
+    const aElement = h2Element.find('a');
+
+    if (aElement.length > 0) {
+      const href = aElement.attr('href');
+      const project = href.substring(1);
+      projectsList.push(project);
+    } else {
+      logger.info('project name not found');
+    }
+  });
+
+  return projectsList;
+}
+
+async function getOssTrendProjects() {
+  let projectsList = [];
+
+  // get the daily oss trend projects
+  const url = `https://api.ossinsight.io/v1/trends/repos/`;
+  const response = await fetchWithRetries(url);
+  if (!response) {
+    logger.info('The network is faulty and the oss trending list cannot be obtained');
+    return projectsList;
+  }
+  const content = await response.json();
+  for (const project of content.data.rows) {
+    projectsList.push(project.repo_name);
+  }
+
+  return projectsList;
+}
+
+async function getOssCollectionProjects() {
+  let projectsList = [];
+  let collectionList = [];
+
+  // get the oss collection ids
+  const url = `https://api.ossinsight.io/v1/collections/`;
+  const response = await fetchWithRetries(url);
+  if (!response) {
+    logger.info('The network is faulty and the oss collection list cannot be obtained');
+    return projectsList;
+  }
+  const content = await response.json();
+  for (const collection of content.data.rows) {
+    collectionList.push(collection.id);
+  }
+
+  // using collection id to get the oss star trend projects, which is the most complete list
+  for (const collectionId of collectionList) {
+    const collectionUrl = `https://api.ossinsight.io/v1/collections/${collectionId}/ranking_by_stars/`;
+    const collectionResponse = await fetch(collectionUrl);
+    if (!collectionResponse) {
+      logger.info(
+        `The network is faulty and the projects list of oss collection ${collectionId} cannot be obtained`,
+      );
+      continue;
+    }
+    const collectionContent = await collectionResponse.json();
+    for (const collection of collectionContent.data.rows) {
+      projectsList.push(collection.repo_name);
+    }
+  }
+
+  return projectsList;
+}
+
+async function mergeAndRemoveDuplicates(...arrays) {
+  let mergedArray = [].concat(...arrays);
+  let uniqueArray = Array.from(new Set(mergedArray));
+  return uniqueArray;
+}
+
+async function syncGithubProjects(projectList) {
+  const existProjectsList = await GithubProjectsTable.findAll({
+    attributes: ['fullName'],
+  });
+
+  for (const project of projectList) {
+    const existData = existProjectsList.find(item => item.fullName === project);
+    if (existData) {
+      logger.info('Record already exists, ignore this project.');
+      continue;
+    }
+    const options = {
+      url: `https://github.com/${project}`,
+    };
+    await syncSingleGithubProject(options);
+  }
+}
+
+/**
+ * Daily integration of github daily trends and oss trends
+ *
+ */
+async function syncGithubProjectsDaily() {
+  const githubDailyTrendList = await getGithubTrendProjects(periodTypes.day);
+  const ossTrendList = await getOssTrendProjects();
+  const projectsList = await mergeAndRemoveDuplicates(githubDailyTrendList, ossTrendList);
+  await syncGithubProjects(projectsList);
+}
+
+/**
+ * Weekly integration of github weekly trends, github monthly trends and oss collection trends
+ *
+ */
+async function syncGithubProjectsWeekly() {
+  const githubWeeklyTrendList = await getGithubTrendProjects(periodTypes.week);
+  const githubMonthlyTrendList = await getGithubTrendProjects(periodTypes.month);
+  const ossCollectionTrendList = await getOssCollectionProjects();
+  const projectsList = await mergeAndRemoveDuplicates(
+    githubWeeklyTrendList,
+    githubMonthlyTrendList,
+    ossCollectionTrendList,
+  );
+  await syncGithubProjects(projectsList);
+}
+
+export async function syncGithubProjectsDailyHandler(req, res) {
+  await syncGithubProjectsDaily();
+  res.status(200).send('success');
+}
+
+export async function syncGithubProjectsWeeklyHandler(req, res) {
+  await syncGithubProjectsWeekly();
+  res.status(200).send('success');
+}
+
+export async function githubProjectsDailyTimer() {
+  const startTime = process.hrtime();
+  logger.info('[Integration][GithubProjectsDaily] Integration Job start');
+  await syncGithubProjectsDaily();
+  logger.info('[Integration][GithubProjectsDaily] Integration Job end');
+  const endTime = process.hrtime(startTime);
+  logger.info(
+    `[Integration][GithubProjectsDaily] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
+  );
+}
+
+export async function githubProjectsWeeklyTimer() {
+  const startTime = process.hrtime();
+  logger.info('[Integration][GithubProjectsWeekly] Integration Job start');
+  await syncGithubProjectsWeekly();
+  logger.info('[Integration][GithubProjectsWeekly] Integration Job end');
+  const endTime = process.hrtime(startTime);
+  logger.info(
+    `[Integration][GithubProjectsWeekly] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
+  );
 }
