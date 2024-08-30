@@ -4,8 +4,7 @@ import {
   GithubProjectsTable,
   logger,
 } from '@orginjs/oss-evaluation-data-model';
-import { getProjectByUrl } from '../util/util.js';
-import { fetchWithTimeout } from '../util/fetchWitTimeout.js';
+import { getProjectByUrl, sleep } from '../util/util.js';
 import { fetchWithRetries } from '../util/fetchWithRetries.js';
 import { getAlllContributors } from './projectContributors.js';
 import * as cheerio from 'cheerio';
@@ -54,27 +53,14 @@ async function getExistRecord() {
   return existRecordList;
 }
 
-export default async function syncProjectHistory(projectId) {
-  logger.info('Sync Project Contributors');
-  // 1. get all github project
-  const projectList = await getProjectList(projectId);
+export async function syncHistoryByProjectList(projectList) {
   const sumOfProject = projectList.length;
   logger.info(`The Number of Project : ${sumOfProject}`);
   let count = 1;
-  // 2. get the exist record
-  const existRecordList = await getExistRecord();
   for (const project of projectList) {
     logger.info('**Current Progress**: ', `${count}/${sumOfProject}`);
     count += 1;
-    // 3. determine whether integration is required
-    const existData = existRecordList
-      ? existRecordList.find(item => item.projectId === project.id)
-      : null;
-    if (existData) {
-      logger.info('Record already exists, ignore this project.');
-      continue;
-    }
-    // 4. get project information
+    // get project information
     let [contributors, stars] = await getProjectInformation(project.htmlUrl);
     // check contributors
     if (!contributors) {
@@ -118,10 +104,32 @@ export default async function syncProjectHistory(projectId) {
   }
 }
 
+async function filterExistProject(projectId) {
+  const allProjectList = await getProjectList(projectId);
+  const existRecordList = await getExistRecord();
+  const projectList = allProjectList.filter(
+    project => !existRecordList.some(existProject => existProject.id === project.id),
+  );
+  return projectList;
+}
+
+export default async function syncProjectHistory(projectId) {
+  for (let tryTimes = 0; tryTimes < 5; tryTimes++) {
+    logger.info(`Sync Project History......Try Time: ${tryTimes + 1}`);
+    const projectList = filterExistProject(projectId);
+    if (projectList.length > 0) {
+      await syncHistoryByProjectList(projectList);
+    } else {
+      return;
+    }
+    await sleep(3600 * 1000);
+  }
+}
+
 async function getProjectInformation(url) {
   let contributors, stars;
   try {
-    const response = await fetchWithTimeout(url, 3 * 60 * 1000);
+    const response = await fetchWithRetries(url);
     if (response.ok) {
       const text = await response.text();
       // parse html
