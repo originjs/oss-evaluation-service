@@ -102,7 +102,7 @@ export async function syncHistoryByProjectList(projectList, currentDate) {
   }
 }
 
-async function filterExistProject(projectId, currentDate) {
+async function filterNotExistProject(projectId, currentDate) {
   const allProjectList = await getProjectList(projectId);
   const existRecordList = await getExistRecord(currentDate);
   const projectList = allProjectList.filter(
@@ -115,7 +115,7 @@ export default async function syncProjectHistory(projectId) {
   const currentDate = new Date();
   for (let tryTimes = 0; tryTimes < 5; tryTimes++) {
     logger.info(`Sync Project History......Try Time: ${tryTimes + 1}`);
-    const projectList = await filterExistProject(projectId, currentDate);
+    const projectList = await filterNotExistProject(projectId, currentDate);
     if (projectList.length > 0) {
       await syncHistoryByProjectList(projectList, currentDate);
     } else {

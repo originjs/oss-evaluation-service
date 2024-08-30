@@ -453,7 +453,6 @@ async function syncGithubProjects(projectList) {
   for (const project of projectList) {
     const existData = existProjectsList.find(item => item.fullName === project);
     if (existData) {
-      logger.info('Record already exists, ignore this project.');
       continue;
     }
     const options = {
