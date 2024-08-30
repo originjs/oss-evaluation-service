@@ -35,8 +35,7 @@ async function getProjectList(projectId) {
   return projectList;
 }
 
-async function getExistRecord() {
-  const currentDate = new Date();
+async function getExistRecord(currentDate) {
   const existRecordList = await GithubProjectsHistory.findAll({
     where: {
       contributors: {
@@ -53,7 +52,7 @@ async function getExistRecord() {
   return existRecordList;
 }
 
-export async function syncHistoryByProjectList(projectList) {
+export async function syncHistoryByProjectList(projectList, currentDate) {
   const sumOfProject = projectList.length;
   logger.info(`The Number of Project : ${sumOfProject}`);
   let count = 1;
@@ -85,7 +84,6 @@ export async function syncHistoryByProjectList(projectList) {
       },
     );
     // store github_projects_history
-    const currentDate = new Date();
     await GithubProjectsHistory.upsert(
       {
         projectId: project.id,
@@ -104,9 +102,9 @@ export async function syncHistoryByProjectList(projectList) {
   }
 }
 
-async function filterExistProject(projectId) {
+async function filterExistProject(projectId, currentDate) {
   const allProjectList = await getProjectList(projectId);
-  const existRecordList = await getExistRecord();
+  const existRecordList = await getExistRecord(currentDate);
   const projectList = allProjectList.filter(
     project => !existRecordList.some(existProject => existProject.id === project.id),
   );
@@ -114,11 +112,12 @@ async function filterExistProject(projectId) {
 }
 
 export default async function syncProjectHistory(projectId) {
+  const currentDate = new Date();
   for (let tryTimes = 0; tryTimes < 5; tryTimes++) {
     logger.info(`Sync Project History......Try Time: ${tryTimes + 1}`);
-    const projectList = filterExistProject(projectId);
+    const projectList = await filterExistProject(projectId, currentDate);
     if (projectList.length > 0) {
-      await syncHistoryByProjectList(projectList);
+      await syncHistoryByProjectList(projectList, currentDate);
     } else {
       return;
     }
