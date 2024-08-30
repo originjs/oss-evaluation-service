@@ -110,10 +110,11 @@ async function getProjectContributors(url) {
 }
 
 async function getContributors(repoName, page = 1) {
-  const header = process.env.GITHUB_TOKEN
+  const tokens = JSON.parse(process.env.GITHUB_TOKEN);
+  const header = tokens
     ? {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        Authorization: `Bearer ${tokens[0]}`,
       }
     : {
         'Content-Type': 'application/json',
