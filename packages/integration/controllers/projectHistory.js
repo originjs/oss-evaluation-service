@@ -93,8 +93,8 @@ export async function syncHistoryByProjectList(projectList, currentDate) {
       {
         projectId: project.id,
         date: currentDate,
-        contributors: contributors ? contributors : 0,
-        stars: stars ? stars : 0,
+        contributors: contributors,
+        stars: stars,
       },
       {
         where: {
@@ -111,7 +111,7 @@ async function filterNotExistProject(projectId, currentDate) {
   const allProjectList = await getProjectList(projectId);
   const existRecordList = await getExistRecord(currentDate);
   const projectList = allProjectList.filter(
-    project => !existRecordList.some(existProject => existProject.id === project.id),
+    project => !existRecordList.some(existProject => existProject.projectId === project.id),
   );
   return projectList;
 }
