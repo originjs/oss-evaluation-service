@@ -54,7 +54,7 @@ export default async function syncProjectContributors(projectId) {
     // 2. get project contributors
     let contributors = await getProjectContributors(project.htmlUrl);
     if (contributors == '' || contributors == undefined) {
-      contributors = (await getAlllContributors(project.fullName)).length;
+      contributors = await getAlllContributors(project.fullName);
       logger.info(`GitHub API : contributors of ${project.htmlUrl} is ${contributors}`);
     }
     if (contributors == '' || contributors == undefined) {
@@ -62,7 +62,7 @@ export default async function syncProjectContributors(projectId) {
     }
 
     await GithubProjectsTable.update(
-      { contributors: contributors },
+      { contributors: contributors === -1 ? null : contributors },
       {
         where: {
           id: project.id,
@@ -126,7 +126,10 @@ async function getContributors(repoName, page = 1) {
       method: 'GET',
       headers: header,
     },
-  ).catch(error => logger.error('Error in fetch REST API:', error));
+  ).catch(error => {
+    logger.error('Error in fetch REST API:', error);
+    return -1;
+  });
   // avoid situations where the project is empty
   try {
     return await request.json();
@@ -142,6 +145,10 @@ export async function getAlllContributors(repoName) {
   let list;
   do {
     list = await getContributors(repoName, page);
+    // fetch API failed
+    if (typeof list === 'number') {
+      return -1;
+    }
     contributors = contributors.concat(list);
     page++;
   } while (list.length > 0);
@@ -150,7 +157,7 @@ export async function getAlllContributors(repoName) {
       contributors.splice(i, 1);
     }
   }
-  return contributors;
+  return contributors.length;
 }
 
 export async function projectContributorsTimer() {

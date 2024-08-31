@@ -63,8 +63,7 @@ export async function syncHistoryByProjectList(projectList, currentDate) {
     let [contributors, stars] = await getProjectInformation(project.htmlUrl);
     // API is called only if the GitHub page does not provide contributor information
     if (contributors === -1) {
-      const contributorsByApi = (await getAlllContributors(project.fullName)).length;
-      contributors = contributorsByApi ? contributorsByApi : null;
+      contributors = await getAlllContributors(project.fullName);
     }
     if (contributors) {
       logger.info(`GitHub API : contributors of ${project.htmlUrl} is ${contributors}`);
@@ -81,7 +80,7 @@ export async function syncHistoryByProjectList(projectList, currentDate) {
     }
     // refresh github_projects_t
     await GithubProjectsTable.update(
-      { contributors: contributors },
+      { contributors: contributors === -1 ? null : contributors },
       {
         where: {
           id: project.id,
@@ -93,7 +92,7 @@ export async function syncHistoryByProjectList(projectList, currentDate) {
       {
         projectId: project.id,
         date: currentDate,
-        contributors: contributors,
+        contributors: contributors === -1 ? null : contributors,
         stars: stars,
       },
       {
