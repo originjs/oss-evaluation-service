@@ -174,7 +174,7 @@ async function updateAllEvaluationSummary() {
   // update sonar cloud score
   await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN sonar_cloud_project t2
   ON t1.project_id= t2.github_project_id SET t1.sonarcloud_score = 
-  ASCII('F')*2-ASCII(maintainability_rating)-ASCII(reliability_rating)
+  ASCII('F')*4-ASCII(maintainability_rating)-ASCII(reliability_rating)-ASCII(security_rating)-ASCII(security_review_rating)
   WHERE t2.analysis_date IS NOT NULL`);
 
   // 3. ecology metrics
@@ -364,7 +364,7 @@ async function getDimensionScore(project, dimension, techStack, model, bId) {
   let totalScore = 0;
   let totalWeight = 0;
   for (const fieldItem of fieldList) {
-    const { field, techStack: subTechStack, weight, threshold, type } = fieldItem;
+    const { field, techStack: subTechStack, weight, threshold, defaultValue, type } = fieldItem;
     totalWeight += weight;
     if (type === MetricType.MAIN) {
       const fieldScore = await getDimensionScore(project, field, subTechStack, model, bId);
@@ -382,11 +382,16 @@ async function getDimensionScore(project, dimension, techStack, model, bId) {
         const { isDesc, threshold } = fieldItem;
         totalScore += weight * calCriticalityScore(rawValue, threshold, isDesc);
       } else {
-        rawValue = project[field];
+        rawValue = project[field] ?? defaultValue;
         if (!rawValue) {
           continue;
         }
-        totalScore += weight * calCriticalityScore(rawValue, threshold, true);
+        if (threshold > 100) {
+          rawValue = calCriticalityScore(rawValue, threshold, true);
+        } else {
+          rawValue = rawValue / threshold;
+        }
+        totalScore += weight * rawValue;
       }
     }
   }
