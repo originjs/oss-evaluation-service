@@ -61,8 +61,8 @@ export async function syncHistoryByProjectList(projectList, currentDate) {
     count += 1;
     // get project information
     let [contributors, stars] = await getProjectInformation(project.htmlUrl);
-    // check contributors
-    if (!contributors) {
+    // API is called only if the GitHub page does not provide contributor information
+    if (contributors === -1) {
       contributors = (await getAlllContributors(project.fullName)).length;
       logger.info(`GitHub API : contributors of ${project.htmlUrl} is ${contributors}`);
     }
@@ -138,6 +138,7 @@ async function getProjectInformation(url) {
       const content = $(`a[href="/${repoName}/graphs/contributors"]`).text();
       if (content.length === 0) {
         logger.info(`web crawler: ${url} does not provide contributors...`);
+        contributors = -1;
       } else {
         const regex = /(\d{1,3}(,\d{3})*(\.\d+)?)/g;
         const contributorsArrays = content.match(regex);
