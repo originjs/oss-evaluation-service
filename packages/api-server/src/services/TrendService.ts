@@ -113,12 +113,11 @@ export async function githubTop(page: Page, type: string) {
 }
 
 async function getTrendData(type, stageType) {
-  // stageType为1表明当前阶段数据，stageType为0表示上一阶段数据
   const dataType = type.dataType;
   const dateType = type.dateType;
   const rankType = type.rankType;
   let orderCriteria;
-  if (rankType === 1) {
+  if (rankType == 1) {
     orderCriteria = [
       ['date', 'ASC'],
       ['increasedValue', 'DESC'],
@@ -173,6 +172,29 @@ async function getTrendData(type, stageType) {
     }
     return false;
   });
+
+  // 增加排名列
+  let rank = 1;
+  let prevValue = null;
+  let prevRank = 1;
+
+  deduplicatedResults.forEach(row => {
+    let tempValue;
+    if (rankType == 1) {
+      tempValue = row.increasedValue;
+    } else {
+      tempValue = row.totalValue;
+    }
+    if (tempValue !== prevValue) {
+      row.rank = rank;
+      prevRank = rank;
+    } else {
+      row.rank = prevRank;
+    }
+    rank++;
+    prevValue = row.increasedValue;
+  });
+
   return deduplicatedResults;
 }
 
@@ -185,27 +207,13 @@ export async function newGithubTop(
 
   const currentTrendData = await getTrendData(type, 1);
   const result = currentTrendData.slice(offset, offset + pageSize);
-
-  // 上一阶段的排名数据
   const lastTrendData = await getTrendData(type, 0);
-  lastTrendData.forEach((item, index) => {
-    item.lastRank = index + 1;
-  });
-  const rankMap = new Map();
-  lastTrendData.forEach(item => {
-    rankMap.set(item.projectId, item.lastRank);
-  });
 
   const data = [];
-  let index = offset;
   for (const item of result) {
-    index++;
-    let lastPeriodRank;
-    if (rankMap.has(item.projectId)) {
-      lastPeriodRank = rankMap.get(item.projectId);
-    } else {
-      lastPeriodRank = null;
-    }
+    const lastPeriodRank = lastTrendData.find(
+      lastItem => lastItem.projectId === item.projectId,
+    )?.rank;
 
     const projectInfo = await GithubProjects.findOne({
       where: {
@@ -215,7 +223,7 @@ export async function newGithubTop(
     });
 
     data.push({
-      currentRank: index,
+      currentRank: item.rank,
       lastRank: lastPeriodRank,
       increasedValue: item.increasedValue,
       totalValue: item.totalValue,
