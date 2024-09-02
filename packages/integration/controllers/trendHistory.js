@@ -115,7 +115,7 @@ async function getQuery(projectId) {
  */
 async function uniqueYearMonth(dataList) {
   const uniqueData = new Map();
-
+  dataList.sort((a, b) => a.date.localeCompare(b.date));
   dataList.forEach(item => {
     const date = item.date;
     const yearMonth = date.slice(0, 7);
