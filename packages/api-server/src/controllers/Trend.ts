@@ -1,5 +1,5 @@
 import { Controller, Query, Path, Route, Get } from 'tsoa';
-import { Page, githubTop } from '../services/TrendService.js';
+import { Page, githubTop, newGithubTop } from '../services/TrendService.js';
 import { Result } from '../utils/result.js';
 
 @Route('trend')
@@ -14,6 +14,22 @@ export class TrendController extends Controller {
     page.format();
 
     const data = await githubTop(page, type);
+    return Result.ok(data);
+  }
+
+  @Get('new/{dataType}')
+  public async searchTrend(
+    @Path() dataType: string,
+    @Query() dateType: string,
+    @Query() rankType: string,
+    @Query() pageNo: string,
+    @Query() pageSize: string,
+  ): Promise<Result<Page>> {
+    const page = new Page(parseInt(pageNo, 10), parseInt(pageSize, 10));
+    page.format();
+
+    const type = { dataType: dataType, dateType: dateType, rankType: rankType };
+    const data = await newGithubTop(page, type);
     return Result.ok(data);
   }
 }
