@@ -112,7 +112,7 @@ export async function githubTop(page: Page, type: string) {
   return res;
 }
 
-async function getTrendData(type, stageType) {
+async function getTrendData(type, stageType, githubProjectIds) {
   const dataType = type.dataType;
   const dateType = type.dateType;
   const rankType = type.rankType;
@@ -166,7 +166,7 @@ async function getTrendData(type, stageType) {
   const firstDataMap = new Map();
   const deduplicatedResults = result.filter(data => {
     const projectId = data.projectId;
-    if (!firstDataMap.has(projectId)) {
+    if (!firstDataMap.has(projectId) && githubProjectIds.includes(projectId)) {
       firstDataMap.set(projectId, true);
       return true;
     }
@@ -200,15 +200,29 @@ async function getTrendData(type, stageType) {
 
 export async function newGithubTop(
   page: Page,
-  type: { dataType: string; dateType: string; rankType: string },
+  type: { dataType: string; dateType: string; rankType: string; language: string },
 ) {
   const pageSize = page.pageSize;
   const offset = page.pageSize * (page.pageNo - 1);
 
-  const currentTrendData = await getTrendData(type, 1);
-  const result = currentTrendData.slice(offset, offset + pageSize);
-  const lastTrendData = await getTrendData(type, 0);
+  const language = type.language === 'All' ? null : type.language;
 
+  const githubProjects = type.language
+    ? await GithubProjects.findAll({
+        attributes: ['id'],
+        where: {
+          language: language,
+        },
+      })
+    : await GithubProjects.findAll({
+        attributes: ['id'],
+      });
+
+  const githubProjectIds = githubProjects.map(project => project.id);
+  logger.info(githubProjectIds);
+  const currentTrendData = await getTrendData(type, STAGE_TYPE.CURRENT, githubProjectIds);
+  const result = currentTrendData.slice(offset, offset + pageSize);
+  const lastTrendData = await getTrendData(type, STAGE_TYPE.LAST, githubProjectIds);
   const data = [];
   for (const item of result) {
     const lastPeriodRank = lastTrendData.find(

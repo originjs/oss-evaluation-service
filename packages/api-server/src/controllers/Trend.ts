@@ -22,13 +22,14 @@ export class TrendController extends Controller {
     @Path() dataType: string,
     @Query() dateType: string,
     @Query() rankType: string,
+    @Query() language: string,
     @Query() pageNo: string,
     @Query() pageSize: string,
   ): Promise<Result<Page>> {
     const page = new Page(parseInt(pageNo, 10), parseInt(pageSize, 10));
     page.format();
 
-    const type = { dataType: dataType, dateType: dateType, rankType: rankType };
+    const type = { dataType: dataType, dateType: dateType, rankType: rankType, language: language };
     const data = await newGithubTop(page, type);
     return Result.ok(data);
   }
