@@ -38,5 +38,20 @@ export const JobConfig = {
       cronScheduleTime: '0 0 1 * *', // 每月1号 00:00
       enabled: isProduction, // only start in production environment
     },
+    {
+      name: 'projectHistoryTimer',
+      cronScheduleTime: '0 0 1 * *', // 每月1号 00:00
+      enabled: isProduction, // only start in production environment
+    },
+    {
+      name: 'githubProjectsDailyTimer',
+      cronScheduleTime: '0 0 * * *', // 每天 00:00
+      enabled: isProduction, // only start in production environment
+    },
+    {
+      name: 'githubProjectsWeeklyTimer',
+      cronScheduleTime: '0 0 * * 1', // 周一 00:00
+      enabled: isProduction, // only start in production environment
+    },
   ],
 };

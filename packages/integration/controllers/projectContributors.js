@@ -1,6 +1,8 @@
 import { GithubProjects, GithubProjectsTable, logger } from '@orginjs/oss-evaluation-data-model';
-import { CheerioCrawler, Configuration } from 'crawlee';
 import { getProjectByUrl } from '../util/util.js';
+import { fetchWithTimeout } from '../util/fetchWitTimeout.js';
+import { fetchWithRetries } from '../util/fetchWithRetries.js';
+import * as cheerio from 'cheerio';
 
 export async function syncSingleProjectContributorsHandler(req, res) {
   const { repoUrl: repoUrl } = req.params;
@@ -27,9 +29,7 @@ export async function syncAllProjectContributors() {
   await syncProjectContributors();
 }
 
-export default async function syncProjectContributors(projectId) {
-  logger.info('Sync Project Contributors');
-  // 1. get all github project
+async function getProjectList(projectId) {
   const projectList = await GithubProjects.findAll({
     attributes: ['id', 'htmlUrl', 'fullName', 'contributors'],
     where: projectId
@@ -38,6 +38,13 @@ export default async function syncProjectContributors(projectId) {
         }
       : {},
   });
+  return projectList;
+}
+
+export default async function syncProjectContributors(projectId) {
+  logger.info('Sync Project Contributors');
+  // 1. get all github project
+  const projectList = await getProjectList(projectId);
   const sumOfProject = projectList.length;
   logger.info(`The Number of Project : ${sumOfProject}`);
   let count = 1;
@@ -47,7 +54,7 @@ export default async function syncProjectContributors(projectId) {
     // 2. get project contributors
     let contributors = await getProjectContributors(project.htmlUrl);
     if (contributors == '' || contributors == undefined) {
-      contributors = (await getAlllContributors(project.fullName)).length;
+      contributors = await getAlllContributors(project.fullName);
       logger.info(`GitHub API : contributors of ${project.htmlUrl} is ${contributors}`);
     }
     if (contributors == '' || contributors == undefined) {
@@ -55,7 +62,7 @@ export default async function syncProjectContributors(projectId) {
     }
 
     await GithubProjectsTable.update(
-      { contributors: contributors },
+      { contributors: contributors === -1 ? null : contributors },
       {
         where: {
           id: project.id,
@@ -68,32 +75,34 @@ export default async function syncProjectContributors(projectId) {
 async function getProjectContributors(url) {
   let contributors;
   try {
-    const config = new Configuration({ persistStorage: false });
-    const crawler = new CheerioCrawler(
-      {
-        failedRequestHandler({ request, log }) {
-          log.info(`web crawler: Request to ${request.url} failed...`);
-        },
-        async requestHandler({ request, $, log }) {
-          const content = $('a:contains("Contributors") span');
-          if (content) {
-            const contributorsArrays = content.text().match(/\d+/g);
-            contributors =
-              contributorsArrays != undefined && contributorsArrays.length > 0
-                ? contributorsArrays.join('')
-                : '';
-          }
-          log.info(`web crawler: contributors of ${request.loadedUrl} is ${contributors}`);
-        },
-        requestHandlerTimeoutSecs: 60,
-        maxRequestsPerCrawl: 10,
-        maxRequestRetries: 1,
-        maxConcurrency: 4029,
-        sameDomainDelaySecs: 10,
-      },
-      config,
-    );
-    await crawler.run([url]);
+    const response = await fetchWithTimeout(url, 3 * 60 * 1000);
+    if (response.ok) {
+      const text = await response.text();
+      // parse html
+      const $ = cheerio.load(text);
+      const repoName = url.match(/\/github\.com\/(.*)/)[1];
+      const content = $(`a[href="/${repoName}/graphs/contributors"]`).text();
+      if (content.length === 0) {
+        logger.info(`web crawler: ${url} does not provide contributors...`);
+        return contributors;
+      }
+
+      const regex = /(\d{1,3}(,\d{3})*(\.\d+)?)/g;
+      const contributorsArrays = content.match(regex);
+      let contributorsNumMain, contributorsNumSub;
+      contributorsNumMain = contributorsArrays[0]?.replace(/,/g, '');
+      contributorsNumSub = contributorsArrays[1]?.replace(/,/g, '');
+      // contributorsNumMain will be 5000 when it more than 5000, use contributorsNumSub to get realNumber
+      let realNumber;
+      if (contributorsNumMain === '5000') {
+        realNumber = parseInt(contributorsNumSub) + 14;
+      } else {
+        realNumber = parseInt(contributorsNumMain);
+      }
+      contributors = realNumber.toString();
+
+      logger.info(`web crawler: contributors of ${url} is ${contributors}`);
+    }
   } catch (e) {
     logger.error(`**web crawler: Url get contributors is failed !** :${url}`);
   }
@@ -101,26 +110,45 @@ async function getProjectContributors(url) {
 }
 
 async function getContributors(repoName, page = 1) {
-  const request = await fetch(
+  const tokens = JSON.parse(process.env.GITHUB_TOKEN);
+  const header = tokens
+    ? {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${tokens[0]}`,
+      }
+    : {
+        'Content-Type': 'application/json',
+      };
+
+  const request = await fetchWithRetries(
     `https://api.github.com/repos/${repoName}/contributors?per_page=100&page=${page}&anon=true`,
     {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: header,
     },
-  );
-
-  const contributorsList = await request.json();
-  return contributorsList;
+  ).catch(error => {
+    logger.error('Error in fetch REST API:', error);
+    return -1;
+  });
+  // avoid situations where the project is empty
+  try {
+    return await request.json();
+  } catch (error) {
+    logger.error('The project is empty:', error);
+    return [];
+  }
 }
 
-async function getAlllContributors(repoName) {
+export async function getAlllContributors(repoName) {
   let contributors = [];
   let page = 1;
   let list;
   do {
     list = await getContributors(repoName, page);
+    // fetch API failed
+    if (typeof list === 'number') {
+      return -1;
+    }
     contributors = contributors.concat(list);
     page++;
   } while (list.length > 0);
@@ -129,8 +157,9 @@ async function getAlllContributors(repoName) {
       contributors.splice(i, 1);
     }
   }
-  return contributors;
+  return contributors.length;
 }
+
 export async function projectContributorsTimer() {
   const startTime = process.hrtime();
   logger.info('[Integration][ProjectContributors] Integration Job start');

@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { Close, Switch, ArrowDown } from '@element-plus/icons-vue';
+import { Close, Switch, ArrowDown, Download } from '@element-plus/icons-vue';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import type { SoftwareBaseInfo, SoftwareInfo } from '@orginjs/oss-evaluation-components-api';
+import { exportSoftwareCompareFileApi } from '@orginjs/oss-evaluation-components-api';
 import type { ResultData } from '../../api';
 import { getSoftwareInfo } from '@orginjs/oss-evaluation-components-api';
 import {
@@ -17,6 +18,7 @@ import { get as _get } from 'lodash-es';
 import { SearchSoftware } from '../search-software';
 import BenchmarkCompare from '../benchmark-compare/BenchmarkCompare.vue';
 import i18n from '../../i18n';
+import { saveAs } from 'file-saver';
 
 const emit = defineEmits<{
   removeRepo: [repoName: string];
@@ -178,6 +180,19 @@ const getShowRow = (path: string) => {
   const res = new Set(projects.map(item => _get(item, path)));
   return res.size > 1;
 };
+async function exportSoftwareCompareToExcel() {
+  let repoNameList = [];
+  for (let project of projects) {
+    repoNameList.push(project.repoName);
+  }
+  try {
+    const data = await exportSoftwareCompareFileApi(repoNameList);
+    saveAs(data, '开源软件对比导出报告.xlsx');
+    ElMessage.success('导出成功');
+  } catch (e) {
+    ElMessage.error('导出失败');
+  }
+}
 </script>
 
 <template>
@@ -244,6 +259,17 @@ const getShowRow = (path: string) => {
               </SearchSoftware>
             </div>
           </div>
+        </div>
+
+        <div class="relative">
+          <el-button
+            class="absolute left-[-130px] top-[-80px]"
+            type="primary"
+            plain
+            :icon="Download"
+            @click="exportSoftwareCompareToExcel"
+            >导出报告</el-button
+          >
         </div>
       </el-affix>
 

@@ -5,6 +5,7 @@ import {
   Benchmark,
   EvaluationModel,
   EvaluationSummary,
+  EvaluationSummaryHistory,
   Scorecard,
   CriticalityScore,
   OpenDigger,
@@ -17,6 +18,7 @@ import {
 import { ServerError } from '../util/error.js';
 import { getProjectByUrl } from '../util/util.js';
 import BenchmarkVersionScore from '@orginjs/oss-evaluation-data-model/models/BenchmarkVersionScore.js';
+import { storeEvaluateTrendHistory } from './trendHistory.js';
 
 const MetricType = Object.freeze({
   L0: 0, // L0: Function / Quality / Performance / Ecology / Innovation
@@ -172,7 +174,7 @@ async function updateAllEvaluationSummary() {
   // update sonar cloud score
   await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN sonar_cloud_project t2
   ON t1.project_id= t2.github_project_id SET t1.sonarcloud_score = 
-  ASCII('F')*2-ASCII(maintainability_rating)-ASCII(reliability_rating)
+  ASCII('F')*4-ASCII(maintainability_rating)-ASCII(reliability_rating)-ASCII(security_rating)-ASCII(security_review_rating)
   WHERE t2.analysis_date IS NOT NULL`);
 
   // 3. ecology metrics
@@ -236,6 +238,41 @@ export async function syncAllProjectEvaluation() {
   );
   // evaluate benchmark
   evaluateBenchmark(model, {});
+}
+
+async function storeAllEvaluationSummaryHistory() {
+  // store evaluation score for all projects
+  logger.info('start mysql');
+  const currentDate = new Date();
+  const projectList = await EvaluationSummary.findAll({
+    attributes: ['projectId', 'functionScore', 'qualityScore', 'ecologyScore', 'innovationScore'],
+  });
+  for (const project of projectList) {
+    await EvaluationSummaryHistory.upsert(
+      {
+        projectId: project.projectId,
+        date: currentDate,
+        qualityScore: project.qualityScore ? project.qualityScore : 0,
+        functionScore: project.functionScore ? project.functionScore : 0,
+        ecologyScore: project.ecologyScore ? project.ecologyScore : 0,
+        innovationScore: project.innovationScore ? project.innovationScore : 0,
+      },
+      {
+        where: {
+          projectId: project.projectId,
+          date: currentDate,
+        },
+      },
+    );
+  }
+  // store evaluation score to trend history
+  await storeEvaluateTrendHistory();
+}
+
+export async function storeAllEvaluationHistoryHandler(req, res) {
+  logger.info('start handler store');
+  await storeAllEvaluationSummaryHistory();
+  res.status(200).json('ok');
 }
 
 export async function evaluateBenchmarkHandler(req, res) {
@@ -327,7 +364,7 @@ async function getDimensionScore(project, dimension, techStack, model, bId) {
   let totalScore = 0;
   let totalWeight = 0;
   for (const fieldItem of fieldList) {
-    const { field, techStack: subTechStack, weight, threshold, type } = fieldItem;
+    const { field, techStack: subTechStack, weight, threshold, defaultValue, type } = fieldItem;
     totalWeight += weight;
     if (type === MetricType.MAIN) {
       const fieldScore = await getDimensionScore(project, field, subTechStack, model, bId);
@@ -345,11 +382,16 @@ async function getDimensionScore(project, dimension, techStack, model, bId) {
         const { isDesc, threshold } = fieldItem;
         totalScore += weight * calCriticalityScore(rawValue, threshold, isDesc);
       } else {
-        rawValue = project[field];
+        rawValue = project[field] ?? defaultValue;
         if (!rawValue) {
           continue;
         }
-        totalScore += weight * calCriticalityScore(rawValue, threshold, true);
+        if (threshold > 100) {
+          rawValue = calCriticalityScore(rawValue, threshold, true);
+        } else {
+          rawValue = rawValue / threshold;
+        }
+        totalScore += weight * rawValue;
       }
     }
   }
@@ -485,12 +527,20 @@ function calCriticalityScore(x, threshold, isDesc) {
 }
 
 export async function evaluateTimer() {
-  const startTime = process.hrtime();
+  const startCalculateTime = process.hrtime();
   logger.info('[Calculation][Evaluate] Calculation Job start');
   await syncAllProjectEvaluation();
   logger.info('[Calculation][Evaluate] Calculation Job end');
-  const endTime = process.hrtime(startTime);
+  const endCalculateTime = process.hrtime(startCalculateTime);
   logger.info(
-    `[Calculation][Evaluate] The total time spent on calculation : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
+    `[Calculation][Evaluate] The total time spent on calculation : ${endCalculateTime[0]}s ${endCalculateTime[1] / 1e6}ms`,
+  );
+  const startStoreTime = process.hrtime();
+  logger.info('[Integration][EvaluateHistory] Integration Job start');
+  await storeAllEvaluationSummaryHistory();
+  logger.info('[Integration][EvaluateHistory] Integration Job end');
+  const endStoreTime = process.hrtime(startStoreTime);
+  logger.info(
+    `[Integration][EvaluateHistory] The total time spent on integration : ${endStoreTime[0]}s ${endStoreTime[1] / 1e6}ms`,
   );
 }

@@ -53,6 +53,10 @@ export function exportFileApi(repoName: string) {
   return HttpRequest.post<Blob>(`/project/export/${repoName}`, undefined, { responseType: 'blob' });
 }
 
+export function exportSoftwareCompareFileApi(repoNameList: string[]) {
+  return HttpRequest.post<Blob>(`/project/compareExport`, repoNameList, { responseType: 'blob' });
+}
+
 export function getInnovationApi(repoName: string) {
   return HttpRequest.get<InnovationInfo>(`/project/innovation/${repoName}`);
 }

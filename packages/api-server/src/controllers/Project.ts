@@ -1,15 +1,14 @@
-import { Controller, Path, Route, Get, Post } from 'tsoa';
+import { Controller, Path, Route, Get, Post, Body } from 'tsoa';
 import {
   getProjectDetailInfo,
   getSoftwareActivity,
   getSoftwareInnovate,
   getPerformance,
-  exportScoreExcel,
-  exportBenchmarkExcel,
   getInnovation,
   getSummaryHighlightInfo,
   prCreatorCompanyAndAreaInfo,
   allHealthScore,
+  compareExportScoreExcel,
 } from '../services/ProjectDetailService.js';
 import type {
   EcologyActivityCategory,
@@ -19,7 +18,6 @@ import type {
   SoftwareInfo,
   SummaryHighlightInfo,
 } from '../interfaces/SoftwareInfo.js';
-import { appendSheet } from '../utils/excel.js';
 import { Result } from '../utils/result.js';
 import { Readable } from 'stream';
 
@@ -96,19 +94,7 @@ export class ProjectController extends Controller {
 
   @Post('export/{repoName}')
   public async exportReport(@Path() repoName: string): Promise<Readable> {
-    const scoreExcel = await exportScoreExcel(repoName);
-    const benchmarkExcel = await exportBenchmarkExcel(repoName);
-    let exportBuffer;
-
-    if (!scoreExcel) {
-      throw new Error(`no data for export excel,repo name :${repoName}`);
-    }
-    if (benchmarkExcel) {
-      //   merge scoreExcel and benchmarkExcel into one excel
-      exportBuffer = appendSheet(scoreExcel, benchmarkExcel);
-    } else {
-      exportBuffer = scoreExcel;
-    }
+    const scoreExcel = await compareExportScoreExcel([repoName]);
     this.setHeader(
       'Content-Disposition',
       `attachment; filename=${encodeURIComponent(repoName)}.xlsx`,
@@ -117,6 +103,21 @@ export class ProjectController extends Controller {
       'Content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     );
-    return Readable.from(exportBuffer);
+    return Readable.from(scoreExcel);
+  }
+
+  @Post('compareExport')
+  public async compareExportReport(@Body() repoNameList: string[]): Promise<Readable> {
+    const scoreExcel = await compareExportScoreExcel(repoNameList);
+    const fileName = repoNameList.join('-');
+    this.setHeader(
+      'Content-Disposition',
+      `attachment; filename=softwareCompare-${encodeURIComponent(fileName)}.xlsx`,
+    );
+    this.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    return Readable.from(scoreExcel);
   }
 }

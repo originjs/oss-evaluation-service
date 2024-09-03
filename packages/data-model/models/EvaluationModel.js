@@ -32,6 +32,9 @@ export default sequelize.define(
     threshold: {
       type: DataTypes.DOUBLE,
     },
+    defaultValue: {
+      type: DataTypes.DOUBLE,
+    },
     type: {
       type: DataTypes.INTEGER,
     },

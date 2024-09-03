@@ -27,6 +27,8 @@ import {
   syncProjectByRepo,
   syncProjectByUserStar,
   searchAndIntegrationGithubProjects,
+  syncGithubProjectsDailyHandler,
+  syncGithubProjectsWeeklyHandler,
 } from '../controllers/github.js';
 import {
   bulkAddBenchmarkHandler,
@@ -69,6 +71,10 @@ import {
   syncAllProjectContributorsHandler,
 } from '../controllers/projectContributors.js';
 import {
+  syncSingleProjectHistoryHandler,
+  syncAllProjectHistoryHandler,
+} from '../controllers/projectHistory.js';
+import {
   syncAllProjectDependentCountHandler,
   syncSingleProjectDependentCountHandler,
 } from '../controllers/projectDependentCount.js';
@@ -86,6 +92,10 @@ import {
   syncAllProjectCreatorsCountriesHandler,
 } from '../controllers/ossinsightCreatorsCountry.js';
 import { syncCriticalityScoreHandler } from '../controllers/criticalitryScore.js';
+import {
+  storeSingleProjectTrendHandler,
+  storeAllProjectTrendHandler,
+} from '../controllers/trendHistory.js';
 
 const router = express.Router();
 
@@ -1148,6 +1158,34 @@ router.route('/syncSingleProjectContributors/:repoUrl').get(syncSingleProjectCon
 
 /**
  * @swagger
+ * /sync/syncAllProjectHistory:
+ *   get:
+ *     summary: sync project information - contributors, stars
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/syncAllProjectHistory').get(syncAllProjectHistoryHandler);
+
+/**
+ * @swagger
+ * /sync/syncSingleProjectHistory/{repoUrl}:
+ *   get:
+ *     summary: sync project information - contributors, stars
+ *     parameters:
+ *      - in: path
+ *        name: repoUrl
+ *        type: string
+ *        required: true
+ *        example: https://github.com/vuejs/router
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/syncSingleProjectHistory/:repoUrl').get(syncSingleProjectHistoryHandler);
+
+/**
+ * @swagger
  * /sync/syncAllProjectDependentCount:
  *   get:
  *     summary: refresh dependent count of project
@@ -1383,5 +1421,55 @@ router.route('/benchmark/getBenchmarkValue').get(importBenchmarkValueByGetHandle
  *         description: Bad request
  */
 router.route('/benchmark/getBenchmarkIndex').get(importBenchmarkIndexByGetHandler);
+
+/**
+ * @swagger
+ * /sync/storeAllProjectTrend:
+ *   get:
+ *     summary: store trend history of project
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/storeAllProjectTrend').get(storeAllProjectTrendHandler);
+
+/**
+ * @swagger
+ * /sync/storeSingleProjectTrend/{repoUrl}:
+ *   get:
+ *     summary: store trend history of project
+ *     parameters:
+ *      - in: path
+ *        name: repoUrl
+ *        type: string
+ *        required: true
+ *        example: https://github.com/vuejs/router
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/storeSingleProjectTrend/:repoUrl').get(storeSingleProjectTrendHandler);
+
+/**
+ * @swagger
+ * /sync/syncGithubProjectsDaily:
+ *   get:
+ *     summary: integration of github daily trends and oss trends
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/syncGithubProjectsDaily').get(syncGithubProjectsDailyHandler);
+
+/**
+ * @swagger
+ * /sync/syncGithubProjectsWeekly:
+ *   get:
+ *     summary: integration of github weekly trends, github monthly trends and oss collection trends
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/syncGithubProjectsWeekly').get(syncGithubProjectsWeeklyHandler);
 
 export default router;

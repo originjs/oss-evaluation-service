@@ -31,6 +31,7 @@ import { getAlternativeProjects } from './AlternativeProjectService.js';
 import { fixedRound } from '../utils/math.js';
 import { Op } from 'sequelize';
 import _ from 'underscore';
+import dayjs from 'dayjs';
 
 ProjectInfo.hasOne(Scorecard, { foreignKey: 'project_id', as: 'scorecard' });
 ProjectInfo.hasOne(SonarCloudProjectMin, { foreignKey: 'github_project_id', as: 'sonarCloudScan' });
@@ -512,8 +513,7 @@ export async function allHealthScore(repoName: string) {
   return score;
 }
 
-export async function exportScoreExcel(projectName: string) {
-  const excelTemplate = readFileSync('./assets/evaluation-template.xlsx');
+async function queryExportSoftwareInfo(projectName: string) {
   const data = await getProjectDetailInfo(projectName);
   const packageName = await getMainPackageByRepoName(projectName);
   let packageSize = null;
@@ -544,14 +544,36 @@ export async function exportScoreExcel(projectName: string) {
   data.evaluation.innovationScore = Number(
     fixedRound(data.evaluation.innovationScore, DECIMAL_PLACES),
   );
-  if (!data) {
+  return data;
+}
+
+export async function compareExportScoreExcel(projectNameList: string[]) {
+  const excelTemplate = readFileSync('./assets/evaluation-compare-template.xlsx');
+  const resMap: Map<string, any> = new Map();
+  for (const projectName of projectNameList) {
+    const data = await queryExportSoftwareInfo(projectName);
+    for (const key in data) {
+      if (!resMap.get(key)) {
+        resMap.set(key, []);
+      }
+      resMap.get(key).push(data[key]);
+    }
+  }
+  if (!resMap) {
     return;
   }
+  const res = Object.fromEntries(resMap);
+  await exportFieldSupplement(res);
   try {
-    return ejsExcel.renderExcel(excelTemplate, data);
+    return ejsExcel.renderExcel(excelTemplate, res);
   } catch (err) {
     logger.error(err);
   }
+}
+async function exportFieldSupplement(data: any) {
+  const packageJson = readFileSync('../api-server/package.json', 'utf-8');
+  const packageInfo = JSON.parse(packageJson);
+  data.title = `先进性评估报告 v${packageInfo.version} 评估时间：${dayjs().format('YYYY-MM-DD HH:mm:ss')}`;
 }
 
 export async function exportBenchmarkExcel(repoName: string) {

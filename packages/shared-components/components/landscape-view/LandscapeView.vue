@@ -74,8 +74,8 @@
           >
             <template v-if="options.enableProjectPopover">
               <project-popover
-                v-for="project in landscapeData[categoryName][subcategoryName].projects"
-                :key="`${categoryName}-${subcategoryName}-${project.name}`"
+                v-for="(project, pIndex) in landscapeData[categoryName][subcategoryName].projects"
+                :key="`${categoryName}-${subcategoryName}-${project.name}-${pIndex}`"
                 :project="project"
                 :options="options"
               >
@@ -97,8 +97,8 @@
             </template>
             <template v-else>
               <project-thumbnails
-                v-for="project in landscapeData[categoryName][subcategoryName].projects"
-                :key="`${categoryName}-${subcategoryName}-${project.name}`"
+                v-for="(project, pIndex) in landscapeData[categoryName][subcategoryName].projects"
+                :key="`${categoryName}-${subcategoryName}-${project.name}-${pIndex}`"
                 class="project-logo"
                 :project="project"
                 :options="options"
@@ -247,7 +247,8 @@ const props = defineProps<{
     boxGap?: number;
     borderColor?: string | { [key: string]: string };
     layout?: Layout;
-    autoLayout?: AutoLayout;
+    autoLayout?: AutoLayout; // 设定一行中可以有多少列子类，用于自动布局计算，默认为 3 列
+    autoLayoutMaxCol?: number; // 如果没有配置 autoLayout 或类别不在 autoLayout 中，则使用该默认值 3 列
     evaluation?: (project: Project) => void;
     goBenchmark?: (project: Project) => void;
     sortProject?: (p1: Project, p2: Project) => number;
@@ -256,6 +257,7 @@ const props = defineProps<{
 
 const options = computed(() => ({
   sortProject: (p1: Project, p2: Project) => p1.name.localeCompare(p2.name), // 默认按名称排序
+  autoLayoutMaxCol: 3,
   hasMore: true,
   boxSize: 40,
   boxGap: 8,
@@ -293,19 +295,20 @@ const getLandscapeWidth = () => {
   return width;
 };
 
-const DEFAULT_MAX_COLUMN = 2; // 默认一行展示的最大列数（子类别数）
 const MIN_COLUMN_PROJECTS = 4; // 一列中至少要展示多少个项目数，用来计算最小列宽
 
-// 计算 landscape 中每个子类别所占的宽度
-const calcWidth: (projects: Project[], category: Category, autoLayout?: AutoLayout) => Category = (
-  projects,
-  category,
-  autoLayout,
-) => {
+// 对于没有使用 layout 设置宽度的子类别，根据 maxCol + 权重 计算子类别宽度
+const calcWidth = (category: Category, calcCategory: Category) => {
+  const layout = options.value.layout;
+  const autoLayout = options.value.autoLayout;
   const width = getLandscapeWidth();
-  for (const categoryName of Object.keys(category)) {
-    const maxCol = (autoLayout && autoLayout[categoryName]) || DEFAULT_MAX_COLUMN;
-    const rowCount = Math.ceil(Object.keys(category[categoryName]).length / maxCol); // 根据最大列数计算得到子类别应该有几行
+
+  // 只处理需要计算宽度的类别
+  for (const calcCategoryName of Object.keys(calcCategory)) {
+    const maxCol = autoLayout?.[calcCategoryName] || options.value.autoLayoutMaxCol;
+    const calcSubcategoryNames = Object.keys(calcCategory[calcCategoryName]);
+    const calcCategoryCount = calcSubcategoryNames.length;
+    const rowCount = Math.ceil(calcCategoryCount / maxCol); // 根据最大列数计算得到子类别应该有几行
 
     // 二维数组结构，保存行列信息，行代表当前大类别，列代表子类别
     const rows: (Subcategory & { weight: number; width: number })[][] = Array.from(
@@ -314,13 +317,13 @@ const calcWidth: (projects: Project[], category: Category, autoLayout?: AutoLayo
     );
     let rowIndex = 0;
     // 循环子类别，把信息填充到二维数组中
-    for (const subcategoryName of Object.keys(category[categoryName])) {
-      const subcategory = category[categoryName][subcategoryName];
+    for (const calcSubcategoryName of calcSubcategoryNames) {
+      const calcSubcategory = calcCategory[calcCategoryName][calcSubcategoryName];
 
       rows[rowIndex].push({
-        ...subcategory,
+        ...calcSubcategory,
         width: 0,
-        weight: subcategory.displayCount / projects.length, // 子类别的权重，等于 projects 数量 / projects 总数
+        weight: calcSubcategory.displayCount / calcCategoryCount, // 子类别的权重，等于子类别总数 / 类别总数
       });
 
       if (rows[rowIndex].length === maxCol) {
@@ -377,10 +380,35 @@ const calcWidth: (projects: Project[], category: Category, autoLayout?: AutoLayo
       }
     }
 
+    // 手动配置过类别宽度的类别，这里用 category 而不用 layout 是因为 layout 可能存在多余的类别，category 中多余的类别已经被清理掉了
+    const subcategoryNames = Object.keys(category[calcCategoryName]).filter(
+      key => !calcSubcategoryNames.includes(key),
+    );
+    // 最后一个手动配置宽度的子类别，以此为界，需要另起一行
+    const lastSubcategoryName = subcategoryNames[subcategoryNames.length - 1];
+    // 在设置宽度之前，如果有手动配置过类别宽度，需要确保自动计算的类别另起一行。否则会导致布局错乱
+    if (layout && lastSubcategoryName) {
+      // 计算手动配置的子类别宽度百分比的和，如果存在小数，说明未占满一行
+      const categoryTotalWidth = subcategoryNames.reduce(
+        // 这里用 layout 取值，是因为 layout 传的是宽度百分比，category 中的 width 是真实的宽度，用百分比方便计算
+        (total, key) => (total += layout[calcCategoryName][key]),
+        0,
+      );
+      const decimalPart = categoryTotalWidth - Math.floor(categoryTotalWidth); // 取小数部分，即未占满一行的宽度
+      if (decimalPart) {
+        // 未占满一行，则把 layout 设置的类别中的最后一个子类别的宽度占满一行
+        const originalWidthRate = layout[calcCategoryName][lastSubcategoryName];
+        const restWidthRate = 1 - decimalPart;
+        let widthRate = originalWidthRate + restWidthRate;
+        widthRate = widthRate > 1 ? 1 : widthRate;
+        category[calcCategoryName][lastSubcategoryName].width = width * widthRate - 10;
+      }
+    }
+
     // 把计算好的子类别宽度设置到 category 中
     for (const row of rows) {
       for (const col of row) {
-        category[categoryName][col.subTechStackName] = col;
+        category[calcCategoryName][col.subTechStackName] = col;
       }
     }
   }
@@ -388,19 +416,20 @@ const calcWidth: (projects: Project[], category: Category, autoLayout?: AutoLayo
   return category;
 };
 
-const processLandscapeData = (
-  projects: Project[],
-  { layout, autoLayout, isInit }: { layout?: Layout; autoLayout?: AutoLayout; isInit?: boolean },
-): Category => {
+const processLandscapeData = (projects: Project[], isInit?: boolean) => {
+  const layout = options.value.layout;
   const width = getLandscapeWidth();
   const category: Category = {}; // 处理后的数据
+  const calcCategory: Category = {}; // 需要计算宽度的类别
 
-  // 根据 layout 初始化 category
+  // 根据 layout 初始化 category。先初始化再处理数据是为了保持界面显示的类别顺序与 layout 中配置的顺序一致
   if (layout) {
     for (const categoryName of Object.keys(layout)) {
       category[categoryName] = {};
 
       for (const subcategoryName of Object.keys(layout[categoryName])) {
+        const widthRate = layout[categoryName][subcategoryName];
+        layout[categoryName][subcategoryName] = !widthRate || widthRate > 1 ? 1 : widthRate; // 为 0 或 大于 1 的情况，设定为 1
         category[categoryName][subcategoryName] = {
           subTechStackName: subcategoryName,
           hasBigProject: false,
@@ -428,6 +457,12 @@ const processLandscapeData = (
         displayCount: 0,
         width: width - 10,
       };
+
+      // 记录需要计算宽度的类别
+      if (!calcCategory[item.category]) {
+        calcCategory[item.category] = {};
+      }
+      calcCategory[item.category][item.subcategory] = category[item.category][item.subcategory];
     }
 
     const subcategory = category[item.category][item.subcategory];
@@ -441,8 +476,8 @@ const processLandscapeData = (
 
     if (
       isBigProject ||
-      !props.options?.maxProjects ||
-      subcategory.projects.length < props.options?.maxProjects
+      !options.value.maxProjects ||
+      subcategory.projects.length < options.value.maxProjects
     ) {
       // 大项目 或者 还没有达到最大项目数才添加
       subcategory.projects.push(item);
@@ -485,19 +520,12 @@ const processLandscapeData = (
     }
   }
 
-  if (!layout || !isInit) {
-    return calcWidth(projects, category, autoLayout);
-  }
-
-  return category;
+  // 如果不是第一次渲染，则是过滤后的结果，为了不影响布局，需要使用 category，即全部类别都需要计算宽度
+  return calcWidth(category, isInit ? calcCategory : category);
 };
 
 const initLandscape = () => {
-  landscapeData.value = processLandscapeData(props.projects, {
-    layout: props.options?.layout,
-    autoLayout: props.options?.autoLayout,
-    isInit: true,
-  });
+  landscapeData.value = processLandscapeData(props.projects, true);
 };
 
 watch(
@@ -510,10 +538,7 @@ onMounted(() => {
 });
 
 const updateProjects = (projects: Project[]) => {
-  landscapeData.value = processLandscapeData(projects, {
-    layout: props.options?.layout,
-    autoLayout: props.options?.autoLayout,
-  });
+  landscapeData.value = processLandscapeData(projects);
 };
 
 function toggleDialogVisible(visible?: boolean) {
@@ -534,7 +559,7 @@ function gotoMore(category: string, subTechStackName: string) {
 }
 
 function clickProject(project: Project) {
-  if (props.options?.enableProjectDialog) {
+  if (options.value.enableProjectDialog) {
     dialogProject.value = project;
     isOpenProjectDialog.value = true;
   }
