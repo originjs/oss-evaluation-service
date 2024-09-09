@@ -4,6 +4,7 @@ import {
   EvaluationSummary,
   GithubProjectsStargazersTrend,
   logger,
+  sequelize,
 } from '@orginjs/oss-evaluation-data-model';
 import _ from 'underscore';
 import { Op } from 'sequelize';
@@ -46,11 +47,6 @@ const typeMap = new Map();
 typeMap.set('star', 'stargazersCount');
 typeMap.set('fork', 'forksCount');
 typeMap.set('contributors', 'contributors');
-
-const STAGE_TYPE = {
-  CURRENT: 1,
-  LAST: 0,
-};
 
 const DATE_TYPE = {
   YEAR: 1,
@@ -122,107 +118,115 @@ export async function githubTop(page: Page, type: string) {
   return res;
 }
 
-async function getTrendData(type, stageType, githubProjectIds) {
+async function getWhereCriteria(selectedDate, dataType, dateType, githubProjectIds) {
+  let whereCriteria;
+  if (githubProjectIds) {
+    whereCriteria = {
+      date: selectedDate,
+      dataType: dataType,
+      dateType: dateType,
+      projectId: {
+        [Op.in]: githubProjectIds,
+      },
+    };
+  } else {
+    whereCriteria = {
+      date: selectedDate,
+      dataType: dataType,
+      dateType: dateType,
+    };
+  }
+  return whereCriteria;
+}
+
+async function getTrendData(type, githubProjectIds, page) {
   const dataType = type.dataType;
   const dateType = type.dateType;
   const rankType = type.rankType;
+  const pageSize = page.pageSize;
+  const offset = page.pageSize * (page.pageNo - 1);
   let orderCriteria;
   if (rankType == RANK_TYPE.INCREASE) {
     orderCriteria = [
-      ['date', 'ASC'],
       ['increasedValue', 'DESC'],
+      ['totalValue', 'DESC'],
     ];
   } else {
     orderCriteria = [
-      ['date', 'ASC'],
       ['totalValue', 'DESC'],
+      ['increasedValue', 'DESC'],
     ];
   }
 
   let date = dayjs();
-  let startDate, endDate;
+  let selectedDate;
 
-  // 年数据处理
   if (dateType == DATE_TYPE.YEAR) {
-    if (stageType === STAGE_TYPE.LAST) {
-      date = date.subtract(1, 'year');
-    }
-    startDate = date.startOf('year').toDate();
-    startDate = date.add(1, 'year').startOf('year').toDate();
+    selectedDate = date.startOf('year').toDate();
+  } else if (dateType == DATE_TYPE.MONTH) {
+    selectedDate = date.startOf('month').toDate();
   }
-  // 月数据处理
-  if (dateType == DATE_TYPE.MONTH) {
-    if (stageType === STAGE_TYPE.LAST) {
-      date = date.subtract(1, 'month');
-    }
-    startDate = date.startOf('month').toDate();
-    endDate = date.add(1, 'month').startOf('month').toDate();
-  }
+
+  const whereCriteria = await getWhereCriteria(selectedDate, dataType, dateType, githubProjectIds);
+
   const result = await TrendHistory.findAll({
-    attributes: ['projectId', 'increasedValue', 'totalValue', 'date'],
-    where: {
-      date: {
-        [Op.gte]: startDate,
-        [Op.lt]: endDate,
-      },
-      dataType: dataType,
-      dateType: dateType,
-    },
+    attributes: [
+      'projectId',
+      'increasedValue',
+      'totalValue',
+      [sequelize.literal('ROW_NUMBER() OVER ()'), 'rank'],
+    ],
+    where: whereCriteria,
+    raw: true,
+    order: orderCriteria,
+    limit: pageSize,
+    offset: offset,
+  }).catch(err => {
+    logger.error('Error occurred:', err);
+  });
+  const showedProjectIds = result.map(item => item.projectId);
+
+  // 获取上一阶段排名
+  if (dateType == DATE_TYPE.YEAR) {
+    date = date.subtract(1, 'year');
+    selectedDate = date.startOf('year').toDate();
+  } else if (dateType == DATE_TYPE.MONTH) {
+    date = date.subtract(1, 'month');
+    selectedDate = date.startOf('month').toDate();
+  }
+
+  const lastWhereCriteria = await getWhereCriteria(
+    selectedDate,
+    dataType,
+    dateType,
+    githubProjectIds,
+  );
+
+  const lastRank = await TrendHistory.findAll({
+    attributes: ['projectId', [sequelize.literal('ROW_NUMBER() OVER ()'), 'lastRank']],
+    where: lastWhereCriteria,
+    raw: true,
     order: orderCriteria,
   }).catch(err => {
     logger.error('Error occurred:', err);
   });
-  // 去重，保留更早的数据
-  const firstDataMap = new Map();
-  const deduplicatedResults = result.filter(data => {
-    const projectId = data.projectId;
-    if (!firstDataMap.has(projectId) && githubProjectIds.includes(projectId)) {
-      firstDataMap.set(projectId, true);
-      return true;
-    }
-    return false;
+
+  const lastRankResult = lastRank.filter(result => showedProjectIds.includes(result.projectId));
+  const lastRankMap = {};
+  lastRankResult.forEach(item => {
+    lastRankMap[item.projectId] = item.lastRank;
+  });
+  result.forEach(item => {
+    item.lastRank = lastRankMap[item.projectId];
   });
 
-  // 增加排名列
-  let rank = 1;
-  let prevValue = null;
-  let prevRank = 1;
-
-  deduplicatedResults.forEach(row => {
-    let tempValue;
-    if (rankType == 1) {
-      tempValue = row.increasedValue;
-    } else {
-      tempValue = row.totalValue;
-    }
-    if (tempValue !== prevValue) {
-      row.rank = rank;
-      prevRank = rank;
-    } else {
-      row.rank = prevRank;
-    }
-    rank++;
-    prevValue = row.increasedValue;
-  });
-
-  // rank全为1时返回null
-  const allRanksAreOne = deduplicatedResults.every(item => item.rank === 1);
-  if (allRanksAreOne) {
-    deduplicatedResults.forEach(item => {
-      item.rank = null;
-    });
-  }
-
-  return deduplicatedResults;
+  return result;
 }
 
 export async function newGithubTop(
   page: Page,
   type: { dataType: string; dateType: string; rankType: string; language: string },
 ) {
-  const pageSize = page.pageSize;
-  const offset = page.pageSize * (page.pageNo - 1);
-
   const language = type.language === 'All' ? null : type.language;
 
   const githubProjects = language
@@ -232,21 +236,12 @@ export async function newGithubTop(
           language: language,
         },
       })
-    : await GithubProjects.findAll({
-        attributes: ['id'],
-      });
+    : null;
 
-  const githubProjectIds = githubProjects.map(project => project.id);
-  logger.info(githubProjectIds);
-  const currentTrendData = await getTrendData(type, STAGE_TYPE.CURRENT, githubProjectIds);
-  const result = currentTrendData.slice(offset, offset + pageSize);
-  const lastTrendData = await getTrendData(type, STAGE_TYPE.LAST, githubProjectIds);
+  const githubProjectIds = githubProjects ? githubProjects.map(project => project.id) : null;
+  const result = await getTrendData(type, githubProjectIds, page);
   const data = [];
   for (const item of result) {
-    const lastPeriodRank = lastTrendData.find(
-      lastItem => lastItem.projectId === item.projectId,
-    )?.rank;
-
     const projectInfo = await GithubProjects.findOne({
       where: {
         id: item.projectId,
@@ -256,7 +251,7 @@ export async function newGithubTop(
 
     data.push({
       currentRank: item.rank,
-      lastRank: lastPeriodRank,
+      lastRank: item.lastRank,
       increasedValue: item.increasedValue,
       totalValue: item.totalValue,
       name: projectInfo.fullName,
