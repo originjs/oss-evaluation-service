@@ -52,6 +52,16 @@ const STAGE_TYPE = {
   LAST: 0,
 };
 
+const DATE_TYPE = {
+  YEAR: 1,
+  MONTH: 2,
+};
+
+const RANK_TYPE = {
+  INCREASE: 1,
+  TOTAL: 2,
+};
+
 GithubProjects.hasOne(EvaluationSummary, {
   foreignKey: 'project_id',
   as: 'evaluationSummary',
@@ -117,7 +127,7 @@ async function getTrendData(type, stageType, githubProjectIds) {
   const dateType = type.dateType;
   const rankType = type.rankType;
   let orderCriteria;
-  if (rankType == 1) {
+  if (rankType == RANK_TYPE.INCREASE) {
     orderCriteria = [
       ['date', 'ASC'],
       ['increasedValue', 'DESC'],
@@ -133,7 +143,7 @@ async function getTrendData(type, stageType, githubProjectIds) {
   let startDate, endDate;
 
   // 年数据处理
-  if (dateType == 1) {
+  if (dateType == DATE_TYPE.YEAR) {
     if (stageType === STAGE_TYPE.LAST) {
       date = date.subtract(1, 'year');
     }
@@ -141,7 +151,7 @@ async function getTrendData(type, stageType, githubProjectIds) {
     startDate = date.add(1, 'year').startOf('year').toDate();
   }
   // 月数据处理
-  if (dateType == 2) {
+  if (dateType == DATE_TYPE.MONTH) {
     if (stageType === STAGE_TYPE.LAST) {
       date = date.subtract(1, 'month');
     }
@@ -195,6 +205,14 @@ async function getTrendData(type, stageType, githubProjectIds) {
     prevValue = row.increasedValue;
   });
 
+  // rank全为1时返回null
+  const allRanksAreOne = deduplicatedResults.every(item => item.rank === 1);
+  if (allRanksAreOne) {
+    deduplicatedResults.forEach(item => {
+      item.rank = null;
+    });
+  }
+
   return deduplicatedResults;
 }
 
@@ -207,7 +225,7 @@ export async function newGithubTop(
 
   const language = type.language === 'All' ? null : type.language;
 
-  const githubProjects = type.language
+  const githubProjects = language
     ? await GithubProjects.findAll({
         attributes: ['id'],
         where: {
