@@ -17,7 +17,7 @@ export class TrendController extends Controller {
     return Result.ok(data);
   }
 
-  @Get('new/{dataType}')
+  @Get('rank/{dataType}')
   public async searchTrend(
     @Path() dataType: string,
     @Query() dateType: string,
