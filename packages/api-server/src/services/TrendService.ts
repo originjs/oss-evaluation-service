@@ -1,13 +1,11 @@
 import {
   GithubProjects,
-  TrendHistory,
   EvaluationSummary,
   GithubProjectsStargazersTrend,
   logger,
   sequelize,
 } from '@orginjs/oss-evaluation-data-model';
 import _ from 'underscore';
-import { Op } from 'sequelize';
 import dayjs from 'dayjs';
 
 export class ChartData {
@@ -118,47 +116,16 @@ export async function githubTop(page: Page, type: string) {
   return res;
 }
 
-async function getWhereCriteria(selectedDate, dataType, dateType, githubProjectIds) {
-  let whereCriteria;
-  if (githubProjectIds) {
-    whereCriteria = {
-      date: selectedDate,
-      dataType: dataType,
-      dateType: dateType,
-      projectId: {
-        [Op.in]: githubProjectIds,
-      },
-    };
-  } else {
-    whereCriteria = {
-      date: selectedDate,
-      dataType: dataType,
-      dateType: dateType,
-    };
-  }
-  return whereCriteria;
-}
-
 async function getTrendData(type, githubProjectIds, page) {
   const dataType = type.dataType;
   const dateType = type.dateType;
   const rankType = type.rankType;
   const pageSize = page.pageSize;
   const offset = page.pageSize * (page.pageNo - 1);
-  let orderCriteria, rawOrderCriteria;
-  if (rankType == RANK_TYPE.INCREASE) {
-    orderCriteria = [
-      ['increasedValue', 'DESC'],
-      ['totalValue', 'DESC'],
-    ];
-    rawOrderCriteria = `increased_value desc, total_value desc`;
-  } else {
-    orderCriteria = [
-      ['totalValue', 'DESC'],
-      ['increasedValue', 'DESC'],
-    ];
-    rawOrderCriteria = `total_value desc, increased_value desc`;
-  }
+  const orderCriteria =
+    rankType == RANK_TYPE.INCREASE
+      ? `increased_value desc, total_value desc`
+      : `total_value desc, increased_value desc`;
 
   let date = dayjs();
   let selectedDate;
@@ -169,23 +136,25 @@ async function getTrendData(type, githubProjectIds, page) {
     selectedDate = date.startOf('month').toDate();
   }
 
-  const whereCriteria = await getWhereCriteria(selectedDate, dataType, dateType, githubProjectIds);
+  const inProjectsSQL = githubProjectIds ? `and project_id in (:githubProjectIds)` : ``;
 
-  const result = await TrendHistory.findAll({
-    attributes: [
-      'projectId',
-      'increasedValue',
-      'totalValue',
-      [sequelize.literal('ROW_NUMBER() OVER ()'), 'rank'],
-    ],
-    where: whereCriteria,
-    raw: true,
-    order: orderCriteria,
-    limit: pageSize,
-    offset: offset,
-  }).catch(err => {
-    logger.error('Error occurred:', err);
-  });
+  const QUERY_CURRENT_RANK = `select project_id as projectId, increased_value as increasedValue,
+      total_value as totalValue, row_number() over () as currentRank
+      from trend_history
+      where data_type = :dataType
+        and date_type = :dateType
+        and date = :selectedDate
+        ${inProjectsSQL}
+      order by ${orderCriteria}
+      limit :pageSize offset :offset`;
+  const result = await sequelize
+    .query(QUERY_CURRENT_RANK, {
+      replacements: { dataType, dateType, selectedDate, githubProjectIds, pageSize, offset },
+      type: sequelize.QueryTypes.SELECT,
+    })
+    .catch(err => {
+      logger.error('Error occurred:', err);
+    });
   const showedProjectIds = result.map(item => item.projectId);
 
   // 获取上一阶段排名
@@ -197,49 +166,23 @@ async function getTrendData(type, githubProjectIds, page) {
     selectedDate = date.startOf('month').toDate();
   }
 
-  let lastRankResult;
-  if (githubProjectIds) {
-    const QUERY_LAST_RANK =
-      `select project_id as projectId, lastRank
+  const QUERY_LAST_RANK = `select project_id as projectId, lastRank
       from (select history.*, row_number() over () as lastRank
       from trend_history history
       where history.data_type = :dataType
         and date_type = :dateType
         and date = :selectedDate
-        and project_id in (:githubProjectIds)
-      order by ` +
-      rawOrderCriteria +
-      `) tmp
+        ${inProjectsSQL}
+      order by ${orderCriteria}) tmp
       where project_id in (:showedProjectIds);`;
-    lastRankResult = await sequelize
-      .query(QUERY_LAST_RANK, {
-        replacements: { dataType, dateType, selectedDate, githubProjectIds, showedProjectIds },
-        type: sequelize.QueryTypes.SELECT,
-      })
-      .catch(err => {
-        logger.error('Error occurred:', err);
-      });
-  } else {
-    const QUERY_LAST_RANK =
-      `select project_id as projectId, lastRank
-      from (select history.*, row_number() over () as lastRank
-      from trend_history history
-      where history.data_type = :dataType
-        and date_type = :dateType
-        and date = :selectedDate
-      order by ` +
-      rawOrderCriteria +
-      ` ) tmp
-      where project_id in (:showedProjectIds);`;
-    lastRankResult = await sequelize
-      .query(QUERY_LAST_RANK, {
-        replacements: { dataType, dateType, selectedDate, showedProjectIds },
-        type: sequelize.QueryTypes.SELECT,
-      })
-      .catch(err => {
-        logger.error('Error occurred:', err);
-      });
-  }
+  const lastRankResult = await sequelize
+    .query(QUERY_LAST_RANK, {
+      replacements: { dataType, dateType, selectedDate, githubProjectIds, showedProjectIds },
+      type: sequelize.QueryTypes.SELECT,
+    })
+    .catch(err => {
+      logger.error('Error occurred:', err);
+    });
 
   const lastRankMap = {};
   lastRankResult.forEach(item => {
@@ -279,7 +222,7 @@ export async function newGithubTop(
     });
 
     data.push({
-      currentRank: item.rank,
+      currentRank: item.currentRank,
       lastRank: item.lastRank,
       increasedValue: item.increasedValue,
       totalValue: item.totalValue,
