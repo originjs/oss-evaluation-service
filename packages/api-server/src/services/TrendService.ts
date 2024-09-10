@@ -145,17 +145,19 @@ async function getTrendData(type, githubProjectIds, page) {
   const rankType = type.rankType;
   const pageSize = page.pageSize;
   const offset = page.pageSize * (page.pageNo - 1);
-  let orderCriteria;
+  let orderCriteria, rawOrderCriteria;
   if (rankType == RANK_TYPE.INCREASE) {
     orderCriteria = [
       ['increasedValue', 'DESC'],
       ['totalValue', 'DESC'],
     ];
+    rawOrderCriteria = `increased_value desc, total_value desc`;
   } else {
     orderCriteria = [
       ['totalValue', 'DESC'],
       ['increasedValue', 'DESC'],
     ];
+    rawOrderCriteria = `total_value desc, increased_value desc`;
   }
 
   let date = dayjs();
@@ -195,23 +197,50 @@ async function getTrendData(type, githubProjectIds, page) {
     selectedDate = date.startOf('month').toDate();
   }
 
-  const lastWhereCriteria = await getWhereCriteria(
-    selectedDate,
-    dataType,
-    dateType,
-    githubProjectIds,
-  );
+  let lastRankResult;
+  if (githubProjectIds) {
+    const QUERY_LAST_RANK =
+      `select project_id as projectId, lastRank
+      from (select history.*, row_number() over () as lastRank
+      from trend_history history
+      where history.data_type = :dataType
+        and date_type = :dateType
+        and date = :selectedDate
+        and project_id in (:githubProjectIds)
+      order by ` +
+      rawOrderCriteria +
+      `) tmp
+      where project_id in (:showedProjectIds);`;
+    lastRankResult = await sequelize
+      .query(QUERY_LAST_RANK, {
+        replacements: { dataType, dateType, selectedDate, githubProjectIds, showedProjectIds },
+        type: sequelize.QueryTypes.SELECT,
+      })
+      .catch(err => {
+        logger.error('Error occurred:', err);
+      });
+  } else {
+    const QUERY_LAST_RANK =
+      `select project_id as projectId, lastRank
+      from (select history.*, row_number() over () as lastRank
+      from trend_history history
+      where history.data_type = :dataType
+        and date_type = :dateType
+        and date = :selectedDate
+      order by ` +
+      rawOrderCriteria +
+      ` ) tmp
+      where project_id in (:showedProjectIds);`;
+    lastRankResult = await sequelize
+      .query(QUERY_LAST_RANK, {
+        replacements: { dataType, dateType, selectedDate, showedProjectIds },
+        type: sequelize.QueryTypes.SELECT,
+      })
+      .catch(err => {
+        logger.error('Error occurred:', err);
+      });
+  }
 
-  const lastRank = await TrendHistory.findAll({
-    attributes: ['projectId', [sequelize.literal('ROW_NUMBER() OVER ()'), 'lastRank']],
-    where: lastWhereCriteria,
-    raw: true,
-    order: orderCriteria,
-  }).catch(err => {
-    logger.error('Error occurred:', err);
-  });
-
-  const lastRankResult = lastRank.filter(result => showedProjectIds.includes(result.projectId));
   const lastRankMap = {};
   lastRankResult.forEach(item => {
     lastRankMap[item.projectId] = item.lastRank;
