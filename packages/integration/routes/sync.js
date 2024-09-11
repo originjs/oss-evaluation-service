@@ -618,8 +618,14 @@ router.route('/stackoverflow').post(syncStackOverFlowResultData);
  *       content:
  *         application/json:
  *           schema:
- *             type: Array<number>
- *             example: [1000,1123]
+ *             type: object
+ *             properties:
+ *               language:
+ *                 type: string
+ *                 example: javascript
+ *               starRange:
+ *                 type: Array<number>
+ *                 example: [1000,1123]
  *     responses:
  *       200:
  *         description: Success
@@ -641,8 +647,14 @@ router.route('/github/stars/observeprojects').post(observeProjectsByStar);
  *       content:
  *         application/json:
  *           schema:
- *             type: Array<number>
- *             example: [1000,1123]
+ *             type: object
+ *             properties:
+ *               language:
+ *                 type: string
+ *                 example: javascript
+ *               starRange:
+ *                 type: Array<number>
+ *                 example: [1000,1123]
  *     responses:
  *       200:
  *         description: Success
