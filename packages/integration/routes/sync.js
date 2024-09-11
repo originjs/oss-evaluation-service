@@ -1436,31 +1436,42 @@ router.route('/benchmark/getBenchmarkIndex').get(importBenchmarkIndexByGetHandle
 
 /**
  * @swagger
- * /sync/storeAllProjectTrend:
- *   get:
- *     summary: store trend history of project
- *     responses:
- *       200:
- *         description: success.
- */
-router.route('/storeAllProjectTrend').get(storeAllProjectTrendHandler);
-
-/**
- * @swagger
- * /sync/storeSingleProjectTrend/{repoUrl}:
+ * /sync/storeAllProjectTrend/{date}:
  *   get:
  *     summary: store trend history of project
  *     parameters:
  *      - in: path
- *        name: repoUrl
+ *        name: date
  *        type: string
  *        required: true
- *        example: https://github.com/vuejs/router
+ *        example: "2024-01-01"
  *     responses:
  *       200:
  *         description: success.
  */
-router.route('/storeSingleProjectTrend/:repoUrl').get(storeSingleProjectTrendHandler);
+router.route('/storeAllProjectTrend/:date').get(storeAllProjectTrendHandler);
+
+/**
+ * @swagger
+ * /sync/storeSingleProjectTrend/{date}/{repoUrl}:
+ *   get:
+ *     summary: store trend history of project
+ *     parameters:
+ *      - in: path
+ *        name: date
+ *        type: string
+ *        required: true
+ *        example: "2024-01-01"
+ *      - in: path
+ *        name: repoUrl
+ *        type: string
+ *        required: true
+ *        example: "https://github.com/vuejs/router"
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/storeSingleProjectTrend/:date/:repoUrl').get(storeSingleProjectTrendHandler);
 
 /**
  * @swagger

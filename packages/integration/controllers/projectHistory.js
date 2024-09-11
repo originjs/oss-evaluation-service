@@ -10,6 +10,10 @@ import { getAlllContributors } from './projectContributors.js';
 import * as cheerio from 'cheerio';
 import { storeGithubHistory } from './trendHistory.js';
 import { Op } from 'sequelize';
+import { isFirstDayOfMonth, isFirstDayOfWeek } from '../../util/day-js-util.js';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc.js';
+dayjs.extend(utc);
 
 export async function syncSingleProjectHistoryHandler(req, res) {
   const { repoUrl: repoUrl } = req.params;
@@ -102,17 +106,14 @@ export async function syncHistoryByProjectList(projectList, currentDate) {
         },
       },
     );
-    await storeGithubHistory(project.id);
+    await storeGithubHistory(project.id, currentDate);
   }
 }
 
 async function filterNotExistProject(projectId, currentDate) {
   const allProjectList = await getProjectList(projectId);
-  const existRecordList = await getExistRecord(currentDate);
-  const projectList = allProjectList.filter(
-    project => !existRecordList.some(existProject => existProject.projectId === project.id),
-  );
-  return projectList;
+  const existRecordProjectIds = new Set((await getExistRecord(currentDate)).map(x => x.projectId));
+  return allProjectList.filter(project => existRecordProjectIds.has(project.id));
 }
 
 export default async function syncProjectHistory(projectId) {
@@ -120,11 +121,11 @@ export default async function syncProjectHistory(projectId) {
   for (let tryTimes = 0; tryTimes < 5; tryTimes++) {
     logger.info(`Sync Project History......Try Time: ${tryTimes + 1}`);
     const projectList = await filterNotExistProject(projectId, currentDate);
-    if (projectList.length > 0) {
-      await syncHistoryByProjectList(projectList, currentDate);
-    } else {
-      return;
+    if (projectList.length <= 0) {
+      // integration finished
+      break;
     }
+    await syncHistoryByProjectList(projectList, currentDate);
     await sleep(3600 * 1000);
   }
 }
@@ -202,12 +203,20 @@ async function getStars(repoName) {
 }
 
 export async function projectHistoryTimer() {
-  const startTime = process.hrtime();
   logger.info('[Integration][ProjectHistory] Integration Job start');
-  await syncProjectHistory();
-  logger.info('[Integration][ProjectHistory] Integration Job end');
-  const endTime = process.hrtime(startTime);
-  logger.info(
-    `[Integration][ProjectHistory] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
-  );
+  const startTime = process.hrtime();
+  // It's only executed on the first day of the month or the first day of the week.
+  const need2Run = isFirstDayOfWeek() || isFirstDayOfMonth();
+  if (need2Run) {
+    await syncProjectHistory();
+    logger.info('[Integration][ProjectHistory] Integration Job end');
+    const endTime = process.hrtime(startTime);
+    logger.info(
+      `[Integration][ProjectHistory] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
+    );
+  } else {
+    logger.info(
+      '[Integration][ProjectHistory] Integration Job stop because not Monday or the first day of the month.',
+    );
+  }
 }

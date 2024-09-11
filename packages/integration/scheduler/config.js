@@ -40,7 +40,7 @@ export const JobConfig = {
     },
     {
       name: 'projectHistoryTimer',
-      cronScheduleTime: '0 0 1 * *', // 每月1号 00:00
+      cronScheduleTime: '0 0 * * *', // 每天 00:00执行，实际会在代码中控制每月1号和每周的第一天执行
       enabled: isProduction, // only start in production environment
     },
     {

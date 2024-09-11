@@ -1,26 +1,34 @@
 import {
   GithubProjects,
-  GithubProjectsHistory,
   EvaluationSummaryHistory,
   TrendHistory,
   logger,
+  GithubProjectsHistory,
 } from '@orginjs/oss-evaluation-data-model';
 import { getProjectByUrl } from '../util/util.js';
 import { Op } from 'sequelize';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
+import {
+  firstDayOfPreviousMonth,
+  firstDayOfPreviousYear,
+  mondayOfPreviousWeek,
+  isFirstDayOfMonth,
+  isFirstDayOfWeek,
+  isFirstDayOfYear,
+} from '../../util/day-js-util.js';
 
 dayjs.extend(utc);
 
 export async function storeSingleProjectTrendHandler(req, res) {
-  const { repoUrl: repoUrl } = req.params;
+  const { repoUrl: repoUrl, date: dateStr } = req.params;
   const project = await getProjectByUrl(repoUrl);
-  await storeTrendHistory(project.id);
+  await storeTrendHistory(project.id, dayjs(dateStr));
   res.status(200).send('success');
 }
 
 export async function storeAllProjectTrendHandler(req, res) {
-  await storeTrendHistory();
+  await storeTrendHistory(null, dayjs(req.params.date));
   res.status(200).send('success');
 }
 
@@ -34,6 +42,7 @@ const DATA_TYPE = {
 const DATE_TYPE = {
   YEAR: 1,
   MONTH: 2,
+  WEEK: 3,
 };
 
 async function getProjectList(projectId) {
@@ -48,7 +57,7 @@ async function getProjectList(projectId) {
   return projectList;
 }
 
-export async function storeTrendHistory(projectId) {
+export async function storeTrendHistory(projectId, date) {
   logger.info('Store Trend History');
   // 1. get all github project
   const projectList = await getProjectList(projectId);
@@ -59,7 +68,7 @@ export async function storeTrendHistory(projectId) {
     logger.info('**Current Progress**: ', `${count}/${sumOfProject}`);
     count += 1;
     // 2. update project trend
-    await storeGithubHistory(project.id);
+    await storeGithubHistory(project.id, date);
     await storeEvaluateScore(project.id);
   }
 }
@@ -152,25 +161,6 @@ async function getMonthData(dataList) {
 }
 
 /**
- * Get data for the January of current year and January of last year
- *
- * @param {*} dataList
- * @return {*}
- */
-async function getYearData(dataList) {
-  const currentYear = dayjs().year();
-  const lastYear = currentYear - 1;
-  const currentYearData = dataList.find(
-    item =>
-      new Date(item.date).getMonth() === 0 && new Date(item.date).getFullYear() === currentYear,
-  );
-  const lastYearData = dataList.find(
-    item => new Date(item.date).getMonth() === 0 && new Date(item.date).getFullYear() === lastYear,
-  );
-  return [currentYearData, lastYearData];
-}
-
-/**
  * Calculate the increase and current amount
  *
  * @param {*} dataField
@@ -220,42 +210,6 @@ async function getDumpQuery(projectId, data, dataType, dateType) {
   return [insertedData, condition];
 }
 
-async function dumpGithubHistoryMonthTable(projectId, monthData) {
-  // 存入月相关数据
-  const queryStarMonth = await getDumpQuery(
-    projectId,
-    monthData.star,
-    DATA_TYPE.STAR,
-    DATE_TYPE.MONTH,
-  );
-  const queryContributorMonth = await getDumpQuery(
-    projectId,
-    monthData.contributor,
-    DATA_TYPE.CONTRIBUTOR,
-    DATE_TYPE.MONTH,
-  );
-  await TrendHistory.upsert(queryStarMonth[0], queryStarMonth[1]);
-  await TrendHistory.upsert(queryContributorMonth[0], queryContributorMonth[1]);
-}
-
-async function dumpGithubHistoryYearTable(projectId, yearData) {
-  // 存入年相关数据
-  const queryStarYear = await getDumpQuery(
-    projectId,
-    yearData.star,
-    DATA_TYPE.STAR,
-    DATE_TYPE.YEAR,
-  );
-  const queryContributorYear = await getDumpQuery(
-    projectId,
-    yearData.contributor,
-    DATA_TYPE.CONTRIBUTOR,
-    DATE_TYPE.YEAR,
-  );
-  await TrendHistory.upsert(queryStarYear[0], queryStarYear[1]);
-  await TrendHistory.upsert(queryContributorYear[0], queryContributorYear[1]);
-}
-
 async function dumpEvaluateHistoryTable(projectId, monthData) {
   // 存入月相关数据
   const queryEcologyMonth = await getDumpQuery(
@@ -274,58 +228,88 @@ async function dumpEvaluateHistoryTable(projectId, monthData) {
   await TrendHistory.upsert(queryQualityMonth[0], queryQualityMonth[1]);
 }
 
-export async function storeGithubHistory(projectId) {
-  const query = await getQuery(projectId);
-  const githubHistoryRawList = await GithubProjectsHistory.findAll(query);
-  const githubHistoryList = await uniqueYearMonth(githubHistoryRawList);
-  // 当月和上月数据
-  const monthRawData = await getMonthData(githubHistoryList);
-  const currentMonthData = monthRawData[0];
-  const lastMonthData = monthRawData[1];
-  // 当月总量和增长量
-  const monthData = {
-    star: {
-      current: null,
-      last: null,
-      increase: null,
-    },
-    contributor: {
-      current: null,
-      last: null,
-      increase: null,
-    },
-  };
-  await initializeData(monthData.star, 'stars', currentMonthData, lastMonthData);
-  await initializeData(monthData.contributor, 'contributors', currentMonthData, lastMonthData);
-  // 存入数据表
-  await dumpGithubHistoryMonthTable(projectId, monthData);
-
-  const currentMonth = dayjs().month();
-  // 仅在1月计算年相关数据
-  if (currentMonth !== 0) {
-    return;
+/**
+ * Get the current date and previous date based on the type of date provided.
+ * The function checks if the given date is the first day of the week, month, or year,
+ * and returns an array of objects containing the current date, previous date, and date type.
+ *
+ * @param {Date} date - The date to check.
+ * @returns {Array<Object>} - An array of objects, each containing:
+ *   - {Date} currentDate - The provided date.
+ *   - {Date} previousDate - The calculated previous date based on the type.
+ *   - {number} dateType - The type of date (WEEK, MONTH, or YEAR).
+ */
+function getCalculateDateAndType(date) {
+  const res = [];
+  if (isFirstDayOfWeek(date)) {
+    res.push({
+      currentDate: date,
+      previousDate: mondayOfPreviousWeek(date),
+      dateType: DATE_TYPE.WEEK,
+    });
   }
-  // 当年和上年数据
-  const yearRawData = await getYearData(githubHistoryList);
-  const currentYearData = yearRawData[0];
-  const lastYearData = yearRawData[1];
-  // 当年总量和增长量
-  const yearData = {
-    star: {
-      current: null,
-      last: null,
-      increase: null,
-    },
-    contributor: {
-      current: null,
-      last: null,
-      increase: null,
-    },
-  };
-  await initializeData(yearData.star, 'stars', currentYearData, lastYearData);
-  await initializeData(yearData.contributor, 'contributors', currentYearData, lastYearData);
-  // 存入数据表
-  await dumpGithubHistoryYearTable(projectId, yearData);
+  if (isFirstDayOfMonth(date)) {
+    res.push({
+      currentDate: date,
+      previousDate: firstDayOfPreviousMonth(date),
+      dateType: DATE_TYPE.MONTH,
+    });
+  }
+  if (isFirstDayOfYear(date)) {
+    res.push({
+      currentDate: date,
+      previousDate: firstDayOfPreviousYear(date),
+      dateType: DATE_TYPE.YEAR,
+    });
+  }
+  return res;
+}
+
+/**
+ * Stores the GitHub history for a given project and date.
+ * It calculates the current and previous dates based on the provided date,
+ * retrieves the GitHub information for those dates, and then upserts
+ * the trend data into the TrendHistory table.
+ *
+ * @param {number} projectId - The ID of the project for which to store the history.
+ * @param {dayjs.Date} date - The date for which to calculate the GitHub history.
+ * @returns {Promise<void>} - A promise that resolves when the operation is complete.
+ */
+export async function storeGithubHistory(projectId, date) {
+  const dateInfos = getCalculateDateAndType(date);
+  const propertyTypes = [
+    { dataType: DATA_TYPE.STAR, name: 'stars' },
+    { dataType: DATA_TYPE.CONTRIBUTOR, name: 'contributors' },
+  ];
+  for (const dateInfo of dateInfos) {
+    const currentGithubInfo = await GithubProjectsHistory.findOne({
+      where: {
+        date: dateInfo.currentDate.toDate(),
+        projectId,
+      },
+    });
+    const previousGithubInfo = await GithubProjectsHistory.findOne({
+      where: {
+        date: dateInfo.previousDate.toDate(),
+        projectId,
+      },
+    });
+    for (const property of propertyTypes) {
+      const updateData = {
+        projectId,
+        date: date.toDate(),
+        dateType: dateInfo.dateType,
+        dataType: property.dataType,
+        // any null then increment is null
+        increasedValue:
+          currentGithubInfo?.[property.name] == null || previousGithubInfo?.[property.name] == null
+            ? null
+            : currentGithubInfo[property.name] - previousGithubInfo[property.name],
+        totalValue: currentGithubInfo?.[property.name],
+      };
+      await TrendHistory.upsert(updateData);
+    }
+  }
 }
 
 export async function storeEvaluateScore(projectId) {

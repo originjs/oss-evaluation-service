@@ -3,7 +3,31 @@ const isFirstDayOfMonth = dayParam => {
 };
 
 const isFirstDayOfWeek = dayParam => {
-  return dayParam.day() === 1; // zero is Sun，1 is Mon
+  // zero is Sun，1 is Mon
+  return dayParam.day() === 1;
 };
 
-export { isFirstDayOfWeek, isFirstDayOfMonth };
+const isFirstDayOfYear = dayParam => {
+  return dayParam.month() === 0 && dayParam.date() === 1;
+};
+
+const mondayOfPreviousWeek = dayParam => {
+  return dayParam.subtract(1, 'week').startOf('week').add(1, 'day');
+};
+
+const firstDayOfPreviousMonth = dayParam => {
+  return dayParam.subtract(1, 'month').startOf('month');
+};
+
+const firstDayOfPreviousYear = dayParam => {
+  return dayParam.subtract(1, 'year').startOf('year');
+};
+
+export {
+  isFirstDayOfWeek,
+  isFirstDayOfMonth,
+  isFirstDayOfYear,
+  mondayOfPreviousWeek,
+  firstDayOfPreviousMonth,
+  firstDayOfPreviousYear,
+};

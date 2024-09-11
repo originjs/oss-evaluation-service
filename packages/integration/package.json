@@ -21,6 +21,7 @@
     "@orginjs/github-sdk": "workspace:^",
     "@orginjs/gitlab-sdk": "workspace:^",
     "@orginjs/oss-evaluation-data-model": "workspace:^",
+    "@orginjs/oss-evaluation-util": "workspace:^",
     "@orginjs/sonar-cloud-sdk": "workspace:^",
     "async": "^3.2.5",
     "cheerio": "1.0.0-rc.12",
