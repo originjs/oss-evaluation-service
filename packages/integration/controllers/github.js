@@ -215,7 +215,7 @@ function parseProjects(items, dataType) {
     name: project.name,
     fullName: project.full_name,
     htmlUrl: project.html_url,
-    description: project.description,
+    description: project.description?.slice(0, 1001),
     privateFlag: project.private,
     ownerName: project.owner.login,
     forkFlag: project.fork,
