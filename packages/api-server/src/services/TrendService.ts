@@ -218,7 +218,7 @@ export async function newGithubTop(
       where: {
         id: item.projectId,
       },
-      attributes: ['fullName', 'htmlUrl', 'description', 'ownerAvatarUrl'],
+      attributes: ['fullName', 'htmlUrl', 'description', 'ownerAvatarUrl', 'createdAt'],
     });
 
     data.push({
@@ -230,6 +230,7 @@ export async function newGithubTop(
       logo: projectInfo.ownerAvatarUrl,
       htmlUrl: projectInfo.htmlUrl,
       description: projectInfo.description,
+      createdAt: projectInfo.createdAt.slice(0, 10),
     });
   }
 
