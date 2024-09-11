@@ -38,6 +38,18 @@ const periodTypes = {
   month: 'mongthly',
 };
 
+const commonLanguages = [
+  '',
+  'JavaScript',
+  'C',
+  'C++',
+  'Python',
+  'Java',
+  'Go',
+  'Rust',
+  'TypeScript',
+];
+
 export async function observeProjectsByStar(req, res) {
   const githubApiUrl = getGithubApiUrl(req);
   const result = await pagingQuery(githubApiUrl);
@@ -363,49 +375,58 @@ function parseLinks(linksStr) {
   return links;
 }
 
-async function getGithubTrendProjects(period = periodTypes.day) {
+async function getGithubTrendProjects(period = periodTypes.day, language = '') {
   let projectsList = [];
 
-  const url = `https://github.com/trending?since=${period}&spoken_language_code=`;
-  const response = await fetchWithRetries(url);
-  if (!response) {
-    logger.info('The network is faulty and the github projects trending list cannot be obtained');
-    return projectsList;
-  }
-
-  const content = await response.text();
-  const $ = cheerio.load(content);
-
-  // get the project list
-  $('article.Box-row').each((index, element) => {
-    const h2Element = $(element).find('h2.h3.lh-condensed');
-    const aElement = h2Element.find('a');
-
-    if (aElement.length > 0) {
-      const href = aElement.attr('href');
-      const project = href.substring(1);
-      projectsList.push(project);
-    } else {
-      logger.info('project name not found');
+  const url = `https://github.com/trending?since=${period}&spoken_language_code=${language}`;
+  try {
+    const response = await fetchWithRetries(url);
+    if (!response) {
+      logger.info('The network is faulty and the github projects trending list cannot be obtained');
+      return projectsList;
     }
-  });
+
+    const content = await response.text();
+    const $ = cheerio.load(content);
+
+    // get the project list
+    $('article.Box-row').each((index, element) => {
+      const h2Element = $(element).find('h2.h3.lh-condensed');
+      const aElement = h2Element.find('a');
+
+      if (aElement.length > 0) {
+        const href = aElement.attr('href');
+        const project = href.substring(1);
+        projectsList.push(project);
+      } else {
+        logger.info('project name not found');
+      }
+    });
+  } catch (e) {
+    logger.error(`**web crawler: Url get github trend is failed !** :${url}`);
+  }
 
   return projectsList;
 }
 
-async function getOssTrendProjects() {
+async function getOssTrendProjects(language = '') {
   let projectsList = [];
-
   // get the daily oss trend projects
-  const url = `https://api.ossinsight.io/v1/trends/repos/`;
-  const response = await fetchWithRetries(url);
-  if (!response) {
-    logger.info('The network is faulty and the oss trending list cannot be obtained');
-    return projectsList;
-  }
-  const content = await response.json();
-  for (const project of content.data.rows) {
-    projectsList.push(project.repo_name);
+  const url = language.length
+    ? `https://api.ossinsight.io/v1/trends/repos/?language=${language}`
+    : `https://api.ossinsight.io/v1/trends/repos/`;
+  try {
+    const response = await fetchWithRetries(url);
+    if (!response) {
+      logger.info('The network is faulty and the oss trending list cannot be obtained');
+      return projectsList;
+    }
+    const content = await response.json();
+    for (const project of content.data.rows) {
+      projectsList.push(project.repo_name);
+    }
+  } catch (e) {
+    logger.error(`**web crawler: Url get oss trend is failed !** :${url}`);
   }
 
   return projectsList;
@@ -414,33 +435,36 @@ async function getOssTrendProjects() {
 async function getOssCollectionProjects() {
   let projectsList = [];
   let collectionList = [];
-
   // get the oss collection ids
   const url = `https://api.ossinsight.io/v1/collections/`;
-  const response = await fetchWithRetries(url);
-  if (!response) {
-    logger.info('The network is faulty and the oss collection list cannot be obtained');
-    return projectsList;
-  }
-  const content = await response.json();
-  for (const collection of content.data.rows) {
-    collectionList.push(collection.id);
-  }
+  try {
+    const response = await fetchWithRetries(url);
+    if (!response) {
+      logger.info('The network is faulty and the oss collection list cannot be obtained');
+      return projectsList;
+    }
+    const content = await response.json();
+    for (const collection of content.data.rows) {
+      collectionList.push(collection.id);
+    }
 
-  // using collection id to get the oss star trend projects, which is the most complete list
-  for (const collectionId of collectionList) {
-    const collectionUrl = `https://api.ossinsight.io/v1/collections/${collectionId}/ranking_by_stars/`;
-    const collectionResponse = await fetch(collectionUrl);
-    if (!collectionResponse) {
-      logger.info(
-        `The network is faulty and the projects list of oss collection ${collectionId} cannot be obtained`,
-      );
-      continue;
+    // using collection id to get the oss star trend projects, which is the most complete list
+    for (const collectionId of collectionList) {
+      const collectionUrl = `https://api.ossinsight.io/v1/collections/${collectionId}/ranking_by_stars/`;
+      const collectionResponse = await fetch(collectionUrl);
+      if (!collectionResponse) {
+        logger.info(
+          `The network is faulty and the projects list of oss collection ${collectionId} cannot be obtained`,
+        );
+        continue;
+      }
+      const collectionContent = await collectionResponse.json();
+      for (const collection of collectionContent.data.rows) {
+        projectsList.push(collection.repo_name);
+      }
     }
-    const collectionContent = await collectionResponse.json();
-    for (const collection of collectionContent.data.rows) {
-      projectsList.push(collection.repo_name);
-    }
+  } catch (e) {
+    logger.error(`**web crawler: Url get oss collectioin trend is failed !** :${url}`);
   }
 
   return projectsList;
@@ -474,9 +498,13 @@ async function syncGithubProjects(projectList) {
  *
  */
 async function syncGithubProjectsDaily() {
-  const githubDailyTrendList = await getGithubTrendProjects(periodTypes.day);
-  const ossTrendList = await getOssTrendProjects();
-  const projectsList = await mergeAndRemoveDuplicates(githubDailyTrendList, ossTrendList);
+  let projectsList = [];
+  for (const language of commonLanguages) {
+    const githubDailyTrendList = await getGithubTrendProjects(periodTypes.day, language);
+    const ossTrendList = await getOssTrendProjects(language);
+    projectsList = await mergeAndRemoveDuplicates(githubDailyTrendList, ossTrendList, projectsList);
+  }
+  projectsList = await mergeAndRemoveDuplicates(projectsList);
   await syncGithubProjects(projectsList);
 }
 
@@ -485,14 +513,18 @@ async function syncGithubProjectsDaily() {
  *
  */
 async function syncGithubProjectsWeekly() {
-  const githubWeeklyTrendList = await getGithubTrendProjects(periodTypes.week);
-  const githubMonthlyTrendList = await getGithubTrendProjects(periodTypes.month);
+  let projectsList = [];
+  for (const language of commonLanguages) {
+    const githubWeeklyTrendList = await getGithubTrendProjects(periodTypes.week, language);
+    const githubMonthlyTrendList = await getGithubTrendProjects(periodTypes.month, language);
+    projectsList = await mergeAndRemoveDuplicates(
+      githubWeeklyTrendList,
+      githubMonthlyTrendList,
+      projectsList,
+    );
+  }
   const ossCollectionTrendList = await getOssCollectionProjects();
-  const projectsList = await mergeAndRemoveDuplicates(
-    githubWeeklyTrendList,
-    githubMonthlyTrendList,
-    ossCollectionTrendList,
-  );
+  projectsList = await mergeAndRemoveDuplicates(projectsList, ossCollectionTrendList);
   await syncGithubProjects(projectsList);
 }
 
