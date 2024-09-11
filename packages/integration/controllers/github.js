@@ -56,7 +56,7 @@ export async function syncProjectByStar(req, res) {
     projects = projects.concat(result.data);
   } while (result.hasNext);
 
-  const csvFileName = `projects_stars_${req.body[0]}_${req.body[1] || 'above'}`;
+  const csvFileName = `projects_stars_${req.body?.starRange[0]}_${req.body?.starRange[1] || 'above'}`;
   saveCSVFile(projects, csvFileName);
   savaData(projects);
 
@@ -102,14 +102,15 @@ export async function syncProjectByUserStar(req, res) {
 
 function getGithubApiUrl(req) {
   const param = getStarsScope(req);
-  return `https://api.github.com/search/repositories?q=language:javascript+language:typescript+${param}&sort=stars&order=asc&per_page=100`;
+  const language = req.body?.language;
+  return `https://api.github.com/search/repositories?q=language:${language}+${param}&sort=stars&order=asc&per_page=100`;
 }
 
 function getStarsScope(req) {
-  if (!req.body[1]) {
-    return `stars:>=${req.body[0]}`;
+  if (!req.body.starRange[1]) {
+    return `stars:>=${req.body.starRange[0]}`;
   }
-  return `stars:${req.body[0]}..${req.body[1]}`;
+  return `stars:${req?.body?.starRange[0]}..${req?.body?.starRange[1]}`;
 }
 
 async function savaData(projects) {
@@ -174,23 +175,26 @@ async function pagingQuery(url) {
         });
 
         res.on('end', () => {
-          if (res.statusCode !== 200) {
-            res.status(500).json(result.toString());
+          if (res.statusCode === 403) {
+            logger.error(`Integrate github project records error 403: ${url}`);
             resolve({ hasNext: false, nextPageUrl: '', data: [] });
           }
-          const links = parseLinks(res.headers.link);
-          const resultBody = JSON.parse(result.toString());
-          logger.info(
-            `Integrate the total rows of records: ${resultBody.total_count},Rows of this integration:${resultBody.items.length}`,
-          );
-
-          const projects = parseProjects(resultBody.items);
-          resolve({
-            hasNext: !!links.next,
-            nextPageUrl: links.next,
-            data: projects,
-            totalCount: resultBody.total_count,
-          });
+          if (res.statusCode !== 200) {
+            resolve({ hasNext: false, nextPageUrl: '', data: [] });
+          } else {
+            const links = parseLinks(res.headers.link);
+            const resultBody = JSON.parse(result.toString());
+            logger.info(
+              `Integrate the total rows of records: ${resultBody.total_count},Rows of this integration:${resultBody.items.length}`,
+            );
+            const projects = parseProjects(resultBody.items);
+            resolve({
+              hasNext: !!links.next,
+              nextPageUrl: links.next,
+              data: projects,
+              totalCount: resultBody.total_count,
+            });
+          }
         });
       })
       .on('error', e => {
@@ -341,7 +345,10 @@ function getOwnerRepo(url) {
 }
 
 function parseLinks(linksStr) {
-  const linksArray = linksStr.split(',');
+  if (!linksStr) {
+    linksStr = '';
+  }
+  const linksArray = linksStr?.split(',');
   const links = {};
   let key;
   let value;
