@@ -1,5 +1,5 @@
 import { Controller, Query, Path, Route, Get } from 'tsoa';
-import { Page, githubTop, newGithubTop } from '../services/TrendService.js';
+import { Page, githubTop, githubRank } from '../services/TrendService.js';
 import { Result } from '../utils/result.js';
 
 @Route('trend')
@@ -17,20 +17,31 @@ export class TrendController extends Controller {
     return Result.ok(data);
   }
 
+  /**
+   * Retrieve ranked trends based on specified parameters.
+   *
+   * @param {string} dataType - The type of data to rank (e.g., 1:stars, 2:contributors).
+   * @param {string} dateType - The type of date for the trend (e.g., 1:year, 2:month, 3:week).
+   * @param {string} rankType - The type of ranking (e.g., 1:increase, 2:total).
+   * @param {string} pageNo - The page number for pagination.
+   * @param {string} pageSize - The number of items to return per page.
+   * @param {string} [language] - Optional language filter for the trends.
+   *
+   * @returns {Promise<Result<Page>>} - A promise that resolves to the result containing the page of ranked trends.
+   */
   @Get('rank/{dataType}')
   public async searchTrend(
     @Path() dataType: string,
     @Query() dateType: string,
     @Query() rankType: string,
-    @Query() language: string,
     @Query() pageNo: string,
     @Query() pageSize: string,
+    @Query() language?: string,
   ): Promise<Result<Page>> {
     const page = new Page(parseInt(pageNo, 10), parseInt(pageSize, 10));
     page.format();
-
     const type = { dataType: dataType, dateType: dateType, rankType: rankType, language: language };
-    const data = await newGithubTop(page, type);
+    const data = await githubRank(page, type);
     return Result.ok(data);
   }
 }

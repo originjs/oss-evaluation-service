@@ -1,33 +1,46 @@
-const isFirstDayOfMonth = dayParam => {
-  return dayParam.date() === 1;
-};
+import dayjs from 'dayjs';
 
-const isFirstDayOfWeek = dayParam => {
+export function isFirstDayOfMonth(dayParam) {
+  return dayParam.date() === 1;
+}
+
+export function isFirstDayOfWeek(dayParam) {
   // zero is Sun，1 is Mon
   return dayParam.day() === 1;
-};
+}
 
-const isFirstDayOfYear = dayParam => {
+export function isFirstDayOfYear(dayParam) {
   return dayParam.month() === 0 && dayParam.date() === 1;
-};
+}
 
-const mondayOfPreviousWeek = dayParam => {
+export function mondayOfPreviousWeek(dayParam) {
   return dayParam.subtract(1, 'week').startOf('week').add(1, 'day');
-};
+}
 
-const firstDayOfPreviousMonth = dayParam => {
+export function firstDayOfPreviousMonth(dayParam) {
   return dayParam.subtract(1, 'month').startOf('month');
-};
+}
 
-const firstDayOfPreviousYear = dayParam => {
+export function firstDayOfPreviousYear(dayParam) {
   return dayParam.subtract(1, 'year').startOf('year');
-};
+}
 
-export {
-  isFirstDayOfWeek,
-  isFirstDayOfMonth,
-  isFirstDayOfYear,
-  mondayOfPreviousWeek,
-  firstDayOfPreviousMonth,
-  firstDayOfPreviousYear,
-};
+export function mondayOfCurrentWeek() {
+  return dayjs().startOf('week');
+}
+
+export function firstDayOfCurrentMonth() {
+  return dayjs().startOf('month');
+}
+
+export function firstDayOfCurrentYear() {
+  return dayjs().startOf('year');
+}
+
+export function simpleDateFormat(date) {
+  return date.format('YYYY-MM-DD');
+}
+
+export function simpleDateTimeFormat(date) {
+  return date.format('YYYY-MM-DD HH:mm:ss');
+}

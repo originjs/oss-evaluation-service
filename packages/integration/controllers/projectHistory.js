@@ -10,7 +10,7 @@ import { getAlllContributors } from './projectContributors.js';
 import * as cheerio from 'cheerio';
 import { storeGithubHistory } from './trendHistory.js';
 import { Op } from 'sequelize';
-import { isFirstDayOfMonth, isFirstDayOfWeek } from '../../util/day-js-util.js';
+import { isFirstDayOfMonth, isFirstDayOfWeek } from '@orginjs/oss-evaluation-util';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 dayjs.extend(utc);
