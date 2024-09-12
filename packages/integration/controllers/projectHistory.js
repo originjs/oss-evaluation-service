@@ -56,6 +56,13 @@ async function getExistRecord(currentDate) {
   return existRecordList;
 }
 
+/**
+ * Synchronizes the history of multiple projects by fetching their contributors and stars.
+ * Updates the GithubProjectsTable and stores the history in GithubProjectsHistory.
+ *
+ * @param {Array} projectList - The list of projects to synchronize.
+ * @param {Date} currentDate - The date for which the history is being synchronized.
+ */
 export async function syncHistoryByProjectList(projectList, currentDate) {
   const sumOfProject = projectList.length;
   logger.info(`The Number of Project : ${sumOfProject}`);
@@ -68,23 +75,20 @@ export async function syncHistoryByProjectList(projectList, currentDate) {
     // API is called only if the GitHub page does not provide contributor information
     if (contributors === -1) {
       contributors = await getAlllContributors(project.fullName);
-    }
-    if (contributors) {
       logger.info(`GitHub API : contributors of ${project.htmlUrl} is ${contributors}`);
     }
     // check stars
     if (!stars) {
       stars = await getStars(project.fullName);
-    }
-    if (stars) {
       logger.info(`GitHub API : stars of ${project.htmlUrl} is ${stars}`);
     }
-    if (!contributors && !stars) {
+    // A normal program should have these two data
+    if (!contributors || !stars) {
       continue;
     }
     // refresh github_projects_t
     await GithubProjectsTable.update(
-      { contributors: contributors === -1 ? null : contributors },
+      { contributors: contributors === -1 ? null : contributors, stars },
       {
         where: {
           id: project.id,
