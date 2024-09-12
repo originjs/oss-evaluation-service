@@ -113,7 +113,7 @@ export async function syncHistoryByProjectList(projectList, currentDate) {
 async function filterNotExistProject(projectId, currentDate) {
   const allProjectList = await getProjectList(projectId);
   const existRecordProjectIds = new Set((await getExistRecord(currentDate)).map(x => x.projectId));
-  return allProjectList.filter(project => existRecordProjectIds.has(project.id));
+  return allProjectList.filter(project => !existRecordProjectIds.has(project.id));
 }
 
 export default async function syncProjectHistory(projectId) {
