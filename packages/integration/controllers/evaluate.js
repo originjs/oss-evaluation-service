@@ -145,7 +145,7 @@ async function loadModel() {
 
 async function updateAllEvaluationSummary() {
   // create all project summary
-  await sequelize.query(`INSERT INTO oss_evaluation_summary(project_id,project_name) 
+  await sequelize.query(`INSERT INTO oss_evaluation_summary(project_id,project_name)
   SELECT id as project_id, full_name as project_name FROM github_projects WHERE id NOT IN
   (SELECT project_id FROM oss_evaluation_summary)`);
   // update tech stack
@@ -157,7 +157,7 @@ async function updateAllEvaluationSummary() {
   // update state of js
   await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN
   (SELECT a.project_id, a.satisfaction_percentage, a.usage_percentage from state_of_js_detail a,
-    (SELECT project_id,MAX(year) year FROM state_of_js_detail GROUP BY project_id) b 
+    (SELECT project_id,MAX(year) year FROM state_of_js_detail GROUP BY project_id) b
     WHERE a.project_id = b.project_id AND a.year = b.year) t2
   ON t1.project_id= t2.project_id SET t1.satisfaction= t2.satisfaction_percentage,
 	t1.market_share = t2.usage_percentage`);
@@ -173,7 +173,7 @@ async function updateAllEvaluationSummary() {
   WHERE t2.score IS NOT NULL`);
   // update sonar cloud score
   await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN sonar_cloud_project t2
-  ON t1.project_id= t2.github_project_id SET t1.sonarcloud_score = 
+  ON t1.project_id= t2.github_project_id SET t1.sonarcloud_score =
   ASCII('F')*4-ASCII(maintainability_rating)-ASCII(reliability_rating)-ASCII(security_rating)-ASCII(security_review_rating)
   WHERE t2.analysis_date IS NOT NULL`);
 
@@ -189,9 +189,9 @@ async function updateAllEvaluationSummary() {
   // update compass
   await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN
   (SELECT a.* from compass_activity_detail a,
-    (SELECT project_id,MAX(grimoire_creation_date) grimoire_creation_date FROM compass_activity_detail GROUP BY project_id) b 
+    (SELECT project_id,MAX(grimoire_creation_date) grimoire_creation_date FROM compass_activity_detail GROUP BY project_id) b
     WHERE a.project_id = b.project_id AND a.grimoire_creation_date = b.grimoire_creation_date) t2
-  ON t1.project_id= t2.project_id 
+  ON t1.project_id= t2.project_id
   SET t1.contributor_count= t2.contributor_count, t1.closed_issues_count= t2.closed_issues_count,
   t1.commit_frequency= t2.commit_frequency, t1.comment_frequency= t2.comment_frequency,
   t1.code_review_count= t2.code_review_count, t1.org_count= t2.org_count,
@@ -205,19 +205,19 @@ async function updateAllEvaluationSummary() {
   // update npm downloads, use the average for last 3 months
   const last3month = dayjs().subtract(3, 'month').format('YYYY-MM-DD');
   await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN
-  (SELECT project_id, AVG( downloads ) AS npm_downloads FROM package_download_count a 
+  (SELECT project_id, AVG( downloads ) AS npm_downloads FROM package_download_count a
   WHERE end_date > '${last3month}' GROUP BY project_id) t2
   ON t1.project_id = t2.project_id SET t1.npm_downloads = t2.npm_downloads`);
 
   // 4. innovation metrics
   // update creator_orgs
   await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN
-  (SELECT project_id, COUNT(1) AS orgs FROM ossinsight_creators_organizations a 
+  (SELECT project_id, COUNT(1) AS orgs FROM ossinsight_creators_organizations a
   WHERE type =0 GROUP BY project_id) t2
   ON t1.project_id = t2.project_id SET t1.creator_orgs = t2.orgs`);
   // update creator_countries
   await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN
-      (SELECT project_id, COUNT(1) AS countries FROM ossinsight_creators_countries a 
+      (SELECT project_id, COUNT(1) AS countries FROM ossinsight_creators_countries a
       WHERE type =0 GROUP BY project_id) t2
       ON t1.project_id = t2.project_id SET t1.creator_countries = t2.countries`);
 }
@@ -240,10 +240,21 @@ export async function syncAllProjectEvaluation() {
   evaluateBenchmark(model, {});
 }
 
-async function storeAllEvaluationSummaryHistory() {
+/**
+ * Stores the evaluation scores for all projects in the EvaluationSummaryHistory table.
+ *
+ * @param {dayjs} dayjsDate - The date to associate with the evaluation scores.
+ *
+ * This function retrieves the evaluation scores (functionScore, qualityScore, ecologyScore,
+ * and innovationScore) for all projects from the EvaluationSummary table. It then
+ * upserts these scores into the EvaluationSummaryHistory table, ensuring that if a record
+ * for the same project and date already exists, it will be updated instead of creating a new one.
+ * Finally, it calls the storeEvaluateTrendHistory function to store the evaluation scores
+ * to trend history.
+ */
+async function storeAllEvaluationSummaryHistory(dayjsDate) {
   // store evaluation score for all projects
-  logger.info('start mysql');
-  const currentDate = new Date();
+  const currentDate = dayjsDate.toDate();
   const projectList = await EvaluationSummary.findAll({
     attributes: ['projectId', 'functionScore', 'qualityScore', 'ecologyScore', 'innovationScore'],
   });
@@ -266,12 +277,12 @@ async function storeAllEvaluationSummaryHistory() {
     );
   }
   // store evaluation score to trend history
-  await storeEvaluateTrendHistory();
+  await storeEvaluateTrendHistory(null, dayjsDate);
 }
 
 export async function storeAllEvaluationHistoryHandler(req, res) {
   logger.info('start handler store');
-  await storeAllEvaluationSummaryHistory();
+  await storeAllEvaluationSummaryHistory(dayjs(req.params.date));
   res.status(200).json('ok');
 }
 
@@ -412,7 +423,7 @@ async function getPerformanceRawValue(projectId, field, techStack, bId) {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function getGithubStarRate(projectId) {
-  const sql = `SELECT date,stargazers,LAG(stargazers,3) OVER(ORDER BY date) AS lastQuote 
+  const sql = `SELECT date,stargazers,LAG(stargazers,3) OVER(ORDER BY date) AS lastQuote
   FROM github_projects_stargazers_trend WHERE project_id=${projectId} ORDER BY date DESC LIMIT 1`;
   const result = await sequelize.query(sql, { type: sequelize.QueryTypes.SELECT });
   let rate = 0;
