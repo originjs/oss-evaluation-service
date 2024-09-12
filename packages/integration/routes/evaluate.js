@@ -76,14 +76,22 @@ router.route('/setAllMedianAndP10').get(setAllMedianAndP10);
  * @swagger
  * tags:
  *   name: Evaluate
- * /eval/storeAllEvaluationHistroy:
+ * /eval/storeAllEvaluationHistory/{date}:
  *   get:
  *     summary: Store current evaluation score for all projects
  *     tags: [Evaluate]
+ *     parameters:
+ *       - name: date
+ *         in: path
+ *         required: true
+ *         description: The date for which to store the evaluation history
+ *         schema:
+ *           type: string
+ *           example: "2023-10-01"
  *     responses:
  *       200:
  *         description: Success
  */
-router.route('/storeAllEvaluationHistroy').get(storeAllEvaluationHistoryHandler);
+router.route('/storeAllEvaluationHistory/:date').get(storeAllEvaluationHistoryHandler);
 
 export default router;

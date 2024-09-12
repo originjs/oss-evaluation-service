@@ -73,12 +73,14 @@ export async function storeTrendHistory(projectId, date) {
 }
 
 /**
- * This method is used for evaluate.js to update evaluate trend history
+ * Stores the evaluation trend history for a specific project or all projects.
  *
  * @export
- * @param {*} projectId
+ * @param {number|null} projectId - The ID of the project to update. If null, updates all projects.
+ * @param {dayjs.Dayjs} dayjsDate - The date for which to store the evaluation trend history.
+ * @returns {Promise<void>} - A promise that resolves when the operation is complete.
  */
-export async function storeEvaluateTrendHistory(projectId) {
+export async function storeEvaluateTrendHistory(projectId, dayjsDate) {
   logger.info('Store Evaluate Trend History');
   // 1. get all github project
   const projectList = await getProjectList(projectId);
@@ -89,7 +91,7 @@ export async function storeEvaluateTrendHistory(projectId) {
     logger.info('**Current Progress**: ', `${count}/${sumOfProject}`);
     count += 1;
     // 2. update project trend
-    await storeEvaluateScore(project.id);
+    await storeEvaluateScore(project.id, dayjsDate);
   }
 }
 
@@ -185,11 +187,11 @@ export async function storeGithubHistory(projectId, date) {
  * the increase in scores, and upserts the trend data into the TrendHistory table.
  *
  * @param {number} projectId - The ID of the project for which to store the evaluation scores.
- * @param {dayjs.Date} date - The date for which to calculate the evaluation scores.
+ * @param {dayjs.Date} dayjsDate - The date for which to calculate the evaluation scores.
  * @returns {Promise<void>} - A promise that resolves when the operation is complete.
  */
-export async function storeEvaluateScore(projectId, date) {
-  const dateInfos = getCalculateDateAndType(date);
+export async function storeEvaluateScore(projectId, dayjsDate) {
+  const dateInfos = getCalculateDateAndType(dayjsDate);
   const propertyTypes = [
     { dataType: DATA_TYPE.ECOLOGY, name: 'ecologyScore' },
     { dataType: DATA_TYPE.QUALITY, name: 'qualityScore' },
@@ -212,7 +214,7 @@ export async function storeEvaluateScore(projectId, date) {
     for (const property of propertyTypes) {
       const updateData = {
         projectId,
-        date: date.toDate(),
+        date: dayjsDate.toDate(),
         dateType: dateInfo.dateType,
         dataType: property.dataType,
         // any null then increment is null
