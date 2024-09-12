@@ -6,7 +6,6 @@ import {
   GithubProjectsHistory,
 } from '@orginjs/oss-evaluation-data-model';
 import { getProjectByUrl } from '../util/util.js';
-import { Op } from 'sequelize';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import {
@@ -69,7 +68,7 @@ export async function storeTrendHistory(projectId, date) {
     count += 1;
     // 2. update project trend
     await storeGithubHistory(project.id, date);
-    await storeEvaluateScore(project.id);
+    await storeEvaluateScore(project.id, date);
   }
 }
 
@@ -92,140 +91,6 @@ export async function storeEvaluateTrendHistory(projectId) {
     // 2. update project trend
     await storeEvaluateScore(project.id);
   }
-}
-
-/**
- * Build a query to capture data from the last two years
- *
- * @param {*} projectId
- * @return {*}
- */
-async function getQuery(projectId) {
-  const query = {
-    where: {
-      projectId: projectId,
-      date: {
-        [Op.between]: [
-          dayjs.utc().subtract(1, 'year').startOf('year').$d, //去年1月1日0:00
-          dayjs.utc().add(1, 'year').startOf('year').$d, //明年1月1日0:00
-        ],
-      },
-    },
-  };
-  return query;
-}
-
-/**
- * Remove duplicate data by year-month to prevent errors in the calculation of annual increases and totals
- * If multiple data of the same project exist in a month of a year, the earliest data is remained
- *
- * @param {*} dataList
- * @return {*}
- */
-async function uniqueYearMonth(dataList) {
-  const uniqueData = new Map();
-  dataList.sort((a, b) => a.date.localeCompare(b.date));
-  dataList.forEach(item => {
-    const date = item.date;
-    const yearMonth = date.slice(0, 7);
-
-    if (!uniqueData.has(yearMonth)) {
-      uniqueData.set(yearMonth, item);
-    }
-  });
-
-  const result = Array.from(uniqueData.values());
-  return result;
-}
-
-/**
- * Get data for the current month and the last month
- *
- * @param {*} dataList
- * @return {*}
- */
-async function getMonthData(dataList) {
-  const currentDate = dayjs();
-  const lastDate = currentDate.subtract(1, 'month');
-  const currentMonthData = dataList.find(
-    item =>
-      new Date(item.date).getMonth() === currentDate.month() &&
-      new Date(item.date).getFullYear() === currentDate.year(),
-  );
-  const lastMonthData = dataList.find(
-    item =>
-      new Date(item.date).getMonth() === lastDate.month() &&
-      new Date(item.date).getFullYear() === lastDate.year(),
-  );
-  return [currentMonthData, lastMonthData];
-}
-
-/**
- * Calculate the increase and current amount
- *
- * @param {*} dataField
- * @param {*} field
- * @param {*} currentData
- * @param {*} lastData
- */
-async function initializeData(dataField, field, currentData, lastData) {
-  if (currentData) {
-    dataField.current = currentData[field];
-  }
-  if (lastData) {
-    dataField.last = lastData[field];
-  }
-  if (dataField.current && dataField.last) {
-    dataField.increase = dataField.current - dataField.last;
-  }
-}
-
-/**
- * Get parameters needed to build upsert
- *
- * @param {*} projectId
- * @param {*} data
- * @param {*} dataType
- * @param {*} dateType
- * @return {*}
- */
-async function getDumpQuery(projectId, data, dataType, dateType) {
-  const currentDate = new Date();
-  const insertedData = {
-    projectId: projectId,
-    date: currentDate,
-    dateType: dateType,
-    dataType: dataType,
-    increasedValue: data.increase,
-    totalValue: data.current,
-  };
-  const condition = {
-    where: {
-      projectId: projectId,
-      date: currentDate,
-      dateType: dateType,
-      dataType: dataType,
-    },
-  };
-  return [insertedData, condition];
-}
-
-async function dumpEvaluateHistoryTable(projectId, monthData) {
-  // 存入月相关数据
-  const queryEcologyMonth = await getDumpQuery(
-    projectId,
-    monthData.ecology,
-    DATA_TYPE.ECOLOGY,
-    DATE_TYPE.MONTH,
-  );
-  const queryQualityMonth = await getDumpQuery(
-    projectId,
-    monthData.quality,
-    DATA_TYPE.QUALITY,
-    DATE_TYPE.MONTH,
-  );
-  await TrendHistory.upsert(queryEcologyMonth[0], queryEcologyMonth[1]);
-  await TrendHistory.upsert(queryQualityMonth[0], queryQualityMonth[1]);
 }
 
 /**
@@ -283,12 +148,14 @@ export async function storeGithubHistory(projectId, date) {
   ];
   for (const dateInfo of dateInfos) {
     const currentGithubInfo = await GithubProjectsHistory.findOne({
+      attributes: ['stars', 'contributors'],
       where: {
         date: dateInfo.currentDate.toDate(),
         projectId,
       },
     });
     const previousGithubInfo = await GithubProjectsHistory.findOne({
+      attributes: ['stars', 'contributors'],
       where: {
         date: dateInfo.previousDate.toDate(),
         projectId,
@@ -312,31 +179,50 @@ export async function storeGithubHistory(projectId, date) {
   }
 }
 
-export async function storeEvaluateScore(projectId) {
-  const query = await getQuery(projectId);
-  const evaluationHistoryRawList = await EvaluationSummaryHistory.findAll(query);
-  const evaluationHistoryList = await uniqueYearMonth(evaluationHistoryRawList);
-  // 当月和上月数据
-  const monthRawData = await getMonthData(evaluationHistoryList);
-  const currentMonthData = monthRawData[0];
-  const lastMonthData = monthRawData[1];
-
-  // 当月总量和增长量
-  const monthData = {
-    ecology: {
-      current: null,
-      last: null,
-      increase: null,
-    },
-    quality: {
-      current: null,
-      last: null,
-      increase: null,
-    },
-  };
-  await initializeData(monthData.ecology, 'ecologyScore', currentMonthData, lastMonthData);
-  await initializeData(monthData.quality, 'qualityScore', currentMonthData, lastMonthData);
-
-  // 存入数据表
-  await dumpEvaluateHistoryTable(projectId, monthData);
+/**
+ * Stores the evaluation scores for a given project and date.
+ * It retrieves the current and previous evaluation scores, calculates
+ * the increase in scores, and upserts the trend data into the TrendHistory table.
+ *
+ * @param {number} projectId - The ID of the project for which to store the evaluation scores.
+ * @param {dayjs.Date} date - The date for which to calculate the evaluation scores.
+ * @returns {Promise<void>} - A promise that resolves when the operation is complete.
+ */
+export async function storeEvaluateScore(projectId, date) {
+  const dateInfos = getCalculateDateAndType(date);
+  const propertyTypes = [
+    { dataType: DATA_TYPE.ECOLOGY, name: 'ecologyScore' },
+    { dataType: DATA_TYPE.QUALITY, name: 'qualityScore' },
+  ];
+  for (const dateInfo of dateInfos) {
+    const current = await EvaluationSummaryHistory.findOne({
+      attributes: ['ecologyScore', 'qualityScore'],
+      where: {
+        date: dateInfo.currentDate.toDate(),
+        projectId,
+      },
+    });
+    const previous = await EvaluationSummaryHistory.findOne({
+      attributes: ['ecologyScore', 'qualityScore'],
+      where: {
+        date: dateInfo.previousDate.toDate(),
+        projectId,
+      },
+    });
+    for (const property of propertyTypes) {
+      const updateData = {
+        projectId,
+        date: date.toDate(),
+        dateType: dateInfo.dateType,
+        dataType: property.dataType,
+        // any null then increment is null
+        increasedValue:
+          current?.[property.name] == null || previous?.[property.name] == null
+            ? null
+            : current[property.name] - previous[property.name],
+        totalValue: current?.[property.name],
+      };
+      await TrendHistory.upsert(updateData);
+    }
+  }
 }
