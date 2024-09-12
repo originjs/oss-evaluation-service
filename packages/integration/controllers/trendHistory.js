@@ -129,6 +129,11 @@ function getCalculateDateAndType(date) {
       dateType: DATE_TYPE.YEAR,
     });
   }
+  if (!res.length) {
+    logger.warn(
+      `[trendHistory] ${date} is not the first day of the month or week, no logic is executed`,
+    );
+  }
   return res;
 }
 
