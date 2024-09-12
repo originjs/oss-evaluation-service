@@ -106,7 +106,7 @@ export async function syncHistoryByProjectList(projectList, currentDate) {
         },
       },
     );
-    await storeGithubHistory(project.id, currentDate);
+    await storeGithubHistory(project.id, dayjs(currentDate));
   }
 }
 
@@ -206,7 +206,8 @@ export async function projectHistoryTimer() {
   logger.info('[Integration][ProjectHistory] Integration Job start');
   const startTime = process.hrtime();
   // It's only executed on the first day of the month or the first day of the week.
-  const need2Run = isFirstDayOfWeek() || isFirstDayOfMonth();
+  const date = dayjs();
+  const need2Run = isFirstDayOfWeek(date) || isFirstDayOfMonth(date);
   if (need2Run) {
     await syncProjectHistory();
     logger.info('[Integration][ProjectHistory] Integration Job end');
