@@ -88,7 +88,7 @@ export async function syncHistoryByProjectList(projectList, currentDate) {
     }
     // refresh github_projects_t
     await GithubProjectsTable.update(
-      { contributors: contributors === -1 ? null : contributors, stars },
+      { contributors: contributors === -1 ? null : contributors, stargazersCount: stars },
       {
         where: {
           id: project.id,
