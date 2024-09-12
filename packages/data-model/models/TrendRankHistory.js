@@ -30,8 +30,9 @@ export default sequelize.define(
     rankType: {
       type: DataTypes.INTEGER,
     },
-    rank: {
+    rankColumn: {
       type: DataTypes.INTEGER,
+      field: 'rank',
     },
   },
   {
