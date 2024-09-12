@@ -548,7 +548,7 @@ export async function evaluateTimer() {
   );
   const startStoreTime = process.hrtime();
   logger.info('[Integration][EvaluateHistory] Integration Job start');
-  await storeAllEvaluationSummaryHistory();
+  await storeAllEvaluationSummaryHistory(dayjs());
   logger.info('[Integration][EvaluateHistory] Integration Job end');
   const endStoreTime = process.hrtime(startStoreTime);
   logger.info(
