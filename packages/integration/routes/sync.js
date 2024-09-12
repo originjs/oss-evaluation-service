@@ -96,6 +96,7 @@ import {
   storeSingleProjectTrendHandler,
   storeAllProjectTrendHandler,
 } from '../controllers/trendHistory.js';
+import { storeTrendRankHistoryHandler } from '../controllers/trendRankHistory.js';
 
 const router = express.Router();
 
@@ -1461,6 +1462,30 @@ router.route('/storeAllProjectTrend').get(storeAllProjectTrendHandler);
  *         description: success.
  */
 router.route('/storeSingleProjectTrend/:repoUrl').get(storeSingleProjectTrendHandler);
+
+/**
+ * @swagger
+ * /sync/storeTrendRankHistory:
+ *   get:
+ *     summary: store trend rank history
+ *     parameters:
+ *     - in: query
+ *       name: dateType
+ *       schema:
+ *         type: number
+ *         example: 2
+ *         required: true
+ *     - in: query
+ *       name: date
+ *       schema:
+ *         type: string
+ *         example: '2024-09-01'
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: Success
+ */
+router.route('/storeTrendRankHistory').get(storeTrendRankHistoryHandler);
 
 /**
  * @swagger

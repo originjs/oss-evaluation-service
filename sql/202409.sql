@@ -22,6 +22,6 @@ CREATE TABLE trend_rank_history (
     3 对应 周度数据',
     date DATE NOT NULL,
     rank_type INT NOT NULL DEFAULT 0 COMMENT '1 对应 增长量排名, 2 对应 总量排名',
-    rank INT NOT NULL DEFAULT 0,
+    `rank` INT NOT NULL DEFAULT 0,
     UNIQUE(data_type, date_type, date, rank_type, project_id)
 );
