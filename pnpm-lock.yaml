@@ -82,6 +82,9 @@ importers:
       '@orginjs/oss-evaluation-data-model':
         specifier: workspace:^
         version: link:../data-model
+      '@orginjs/oss-evaluation-util':
+        specifier: workspace:^
+        version: link:../util
       '@tsoa/runtime':
         specifier: ^6.2.0
         version: 6.2.0

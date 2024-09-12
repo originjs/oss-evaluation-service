@@ -2,10 +2,20 @@ import {
   GithubProjects,
   EvaluationSummary,
   GithubProjectsStargazersTrend,
-  logger,
   sequelize,
 } from '@orginjs/oss-evaluation-data-model';
+import {
+  mondayOfCurrentWeek,
+  mondayOfPreviousWeek,
+  firstDayOfCurrentYear,
+  firstDayOfPreviousYear,
+  firstDayOfCurrentMonth,
+  firstDayOfPreviousMonth,
+  simpleDateFormat,
+} from '@orginjs/oss-evaluation-util';
 import _ from 'underscore';
+import type { Dayjs } from 'dayjs';
+import { Op } from 'sequelize';
 import dayjs from 'dayjs';
 
 export class ChartData {
@@ -49,6 +59,7 @@ typeMap.set('contributors', 'contributors');
 const DATE_TYPE = {
   YEAR: 1,
   MONTH: 2,
+  WEEK: 3,
 };
 
 const RANK_TYPE = {
@@ -116,125 +127,160 @@ export async function githubTop(page: Page, type: string) {
   return res;
 }
 
-async function getTrendData(type, githubProjectIds, page) {
-  const dataType = type.dataType;
-  const dateType = type.dateType;
-  const rankType = type.rankType;
+/**
+ * Retrieves the top GitHub projects based on specified ranking parameters.
+ *
+ * @param page - The pagination information including page number and size.
+ * @param rankParam - The ranking parameters.
+ * @param rankParam.dataType - The type of data to filter (e.g., stars, forks).
+ * @param rankParam.dateType - The type of date to filter (e.g., year, month, week).
+ * @param rankParam.rankType - The ranking type (e.g., increase or total).
+ * @param rankParam.language - The programming language filter for the projects.
+ *
+ * @returns A Promise that resolves to a Page object containing the ranked projects.
+ *
+ * @throws Error if the rank type is unknown.
+ */
+export async function githubRank(
+  page: Page,
+  rankParam: { dataType: string; dateType: string; rankType: string; language: string },
+) {
+  const dataType = parseInt(rankParam.dataType);
+  const dateType = parseInt(rankParam.dateType);
+  const rankType = parseInt(rankParam.rankType);
   const pageSize = page.pageSize;
   const offset = page.pageSize * (page.pageNo - 1);
-  const orderCriteria =
-    rankType == RANK_TYPE.INCREASE
-      ? `increased_value desc, total_value desc`
-      : `total_value desc, increased_value desc`;
+  const { current: curDate, previous: previousDate } = getCurAndPreviousDateByType(dateType);
 
-  let date = dayjs();
-  let selectedDate;
+  const languageFilterSQL = rankParam.language
+    ? ' and project_id in (select id from github_projects where language = :language) '
+    : '';
+  const baseSQL = `select project_id as projectId,
+        increased_value as increasedValue,
+        total_value as totalValue,
+        row_number() over (
+          order by ${
+            rankType === RANK_TYPE.INCREASE
+              ? 'increased_value desc, total_value desc'
+              : 'total_value desc, increased_value desc'
+          }) as \`rank\`
+        from trend_history
+        where data_type = :dataType
+          and date_type = :dateType
+          and date = :date`;
+  const removeNoneValSQL = ` and ${rankType === RANK_TYPE.INCREASE ? ' increased_value ' : ' total_value '} is not null
+    and ${rankType === RANK_TYPE.INCREASE ? ' increased_value ' : ' total_value '} > 0`;
+  const orderSQL = 'order by `rank`';
+  const pageSQL = ` limit :pageSize offset :offset`;
 
-  if (dateType == DATE_TYPE.YEAR) {
-    selectedDate = date.startOf('year').toDate();
-  } else if (dateType == DATE_TYPE.MONTH) {
-    selectedDate = date.startOf('month').toDate();
-  }
+  const queryCurrent = `
+          ${baseSQL}
+          ${languageFilterSQL}
+          ${removeNoneValSQL}
+          ${orderSQL}
+          ${pageSQL}`;
+  const commonReplacements = {
+    dataType,
+    dateType,
+    language: rankParam.language,
+  };
+  type ProjectRank = {
+    projectId: number;
+    increasedValue: number;
+    totalValue: number;
+    rank: number;
+  };
 
-  const inProjectsSQL = githubProjectIds ? `and project_id in (:githubProjectIds)` : ``;
-
-  const QUERY_CURRENT_RANK = `select project_id as projectId, increased_value as increasedValue,
-      total_value as totalValue, row_number() over () as currentRank
-      from trend_history
-      where data_type = :dataType
-        and date_type = :dateType
-        and date = :selectedDate
-        ${inProjectsSQL}
-      order by ${orderCriteria}
-      limit :pageSize offset :offset`;
-  const result = await sequelize
-    .query(QUERY_CURRENT_RANK, {
-      replacements: { dataType, dateType, selectedDate, githubProjectIds, pageSize, offset },
-      type: sequelize.QueryTypes.SELECT,
-    })
-    .catch(err => {
-      logger.error('Error occurred:', err);
-    });
-  const showedProjectIds = result.map(item => item.projectId);
-
-  // 获取上一阶段排名
-  if (dateType == DATE_TYPE.YEAR) {
-    date = date.subtract(1, 'year');
-    selectedDate = date.startOf('year').toDate();
-  } else if (dateType == DATE_TYPE.MONTH) {
-    date = date.subtract(1, 'month');
-    selectedDate = date.startOf('month').toDate();
-  }
-
-  const QUERY_LAST_RANK = `select project_id as projectId, lastRank
-      from (select history.*, row_number() over () as lastRank
-      from trend_history history
-      where history.data_type = :dataType
-        and date_type = :dateType
-        and date = :selectedDate
-        ${inProjectsSQL}
-      order by ${orderCriteria}) tmp
-      where project_id in (:showedProjectIds);`;
-  const lastRankResult = await sequelize
-    .query(QUERY_LAST_RANK, {
-      replacements: { dataType, dateType, selectedDate, githubProjectIds, showedProjectIds },
-      type: sequelize.QueryTypes.SELECT,
-    })
-    .catch(err => {
-      logger.error('Error occurred:', err);
-    });
-
-  const lastRankMap = {};
-  lastRankResult.forEach(item => {
-    lastRankMap[item.projectId] = item.lastRank;
+  const currentResult: ProjectRank[] = await sequelize.query(queryCurrent, {
+    replacements: {
+      date: simpleDateFormat(curDate),
+      pageSize,
+      offset,
+      ...commonReplacements,
+    },
+    type: sequelize.QueryTypes.SELECT,
   });
-  result.forEach(item => {
-    item.lastRank = lastRankMap[item.projectId];
+  // query only the data returned by rank
+  const filteredProjectIds: number[] = currentResult.map(item => item.projectId);
+  const inProjectIdSQL = filteredProjectIds.length ? ' and projectId in (:projectIds) ' : '';
+  // query previous period rank
+  const queryPreviousPeriodSQL = `
+      select * from (${baseSQL}
+      ${languageFilterSQL}
+      ${removeNoneValSQL}
+      ${orderSQL}) tmp
+      where 1 = 1
+      ${inProjectIdSQL}
+      `;
+  const previousResult: ProjectRank[] = await sequelize.query(queryPreviousPeriodSQL, {
+    replacements: {
+      date: simpleDateFormat(previousDate),
+      projectIds: filteredProjectIds,
+      ...commonReplacements,
+    },
+    type: sequelize.QueryTypes.SELECT,
   });
+  const data = [];
+  // previous period rank map <number,rank>
+  const previousMap = new Map<number, ProjectRank>();
+  previousResult.forEach(result => previousMap.set(result.projectId, result));
 
-  return result;
+  const projectInfo: GithubProjects[] = await GithubProjects.findAll({
+    attributes: ['id', 'fullName', 'htmlUrl', 'description', 'ownerAvatarUrl', 'createdAt'],
+    where: {
+      id: {
+        [Op.in]: filteredProjectIds,
+      },
+    },
+  });
+  // github project info map
+  const githubProjectMap = new Map<number, GithubProjects>();
+  projectInfo.forEach(project => githubProjectMap.set(project.id, project));
+  for (const result of currentResult) {
+    const projectId = result.projectId;
+    const project = githubProjectMap.get(projectId);
+
+    const projectData: unknown = {
+      currentRank: result.rank,
+      previousRank: previousMap.get(projectId)?.rank,
+      increasedValue: result.increasedValue,
+      totalValue: result.totalValue,
+      name: project?.fullName,
+      logo: project?.ownerAvatarUrl,
+      htmlUrl: project?.htmlUrl,
+      description: project?.description,
+      createdAt: simpleDateFormat(dayjs(project?.createdAt)),
+    };
+
+    data.push(projectData);
+  }
+  page.data = data;
+  return page;
 }
 
-export async function newGithubTop(
-  page: Page,
-  type: { dataType: string; dateType: string; rankType: string; language: string },
-) {
-  const language = type.language === 'All' ? null : type.language;
-
-  const githubProjects = language
-    ? await GithubProjects.findAll({
-        attributes: ['id'],
-        where: {
-          language: language,
-        },
-      })
-    : null;
-
-  const githubProjectIds = githubProjects ? githubProjects.map(project => project.id) : null;
-  const result = await getTrendData(type, githubProjectIds, page);
-  const data = [];
-  for (const item of result) {
-    const projectInfo = await GithubProjects.findOne({
-      where: {
-        id: item.projectId,
-      },
-      attributes: ['fullName', 'htmlUrl', 'description', 'ownerAvatarUrl', 'createdAt'],
-    });
-
-    data.push({
-      currentRank: item.currentRank,
-      lastRank: item.lastRank,
-      increasedValue: item.increasedValue,
-      totalValue: item.totalValue,
-      name: projectInfo.fullName,
-      logo: projectInfo.ownerAvatarUrl,
-      htmlUrl: projectInfo.htmlUrl,
-      description: projectInfo.description,
-      createdAt: projectInfo.createdAt.slice(0, 10),
-    });
+/**
+ * Retrieves the current and previous dates based on the specified date type.
+ *
+ * @param dateType - The type of date to determine the current and previous dates.
+ *   - DATE_TYPE.WEEK: Retrieves the current and previous Mondays.
+ *   - DATE_TYPE.MONTH: Retrieves the first day of the current and previous months.
+ *   - DATE_TYPE.YEAR: Retrieves the first day of the current and previous years.
+ *
+ * @returns An object containing the current and previous dates.
+ */
+function getCurAndPreviousDateByType(dateType: number): { current: Dayjs; previous: Dayjs } {
+  switch (dateType) {
+    case DATE_TYPE.WEEK: {
+      const date = mondayOfCurrentWeek();
+      return { current: date, previous: mondayOfPreviousWeek(date) };
+    }
+    case DATE_TYPE.MONTH: {
+      const date = firstDayOfCurrentMonth();
+      return { current: date, previous: firstDayOfPreviousMonth(date) };
+    }
+    case DATE_TYPE.YEAR: {
+      const date = firstDayOfCurrentYear();
+      return { current: date, previous: firstDayOfPreviousYear(date) };
+    }
   }
-
-  const res = Page.clone(page);
-  res.data = data;
-  return res;
 }

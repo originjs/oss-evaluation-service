@@ -15,7 +15,7 @@ import {
   isFirstDayOfMonth,
   isFirstDayOfWeek,
   isFirstDayOfYear,
-} from '../../util/day-js-util.js';
+} from '@orginjs/oss-evaluation-util';
 
 dayjs.extend(utc);
 

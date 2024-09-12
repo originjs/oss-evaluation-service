@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@orginjs/oss-evaluation-data-model": "workspace:^",
+    "@orginjs/oss-evaluation-util": "workspace:^",
     "@tsoa/runtime": "^6.2.0",
     "cors": "^2.8.5",
     "dayjs": "^1.11.10",
