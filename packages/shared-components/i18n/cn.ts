@@ -8,7 +8,7 @@ export default {
       '最佳实践评分基于Linux Foundation建议的Best Practices检查，每个检查项都有不同的权重',
     scorecard: {
       scorecard:
-        'Scorecard是OpenSSF开源安全基金会提出的为开源项目提供安全健康度量的指标。它通过一系列安全检查为项目生成一个0到10的分数，分数越高，说明项目的安全实践越好、更安全。',
+        'Scorecard是OpenSSF开源安全基金会提出的为开源项目提供安全健康度量的指标。它通过一系列安全检查为项目生成一个0到10的分数，分数越高，说明项目的安全实践越好、更安全。当前先进性系统中位数为3.8',
       'Code-Review':
         'Determines if the project requires human code review before pull requests (aka merge requests) are merged.',
       Maintained: 'Determines if the project is "actively maintained".',
@@ -46,11 +46,11 @@ export default {
     },
     ecology: {
       busFactor:
-        '一个项目失去多少贡献者会导致项目停滞（例如 “被巴士撞了”）。这里的贡献包含代码和Issue贡献。巴士系数越低，项目对少数核心人员的依赖越大，风险越高。当前所有项目OpenRank中位数：6。',
+        '项目失去多少贡献者会导致停滞（例如 “被巴士撞了”）。这里的贡献统计近一年的代码和Issue贡献，巴士系数越低，对少数核心人员的依赖越大，风险越高。当前先进性系统中位数为6。',
       openRank:
-        'X-lab提出的一种基于全域开发者协作网络的项目影响力评估方法，OpenRank分数越高，表示该项目在开源社区中的影响力越大，可能意味着它对更多开发者和项目至关重要。当前所有项目OpenRank中位数：7.6。',
+        'X-lab提出的一种基于全域开发者协作网络的项目影响力评估方法，OpenRank分数越高，表示该项目在开源社区中的影响力越大，可能意味着它对更多开发者和项目至关重要。当前先进性系统OpenRank中位数为7.6。',
       criticality:
-        'OpenSSF提供的开源项目关键度得分，定义了项目的影响力和重要性。它是一个介于0(最不关键)和1(最关键)之间的数字，分数越高，表示项目对生态系统或其他项目的重要性越大。当前所有项目Criticality中位数：0.49。',
+        'OpenSSF提供的开源项目关键度得分，定义了项目的影响力和重要性。它是一个介于0(最不关键)和1(最关键)之间的数字，分数越高表示项目对生态系统或其他项目的重要性越大。当前先进性系统Criticality中位数为0.49',
       totalContributor: '历史累计的代码贡献者数量',
       dependentRepositories: 'github上依赖该软件的仓库数量',
       contributor:
