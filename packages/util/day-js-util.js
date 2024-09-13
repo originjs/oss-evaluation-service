@@ -1,4 +1,6 @@
 import dayjs from 'dayjs';
+import weekOfYear from 'dayjs/plugin/weekOfYear.js';
+dayjs.extend(weekOfYear);
 
 export function isFirstDayOfMonth(dayParam) {
   return dayParam.date() === 1;
@@ -26,7 +28,8 @@ export function firstDayOfPreviousYear(dayParam) {
 }
 
 export function mondayOfCurrentWeek() {
-  return dayjs().startOf('week');
+  // defulat first day of week is sunday,need to add one day
+  return dayjs().startOf('week').add(1, 'day');
 }
 
 export function firstDayOfCurrentMonth() {
@@ -43,4 +46,8 @@ export function simpleDateFormat(date) {
 
 export function simpleDateTimeFormat(date) {
   return date.format('YYYY-MM-DD HH:mm:ss');
+}
+
+export function simpleWeekFormat(date) {
+  return `${date.year()}-${String(date.week()).padStart(2, '0')}W`;
 }
