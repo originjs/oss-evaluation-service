@@ -12,6 +12,7 @@ import {
   firstDayOfCurrentMonth,
   firstDayOfPreviousMonth,
   simpleDateFormat,
+  simpleWeekFormat,
 } from '@orginjs/oss-evaluation-util';
 import _ from 'underscore';
 import type { Dayjs } from 'dayjs';
@@ -220,7 +221,7 @@ export async function githubRank(
     },
     type: sequelize.QueryTypes.SELECT,
   });
-  const data = [];
+  const tableData = [];
   // previous period rank map <number,rank>
   const previousMap = new Map<number, ProjectRank>();
   previousResult.forEach(result => previousMap.set(result.projectId, result));
@@ -252,9 +253,10 @@ export async function githubRank(
       createdAt: simpleDateFormat(dayjs(project?.createdAt)),
     };
 
-    data.push(projectData);
+    tableData.push(projectData);
   }
-  page.data = data;
+  const headers = getTableHeader(previousDate, curDate, dateType);
+  page.data = { data: tableData, headers: headers } as any;
   return page;
 }
 
@@ -281,6 +283,43 @@ function getCurAndPreviousDateByType(dateType: number): { current: Dayjs; previo
     case DATE_TYPE.YEAR: {
       const date = firstDayOfCurrentYear();
       return { current: date, previous: firstDayOfPreviousYear(date) };
+    }
+  }
+}
+function getTableHeader(previousDate: Dayjs, curDate: Dayjs, dateType: number) {
+  const headers: string[] = [];
+  const previousFormat = getDateDisplay(previousDate, dateType);
+  const currentFormat = getDateDisplay(curDate, dateType);
+  switch (dateType) {
+    case DATE_TYPE.WEEK: {
+      headers.push(`本周 ${currentFormat}`);
+      headers.push(`上周 ${previousFormat}`);
+      break;
+    }
+    case DATE_TYPE.MONTH: {
+      headers.push(`本月 ${currentFormat}`);
+      headers.push(`上月 ${previousFormat}`);
+      break;
+    }
+    case DATE_TYPE.YEAR: {
+      headers.push(`本年 ${currentFormat}`);
+      headers.push(`上年 ${previousFormat}`);
+      break;
+    }
+  }
+  headers.push('名称', '描述', '创建时间', '增长量', '总量');
+  return headers;
+}
+function getDateDisplay(date: Dayjs, dateType: number) {
+  switch (dateType) {
+    case DATE_TYPE.WEEK: {
+      return `(${simpleWeekFormat(date)})`;
+    }
+    case DATE_TYPE.MONTH: {
+      return `(${date.format('YYYY-MM')})`;
+    }
+    case DATE_TYPE.YEAR: {
+      return `(${date.format('YYYY')})`;
     }
   }
 }
