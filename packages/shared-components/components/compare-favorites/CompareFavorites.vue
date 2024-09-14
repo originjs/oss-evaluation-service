@@ -124,6 +124,7 @@ function togglePanelVisible(visible?: boolean) {
 defineExpose({
   addProject,
   togglePanelVisible,
+  cleanCompareFavorites,
 });
 </script>
 
