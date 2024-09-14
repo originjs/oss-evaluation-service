@@ -14,6 +14,17 @@ enum Code {
   HANDLE_SEPARATELY = 1,
 }
 
+export type Page<T> = {
+  pageNo: number;
+  pageSize: number;
+  data: T;
+};
+
+export type PageParam = {
+  pageNo: number;
+  pageSize: number;
+};
+
 export type ResultData<T> = {
   code: Code;
   data: T;
