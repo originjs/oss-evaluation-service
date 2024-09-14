@@ -154,7 +154,7 @@ export async function githubRank(
   const { current: curDate, previous: previousDate } = getCurAndPreviousDateByType(dateType);
 
   const languageFilterSQL = rankParam.language
-    ? ' and project_id in (select id from github_projects where language = :language) '
+    ? ' and project_id in (select id from github_projects where language in (:language)) '
     : '';
   const baseSQL = `select project_id as projectId,
         increased_value as increasedValue,
@@ -183,7 +183,7 @@ export async function githubRank(
   const commonReplacements = {
     dataType,
     dateType,
-    language: rankParam.language,
+    language: rankParam.language.split(','),
   };
   type ProjectRank = {
     projectId: number;
@@ -356,4 +356,26 @@ function getDateDisplay(date: Dayjs, dateType: number) {
       return `(${date.format('YYYY')})`;
     }
   }
+}
+/**
+ * Retrieves the language filter condition for project filtering.
+ *
+ * @returns An object representing the language filter condition, including
+ *          the value, label, and a list of programming languages as children.
+ */
+export function getLanguageFilterCondition() {
+  return {
+    value: '语言',
+    label: '语言',
+    children: [
+      { value: 'Python', label: 'Python' },
+      { value: 'JavaScript', label: 'JavaScript' },
+      { value: 'TypeScript', label: 'TypeScript' },
+      { value: 'Java', label: 'Java' },
+      { value: 'Go', label: 'Go' },
+      { value: 'C++', label: 'C++' },
+      { value: 'C', label: 'C' },
+      { value: 'Rust', label: 'Rust' },
+    ],
+  };
 }
