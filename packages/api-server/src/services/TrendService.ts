@@ -256,7 +256,7 @@ export async function githubRank(
     tableData.push(projectData);
   }
   const headers = getTableHeader(previousDate, curDate, dateType);
-  page.data = { data: tableData, headers: headers } as any;
+  page.data = { data: tableData, headers: Object.fromEntries(headers) } as any;
   return page;
 }
 
@@ -286,30 +286,64 @@ function getCurAndPreviousDateByType(dateType: number): { current: Dayjs; previo
     }
   }
 }
-function getTableHeader(previousDate: Dayjs, curDate: Dayjs, dateType: number) {
-  const headers: string[] = [];
+
+/**
+ * Retrieves the headers for the ranking table based on the current and previous dates.
+ *
+ * @param previousDate - The date representing the previous period.
+ * @param curDate - The date representing the current period.
+ * @param dateType - The type of date used to format the headers (e.g., week, month, year).
+ *
+ * @returns A Map containing the header names for the ranking table.
+ */
+function getTableHeader(
+  previousDate: Dayjs,
+  curDate: Dayjs,
+  dateType: number,
+): Map<string, string> {
+  const headers: Map<string, string> = new Map<string, string>();
   const previousFormat = getDateDisplay(previousDate, dateType);
   const currentFormat = getDateDisplay(curDate, dateType);
+  let currentHeaderName = '';
+  let previousHeaderName = '';
   switch (dateType) {
     case DATE_TYPE.WEEK: {
-      headers.push(`本周 ${currentFormat}`);
-      headers.push(`上周 ${previousFormat}`);
+      currentHeaderName = `本周 ${currentFormat}`;
+      previousHeaderName = `上周 ${previousFormat}`;
       break;
     }
     case DATE_TYPE.MONTH: {
-      headers.push(`本月 ${currentFormat}`);
-      headers.push(`上月 ${previousFormat}`);
+      currentHeaderName = `本月 ${currentFormat}`;
+      previousHeaderName = `上月 ${previousFormat}`;
       break;
     }
     case DATE_TYPE.YEAR: {
-      headers.push(`本年 ${currentFormat}`);
-      headers.push(`上年 ${previousFormat}`);
+      currentHeaderName = `本年 ${currentFormat}`;
+      previousHeaderName = `上年 ${previousFormat}`;
       break;
     }
   }
-  headers.push('名称', '描述', '创建时间', '增长量', '总量');
+  headers.set('currentRank', currentHeaderName);
+  headers.set('previousRank', previousHeaderName);
+  headers.set('name', '名称');
+  headers.set('description', '描述');
+  headers.set('createdAt', '创建时间');
+  headers.set('increasedValue', '增长量');
+  headers.set('totalValue', '总量');
   return headers;
 }
+
+/**
+ * Formats the given date based on the specified date type.
+ *
+ * @param date - The date to format, represented as a Dayjs object.
+ * @param dateType - The type of date to determine the formatting style.
+ *   - DATE_TYPE.WEEK: Formats the date as a week.
+ *   - DATE_TYPE.MONTH: Formats the date as a month (YYYY-MM).
+ *   - DATE_TYPE.YEAR: Formats the date as a year (YYYY).
+ *
+ * @returns A formatted string representing the date based on the specified date type.
+ */
 function getDateDisplay(date: Dayjs, dateType: number) {
   switch (dateType) {
     case DATE_TYPE.WEEK: {
