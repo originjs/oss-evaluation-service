@@ -1,19 +1,9 @@
 <script setup lang="ts">
 import { SoftwareRank } from '@orginjs/oss-evaluation-components/software-rank';
-
-const router = useRouter();
-const goSoftwareDetails = (repoName: string) => {
-  router.push({
-    path: '/software-details',
-    query: {
-      repoName,
-    },
-  });
-};
 </script>
 
 <template>
-  <SoftwareRank @click="goSoftwareDetails" />
+  <SoftwareRank />
 </template>
 
 <style scoped lang="less"></style>
