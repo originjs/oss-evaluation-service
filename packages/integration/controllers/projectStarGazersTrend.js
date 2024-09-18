@@ -7,6 +7,8 @@ import {
 import fetch from '@adobe/node-fetch-retry';
 import { getProjectByUrl } from '../util/util.js';
 
+const starHistoryUrl = 'https://api.ossinsight.io/q/analyze-stars-history?repoId=:projectId';
+
 const QUERY_SQL = `
 select distinct project.id,
                 project.name,
@@ -70,28 +72,28 @@ async function getStargazersTrend(startDate, startId, endId) {
   });
 
   for (let project of needSyncProject) {
-    const response = await sendRequestByFullName(project.fullName);
-    const trendList = response.data.rows;
+    const response = await sendRequestByFullName(project.id);
+    const trendList = response.data;
     let resTrend = [];
     if (trendList === null || trendList === undefined || trendList.length === 0) {
       logger.info('sync error! project:{}  fullName{}', project.id, project.fullName);
       continue;
     }
     for (let trend of trendList) {
-      if (trend.date >= startDate) {
+      if (trend.event_month >= startDate) {
         resTrend.push({
           projectId: project.id,
           name: project.name,
           fullName: project.fullName,
           htmlUrl: project.htmlUrl,
-          stargazers: trend.stargazers,
-          date: trend.date,
+          stargazers: trend.total,
+          date: trend.event_month,
         });
       }
     }
     if (trendList.length >= 4) {
       const addedStars =
-        trendList[trendList.length - 1].stargazers - trendList[trendList.length - 4].stargazers;
+        trendList[trendList.length - 1].total - trendList[trendList.length - 4].total;
       sequelize.query(
         `UPDATE oss_evaluation_summary SET star_rate = ${addedStars} WHERE project_id = ${project.id}`,
       );
@@ -111,17 +113,15 @@ async function getStargazersTrend(startDate, startId, endId) {
   }
 }
 
-export async function sendRequestByFullName(fullName) {
-  logger.info(`https://api.ossinsight.io/v1/repos/${fullName}/stargazers/history`);
-  const response = await fetch(
-    `https://api.ossinsight.io/v1/repos/${fullName}/stargazers/history`,
-    {
-      retryOptions: {
-        retryMaxDuration: 7200000, // 120 min retry duration
-        retryInitialDelay: 100,
-      },
+export async function sendRequestByFullName(projectId) {
+  const url = starHistoryUrl.replace(':projectId', projectId);
+  logger.info(url);
+  const response = await fetch(url, {
+    retryOptions: {
+      retryMaxDuration: 7200000, // 120 min retry duration
+      retryInitialDelay: 100,
     },
-  );
+  });
   if (response.ok) {
     return response.json();
   }
