@@ -47,8 +47,8 @@ const onSelectMenu = (path: string) => {
       <el-menu class="menu" mode="horizontal" :ellipsis="false" @select="onSelectMenu">
         <el-menu-item index="1">评估模型</el-menu-item>
         <el-menu-item index="software-rank">趋势榜单</el-menu-item>
+        <el-menu-item index="tech-radar">技术雷达</el-menu-item>
         <el-menu-item index="benchmark-compare">性能 Benchmark</el-menu-item>
-        <el-menu-item index="5">动态</el-menu-item>
       </el-menu>
 
       <div class="extra-info">

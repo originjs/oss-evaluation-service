@@ -27,6 +27,10 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@views/SoftwareRank.vue'),
   },
   {
+    path: '/tech-radar',
+    component: () => import('@views/TechRadar.vue'),
+  },
+  {
     path: '/benchmark-compare',
     component: () => import('@views/BenchmarkCompare.vue'),
   },
