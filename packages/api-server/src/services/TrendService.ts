@@ -302,29 +302,23 @@ function getTableHeader(
   dateType: number,
 ): Map<string, string> {
   const headers: Map<string, string> = new Map<string, string>();
-  const previousFormat = getDateDisplay(previousDate, dateType);
   const currentFormat = getDateDisplay(curDate, dateType);
   let currentHeaderName = '';
-  let previousHeaderName = '';
   switch (dateType) {
     case DATE_TYPE.WEEK: {
       currentHeaderName = `本周 ${currentFormat}`;
-      previousHeaderName = `上周 ${previousFormat}`;
       break;
     }
     case DATE_TYPE.MONTH: {
       currentHeaderName = `本月 ${currentFormat}`;
-      previousHeaderName = `上月 ${previousFormat}`;
       break;
     }
     case DATE_TYPE.YEAR: {
       currentHeaderName = `本年 ${currentFormat}`;
-      previousHeaderName = `上年 ${previousFormat}`;
       break;
     }
   }
   headers.set('currentRank', currentHeaderName);
-  headers.set('previousRank', previousHeaderName);
   headers.set('name', '名称');
   headers.set('description', '描述');
   headers.set('createdAt', '创建时间');
