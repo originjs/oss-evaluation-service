@@ -324,6 +324,9 @@ importers:
       sequelize:
         specifier: ^6.35.2
         version: 6.35.2(mysql2@3.9.1)
+      shelljs:
+        specifier: ^0.8.5
+        version: 0.8.5
       swagger-jsdoc:
         specifier: ^6.2.8
         version: 6.2.8(openapi-types@12.1.3)

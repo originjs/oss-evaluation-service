@@ -1,5 +1,3 @@
-import { exec } from 'node:child_process';
-import util from 'node:util';
 import {
   ProjectTechStack,
   Scorecard,
@@ -9,6 +7,7 @@ import {
 } from '@orginjs/oss-evaluation-data-model';
 import { ServerError, BadRequestError } from '../util/error.js';
 import { parseRepoUrl } from '../util/util.js';
+import shelljs from 'shelljs';
 
 /**
  * Sync scorecard by id or by tech_stack from table:project_stack
@@ -145,20 +144,27 @@ export async function getScorecard(url) {
     } else {
       logger.info(`Fetching data of project ${url} failed! Running scorecard locally...`);
       let buffer;
-      const execPromise = util.promisify(exec);
-      await execPromise(
-        `${process.platform === 'win32' ? 'scorecard-windows-amd64.exe' : 'scorecard'} --repo=${url} --format=json`,
-        {
-          env: { GITHUB_AUTH_TOKEN: process.env.GITHUB_AUTH_TOKEN },
-        },
-      )
-        .then(value => {
-          buffer = value.stdout;
-        })
-        .catch(error => {
-          buffer = error.stdout;
-          logger.error(error);
-        });
+      let command;
+      if (process.platform === 'win32') {
+        command = `./scorecard-windows-amd64.exe --repo=${url} --format=json`;
+      } else {
+        // I don't see why it needs to be `WHICH` first or the command won't be found.
+        const scorecardPath = shelljs.which('scorecard')?.stdout;
+        if (!scorecardPath) {
+          logger.error(`scorecard not found in PATH of ${process.platform}`);
+        }
+        command = `${scorecardPath} --repo=${url} --format=json`;
+      }
+      logger.info(`try to run command: ${command}`);
+      const commandResult = shelljs.exec(command, {
+        env: { GITHUB_AUTH_TOKEN: process.env.GITHUB_AUTH_TOKEN }
+      });
+      if (commandResult.code === 0) {
+        buffer = commandResult.stdout;
+      } else {
+        buffer = commandResult.stderr;
+        logger.error(buffer);
+      }
       body = JSON.parse(buffer);
       isLocal = true;
     }
