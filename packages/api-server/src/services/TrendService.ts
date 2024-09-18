@@ -363,19 +363,15 @@ function getDateDisplay(date: Dayjs, dateType: number) {
  * @returns An object representing the language filter condition, including
  *          the value, label, and a list of programming languages as children.
  */
-export function getLanguageFilterCondition() {
-  return {
-    value: '编程语言',
-    label: '编程语言',
-    children: [
-      { value: 'Python', label: 'Python' },
-      { value: 'JavaScript', label: 'JavaScript' },
-      { value: 'TypeScript', label: 'TypeScript' },
-      { value: 'Java', label: 'Java' },
-      { value: 'Go', label: 'Go' },
-      { value: 'C++', label: 'C++' },
-      { value: 'C', label: 'C' },
-      { value: 'Rust', label: 'Rust' },
-    ],
-  };
+export function getLanguageFilterCondition(): { value: string; label: string }[] {
+  return [
+    { value: 'Python', label: 'Python' },
+    { value: 'JavaScript', label: 'JavaScript' },
+    { value: 'TypeScript', label: 'TypeScript' },
+    { value: 'Java', label: 'Java' },
+    { value: 'Go', label: 'Go' },
+    { value: 'C++', label: 'C++' },
+    { value: 'C', label: 'C' },
+    { value: 'Rust', label: 'Rust' },
+  ];
 }
