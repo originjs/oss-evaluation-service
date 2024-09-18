@@ -21,6 +21,10 @@ export type SoftwareRank = {
   headers: TableHeaders;
 };
 
+export type SelectOptions = {
+  label: string;
+  value: string;
+};
 export enum DataType {
   star = '1',
   contributor = '2',
@@ -45,3 +49,6 @@ export function getSoftwareRankApi(
     params,
   });
 }
+
+export const getLanguageOptionsApi = () =>
+  HttpRequest.get<SelectOptions[]>('/trend/languageFilter');
