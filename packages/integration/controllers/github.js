@@ -35,7 +35,7 @@ const dataTypes = {
 const periodTypes = {
   day: 'daily',
   week: 'weekly',
-  month: 'mongthly',
+  month: 'monthly',
 };
 
 const commonLanguages = [
