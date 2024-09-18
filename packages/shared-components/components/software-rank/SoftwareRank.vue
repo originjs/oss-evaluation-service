@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { RankInfo, TableHeaders } from '@orginjs/oss-evaluation-components-api';
+import type { RankInfo, SelectOptions, TableHeaders } from '@orginjs/oss-evaluation-components-api';
+import { getLanguageOptionsApi } from '@orginjs/oss-evaluation-components-api';
 import { RankType, DateType } from '@orginjs/oss-evaluation-components-api';
 import { getSoftwareRankApi, DataType } from '@orginjs/oss-evaluation-components-api';
 
@@ -12,23 +13,15 @@ const dataTypeNameMap = {
 };
 const activeDataType = ref(DataType.star);
 
-const cascaderValue = ref(['语言', 'JavaScript']);
-const cascaderOptions = ref([
-  {
-    value: '语言',
-    label: '语言',
-    children: [
-      {
-        value: 'JavaScript',
-        label: 'JavaScript',
-      },
-      {
-        value: 'Java',
-        label: 'Java',
-      },
-    ],
-  },
-]);
+const languages = ref<SelectOptions[]>([]);
+const languageOptions = ref<SelectOptions[]>([]);
+getLanguageOptionsApi()
+  .then(res => {
+    languageOptions.value = res.data;
+  })
+  .catch(() => {
+    // 暂无语言数据
+  });
 
 const dateTypeNameMap = {
   [DateType.year]: '年',
@@ -55,7 +48,7 @@ const loadMoreData = async () => {
   const params = {
     dateType: dateType.value,
     rankType: rankType.value,
-    language: cascaderValue.value[cascaderValue.value.length - 1],
+    language: JSON.stringify(languages.value),
     pageNo: pageNo.value++,
     pageSize: 20,
   };
@@ -119,13 +112,25 @@ onUnmounted(() => {
 
     <div flex justify-between mb-20px>
       <div>
-        <el-cascader
-          v-model="cascaderValue"
-          :options="cascaderOptions"
-          :props="{ expandTrigger: 'hover' }"
-          :show-all-levels="false"
-          @change="getSoftwareRank"
-        />
+        <div flex items-center>
+          <span mr-6px>languages:</span>
+          <el-select
+            v-model="languages"
+            style="width: 180px"
+            multiple
+            collapse-tags
+            clearable
+            :placeholder="'请选择编程语言'"
+            @change="getSoftwareRank"
+          >
+            <el-option
+              v-for="item in languageOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            ></el-option>
+          </el-select>
+        </div>
       </div>
 
       <div flex items-center>
