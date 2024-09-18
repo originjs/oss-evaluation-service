@@ -26,14 +26,14 @@ export class TrendController extends Controller {
   /**
    * Retrieve ranked trends based on specified parameters.
    *
-   * @param {string} dataType - The type of data to rank (e.g., 1:stars, 2:contributors).
-   * @param {string} dateType - The type of date for the trend (e.g., 1:year, 2:month, 3:week).
-   * @param {string} rankType - The type of ranking (e.g., 1:increase, 2:total).
+   * @param {string} dataType - The type of data to rank (e.g., 1: stars, 2: contributors).
+   * @param {string} dateType - The type of date for the trend (e.g., 1: year, 2: month, 3: week).
+   * @param {string} rankType - The type of ranking (e.g., 1: increase, 2: total).
    * @param {string} pageNo - The page number for pagination.
    * @param {string} pageSize - The number of items to return per page.
-   * @param {string} [language] - Optional language filter for the trends.
+   * @param {string} [language] - Optional language filter for the trends.(e.g., ["Python", "JavaScript"])
    *
-   * @returns {Promise<Result<Page>>} - A promise that resolves to the result containing the page of ranked trends.
+   * @returns {Promise<Result<Page>>} A promise that resolves to the result containing the page of ranked trends.
    */
   @Get('rank/{dataType}')
   public async searchTrend(
@@ -46,7 +46,12 @@ export class TrendController extends Controller {
   ): Promise<Result<Page>> {
     const page = new Page(parseInt(pageNo, 10), parseInt(pageSize, 10));
     page.format();
-    const type = { dataType: dataType, dateType: dateType, rankType: rankType, language: language };
+    const type = {
+      dataType: dataType,
+      dateType: dateType,
+      rankType: rankType,
+      language: language ? (JSON.parse(language) as string[]) : [],
+    };
     const data = await githubRank(page, type);
     return Result.ok(data);
   }

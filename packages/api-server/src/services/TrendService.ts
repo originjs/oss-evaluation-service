@@ -144,7 +144,7 @@ export async function githubTop(page: Page, type: string) {
  */
 export async function githubRank(
   page: Page,
-  rankParam: { dataType: string; dateType: string; rankType: string; language: string },
+  rankParam: { dataType: string; dateType: string; rankType: string; language: string[] },
 ) {
   const dataType = parseInt(rankParam.dataType);
   const dateType = parseInt(rankParam.dateType);
@@ -183,7 +183,7 @@ export async function githubRank(
   const commonReplacements = {
     dataType,
     dateType,
-    language: rankParam.language.split(','),
+    language: rankParam.language,
   };
   type ProjectRank = {
     projectId: number;
@@ -365,8 +365,8 @@ function getDateDisplay(date: Dayjs, dateType: number) {
  */
 export function getLanguageFilterCondition() {
   return {
-    value: '语言',
-    label: '语言',
+    value: '编程语言',
+    label: '编程语言',
     children: [
       { value: 'Python', label: 'Python' },
       { value: 'JavaScript', label: 'JavaScript' },
