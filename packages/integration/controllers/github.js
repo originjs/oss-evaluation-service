@@ -382,7 +382,9 @@ async function getGithubTrendProjects(period = periodTypes.day, language = '') {
   try {
     const response = await fetchWithRetries(url);
     if (!response) {
-      logger.info('The network is faulty and the github projects trending list cannot be obtained');
+      logger.error(
+        `The network is faulty and the github projects trending list cannot be obtained: ${url}`,
+      );
       return projectsList;
     }
 
@@ -403,7 +405,7 @@ async function getGithubTrendProjects(period = periodTypes.day, language = '') {
       }
     });
   } catch (e) {
-    logger.error(`**web crawler: Url get github trend is failed !** :${url}`);
+    logger.error(`**web crawler: Url get github trend is failed !** : ${url}, Error: ${e}`);
   }
 
   return projectsList;
@@ -418,7 +420,7 @@ async function getOssTrendProjects(language = '') {
   try {
     const response = await fetchWithRetries(url);
     if (!response) {
-      logger.info('The network is faulty and the oss trending list cannot be obtained');
+      logger.error(`The network is faulty and the oss trending list cannot be obtained: ${url}`);
       return projectsList;
     }
     const content = await response.json();
@@ -426,7 +428,7 @@ async function getOssTrendProjects(language = '') {
       projectsList.push(project.repo_name);
     }
   } catch (e) {
-    logger.error(`**web crawler: Url get oss trend is failed !** :${url}`);
+    logger.error(`**web crawler: Url get oss trend is failed !** :${url}, Error: ${e}`);
   }
 
   return projectsList;
@@ -440,7 +442,7 @@ async function getOssCollectionProjects() {
   try {
     const response = await fetchWithRetries(url);
     if (!response) {
-      logger.info('The network is faulty and the oss collection list cannot be obtained');
+      logger.error(`The network is faulty and the oss collection list cannot be obtained: ${url}`);
       return projectsList;
     }
     const content = await response.json();
@@ -453,8 +455,8 @@ async function getOssCollectionProjects() {
       const collectionUrl = `https://api.ossinsight.io/v1/collections/${collectionId}/ranking_by_stars/`;
       const collectionResponse = await fetch(collectionUrl);
       if (!collectionResponse) {
-        logger.info(
-          `The network is faulty and the projects list of oss collection ${collectionId} cannot be obtained`,
+        logger.error(
+          `The network is faulty and the projects list of oss collection ${collectionId} cannot be obtained: ${collectionUrl}`,
         );
         continue;
       }
@@ -464,7 +466,7 @@ async function getOssCollectionProjects() {
       }
     }
   } catch (e) {
-    logger.error(`**web crawler: Url get oss collectioin trend is failed !** :${url}`);
+    logger.error(`**web crawler: Url get oss collectioin trend is failed !** :${url}, Error: ${e}`);
   }
 
   return projectsList;
