@@ -153,7 +153,7 @@ export async function githubRank(
   const offset = page.pageSize * (page.pageNo - 1);
   const { current: curDate, previous: previousDate } = getCurAndPreviousDateByType(dateType);
 
-  const languageFilterSQL = rankParam.language
+  const languageFilterSQL = rankParam.language?.length
     ? ' and project_id in (select id from github_projects where language in (:language)) '
     : '';
   const baseSQL = `select project_id as projectId,
