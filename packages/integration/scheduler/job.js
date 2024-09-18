@@ -10,6 +10,7 @@ import { projectContributorsTimer } from '../controllers/projectContributors.js'
 import { evaluateTimer } from '../controllers/evaluate.js';
 import { projectHistoryTimer } from '../controllers/projectHistory.js';
 import { githubProjectsDailyTimer, githubProjectsWeeklyTimer } from '../controllers/github.js';
+import { githubStargazersTrendTimer } from '../controllers/projectStarGazersTrend.js';
 
 function createTimer(name, pattern, timer) {
   if (!pattern) {
@@ -44,6 +45,7 @@ const taskFactory = {
   projectHistoryTimer,
   githubProjectsDailyTimer,
   githubProjectsWeeklyTimer,
+  githubStargazersTrendTimer,
   createTask: function (taskName) {
     if (!this[taskName]) {
       throw new Error(`Task ${taskName} not found`);

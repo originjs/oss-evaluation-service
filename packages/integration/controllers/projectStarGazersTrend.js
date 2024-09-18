@@ -6,6 +6,7 @@ import {
 } from '@orginjs/oss-evaluation-data-model';
 import fetch from '@adobe/node-fetch-retry';
 import { getProjectByUrl } from '../util/util.js';
+import dayjs from 'dayjs';
 
 const starHistoryUrl = 'https://api.ossinsight.io/q/analyze-stars-history?repoId=:projectId';
 
@@ -24,6 +25,18 @@ where isnull(project_id)
   and project.id <= :endId
 order by id;
 `;
+
+export async function githubStargazersTrendTimer() {
+  let startDate = dayjs().format('YYYY-MM-DD');
+  let startTime = process.hrtime();
+  logger.info('[Integration][GithubStargazersTrend] GithubStargazersTrend Integration Job start');
+  await syncAllProjectStargazersTrend({ startDate });
+  logger.info('[Integration][GithubStargazersTrend] GithubStargazersTrend integration Successful!');
+  let endTime = process.hrtime(startTime);
+  logger.info(
+    `[Integration] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
+  );
+}
 
 export async function syncAllProjectStargazersTrendHandler(req, res) {
   const { startDate } = req.body;
