@@ -3,6 +3,7 @@ import type { RankInfo, SelectOptions, TableHeaders } from '@orginjs/oss-evaluat
 import { getLanguageOptionsApi } from '@orginjs/oss-evaluation-components-api';
 import { RankType, DateType } from '@orginjs/oss-evaluation-components-api';
 import { getSoftwareRankApi, DataType } from '@orginjs/oss-evaluation-components-api';
+import { formatFloat, toKilo } from '@orginjs/oss-evaluation-components-utils';
 
 const dataTypeNameMap = {
   [DataType.star]: 'Star',
@@ -41,6 +42,33 @@ const pageNo = ref(1);
 const tableHeaders = ref<TableHeaders>({});
 const tableData = ref<RankInfo[]>([]);
 const loadingTableData = ref(false);
+const tableColConfig: {
+  [k in keyof RankInfo]?: {
+    width?: number;
+    showOverflowTooltip?: boolean;
+  };
+} = {
+  currentRank: {
+    width: 100,
+  },
+  previousRank: {
+    width: 100,
+  },
+  name: {
+    width: 240,
+  },
+  createdAt: {
+    width: 120,
+  },
+  increasedValue: {
+    width: 100,
+    showOverflowTooltip: false,
+  },
+  totalValue: {
+    width: 100,
+    showOverflowTooltip: false,
+  },
+};
 
 const loadMoreData = async () => {
   if (loadingTableData.value) return;
@@ -56,10 +84,8 @@ const loadMoreData = async () => {
   try {
     loadingTableData.value = true;
     const res = await getSoftwareRankApi(params, activeDataType.value);
-    if (res.data.data.data.length > 0) {
-      tableData.value.push(...res.data.data.data);
-      tableHeaders.value = res.data.data.headers;
-    }
+    tableData.value.push(...res.data.data.data);
+    tableHeaders.value = res.data.data.headers;
   } catch (error) {
     // 请求报错
   } finally {
@@ -160,9 +186,31 @@ onUnmounted(() => {
         v-for="(value, key) in tableHeaders"
         :key="key"
         :label="value"
-        show-overflow-tooltip
+        :width="tableColConfig[key]?.width"
+        :show-overflow-tooltip="tableColConfig[key]?.showOverflowTooltip ?? true"
       >
-        <template v-if="key === 'name'" #default="scope">
+        <template v-if="key === 'currentRank'" #default="scope">
+          <div flex items-center>
+            <span font-size-16px>{{ scope.row.currentRank }}</span>
+            <div
+              v-if="
+                scope.row.previousRank && Math.abs(scope.row.previousRank - scope.row.currentRank)
+              "
+              ml-4px
+              flex
+              items-center
+              :class="
+                scope.row.previousRank - scope.row.currentRank > 0 ? 'color-green' : 'color-red'
+              "
+            >
+              <el-icon
+                ><Top v-if="scope.row.previousRank - scope.row.currentRank > 0" /><Bottom v-else
+              /></el-icon>
+              <span>{{ Math.abs(scope.row.previousRank - scope.row.currentRank) }}</span>
+            </div>
+          </div>
+        </template>
+        <template v-else-if="key === 'name'" #default="scope">
           <el-link :underline="false" :href="scope.row.htmlUrl" target="_blank">
             <div flex items-center>
               <el-image
@@ -170,9 +218,16 @@ onUnmounted(() => {
                 :src="scope.row.logo"
                 fit="fill"
               ></el-image>
-              <span flex-1 ml-10px>{{ scope.row.name }}</span>
+              <span flex-1 ml-10px overflow-hidden max-w-173px>{{ scope.row.name }}</span>
             </div></el-link
           >
+        </template>
+        <template v-else-if="key === 'increasedValue' || key === 'totalValue'" #default="scope">
+          <el-tooltip :content="scope.row[key]">
+            <span text-nowrap overflow-hidden text-ellipsis>{{
+              toKilo(formatFloat(scope.row[key]))
+            }}</span>
+          </el-tooltip>
         </template>
         <template v-else #default="scope">{{ scope.row[key] || '-' }}</template>
       </el-table-column>
@@ -180,4 +235,8 @@ onUnmounted(() => {
   </div>
 </template>
 
-<style scoped lang="less"></style>
+<style scoped lang="less">
+.el-tabs {
+  --el-tabs-header-height: 50px;
+}
+</style>
