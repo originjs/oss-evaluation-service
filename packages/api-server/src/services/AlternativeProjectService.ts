@@ -28,7 +28,7 @@ export async function getAlternativeProjects(fullName: string): Promise<Alternat
   });
   if (alternatives.length < ALTERNATIVE_SIZE) {
     // similar project by subcategory
-    const sql = `SELECT id, full_name, g.html_url, g.owner_avatar_url as logo, 
+    const sql = `SELECT id, g.full_name, g.html_url, g.owner_avatar_url as logo, 
        description, g.stargazers_count as starCount, g.forks_count as forksCount
 FROM github_projects g JOIN project_tech_stack t ON g.id = t.project_id 
 WHERE subcategory IN ( SELECT subcategory FROM project_tech_stack WHERE html_url = :repoName ) 

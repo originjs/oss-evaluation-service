@@ -18,6 +18,15 @@ export interface SoftwareBaseInfo {
   forksCount: number;
 }
 
+export interface TechRadarItem {
+  id?: string;
+  label: string;
+  link: string;
+  quadrant: number; //象限顺时针从右下开始：0 语言; 1 框架; 2 库; 3 工具;
+  ring: number; //圈从内到外：0 采纳; 1 试验; 2 评估; 3 暂缓;
+  moved: number;
+}
+
 export interface SoftwareInfo extends SoftwareBaseInfo {
   language: string;
   firstCommit: string;
@@ -98,7 +107,7 @@ export interface SoftwareInfo extends SoftwareBaseInfo {
 export type CompareProject = Pick<SoftwareInfo, 'repoName' | 'logo' | 'url' | 'description'>;
 
 export interface EcologyActivity {
-  projectId: number;
+  projectId?: number;
   value: number;
   date: string;
 }

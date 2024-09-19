@@ -1,6 +1,6 @@
 import { sequelize } from '@orginjs/oss-evaluation-data-model';
 import { QueryTypes } from 'sequelize';
-import type { SoftwareBaseInfo } from '../interfaces/SoftwareInfo';
+import type { SoftwareBaseInfo, TechRadarItem } from '../interfaces/SoftwareInfo';
 
 export async function searchProject(
   keyword: string,
@@ -22,5 +22,14 @@ export async function searchProject(
   return sequelize.query<SoftwareBaseInfo>(searchSql, {
     type: QueryTypes.SELECT,
     replacements: { keyword, techStack },
+  });
+}
+
+export async function getRadarList(): Promise<TechRadarItem[]> {
+  const sql = `select project_id as id, name as label,radar_quadrant as quadrant,radar_ring as ring,radar_moved as moved,
+      CONCAT('/#/software-details?repoName=',full_name) as link
+      from project_tech_stack where radar_ring is not null`;
+  return sequelize.query<SoftwareBaseInfo>(sql, {
+    type: QueryTypes.SELECT,
   });
 }

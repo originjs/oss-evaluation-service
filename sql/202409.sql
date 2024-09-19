@@ -25,3 +25,9 @@ CREATE TABLE trend_rank_history (
     `rank` INT NOT NULL DEFAULT 0,
     UNIQUE(data_type, date_type, date, rank_type, project_id)
 );
+
+ALTER TABLE project_tech_stack
+    ADD COLUMN `full_name` varchar(512) NULL AFTER `name`,
+    ADD COLUMN `radar_quadrant` int NULL,
+    ADD COLUMN `radar_ring` int NULL,
+    ADD COLUMN `radar_moved` int NULL;

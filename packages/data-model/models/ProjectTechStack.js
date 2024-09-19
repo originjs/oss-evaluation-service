@@ -12,6 +12,9 @@ export default sequelize.define(
     name: {
       type: DataTypes.STRING,
     },
+    fullName: {
+      type: DataTypes.STRING,
+    },
     htmlUrl: {
       type: DataTypes.STRING,
     },

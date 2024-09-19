@@ -172,6 +172,7 @@ async function createNewTechStack(repoUrl, category, subcategory) {
   await ProjectTechStack.upsert({
     projectId: project.id,
     name: project.name,
+    fullName: project.fullName,
     htmlUrl: repoUrl,
     category,
     subcategory,

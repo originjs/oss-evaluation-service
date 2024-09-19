@@ -24,6 +24,7 @@ import type {
   PerformanceInfo,
   SoftwareInfo,
   InnovationData,
+  EcologyActivity,
 } from '../interfaces/SoftwareInfo.js';
 import { getAlternativeProjects } from './AlternativeProjectService.js';
 import { fixedRound } from '../utils/math.js';
@@ -31,7 +32,6 @@ import { Op } from 'sequelize';
 import _ from 'underscore';
 import dayjs from 'dayjs';
 
-const DECIMAL_PLACES = 2;
 ProjectInfo.hasOne(Scorecard, { foreignKey: 'project_id', as: 'scorecard' });
 ProjectInfo.hasOne(SonarCloudProjectMin, { foreignKey: 'github_project_id', as: 'sonarCloudScan' });
 ProjectInfo.hasOne(EvaluationSummary, { foreignKey: 'project_id', as: 'evaluation' });
@@ -292,46 +292,58 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
   const orgCount = [];
   const contributorCount = [];
   const recentReleasesCount = [];
-  const packageDownload = [];
-  let stargazers = [];
-  let date = [];
+
   for (const activity of softwareActivity || []) {
     commitFrequency.push({
-      projectId: activity.project_id,
       value: fixedRound(activity.commit_frequency, 2),
       date: activity.grimoire_creation_date,
     });
     commentFrequency.push({
-      projectId: activity.project_id,
       value: fixedRound(activity.comment_frequency, 2),
       date: activity.grimoire_creation_date,
     });
     updatedIssuesCount.push({
-      projectId: activity.project_id,
       value: activity.updated_issues_count,
       date: activity.grimoire_creation_date,
     });
     closedIssuesCount.push({
-      projectId: activity.project_id,
       value: activity.closed_issues_count,
       date: activity.grimoire_creation_date,
     });
     orgCount.push({
-      projectId: activity.project_id,
       value: activity.org_count,
       date: activity.grimoire_creation_date,
     });
     contributorCount.push({
-      projectId: activity.project_id,
       value: activity.contributor_count,
       date: activity.grimoire_creation_date,
     });
     recentReleasesCount.push({
-      projectId: activity.project_id,
       value: activity.recent_releases_count,
       date: activity.grimoire_creation_date,
     });
   }
+
+  const results = await Promise.all([
+    queryDowloadCount(repoName),
+    queryStarsTrend(repoName),
+    getAlternativeProjects(repoName),
+  ]);
+  return {
+    packageDownload: results[0],
+    commitFrequency,
+    commentFrequency,
+    updatedIssuesCount,
+    closedIssuesCount,
+    orgCount,
+    contributorCount,
+    starTrend: results[1],
+    recentReleasesCount,
+    alternatives: results[2],
+  };
+}
+
+async function queryDowloadCount(repoName: string): Promise<EcologyActivity[]> {
   const downloadList = await PackageDownloadCount.findAll({
     attributes: ['end_date', 'downloads'],
     include: [
@@ -347,12 +359,13 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
     limit: 14,
   });
   const sortedDownloadList = _.sortBy(downloadList, item => item.dataValues.end_date);
-  for (const download of sortedDownloadList) {
-    packageDownload.push({
-      value: download.dataValues.downloads,
-      date: download.dataValues.end_date,
-    });
-  }
+  return sortedDownloadList.map(item => ({
+    value: item.dataValues.downloads,
+    date: item.dataValues.end_date,
+  }));
+}
+
+async function queryStarsTrend(repoName: string) {
   const trend = await GithubProjectsStargazersTrend.findAll({
     where: {
       fullName: repoName,
@@ -360,25 +373,11 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
     attributes: ['stargazers', 'date'],
     order: [['date', 'asc']],
   });
-  stargazers = _.pluck(trend, 'stargazers');
-  date = _.pluck(trend, 'date');
-
-  const alternatives = await getAlternativeProjects(repoName);
-
+  const stargazers = _.pluck(trend, 'stargazers');
+  const date = _.pluck(trend, 'date');
   return {
-    packageDownload,
-    commitFrequency,
-    commentFrequency,
-    updatedIssuesCount,
-    closedIssuesCount,
-    orgCount,
-    contributorCount,
-    starTrend: {
-      stargazers,
-      date,
-    },
-    recentReleasesCount,
-    alternatives,
+    stargazers,
+    date,
   };
 }
 
@@ -462,6 +461,7 @@ async function queryExportSoftwareInfo(projectName: string) {
     },
     '',
   );
+  const DECIMAL_PLACES = 2;
   data.satisfactionExport = resultString.slice(0, resultString.length - 1);
   data.gzipSize = packageSize?.gzipSize;
   data.evaluation.functionScore = Number(fixedRound(data.evaluation.functionScore, DECIMAL_PLACES));
