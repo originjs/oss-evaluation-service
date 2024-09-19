@@ -157,7 +157,7 @@ export async function getScorecard(url) {
       }
       logger.info(`try to run command: ${command}`);
       const commandResult = shelljs.exec(command, {
-        env: { GITHUB_AUTH_TOKEN: process.env.GITHUB_AUTH_TOKEN }
+        env: { GITHUB_AUTH_TOKEN: process.env.GITHUB_AUTH_TOKEN },
       });
       if (commandResult.code === 0) {
         buffer = commandResult.stdout;

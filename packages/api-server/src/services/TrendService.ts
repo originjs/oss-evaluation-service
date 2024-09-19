@@ -227,7 +227,15 @@ export async function githubRank(
   previousResult.forEach(result => previousMap.set(result.projectId, result));
 
   const projectInfo: GithubProjects[] = await GithubProjects.findAll({
-    attributes: ['id', 'fullName', 'htmlUrl', 'description', 'ownerAvatarUrl', 'createdAt'],
+    attributes: [
+      'id',
+      'fullName',
+      'htmlUrl',
+      'description',
+      'ownerAvatarUrl',
+      'createdAt',
+      'language',
+    ],
     where: {
       id: {
         [Op.in]: filteredProjectIds,
@@ -250,6 +258,7 @@ export async function githubRank(
       logo: project?.ownerAvatarUrl,
       htmlUrl: project?.htmlUrl,
       description: project?.description,
+      programmingLanguage: project?.language,
       createdAt: simpleDateFormat(dayjs(project?.createdAt)),
     };
 
@@ -320,6 +329,7 @@ function getTableHeader(
   }
   headers.set('currentRank', currentHeaderName);
   headers.set('name', '名称');
+  headers.set('programmingLanguage', '编程语言');
   headers.set('description', '描述');
   headers.set('createdAt', '创建时间');
   headers.set('increasedValue', '增长量');
