@@ -30,7 +30,7 @@ const dateTypeNameMap = {
   [DateType.month]: '月',
   [DateType.week]: '周',
 };
-const dateType = ref(DateType.month);
+const dateType = ref(DateType.week);
 
 const rankTypeNameMap = {
   [RankType.increase]: '增长',
@@ -50,10 +50,7 @@ const tableColConfig: {
   };
 } = {
   currentRank: {
-    width: 100,
-  },
-  previousRank: {
-    width: 100,
+    width: 143,
   },
   name: {
     width: 240,
@@ -148,6 +145,9 @@ onUnmounted(() => {
           :key="item"
           :label="dataTypeNameMap[item]"
           :name="item"
+          :disabled="
+            [DataType.ecoScore, DataType.qualityScore, DataType.downloadCount].includes(item)
+          "
         ></el-tab-pane>
       </el-tabs>
     </div>
@@ -196,7 +196,7 @@ onUnmounted(() => {
       :data="tableData"
       border
       stripe
-      height="calc(100vh - 300px)"
+      height="calc(100vh - 313px)"
     >
       <el-table-column
         v-for="(value, key) in tableHeaders"
@@ -239,11 +239,12 @@ onUnmounted(() => {
           >
         </template>
         <template v-else-if="key === 'increasedValue' || key === 'totalValue'" #default="scope">
-          <el-tooltip :content="scope.row[key]">
+          <el-tooltip v-if="scope.row[key]" :content="scope.row[key]">
             <span text-nowrap overflow-hidden text-ellipsis>{{
               toKilo(formatFloat(scope.row[key]))
             }}</span>
           </el-tooltip>
+          <span v-else>-</span>
         </template>
         <template v-else #default="scope">{{ scope.row[key] || '-' }}</template>
       </el-table-column>
