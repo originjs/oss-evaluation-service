@@ -120,7 +120,7 @@ const handleTableScroll = (event: Event) => {
   const clientHeight = tableElement.clientHeight;
 
   if (scrollTop + clientHeight >= scrollHeight - 50) {
-    loadMoreData();
+    canceller = loadMoreData();
   }
 };
 
@@ -239,7 +239,7 @@ onUnmounted(() => {
           >
         </template>
         <template v-else-if="key === 'increasedValue' || key === 'totalValue'" #default="scope">
-          <el-tooltip v-if="scope.row[key]" :content="scope.row[key]">
+          <el-tooltip v-if="scope.row[key]" :content="String(scope.row[key])">
             <span text-nowrap overflow-hidden text-ellipsis>{{
               toKilo(formatFloat(scope.row[key]))
             }}</span>
