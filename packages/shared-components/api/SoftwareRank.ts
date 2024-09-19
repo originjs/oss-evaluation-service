@@ -1,28 +1,47 @@
+import type { Page, PageParam } from './HttpRequest';
 import HttpRequest from './HttpRequest';
 
-export type rankInfo = {
+export type RankInfo = {
+  currentRank: number;
+  increasedValue: number;
+  totalValue: number;
   name: string;
   logo: string;
   htmlUrl: string;
-  starCount: string;
-  forkCount: string;
-  contributorCount: string;
-  contributors: number | undefined | string;
-  trend: {
-    xAxis: [];
-    yAxis: [];
-    monthCount: number[];
-    monthDiff: number[];
-  };
-};
-export type rankPage = {
-  pageNo: number;
-  pageSize: number;
-  data: Array<rankInfo>;
+  description: string;
+  createdAt: string;
 };
 
-export function getStarsTopApi(params: { pageNo: number; pageSize?: number }, type: string) {
-  return HttpRequest.get<rankPage>(`/trend/${type}`, {
+export type TableHeaders = {
+  [k in keyof RankInfo]?: string;
+};
+
+export type SoftwareRank = {
+  data: RankInfo[];
+  headers: TableHeaders;
+};
+
+export enum DataType {
+  star = '1',
+  contributor = '2',
+  ecoScore = '3',
+  qualityScore = '4',
+  downloadCount = '5',
+}
+export enum DateType {
+  year = '1',
+  month = '2',
+  week = '3',
+}
+export enum RankType {
+  increase = '1',
+  total = '2',
+}
+export function getSoftwareRankApi(
+  params: PageParam & { dateType: DateType; rankType: RankType; language?: string },
+  type: DataType,
+) {
+  return HttpRequest.get<Page<SoftwareRank>>(`/trend/rank/${type}`, {
     params,
   });
 }

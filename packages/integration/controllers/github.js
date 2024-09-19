@@ -35,8 +35,20 @@ const dataTypes = {
 const periodTypes = {
   day: 'daily',
   week: 'weekly',
-  month: 'mongthly',
+  month: 'monthly',
 };
+
+const commonLanguages = [
+  '',
+  'JavaScript',
+  'C',
+  'C++',
+  'Python',
+  'Java',
+  'Go',
+  'Rust',
+  'TypeScript',
+];
 
 export async function observeProjectsByStar(req, res) {
   const githubApiUrl = getGithubApiUrl(req);
@@ -56,7 +68,7 @@ export async function syncProjectByStar(req, res) {
     projects = projects.concat(result.data);
   } while (result.hasNext);
 
-  const csvFileName = `projects_stars_${req.body[0]}_${req.body[1] || 'above'}`;
+  const csvFileName = `projects_stars_${req.body?.starRange[0]}_${req.body?.starRange[1] || 'above'}`;
   saveCSVFile(projects, csvFileName);
   savaData(projects);
 
@@ -102,14 +114,15 @@ export async function syncProjectByUserStar(req, res) {
 
 function getGithubApiUrl(req) {
   const param = getStarsScope(req);
-  return `https://api.github.com/search/repositories?q=language:javascript+language:typescript+${param}&sort=stars&order=asc&per_page=100`;
+  const language = req.body?.language;
+  return `https://api.github.com/search/repositories?q=language:${language}+${param}&sort=stars&order=asc&per_page=100`;
 }
 
 function getStarsScope(req) {
-  if (!req.body[1]) {
-    return `stars:>=${req.body[0]}`;
+  if (!req.body.starRange[1]) {
+    return `stars:>=${req.body.starRange[0]}`;
   }
-  return `stars:${req.body[0]}..${req.body[1]}`;
+  return `stars:${req?.body?.starRange[0]}..${req?.body?.starRange[1]}`;
 }
 
 async function savaData(projects) {
@@ -174,23 +187,26 @@ async function pagingQuery(url) {
         });
 
         res.on('end', () => {
-          if (res.statusCode !== 200) {
-            res.status(500).json(result.toString());
+          if (res.statusCode === 403) {
+            logger.error(`Integrate github project records error 403: ${url}`);
             resolve({ hasNext: false, nextPageUrl: '', data: [] });
           }
-          const links = parseLinks(res.headers.link);
-          const resultBody = JSON.parse(result.toString());
-          logger.info(
-            `Integrate the total rows of records: ${resultBody.total_count},Rows of this integration:${resultBody.items.length}`,
-          );
-
-          const projects = parseProjects(resultBody.items);
-          resolve({
-            hasNext: !!links.next,
-            nextPageUrl: links.next,
-            data: projects,
-            totalCount: resultBody.total_count,
-          });
+          if (res.statusCode !== 200) {
+            resolve({ hasNext: false, nextPageUrl: '', data: [] });
+          } else {
+            const links = parseLinks(res.headers.link);
+            const resultBody = JSON.parse(result.toString());
+            logger.info(
+              `Integrate the total rows of records: ${resultBody.total_count},Rows of this integration:${resultBody.items.length}`,
+            );
+            const projects = parseProjects(resultBody.items);
+            resolve({
+              hasNext: !!links.next,
+              nextPageUrl: links.next,
+              data: projects,
+              totalCount: resultBody.total_count,
+            });
+          }
         });
       })
       .on('error', e => {
@@ -211,7 +227,7 @@ function parseProjects(items, dataType) {
     name: project.name,
     fullName: project.full_name,
     htmlUrl: project.html_url,
-    description: project.description,
+    description: project.description?.slice(0, 1001),
     privateFlag: project.private,
     ownerName: project.owner.login,
     forkFlag: project.fork,
@@ -341,7 +357,10 @@ function getOwnerRepo(url) {
 }
 
 function parseLinks(linksStr) {
-  const linksArray = linksStr.split(',');
+  if (!linksStr) {
+    linksStr = '';
+  }
+  const linksArray = linksStr?.split(',');
   const links = {};
   let key;
   let value;
@@ -356,49 +375,60 @@ function parseLinks(linksStr) {
   return links;
 }
 
-async function getGithubTrendProjects(period = periodTypes.day) {
+async function getGithubTrendProjects(period = periodTypes.day, language = '') {
   let projectsList = [];
 
-  const url = `https://github.com/trending?since=${period}&spoken_language_code=`;
-  const response = await fetchWithRetries(url);
-  if (!response) {
-    logger.info('The network is faulty and the github projects trending list cannot be obtained');
-    return projectsList;
-  }
-
-  const content = await response.text();
-  const $ = cheerio.load(content);
-
-  // get the project list
-  $('article.Box-row').each((index, element) => {
-    const h2Element = $(element).find('h2.h3.lh-condensed');
-    const aElement = h2Element.find('a');
-
-    if (aElement.length > 0) {
-      const href = aElement.attr('href');
-      const project = href.substring(1);
-      projectsList.push(project);
-    } else {
-      logger.info('project name not found');
+  const url = `https://github.com/trending?since=${period}&spoken_language_code=${language}`;
+  try {
+    const response = await fetchWithRetries(url);
+    if (!response) {
+      logger.error(
+        `The network is faulty and the github projects trending list cannot be obtained: ${url}`,
+      );
+      return projectsList;
     }
-  });
+
+    const content = await response.text();
+    const $ = cheerio.load(content);
+
+    // get the project list
+    $('article.Box-row').each((index, element) => {
+      const h2Element = $(element).find('h2.h3.lh-condensed');
+      const aElement = h2Element.find('a');
+
+      if (aElement.length > 0) {
+        const href = aElement.attr('href');
+        const project = href.substring(1);
+        projectsList.push(project);
+      } else {
+        logger.info('project name not found');
+      }
+    });
+  } catch (e) {
+    logger.error(`**web crawler: Url get github trend is failed !** : ${url}, Error: ${e}`);
+  }
 
   return projectsList;
 }
 
-async function getOssTrendProjects() {
+async function getOssTrendProjects(language = '') {
   let projectsList = [];
-
   // get the daily oss trend projects
-  const url = `https://api.ossinsight.io/v1/trends/repos/`;
-  const response = await fetchWithRetries(url);
-  if (!response) {
-    logger.info('The network is faulty and the oss trending list cannot be obtained');
-    return projectsList;
-  }
-  const content = await response.json();
-  for (const project of content.data.rows) {
-    projectsList.push(project.repo_name);
+  const url = language.length
+    ? `https://api.ossinsight.io/v1/trends/repos/?language=${language}`
+    : `https://api.ossinsight.io/v1/trends/repos/`;
+  try {
+    const response = await fetchWithRetries(url);
+    if (!response) {
+      logger.error(`The network is faulty and the oss trending list cannot be obtained: ${url}`);
+      return projectsList;
+    }
+    const content = await response.json();
+    for (const project of content.data.rows) {
+      projectsList.push(project.repo_name);
+    }
+  } catch (e) {
+    logger.error(`**web crawler: Url get oss trend is failed !** :${url}, Error: ${e}`);
   }
 
   return projectsList;
@@ -407,33 +437,36 @@ async function getOssTrendProjects() {
 async function getOssCollectionProjects() {
   let projectsList = [];
   let collectionList = [];
-
   // get the oss collection ids
   const url = `https://api.ossinsight.io/v1/collections/`;
-  const response = await fetchWithRetries(url);
-  if (!response) {
-    logger.info('The network is faulty and the oss collection list cannot be obtained');
-    return projectsList;
-  }
-  const content = await response.json();
-  for (const collection of content.data.rows) {
-    collectionList.push(collection.id);
-  }
+  try {
+    const response = await fetchWithRetries(url);
+    if (!response) {
+      logger.error(`The network is faulty and the oss collection list cannot be obtained: ${url}`);
+      return projectsList;
+    }
+    const content = await response.json();
+    for (const collection of content.data.rows) {
+      collectionList.push(collection.id);
+    }
 
-  // using collection id to get the oss star trend projects, which is the most complete list
-  for (const collectionId of collectionList) {
-    const collectionUrl = `https://api.ossinsight.io/v1/collections/${collectionId}/ranking_by_stars/`;
-    const collectionResponse = await fetch(collectionUrl);
-    if (!collectionResponse) {
-      logger.info(
-        `The network is faulty and the projects list of oss collection ${collectionId} cannot be obtained`,
-      );
-      continue;
+    // using collection id to get the oss star trend projects, which is the most complete list
+    for (const collectionId of collectionList) {
+      const collectionUrl = `https://api.ossinsight.io/v1/collections/${collectionId}/ranking_by_stars/`;
+      const collectionResponse = await fetch(collectionUrl);
+      if (!collectionResponse) {
+        logger.error(
+          `The network is faulty and the projects list of oss collection ${collectionId} cannot be obtained: ${collectionUrl}`,
+        );
+        continue;
+      }
+      const collectionContent = await collectionResponse.json();
+      for (const collection of collectionContent.data.rows) {
+        projectsList.push(collection.repo_name);
+      }
     }
-    const collectionContent = await collectionResponse.json();
-    for (const collection of collectionContent.data.rows) {
-      projectsList.push(collection.repo_name);
-    }
+  } catch (e) {
+    logger.error(`**web crawler: Url get oss collectioin trend is failed !** :${url}, Error: ${e}`);
   }
 
   return projectsList;
@@ -467,9 +500,13 @@ async function syncGithubProjects(projectList) {
  *
  */
 async function syncGithubProjectsDaily() {
-  const githubDailyTrendList = await getGithubTrendProjects(periodTypes.day);
-  const ossTrendList = await getOssTrendProjects();
-  const projectsList = await mergeAndRemoveDuplicates(githubDailyTrendList, ossTrendList);
+  let projectsList = [];
+  for (const language of commonLanguages) {
+    const githubDailyTrendList = await getGithubTrendProjects(periodTypes.day, language);
+    const ossTrendList = await getOssTrendProjects(language);
+    projectsList = await mergeAndRemoveDuplicates(githubDailyTrendList, ossTrendList, projectsList);
+  }
+  projectsList = await mergeAndRemoveDuplicates(projectsList);
   await syncGithubProjects(projectsList);
 }
 
@@ -478,14 +515,18 @@ async function syncGithubProjectsDaily() {
  *
  */
 async function syncGithubProjectsWeekly() {
-  const githubWeeklyTrendList = await getGithubTrendProjects(periodTypes.week);
-  const githubMonthlyTrendList = await getGithubTrendProjects(periodTypes.month);
+  let projectsList = [];
+  for (const language of commonLanguages) {
+    const githubWeeklyTrendList = await getGithubTrendProjects(periodTypes.week, language);
+    const githubMonthlyTrendList = await getGithubTrendProjects(periodTypes.month, language);
+    projectsList = await mergeAndRemoveDuplicates(
+      githubWeeklyTrendList,
+      githubMonthlyTrendList,
+      projectsList,
+    );
+  }
   const ossCollectionTrendList = await getOssCollectionProjects();
-  const projectsList = await mergeAndRemoveDuplicates(
-    githubWeeklyTrendList,
-    githubMonthlyTrendList,
-    ossCollectionTrendList,
-  );
+  projectsList = await mergeAndRemoveDuplicates(projectsList, ossCollectionTrendList);
   await syncGithubProjects(projectsList);
 }
 

@@ -949,6 +949,12 @@ function addProjectToCompare(info: CompareProject | undefined) {
   const { repoName, logo, url, description } = info;
   compareFavoritesRef.value?.addProject([{ repoName, logo, url, description }]);
 }
+function setProjectsToCompare(projects: Array<CompareProject>) {
+  compareFavoritesRef.value?.cleanCompareFavorites();
+  projects.forEach(project => {
+    addProjectToCompare(project);
+  });
+}
 
 const emits = defineEmits<{
   compareProjects: [projects: Array<SoftwareBaseInfo>];
@@ -1085,6 +1091,17 @@ onBeforeUnmount(() => {
               <div font-size-18px>反馈相似软件</div>
             </template>
           </ApplyAdd>
+          <el-button
+            v-if="project"
+            round
+            :icon="Plus"
+            size="small"
+            ml-3
+            mt-2px
+            @click="setProjectsToCompare([project, ...alternatives].slice(0, 5))"
+          >
+            一键对比
+          </el-button>
         </slot>
       </div>
       <div flex my-5>

@@ -96,6 +96,7 @@ import {
   storeSingleProjectTrendHandler,
   storeAllProjectTrendHandler,
 } from '../controllers/trendHistory.js';
+import { storeTrendRankHistoryHandler } from '../controllers/trendRankHistory.js';
 
 const router = express.Router();
 
@@ -618,8 +619,14 @@ router.route('/stackoverflow').post(syncStackOverFlowResultData);
  *       content:
  *         application/json:
  *           schema:
- *             type: Array<number>
- *             example: [1000,1123]
+ *             type: object
+ *             properties:
+ *               language:
+ *                 type: string
+ *                 example: javascript
+ *               starRange:
+ *                 type: Array<number>
+ *                 example: [1000,1123]
  *     responses:
  *       200:
  *         description: Success
@@ -641,8 +648,14 @@ router.route('/github/stars/observeprojects').post(observeProjectsByStar);
  *       content:
  *         application/json:
  *           schema:
- *             type: Array<number>
- *             example: [1000,1123]
+ *             type: object
+ *             properties:
+ *               language:
+ *                 type: string
+ *                 example: javascript
+ *               starRange:
+ *                 type: Array<number>
+ *                 example: [1000,1123]
  *     responses:
  *       200:
  *         description: Success
@@ -1424,31 +1437,66 @@ router.route('/benchmark/getBenchmarkIndex').get(importBenchmarkIndexByGetHandle
 
 /**
  * @swagger
- * /sync/storeAllProjectTrend:
- *   get:
- *     summary: store trend history of project
- *     responses:
- *       200:
- *         description: success.
- */
-router.route('/storeAllProjectTrend').get(storeAllProjectTrendHandler);
-
-/**
- * @swagger
- * /sync/storeSingleProjectTrend/{repoUrl}:
+ * /sync/storeAllProjectTrend/{date}:
  *   get:
  *     summary: store trend history of project
  *     parameters:
  *      - in: path
- *        name: repoUrl
+ *        name: date
  *        type: string
  *        required: true
- *        example: https://github.com/vuejs/router
+ *        example: "2024-01-01"
  *     responses:
  *       200:
  *         description: success.
  */
-router.route('/storeSingleProjectTrend/:repoUrl').get(storeSingleProjectTrendHandler);
+router.route('/storeAllProjectTrend/:date').get(storeAllProjectTrendHandler);
+
+/**
+ * @swagger
+ * /sync/storeSingleProjectTrend/{date}/{repoUrl}:
+ *   get:
+ *     summary: store trend history of project
+ *     parameters:
+ *      - in: path
+ *        name: date
+ *        type: string
+ *        required: true
+ *        example: "2024-01-01"
+ *      - in: path
+ *        name: repoUrl
+ *        type: string
+ *        required: true
+ *        example: "https://github.com/vuejs/router"
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/storeSingleProjectTrend/:date/:repoUrl').get(storeSingleProjectTrendHandler);
+
+/**
+ * @swagger
+ * /sync/storeTrendRankHistory:
+ *   get:
+ *     summary: store trend rank history
+ *     parameters:
+ *     - in: query
+ *       name: dateType
+ *       schema:
+ *         type: number
+ *         example: 2
+ *         required: true
+ *     - in: query
+ *       name: date
+ *       schema:
+ *         type: string
+ *         example: '2024-09-01'
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: Success
+ */
+router.route('/storeTrendRankHistory').get(storeTrendRankHistoryHandler);
 
 /**
  * @swagger

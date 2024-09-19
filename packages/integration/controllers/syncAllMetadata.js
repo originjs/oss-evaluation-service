@@ -1,5 +1,4 @@
 import { syncSingleGithubProject } from './github.js';
-import { getProjectByUrl } from '../util/util.js';
 import { syncSingleProjectCncfDocumentScore } from './documentScore.js';
 import { syncSingleProjectStargazersTrend } from './projectStarGazersTrend.js';
 import { syncSingleProjectOpendigger } from './opendigger.js';
@@ -90,8 +89,7 @@ export async function syncBatchProjectAllMetadataByProjectIdsHandler(req, res) {
 async function syncSingleProjectAllMetadata(options) {
   const { repoUrl, category, subcategory, packageName } = options;
   // 1. GitHub Info
-  await syncSingleGithubProject({ url: repoUrl });
-  const project = await getProjectByUrl(repoUrl);
+  const project = await syncSingleGithubProject({ url: repoUrl });
   if (!project) {
     logger.error(`[Batch Integrated] get github info by repo:{${repoUrl}} failed!!`);
     return;

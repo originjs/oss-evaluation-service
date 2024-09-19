@@ -4,7 +4,7 @@ import {
   downloadExcelTemplate,
 } from '@orginjs/oss-evaluation-components-api';
 import { ElMessage } from 'element-plus';
-import type { UploadFile, UploadRawFile, UploadInstance } from 'element-plus';
+import type { UploadFile, UploadRawFile, UploadInstance, MessageOptions } from 'element-plus';
 import { createReusableTemplate } from '@vueuse/core';
 import { saveAs } from 'file-saver';
 
@@ -24,6 +24,8 @@ interface Props {
   showInDialog?: boolean;
   successMessage?: string;
   failMessage?: string;
+  successMessageConfig?: MessageOptions;
+  failMessageConfig?: MessageOptions;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -36,6 +38,8 @@ const props = withDefaults(defineProps<Props>(), {
   showInDialog: true,
   successMessage: '提交成功',
   failMessage: '提交失败，请稍后重试',
+  successMessageConfig: () => ({}),
+  failMessageConfig: () => ({}),
 });
 
 const emit = defineEmits<{
@@ -136,18 +140,27 @@ function submitApplication() {
       })
         .then(res => {
           if (res.data === 'success') {
-            ElMessage.success(props.successMessage);
+            ElMessage.success({
+              message: props.successMessage,
+              ...props.successMessageConfig,
+            });
             formInstance.value.resetFields();
             dialogVisible.value = false;
             formVisible.value = false;
             emit('apply-success');
           } else {
-            ElMessage.warning(props.failMessage);
+            ElMessage.warning({
+              message: props.failMessage,
+              ...props.failMessageConfig,
+            });
             emit('apply-fail');
           }
         })
         .catch(() => {
-          ElMessage.warning(props.failMessage);
+          ElMessage.warning({
+            message: props.failMessage,
+            ...props.failMessageConfig,
+          });
           emit('apply-fail');
         })
         .finally(() => {

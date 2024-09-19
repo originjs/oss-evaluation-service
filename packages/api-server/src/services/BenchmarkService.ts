@@ -3,6 +3,7 @@ import {
   NewProjectApply,
   BenchmarkIndex as BenchmarkIndexPo,
   sequelize,
+  logger,
 } from '@orginjs/oss-evaluation-data-model';
 import { randomUUID } from 'crypto';
 import exceljs from 'exceljs';
@@ -172,7 +173,7 @@ export async function importBenchmarkFromExcel(file: Express.Multer.File) {
   });
   // err if no benchmark apply with filename
   if (!apply) {
-    throw new Error(`no benchmark apply with filename:{${filename}} or this file is imported`);
+    logger.warn('[benchmark] import benchmark without benchmark apply!');
   }
   const data = await parseBenchmarkExcel2JSON(file.buffer);
   await setOthersParam4Benchmark(data.benchmark, apply);
@@ -180,19 +181,21 @@ export async function importBenchmarkFromExcel(file: Express.Multer.File) {
   await importBenchmarkData(data);
   const projectIds = data.benchmark.map(benchmark => benchmark.projectId);
   // set integration finished time if not err
-  await NewProjectApply.update(
-    {
-      // dont set finishedTime, bacause need time to sync data from outer into inner
-      // integrationFinishedTime: new Date(),
-      // set imported projectId for this apply
-      alternativeProjectId: [...new Set(projectIds)].join(','),
-    },
-    {
-      where: {
-        filename,
+  if (apply) {
+    await NewProjectApply.update(
+      {
+        // dont set finishedTime, bacause need time to sync data from outer into inner
+        // integrationFinishedTime: new Date(),
+        // set imported projectId for this apply
+        alternativeProjectId: [...new Set(projectIds)].join(','),
       },
-    },
-  );
+      {
+        where: {
+          filename,
+        },
+      },
+    );
+  }
   return data;
 }
 
