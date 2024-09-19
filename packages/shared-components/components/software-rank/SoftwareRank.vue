@@ -52,6 +52,9 @@ const tableColConfig: {
   currentRank: {
     width: 143,
   },
+  programmingLanguage: {
+    width: 160,
+  },
   name: {
     width: 240,
   },
