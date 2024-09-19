@@ -1091,18 +1091,18 @@ onBeforeUnmount(() => {
               <div font-size-18px>反馈相似软件</div>
             </template>
           </ApplyAdd>
-          <el-button
-            v-if="project"
-            round
-            :icon="Plus"
-            size="small"
-            ml-3
-            mt-2px
-            @click="setProjectsToCompare([project, ...alternatives].slice(0, 5))"
-          >
-            一键对比
-          </el-button>
         </slot>
+        <el-button
+          v-if="project"
+          round
+          :icon="Plus"
+          size="small"
+          ml-3
+          mt-2px
+          @click="setProjectsToCompare([project, ...alternatives].slice(0, 5))"
+        >
+          一键对比
+        </el-button>
       </div>
       <div flex my-5>
         <div v-for="item in alternatives" :key="item.id" class="alter-item" flex>
