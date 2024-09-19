@@ -3,6 +3,7 @@ import type { RankInfo, SelectOptions, TableHeaders } from '@orginjs/oss-evaluat
 import { getLanguageOptionsApi } from '@orginjs/oss-evaluation-components-api';
 import { RankType, DateType } from '@orginjs/oss-evaluation-components-api';
 import { getSoftwareRankApi, DataType } from '@orginjs/oss-evaluation-components-api';
+// @ts-expect-error: 误报错
 import { formatFloat, toKilo } from '@orginjs/oss-evaluation-components-utils';
 
 const dataTypeNameMap = {
