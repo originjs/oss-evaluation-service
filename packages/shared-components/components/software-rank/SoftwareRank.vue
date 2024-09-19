@@ -71,8 +71,9 @@ const tableColConfig: {
   },
 };
 
+let canceller: () => void;
 const loadMoreData = () => {
-  if (loadingTableData.value) return;
+  if (loadingTableData.value) return canceller;
   let isAborted = false;
 
   loadingTableData.value = true;
@@ -104,7 +105,6 @@ const loadMoreData = () => {
   };
 };
 
-let canceller: ReturnType<typeof loadMoreData>;
 const getSoftwareRank = () => {
   pageNo.value = 1;
   tableData.value = [];
