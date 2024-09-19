@@ -3,6 +3,7 @@ import HttpRequest from './HttpRequest';
 
 export type RankInfo = {
   currentRank: number;
+  previousRank?: number;
   increasedValue: number;
   totalValue: number;
   name: string;
