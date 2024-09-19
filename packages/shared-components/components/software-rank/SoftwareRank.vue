@@ -71,9 +71,11 @@ const tableColConfig: {
   },
 };
 
-const loadMoreData = async () => {
+const loadMoreData = () => {
   if (loadingTableData.value) return;
+  let isAborted = false;
 
+  loadingTableData.value = true;
   const params = {
     dateType: dateType.value,
     rankType: rankType.value,
@@ -81,23 +83,36 @@ const loadMoreData = async () => {
     pageNo: pageNo.value++,
     pageSize: 20,
   };
+  getSoftwareRankApi(params, activeDataType.value)
+    .then(res => {
+      if (!isAborted) {
+        tableData.value.push(...res.data.data.data);
+        tableHeaders.value = res.data.data.headers;
+      }
+    })
+    .catch(() => {
+      // 请求报错
+    })
+    .finally(() => {
+      if (!isAborted) {
+        loadingTableData.value = false;
+      }
+    });
 
-  try {
-    loadingTableData.value = true;
-    const res = await getSoftwareRankApi(params, activeDataType.value);
-    tableData.value.push(...res.data.data.data);
-    tableHeaders.value = res.data.data.headers;
-  } catch (error) {
-    // 请求报错
-  } finally {
-    loadingTableData.value = false;
-  }
+  return () => {
+    isAborted = true;
+  };
 };
 
+let canceller: ReturnType<typeof loadMoreData>;
 const getSoftwareRank = () => {
   pageNo.value = 1;
   tableData.value = [];
-  loadMoreData();
+  loadingTableData.value = false;
+  if (canceller) {
+    canceller();
+  }
+  canceller = loadMoreData();
 };
 getSoftwareRank();
 
