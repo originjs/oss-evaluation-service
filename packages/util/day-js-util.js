@@ -49,5 +49,5 @@ export function simpleDateTimeFormat(date) {
 }
 
 export function simpleWeekFormat(date) {
-  return `${date.year()}-${String(date.week()).padStart(2, '0')}W`;
+  return `${date.year()}-W${String(date.week()).padStart(2, '0')}`;
 }
