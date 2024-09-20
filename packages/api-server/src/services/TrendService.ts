@@ -174,12 +174,15 @@ export async function githubRank(
   const orderSQL = 'order by `rank`';
   const pageSQL = ` limit :pageSize offset :offset`;
 
+  // Returns up to the top 500 data
   const queryCurrent = `
+          select * from (
           ${baseSQL}
           ${languageFilterSQL}
           ${removeNoneValSQL}
           ${orderSQL}
-          ${pageSQL}`;
+          ${pageSQL} ) tmp
+          where \`rank\` <= 500 `;
   const commonReplacements = {
     dataType,
     dateType,
