@@ -82,7 +82,7 @@ const loadMoreData = () => {
     rankType: rankType.value,
     language: JSON.stringify(languages.value),
     pageNo: pageNo.value++,
-    pageSize: 20,
+    pageSize: 99,
   };
   getSoftwareRankApi(params, activeDataType.value)
     .then(res => {
