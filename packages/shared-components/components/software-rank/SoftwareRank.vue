@@ -7,8 +7,8 @@ import { getSoftwareRankApi, DataType } from '@orginjs/oss-evaluation-components
 import { formatFloat, toKilo } from '@orginjs/oss-evaluation-components-utils';
 
 const dataTypeNameMap = {
-  [DataType.star]: 'Star',
-  [DataType.contributor]: 'Contributor',
+  [DataType.star]: 'Stars',
+  [DataType.contributor]: 'Contributors',
   [DataType.ecoScore]: '生态评分',
   [DataType.qualityScore]: '质量评分',
   [DataType.downloadCount]: '下载量',
@@ -158,7 +158,7 @@ onUnmounted(() => {
     <div flex justify-between mb-20px>
       <div>
         <div flex items-center>
-          <span mr-6px>languages:</span>
+          <span>编程语言：</span>
           <el-select
             v-model="languages"
             style="width: 180px"
@@ -230,7 +230,11 @@ onUnmounted(() => {
           </div>
         </template>
         <template v-else-if="key === 'name'" #default="scope">
-          <el-link :underline="false" :href="scope.row.htmlUrl" target="_blank">
+          <el-link
+            :underline="false"
+            :href="`/#/software-details?repoName=${scope.row.name}`"
+            target="_blank"
+          >
             <div flex items-center>
               <el-image
                 style="width: 32px; height: 32px; border-radius: 32px"
