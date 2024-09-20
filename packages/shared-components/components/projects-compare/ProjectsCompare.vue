@@ -181,7 +181,7 @@ const getShowRow = (path: string) => {
   return res.size > 1;
 };
 async function exportSoftwareCompareToExcel() {
-  let repoNameList = [];
+  const repoNameList: string[] = [];
   for (let project of projects) {
     repoNameList.push(project.repoName);
   }
