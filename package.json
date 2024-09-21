@@ -6,9 +6,8 @@
     "preinstall": "npx only-allow pnpm",
     "tsc-web": "pnpm -C packages/website tsc",
     "tsc-share": "pnpm -C packages/shared-components tsc",
-    "tsc-sonar": "pnpm -C packages/sonar-scanner-service tsc",
     "tsc-api-server": "pnpm -C packages/api-server tsc",
-    "tsc": "run-p -c tsc-web tsc-share tsc-sonar tsc-api-server",
+    "tsc": "run-p -c tsc-web tsc-share tsc-api-server",
     "lint": "eslint --cache . --ignore-path .gitignore",
     "lint-fix": "eslint --fix --cache . --ignore-path .gitignore",
     "format": "prettier --write --cache .",
@@ -51,7 +50,7 @@
     "npm-run-all2": "^6.1.2",
     "prettier": "^3.2.5",
     "simple-git-hooks": "^2.10.0",
-    "typescript": "^5.4.5",
+    "typescript": "5.0.4",
     "vitest": "^1.2.2",
     "vue-tsc": "^2.0.6"
   }
