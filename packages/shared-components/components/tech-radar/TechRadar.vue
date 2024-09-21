@@ -53,7 +53,11 @@ onMounted(async () => {
     </tr>
   </table>
 </template>
-<style>
+
+<style scoped lang="less">
+svg {
+  margin: 0 auto;
+}
 h3 {
   margin-top: 50px;
 }
@@ -67,7 +71,7 @@ li {
 }
 table {
   width: 1400px;
-  margin: 0 50px 0 50px;
+  margin: 0 auto;
 }
 td {
   width: 50%;
