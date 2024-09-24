@@ -13,6 +13,8 @@ import {
   GithubProjects,
   GithubProjectsStargazersTrend,
   PackageDownloadCount,
+  OssinsightCreatorsOrganizations,
+  OssinsightCreatorsCountries,
   logger,
 } from '@orginjs/oss-evaluation-data-model';
 import ejsExcel from 'ejsexcel';
@@ -441,6 +443,74 @@ export async function getSoftwareInnovate(repoName: string): Promise<InnovationD
   };
 }
 
+export async function prCreatorCompanyAndAreaInfo(repoName: string) {
+  const projectId = await getProjectIdByRepoName(repoName);
+  const orgSummaryInfo = await OssinsightCreatorsOrganizations.findAll({
+    where: {
+      project_id: projectId,
+      type: 0,
+      org_name: {
+        [Op.notIn]: ['.', '...', '-', 'none', 'null', 'no', 'china', 'China', 'undefined'],
+      },
+    },
+    attributes: [
+      // Why don't we use `underscored: true`?
+      ['project_id', 'projectId'],
+      ['org_name', 'orgName'],
+      ['creators_num', 'creatorsNum'],
+      'percentage',
+    ],
+    limit: 10,
+    order: [['percentage', 'desc']],
+  });
+
+  const countrySummaryInfo = await OssinsightCreatorsCountries.findAll({
+    where: {
+      project_id: projectId,
+      type: 0,
+      country_code: {
+        [Op.ne]: 'UNKNOWN',
+      },
+    },
+    attributes: [
+      ['project_id', 'projectId'],
+      ['country_code', 'countryCode'],
+      ['creators_num', 'creatorsNum'],
+      'percentage',
+    ],
+    limit: 10,
+    order: [['percentage', 'desc']],
+  });
+  return { orgSummaryInfo, countrySummaryInfo };
+}
+
+export async function allHealthScore(repoName: string) {
+  let score = await EvaluationSummary.findOne({
+    where: {
+      projectName: repoName,
+    },
+    attributes: [
+      'projectName',
+      'functionScore',
+      'performanceScore',
+      'qualityScore',
+      'ecologyScore',
+      'innovationScore',
+      'scorecardScore',
+    ],
+  });
+  score = score?.dataValues;
+  if (!score) {
+    return {};
+  }
+  for (const key in score) {
+    if (key.endsWith('Score') && score[key]) {
+      score[key] = fixedRound(score[key], 2);
+    }
+  }
+  return score;
+}
+
 async function queryExportSoftwareInfo(projectName: string) {
   const data = await getProjectDetailInfo(projectName);
   const packageName = await getMainPackageByRepoName(projectName);
@@ -630,5 +700,46 @@ export async function getInnovation(repoName: string) {
       issueCreators,
       prCreators,
     },
+  };
+}
+
+export async function getSummaryHighlightInfo(repoName: string) {
+  const COMPANIES_SIZE = 6;
+  const alternativeProjects = await getAlternativeProjects(repoName);
+
+  const topPrCompaniesSql = `
+    select ocr.project_id   as projectId,
+           ocr.org_name     as orgName,
+           ocr.creators_num as creatorsNum,
+           ocr.percentage   as percentage
+    from ossinsight_creators_organizations ocr
+           inner join github_projects gp on gp.id = ocr.project_id
+    where gp.full_name = :repoName
+      and ocr.type = 0
+    order by ocr.percentage desc limit 20
+  `;
+  const filterCharacter = ['.', '...', '-', 'none', 'null', 'no', 'china'];
+
+  let topPrCompanies = await sequelize.query(topPrCompaniesSql, {
+    type: sequelize.QueryTypes.SELECT,
+    replacements: {
+      repoName,
+    },
+  });
+  topPrCompanies = topPrCompanies
+    .filter((obj: { orgName: string }) => !filterCharacter.includes(obj.orgName))
+    .slice(0, COMPANIES_SIZE);
+
+  const sonarData = await SonarCloudProjectMin.findOne({
+    where: {
+      githubFullName: repoName,
+    },
+    attributes: ['reliabilityRating', 'bugs', 'maintainabilityRating', 'codeSmells'],
+  });
+
+  return {
+    alternativeProjects,
+    topPrCompanies,
+    sonar: sonarData,
   };
 }

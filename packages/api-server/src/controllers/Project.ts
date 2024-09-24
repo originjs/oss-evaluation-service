@@ -5,6 +5,9 @@ import {
   getSoftwareInnovate,
   getPerformance,
   getInnovation,
+  getSummaryHighlightInfo,
+  prCreatorCompanyAndAreaInfo,
+  allHealthScore,
   compareExportScoreExcel,
 } from '../services/ProjectDetailService.js';
 import type {
@@ -13,6 +16,7 @@ import type {
   InnovationInfo,
   PerformanceInfo,
   SoftwareInfo,
+  SummaryHighlightInfo,
 } from '../interfaces/SoftwareInfo.js';
 import { Result } from '../utils/result.js';
 import { Readable } from 'stream';
@@ -59,6 +63,33 @@ export class ProjectController extends Controller {
     } catch (e) {
       return Result.ok({});
     }
+  }
+
+  @Get('summary/{repoName}')
+  public async getSummaryHighlightInfo(
+    @Path() repoName: string,
+  ): Promise<Result<SummaryHighlightInfo | unknown>> {
+    try {
+      const data = await getSummaryHighlightInfo(repoName);
+      return Result.ok(data);
+    } catch (e) {
+      return Result.ok({});
+    }
+  }
+
+  @Get('prCreatorCompanyAndAreaInfo/{repoName}')
+  public async prCreatorCompanyAndAreaInfo(@Path() repoName: string): Promise<Result<object>> {
+    try {
+      const data = await prCreatorCompanyAndAreaInfo(repoName);
+      return Result.ok(data);
+    } catch (e) {
+      return Result.ok({});
+    }
+  }
+
+  @Get('getHealthScore/{repoName}')
+  public async getHealthScore(@Path() repoName: string): Promise<Result<unknown>> {
+    return Result.ignoreErrorWithDefault(() => allHealthScore(repoName), {});
   }
 
   @Post('export/{repoName}')
