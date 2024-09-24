@@ -3,6 +3,7 @@ import {
   EvaluationSummary,
   GithubProjectsStargazersTrend,
   sequelize,
+  TrendHistory,
 } from '@orginjs/oss-evaluation-data-model';
 import {
   mondayOfCurrentWeek,
@@ -15,8 +16,8 @@ import {
   simpleWeekFormat,
 } from '@orginjs/oss-evaluation-util';
 import _ from 'underscore';
-import type { Dayjs } from 'dayjs';
 import { Op } from 'sequelize';
+import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 
 export class ChartData {
@@ -151,8 +152,10 @@ export async function githubRank(
   const rankType = parseInt(rankParam.rankType);
   const pageSize = page.pageSize;
   const offset = page.pageSize * (page.pageNo - 1);
-  const { current: curDate, previous: previousDate } = getCurAndPreviousDateByType(dateType);
-
+  const { current: curDate, previous: previousDate } = await getDatabaseDateByType(
+    dateType,
+    dataType,
+  );
   const languageFilterSQL = rankParam.language?.length
     ? ' and project_id in (select id from github_projects where language in (:language)) '
     : '';
@@ -274,6 +277,7 @@ export async function githubRank(
 
 /**
  * Retrieves the current and previous dates based on the specified date type.
+ * 2024-09-24 change: use databse date
  *
  * @param dateType - The type of date to determine the current and previous dates.
  *   - DATE_TYPE.WEEK: Retrieves the current and previous Mondays.
@@ -282,19 +286,41 @@ export async function githubRank(
  *
  * @returns An object containing the current and previous dates.
  */
-function getCurAndPreviousDateByType(dateType: number): { current: Dayjs; previous: Dayjs } {
+async function getDatabaseDateByType(
+  dateType: number,
+  dataType: number,
+): Promise<{ current: Dayjs; previous: Dayjs }> {
+  // get newest trend date
+  const { date } =
+    (await TrendHistory.findOne({
+      where: {
+        dateType,
+        dataType,
+      },
+      attributes: ['date'],
+      order: [['date', 'desc']],
+      offset: 0,
+      limit: 1,
+    })) || {};
+  if (!date) {
+    throw new Error('trend date not found');
+  }
+  const dayJsDate = dayjs(date);
   switch (dateType) {
     case DATE_TYPE.WEEK: {
-      const date = mondayOfCurrentWeek();
-      return { current: date, previous: mondayOfPreviousWeek(date) };
+      return { current: mondayOfCurrentWeek(dayJsDate), previous: mondayOfPreviousWeek(dayJsDate) };
     }
     case DATE_TYPE.MONTH: {
-      const date = firstDayOfCurrentMonth();
-      return { current: date, previous: firstDayOfPreviousMonth(date) };
+      return {
+        current: firstDayOfCurrentMonth(dayJsDate),
+        previous: firstDayOfPreviousMonth(dayJsDate),
+      };
     }
     case DATE_TYPE.YEAR: {
-      const date = firstDayOfCurrentYear();
-      return { current: date, previous: firstDayOfPreviousYear(date) };
+      return {
+        current: firstDayOfCurrentYear(dayJsDate),
+        previous: firstDayOfPreviousYear(dayJsDate),
+      };
     }
   }
 }
@@ -318,15 +344,15 @@ function getTableHeader(
   let currentHeaderName = '';
   switch (dateType) {
     case DATE_TYPE.WEEK: {
-      currentHeaderName = `本周 ${currentFormat}`;
+      currentHeaderName = `${currentFormat}`;
       break;
     }
     case DATE_TYPE.MONTH: {
-      currentHeaderName = `本月 ${currentFormat}`;
+      currentHeaderName = `${currentFormat}`;
       break;
     }
     case DATE_TYPE.YEAR: {
-      currentHeaderName = `本年 ${currentFormat}`;
+      currentHeaderName = `${currentFormat}`;
       break;
     }
   }
@@ -354,13 +380,13 @@ function getTableHeader(
 function getDateDisplay(date: Dayjs, dateType: number) {
   switch (dateType) {
     case DATE_TYPE.WEEK: {
-      return `(${simpleWeekFormat(date)})`;
+      return `${simpleWeekFormat(date)}`;
     }
     case DATE_TYPE.MONTH: {
-      return `(${date.format('YYYY-MM')})`;
+      return `${date.format('YYYY-MM')}`;
     }
     case DATE_TYPE.YEAR: {
-      return `(${date.format('YYYY')})`;
+      return `${date.format('YYYY')}`;
     }
   }
 }
@@ -382,3 +408,4 @@ export function getLanguageFilterCondition(): { value: string; label: string }[]
     { value: 'Rust', label: 'Rust' },
   ];
 }
+

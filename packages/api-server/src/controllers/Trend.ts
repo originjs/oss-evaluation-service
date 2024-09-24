@@ -52,8 +52,12 @@ export class TrendController extends Controller {
       rankType: rankType,
       language: language ? (JSON.parse(language) as string[]) : [],
     };
-    const data = await githubRank(page, type);
-    return Result.ok(data);
+    try {
+      const data = await githubRank(page, type);
+      return Result.ok(data);
+    } catch (e) {
+      return Result.ok(null);
+    }
   }
   /**
    * Retrieve the language filter conditions for trends.
