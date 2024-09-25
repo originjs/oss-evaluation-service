@@ -30,6 +30,15 @@ export default sequelize.define(
     archived: {
       type: DataTypes.STRING,
     },
+    radarQuadrant: {
+      type: DataTypes.INTEGER,
+    },
+    radarRing: {
+      type: DataTypes.INTEGER,
+    },
+    radarMoved: {
+      type: DataTypes.INTEGER,
+    },
   },
   {
     tableName: 'project_tech_stack',

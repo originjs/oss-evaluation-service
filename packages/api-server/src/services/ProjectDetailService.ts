@@ -15,6 +15,7 @@ import {
   PackageDownloadCount,
   OssinsightCreatorsOrganizations,
   OssinsightCreatorsCountries,
+  ProjectTechStack,
   logger,
 } from '@orginjs/oss-evaluation-data-model';
 import ejsExcel from 'ejsexcel';
@@ -39,6 +40,7 @@ ProjectInfo.hasOne(SonarCloudProjectMin, { foreignKey: 'github_project_id', as: 
 ProjectInfo.hasOne(EvaluationSummary, { foreignKey: 'project_id', as: 'evaluation' });
 ProjectInfo.hasMany(StateOfJsMin, { foreignKey: 'project_id', as: 'satisfaction' });
 ProjectInfo.hasOne(CncfDocumentScoreMin, { foreignKey: 'project_id', as: 'document' });
+ProjectInfo.hasOne(ProjectTechStack, { foreignKey: 'project_id', as: 'projectTechStack' });
 
 export async function getProjectDetailInfo(repoName: string): Promise<SoftwareInfo> {
   const projectId = await getProjectIdByRepoName(repoName);
@@ -69,6 +71,10 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
       {
         model: StateOfJsMin,
         as: 'satisfaction',
+      },
+      {
+        model: ProjectTechStack,
+        as: 'projectTechStack',
       },
     ],
     where: {
