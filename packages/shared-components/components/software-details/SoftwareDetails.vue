@@ -65,10 +65,34 @@ type TableRow = {
   value: string | number;
 };
 
+enum RadarRing {
+  Adopt = 0,
+  Trial = 1,
+  Assess = 2,
+  Hold = 3,
+}
+
+const radarRingNames = {
+  [RadarRing.Adopt]: '采纳',
+  [RadarRing.Trial]: '试验',
+  [RadarRing.Assess]: '评估',
+  [RadarRing.Hold]: '暂缓',
+};
+
+const radarRingColors = {
+  [RadarRing.Adopt]: '#5ba300',
+  [RadarRing.Trial]: '#009eb0',
+  [RadarRing.Assess]: '#c7ba00',
+  [RadarRing.Hold]: '#e09b96',
+};
+
 const encodedRepoName = computed(() => encodeURIComponent(props.repoName));
 const project = ref<SoftwareInfo>();
 const isRequestingProjectInfo = ref(false);
 const baseInfo = ref<Partial<{ [k in keyof SoftwareInfo]: string }>>({});
+const projectTechStack = ref<{
+  radarRing: RadarRing;
+}>();
 const tagList = ref<string[]>([]);
 const alternatives = ref<AlternativeInfo[]>([]);
 const starTrend = ref<StarTrend>({
@@ -112,6 +136,7 @@ watchEffect(async () => {
     lastCommit: dayjs(data.lastCommit).format('YYYY-MM-DD'),
     license: data.license || '-',
   };
+  projectTechStack.value = data.projectTechStack;
   openSSFScorecard.value = [
     {
       label: 'Code-Review',
@@ -935,6 +960,7 @@ function setProjectsToCompare(projects: Array<CompareProject>) {
 
 const emits = defineEmits<{
   compareProjects: [projects: Array<SoftwareBaseInfo>];
+  toTechRadar: [];
 }>();
 
 const baseInfoDom = ref();
@@ -1039,6 +1065,21 @@ onBeforeUnmount(() => {
             }}</el-descriptions-item>
             <el-descriptions-item label="License">{{ baseInfo.license }}</el-descriptions-item>
             <el-descriptions-item label="官网地址">{{ baseInfo.homePage }}</el-descriptions-item>
+            <el-descriptions-item label="技术雷达" :rowspan="2">
+              <span
+                v-if="typeof projectTechStack?.radarRing === 'number'"
+                px-8px
+                inline-block
+                color-white
+                font-600
+                rounded-full
+                cursor-pointer
+                :style="{ 'background-color': radarRingColors[projectTechStack.radarRing] }"
+                @click="emits('toTechRadar')"
+                >{{ radarRingNames[projectTechStack.radarRing] }}</span
+              >
+              <span v-else>-</span>
+            </el-descriptions-item>
           </el-descriptions>
           <div id="software-radar-chart" w-268px min-h-200px />
         </div>
