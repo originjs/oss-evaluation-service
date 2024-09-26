@@ -239,6 +239,7 @@ onUnmounted(() => {
                 style="width: 32px; height: 32px; border-radius: 32px"
                 :src="scope.row.logo"
                 fit="fill"
+                loading="lazy"
               ></el-image>
               <span flex-1 ml-10px overflow-hidden max-w-173px>{{ scope.row.name }}</span>
             </div></el-link
