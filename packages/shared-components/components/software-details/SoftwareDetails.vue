@@ -68,7 +68,7 @@ type TableRow = {
 const encodedRepoName = computed(() => encodeURIComponent(props.repoName));
 const project = ref<SoftwareInfo>();
 const isRequestingProjectInfo = ref(false);
-const baseInfoTable = ref<TableRow[]>([]);
+const baseInfo = ref<Partial<{ [k in keyof SoftwareInfo]: string }>>({});
 const tagList = ref<string[]>([]);
 const alternatives = ref<AlternativeInfo[]>([]);
 const starTrend = ref<StarTrend>({
@@ -102,40 +102,16 @@ watchEffect(async () => {
   const { data } = await getSoftwareInfo(encodedRepoName.value);
   project.value = data ?? {};
   tagList.value = data.tags ? data.tags.split('|') : [];
-  baseInfoTable.value = [
-    {
-      label: 'Stars',
-      value: `${toKilo(data.star)} `,
-    },
-    {
-      label: 'Fork',
-      value: `${toKilo(data.fork)} `,
-    },
-    {
-      label: '官网地址',
-      value: data.homePage,
-    },
-    {
-      label: '开发语言',
-      value: data.language,
-    },
-    {
-      label: '代码量',
-      value: `${data.codeLines ? (data.codeLines / 1000).toFixed(2) : '-'} kl`,
-    },
-    {
-      label: '首次提交',
-      value: dayjs(data.firstCommit).format('YYYY-MM-DD'),
-    },
-    {
-      label: '最近代码提交',
-      value: dayjs(data.lastCommit).format('YYYY-MM-DD'),
-    },
-    {
-      label: 'License',
-      value: data.license,
-    },
-  ];
+  baseInfo.value = {
+    star: `${toKilo(data.star)}`,
+    fork: `${toKilo(data.fork)}`,
+    homePage: data.homePage || '-',
+    language: data.language || '-',
+    codeLines: `${data.codeLines ? (data.codeLines / 1000).toFixed(2) : '-'} kl`,
+    firstCommit: dayjs(data.firstCommit).format('YYYY-MM-DD'),
+    lastCommit: dayjs(data.lastCommit).format('YYYY-MM-DD'),
+    license: data.license || '-',
+  };
   openSSFScorecard.value = [
     {
       label: 'Code-Review',
@@ -242,10 +218,11 @@ function renderSoftwareRadarChart() {
       trigger: 'axis',
     },
     radar: {
+      center: ['50%', '52%'],
       axisName: {
         fontWeight: 'bold',
         color: '#b3b3b3',
-        fontSize: '16',
+        fontSize: '14',
       },
       indicator: [
         { name: '功能', max: 100 },
@@ -1050,23 +1027,20 @@ onBeforeUnmount(() => {
             </el-tag>
           </div>
         </div>
-        <div flex justify-between>
-          <el-table
-            class="table-base-info"
-            :data="baseInfoTable"
-            stripe
-            border
-            :show-header="false"
-            tooltip-effect="light"
-          >
-            <el-table-column prop="label" align="center" />
-            <el-table-column
-              prop="value"
-              align="center"
-              :formatter="(row: TableRow) => (row.value ? String(row.value) : '-')"
-            />
-          </el-table>
-          <div id="software-radar-chart" w-328px h-280px pt-20px bg-coolgray-50 />
+        <div flex justify-between items-center>
+          <el-descriptions w-1000px border py-20px :column="2">
+            <el-descriptions-item label="Stars">{{ baseInfo.star }}</el-descriptions-item>
+            <el-descriptions-item label="Forks">{{ baseInfo.fork }}</el-descriptions-item>
+            <el-descriptions-item label="开发语言">{{ baseInfo.language }}</el-descriptions-item>
+            <el-descriptions-item label="代码量">{{ baseInfo.codeLines }}</el-descriptions-item>
+            <el-descriptions-item label="首次提交">{{ baseInfo.firstCommit }}</el-descriptions-item>
+            <el-descriptions-item label="最近代码提交">{{
+              baseInfo.lastCommit
+            }}</el-descriptions-item>
+            <el-descriptions-item label="License">{{ baseInfo.license }}</el-descriptions-item>
+            <el-descriptions-item label="官网地址">{{ baseInfo.homePage }}</el-descriptions-item>
+          </el-descriptions>
+          <div id="software-radar-chart" w-268px min-h-200px />
         </div>
       </div>
     </div>
@@ -1946,12 +1920,6 @@ onBeforeUnmount(() => {
     display: flex;
     align-items: flex-start;
     margin-bottom: 8px;
-  }
-  .table-base-info {
-    width: 935px;
-    :deep(.cell) {
-      line-height: 18px;
-    }
   }
   .btn-add-benchmark {
     cursor: pointer;
