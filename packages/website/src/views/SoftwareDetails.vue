@@ -13,10 +13,18 @@ function compareProjects(projects: SoftwareBaseInfo[]) {
     query: { repos: projects.map(project => project.repoName) },
   });
 }
+
+const toTechRadar = () => {
+  window.open('/#/tech-radar', '_blank');
+};
 </script>
 
 <template>
-  <SoftwareDetails :repo-name="repoName" @compare-projects="compareProjects" />
+  <SoftwareDetails
+    :repo-name="repoName"
+    @compare-projects="compareProjects"
+    @to-tech-radar="toTechRadar"
+  />
 </template>
 
 <style scoped lang="less"></style>
