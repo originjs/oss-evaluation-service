@@ -20,7 +20,11 @@ const props = defineProps<{
 
 const formatProjectName = (projectName?: string) => {
   if (!projectName) return '';
-  return projectName.replaceAll('-', ' ').replaceAll('_', ' ').replaceAll(':', ' ');
+  return projectName
+    .replaceAll('-', ' ')
+    .replaceAll('_', ' ')
+    .replaceAll(':', ' ')
+    .replaceAll('/', ' ');
 };
 
 const projectName = ref(formatProjectName(model.value));
