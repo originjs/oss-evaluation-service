@@ -284,6 +284,7 @@ export async function githubRank(
  *   - DATE_TYPE.MONTH: Retrieves the first day of the current and previous months.
  *   - DATE_TYPE.YEAR: Retrieves the first day of the current and previous years.
  *
+ * @param dataType
  * @returns An object containing the current and previous dates.
  */
 async function getDatabaseDateByType(

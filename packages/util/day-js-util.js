@@ -27,17 +27,17 @@ export function firstDayOfPreviousYear(dayParam) {
   return dayParam.subtract(1, 'year').startOf('year');
 }
 
-export function mondayOfCurrentWeek() {
+export function mondayOfCurrentWeek(dayjsParam = dayjs()) {
   // defulat first day of week is sunday,need to add one day
-  return dayjs().startOf('week').add(1, 'day');
+  return dayjsParam.startOf('week').add(1, 'day');
 }
 
-export function firstDayOfCurrentMonth() {
-  return dayjs().startOf('month');
+export function firstDayOfCurrentMonth(dayjsParam = dayjs()) {
+  return dayjsParam.startOf('month');
 }
 
-export function firstDayOfCurrentYear() {
-  return dayjs().startOf('year');
+export function firstDayOfCurrentYear(dayjsParam = dayjs()) {
+  return dayjsParam.startOf('year');
 }
 
 export function simpleDateFormat(date) {
