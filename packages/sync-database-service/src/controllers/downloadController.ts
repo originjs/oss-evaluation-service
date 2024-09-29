@@ -1,14 +1,14 @@
 import { Result } from '@orginjs/oss-evaluation-util';
 import { Controller, Route, Query, Get } from 'tsoa';
 import shelljs from 'shelljs';
-import { logger } from '@orginjs/oss-evaluation-data-model';
 import { existsSync, readFileSync } from 'fs';
 import { Readable } from 'stream';
 import { unlink } from 'fs/promises';
+import logger from '../logger/pino-logger.js';
 
 @Route('download')
 export class RepoController extends Controller {
-  @Get('downloadFiles')
+  @Get('downloadFile')
   public downloadFiles(@Query() filename: string) {
     const fileDir = process.env.BINLOG_FILE_DIR;
     const cpFileDir = process.env.CP_BINLOG_FILE_DIR;

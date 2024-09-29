@@ -7,10 +7,10 @@ import 'express-async-errors';
 import rateLimit from 'express-rate-limit';
 import 'dotenv/config';
 import { RegisterRoutes } from './build/routes.js';
-import { logger } from '@orginjs/oss-evaluation-data-model';
 import swaggerConfig from './build/swagger.json' assert { type: 'json' };
+import logger from './logger/pino-logger.js';
 
-const port = process.env.PORT || '3015';
+const port = process.env.PORT || '13015';
 const app = express();
 
 app.use(cors());
@@ -34,7 +34,7 @@ app.use((req, res) => {
 // 1分钟最多请求60次
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000,
-  max: 60, // 限制每个IP每分钟最多100个请求
+  max: 60,
 });
 
 // 应用速率限制器到所有请求
