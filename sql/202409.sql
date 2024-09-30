@@ -31,3 +31,14 @@ ALTER TABLE project_tech_stack
     ADD COLUMN `radar_quadrant` int NULL,
     ADD COLUMN `radar_ring` int NULL,
     ADD COLUMN `radar_moved` int NULL;
+
+ALTER TABLE trend_history
+    MODIFY COLUMN data_type INT NOT NULL DEFAULT 0 COMMENT '1 对应 star数,2 对应 contributor数,
+    3 对应 生态评分,4 对应 质量评分,5 对应 fork';
+
+ALTER TABLE trend_rank_history
+    MODIFY COLUMN data_type INT NOT NULL DEFAULT 0 COMMENT '1 对应 star数,2 对应 contributor数,
+    3 对应 生态评分,4 对应 质量评分,5 对应 fork';
+
+ALTER TABLE github_projects_history
+    ADD COLUMN `forks` int NULL;

@@ -21,6 +21,9 @@ export default sequelize.define(
     stars: {
       type: DataTypes.INTEGER,
     },
+    forks: {
+      type: DataTypes.INTEGER,
+    },
   },
   {
     tableName: 'github_projects_history',

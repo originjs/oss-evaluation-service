@@ -12,6 +12,7 @@ const DATA_TYPE = {
   CONTRIBUTOR: 2,
   ECOLOGY: 3,
   QUALITY: 4,
+  FORK: 5,
 };
 
 const RANK_TYPE = {
@@ -52,7 +53,7 @@ export async function storeTrendRankHistory(dateType, date = '') {
     logger.info('Invalid dateType');
     return;
   }
-  for (const dataType of [DATA_TYPE.STAR, DATA_TYPE.CONTRIBUTOR]) {
+  for (const dataType of [DATA_TYPE.STAR, DATA_TYPE.CONTRIBUTOR, DATA_TYPE.FORK]) {
     for (const rankType of [RANK_TYPE.INCREASED, RANK_TYPE.TOTAL]) {
       await getRankData(dataType, dateType, selectedDate, rankType);
     }

@@ -36,6 +36,7 @@ const DATA_TYPE = {
   CONTRIBUTOR: 2,
   ECOLOGY: 3,
   QUALITY: 4,
+  FORK: 5,
 };
 
 const DATE_TYPE = {
@@ -152,17 +153,18 @@ export async function storeGithubHistory(projectId, date) {
   const propertyTypes = [
     { dataType: DATA_TYPE.STAR, name: 'stars' },
     { dataType: DATA_TYPE.CONTRIBUTOR, name: 'contributors' },
+    { dataType: DATA_TYPE.FORK, name: 'forks' },
   ];
   for (const dateInfo of dateInfos) {
     const currentGithubInfo = await GithubProjectsHistory.findOne({
-      attributes: ['stars', 'contributors'],
+      attributes: ['stars', 'contributors', 'forks'],
       where: {
         date: dateInfo.currentDate.toDate(),
         projectId,
       },
     });
     const previousGithubInfo = await GithubProjectsHistory.findOne({
-      attributes: ['stars', 'contributors'],
+      attributes: ['stars', 'contributors', 'forks'],
       where: {
         date: dateInfo.previousDate.toDate(),
         projectId,

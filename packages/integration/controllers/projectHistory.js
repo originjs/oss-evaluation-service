@@ -71,24 +71,24 @@ export async function syncHistoryByProjectList(projectList, currentDate) {
     logger.info('**Current Progress**: ', `${count}/${sumOfProject}`);
     count += 1;
     // get project information
-    let [contributors, stars] = await getProjectInformation(project.htmlUrl);
+    let [contributors, stars, forks] = await getProjectInformation(project.htmlUrl);
     // API is called only if the GitHub page does not provide contributor information
     if (contributors === -1) {
       contributors = await getAlllContributors(project.fullName);
       logger.info(`GitHub API : contributors of ${project.htmlUrl} is ${contributors}`);
     }
     // check stars
-    if (!stars) {
-      stars = await getStars(project.fullName);
-      logger.info(`GitHub API : stars of ${project.htmlUrl} is ${stars}`);
+    if (!stars || !forks) {
+      [stars, forks] = await getStarFork(project.fullName);
+      logger.info(`GitHub API : stars of ${project.htmlUrl} is ${stars}, forks is ${forks}`);
     }
     // A normal program should have these two data
-    if (!contributors || !stars) {
+    if (!contributors || !stars || !forks) {
       continue;
     }
     // refresh github_projects_t
     await GithubProjectsTable.update(
-      { contributors: contributors === -1 ? null : contributors, stargazersCount: stars },
+      { contributors: contributors === -1 ? null : contributors, stargazersCount: stars, forksCount: forks },
       {
         where: {
           id: project.id,
@@ -102,6 +102,7 @@ export async function syncHistoryByProjectList(projectList, currentDate) {
         date: currentDate,
         contributors: contributors === -1 ? null : contributors,
         stars: stars,
+        forks: forks,
       },
       {
         where: {
@@ -135,7 +136,7 @@ export default async function syncProjectHistory(projectId) {
 }
 
 async function getProjectInformation(url) {
-  let contributors, stars;
+  let contributors, stars, forks;
   try {
     const response = await fetchWithRetries(url);
     if (response.ok) {
@@ -174,14 +175,23 @@ async function getProjectInformation(url) {
         stars = starValueOrigin.replace(/,/g, '');
         logger.info(`web crawler: stars of ${url} is ${stars}`);
       }
+      // get fork
+      const spanFork = $('#repo-network-counter');
+      if (!spanStar) {
+        logger.info(`web crawler: ${url} does not provide forks...`);
+      } else {
+        const forkValueOrigin = spanFork.attr('title');
+        forks = forkValueOrigin.replace(/,/g, '');
+        logger.info(`web crawler: forks of ${url} is ${forks}`);
+      }
     }
   } catch (e) {
     logger.error(`**web crawler: Url get contributors is failed !** :${url}`);
   }
-  return [contributors, stars];
+  return [contributors, stars, forks];
 }
 
-async function getStars(repoName) {
+async function getStarFork(repoName) {
   const tokens = JSON.parse(process.env.GITHUB_TOKEN);
   const header = tokens
     ? {
@@ -199,7 +209,7 @@ async function getStars(repoName) {
   // avoid situations where the project is empty
   try {
     const content = await request.json();
-    return content.stargazers_count;
+    return [content.stargazers_count, content.forks_count];
   } catch (error) {
     logger.error('The project is empty:', error);
     return null;

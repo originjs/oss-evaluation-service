@@ -1173,7 +1173,7 @@ router.route('/syncSingleProjectContributors/:repoUrl').get(syncSingleProjectCon
  * @swagger
  * /sync/syncAllProjectHistory:
  *   get:
- *     summary: sync project information - contributors, stars
+ *     summary: sync project information - contributors, stars, forks
  *     responses:
  *       200:
  *         description: success.
@@ -1184,7 +1184,7 @@ router.route('/syncAllProjectHistory').get(syncAllProjectHistoryHandler);
  * @swagger
  * /sync/syncSingleProjectHistory/{repoUrl}:
  *   get:
- *     summary: sync project information - contributors, stars
+ *     summary: sync project information - contributors, stars, forks
  *     parameters:
  *      - in: path
  *        name: repoUrl
