@@ -77,7 +77,7 @@ export async function syncHistoryByProjectList(projectList, currentDate) {
       contributors = await getAlllContributors(project.fullName);
       logger.info(`GitHub API : contributors of ${project.htmlUrl} is ${contributors}`);
     }
-    // check stars
+    // check stars and forks
     if (!stars || !forks) {
       [stars, forks] = await getStarFork(project.fullName);
       logger.info(`GitHub API : stars of ${project.htmlUrl} is ${stars}, forks is ${forks}`);
@@ -88,7 +88,11 @@ export async function syncHistoryByProjectList(projectList, currentDate) {
     }
     // refresh github_projects_t
     await GithubProjectsTable.update(
-      { contributors: contributors === -1 ? null : contributors, stargazersCount: stars, forksCount: forks },
+      {
+        contributors: contributors === -1 ? null : contributors,
+        stargazersCount: stars,
+        forksCount: forks,
+      },
       {
         where: {
           id: project.id,
