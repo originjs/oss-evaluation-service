@@ -17,7 +17,7 @@ export class Result<T> {
     this.msg = msg;
   }
 
-  static ok<U>(data: U, msg: string): Result<U> {
+  static ok<U>(data: U, msg = ''): Result<U> {
     return new Result(true, data, msg);
   }
 

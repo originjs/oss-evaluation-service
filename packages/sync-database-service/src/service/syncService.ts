@@ -1,7 +1,5 @@
 import { createWriteStream, existsSync, mkdirSync } from 'fs';
-import { outerSequelize } from '../model/database.js';
 import logger from '../logger/pino-logger.js';
-import { QueryTypes } from 'sequelize';
 import { SyncDatabaseRecord } from '../model/SyncDatabaseRecord.js';
 import shelljs from 'shelljs';
 import { Result } from '@orginjs/oss-evaluation-util';
@@ -9,6 +7,7 @@ import { Readable } from 'stream';
 import { dirname } from 'path';
 
 export async function executeDatabaseSync(): Promise<Result<void>> {
+  // get binlog status
   const positionAndFileInfo = await prepareSync();
   const fileList = buildBinlogFileList(positionAndFileInfo);
   const syncRecord = await createSyncRecord(positionAndFileInfo);
@@ -101,10 +100,7 @@ async function prepareSync() {
   // start position and filename
   const { endFilename: startFilename, endPosition: startPosition } = record;
   // stop position and filename
-  const [{ Position: stopPosition, File: stopFilename }] = (await outerSequelize.query(
-    'show master status',
-    { type: QueryTypes.SELECT },
-  )) as { Position: number; File: string }[];
+  const { position: stopPosition, filename: stopFilename } = await getBinlogStatus();
   return { startFilename, startPosition, stopFilename, stopPosition };
 }
 
@@ -167,6 +163,7 @@ function runMySQLBinlog(fileList: syncParam[], syncRecord: SyncDatabaseRecord) {
 function getDownloadFileDir(syncRecord: SyncDatabaseRecord) {
   return `${process.env.DOWNLOAD_FILE_DIR}/${syncRecord.dataValues.id}`;
 }
+
 function getTargetMySQLInfo() {
   const databaseUrl = process.env.INNER_DATABASE_URL.replace('mysql', 'http');
   const url = new URL(databaseUrl);
@@ -176,4 +173,15 @@ function getTargetMySQLInfo() {
     username: url.username,
     password: url.password,
   };
+}
+
+async function getBinlogStatus(): Promise<{ position: number; filename: string }> {
+  const getStatusUrl = `${process.env.DOWNLOAD_BINLOG_URL}/download/binlog-status`;
+  const response = await fetch(getStatusUrl);
+  if (!response.ok) {
+    throw new Error(
+      `get binlog status failed, status code: ${response.status} , url:${getStatusUrl}`,
+    );
+  }
+  return await response.json();
 }
