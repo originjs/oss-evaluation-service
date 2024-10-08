@@ -1,12 +1,11 @@
 {
-  "name": "@originjs/sync-service",
+  "name": "@originjs/download-server",
   "version": "1.0.0",
   "private": false,
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev:download-server": "PORT=13015 build & nodemon",
-    "dev:command-server": "pnpm run build & nodemon",
+    "dev": "build & nodemon",
     "tsc": "vue-tsc --noEmit",
     "build": "tsoa spec-and-routes && tsc",
     "start": "node ./dist/app.js",
@@ -23,7 +22,6 @@
   "dependencies": {
     "@orginjs/oss-evaluation-util": "workspace:^",
     "@tsoa/runtime": "^6.2.0",
-    "axios": "^1.6.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.1",
     "express": "^4.16.1",
@@ -37,7 +35,6 @@
     "shelljs": "^0.8.5",
     "swagger-ui-express": "^5.0.0",
     "tsoa": "^6.2.0",
-    "undici": "^6.19.4",
     "winston": "^3.13.0"
   },
   "devDependencies": {

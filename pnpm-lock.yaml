@@ -538,17 +538,96 @@ importers:
 
   packages/shared-components/utils: {}
 
-  packages/sync-database-service:
+  packages/sync-database-service/download-server:
     dependencies:
       '@orginjs/oss-evaluation-util':
         specifier: workspace:^
-        version: link:../util
+        version: link:../../util
       '@tsoa/runtime':
         specifier: ^6.2.0
         version: 6.2.0
-      axios:
-        specifier: ^1.6.7
-        version: 1.6.7
+      cors:
+        specifier: ^2.8.5
+        version: 2.8.5
+      dotenv:
+        specifier: ^16.4.1
+        version: 16.4.1
+      express:
+        specifier: ^4.16.1
+        version: 4.19.2
+      express-async-errors:
+        specifier: ^3.1.1
+        version: 3.1.1(express@4.19.2)
+      express-rate-limit:
+        specifier: ^7.4.0
+        version: 7.4.0(express@4.19.2)
+      morgan:
+        specifier: ^1.9.1
+        version: 1.10.0
+      mysql2:
+        specifier: ^3.11.3
+        version: 3.11.3
+      pino:
+        specifier: ^9.4.0
+        version: 9.4.0
+      pino-pretty:
+        specifier: ^11.2.2
+        version: 11.2.2
+      sequelize:
+        specifier: ^6.37.3
+        version: 6.37.3(mysql2@3.11.3)
+      shelljs:
+        specifier: ^0.8.5
+        version: 0.8.5
+      swagger-ui-express:
+        specifier: ^5.0.0
+        version: 5.0.1(express@4.19.2)
+      tsoa:
+        specifier: ^6.2.0
+        version: 6.2.0
+      winston:
+        specifier: ^3.13.0
+        version: 3.13.0
+    devDependencies:
+      '@types/cors':
+        specifier: ^2.8.17
+        version: 2.8.17
+      '@types/express':
+        specifier: ^4.17.21
+        version: 4.17.21
+      '@types/morgan':
+        specifier: ^1.9.9
+        version: 1.9.9
+      '@types/node':
+        specifier: ^18.11.12
+        version: 18.19.21
+      '@types/pino':
+        specifier: ^7.0.5
+        version: 7.0.5
+      '@types/sequelize':
+        specifier: ^4.28.20
+        version: 4.28.20
+      '@types/shelljs':
+        specifier: ^0.8.15
+        version: 0.8.15
+      '@types/swagger-ui-express':
+        specifier: ^4.1.6
+        version: 4.1.6
+      '@types/underscore':
+        specifier: ^1.11.15
+        version: 1.11.15
+      nodemon:
+        specifier: ^3.0.3
+        version: 3.0.3
+
+  packages/sync-database-service/sync-server:
+    dependencies:
+      '@orginjs/oss-evaluation-util':
+        specifier: workspace:^
+        version: link:../../util
+      '@tsoa/runtime':
+        specifier: ^6.2.0
+        version: 6.2.0
       cors:
         specifier: ^2.8.5
         version: 2.8.5
@@ -613,73 +692,6 @@ importers:
       '@types/sequelize':
         specifier: ^4.28.20
         version: 4.28.20
-      '@types/shelljs':
-        specifier: ^0.8.15
-        version: 0.8.15
-      '@types/swagger-ui-express':
-        specifier: ^4.1.6
-        version: 4.1.6
-      '@types/underscore':
-        specifier: ^1.11.15
-        version: 1.11.15
-      nodemon:
-        specifier: ^3.0.3
-        version: 3.0.3
-
-  packages/sync-service:
-    dependencies:
-      '@orginjs/oss-evaluation-data-model':
-        specifier: workspace:^
-        version: link:../data-model
-      '@orginjs/oss-evaluation-util':
-        specifier: workspace:^
-        version: link:../util
-      '@tsoa/runtime':
-        specifier: ^6.2.0
-        version: 6.2.0
-      cors:
-        specifier: ^2.8.5
-        version: 2.8.5
-      dotenv:
-        specifier: ^16.4.1
-        version: 16.4.1
-      express:
-        specifier: ^4.16.1
-        version: 4.19.2
-      express-async-errors:
-        specifier: ^3.1.1
-        version: 3.1.1(express@4.19.2)
-      express-rate-limit:
-        specifier: ^7.4.0
-        version: 7.4.0(express@4.19.2)
-      morgan:
-        specifier: ^1.9.1
-        version: 1.10.0
-      shelljs:
-        specifier: ^0.8.5
-        version: 0.8.5
-      swagger-ui-express:
-        specifier: ^5.0.0
-        version: 5.0.1(express@4.19.2)
-      tsoa:
-        specifier: ^6.2.0
-        version: 6.2.0
-      winston:
-        specifier: ^3.13.0
-        version: 3.13.0
-    devDependencies:
-      '@types/cors':
-        specifier: ^2.8.17
-        version: 2.8.17
-      '@types/express':
-        specifier: ^4.17.21
-        version: 4.17.21
-      '@types/morgan':
-        specifier: ^1.9.9
-        version: 1.9.9
-      '@types/node':
-        specifier: ^18.11.12
-        version: 18.19.21
       '@types/shelljs':
         specifier: ^0.8.15
         version: 0.8.15

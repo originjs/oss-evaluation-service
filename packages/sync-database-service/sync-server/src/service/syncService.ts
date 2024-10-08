@@ -171,7 +171,7 @@ function getDownloadFileDir(syncRecord: SyncDatabaseRecord) {
 }
 
 function getTargetMySQLInfo() {
-  const databaseUrl = process.env.INNER_DATABASE_URL.replace('mysql', 'http');
+  const databaseUrl = process.env.DATABASE_URL.replace('mysql', 'http');
   const url = new URL(databaseUrl);
   return {
     host: url.hostname,

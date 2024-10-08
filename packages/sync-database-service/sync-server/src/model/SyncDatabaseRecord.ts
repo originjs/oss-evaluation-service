@@ -1,5 +1,5 @@
 import { DataTypes, Model } from 'sequelize';
-import { innerSequelize } from './database.js';
+import { dbOps } from './database.js';
 
 export class SyncDatabaseRecord extends Model {
   public id!: string;
@@ -60,7 +60,7 @@ SyncDatabaseRecord.init(
     },
   },
   {
-    sequelize: innerSequelize,
+    sequelize: dbOps,
     tableName: 'sync_record',
     underscored: true,
     timestamps: false,
