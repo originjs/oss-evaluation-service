@@ -37,6 +37,7 @@
     "shelljs": "^0.8.5",
     "swagger-ui-express": "^5.0.0",
     "tsoa": "^6.2.0",
+    "undici": "^6.19.4",
     "winston": "^3.13.0"
   },
   "devDependencies": {

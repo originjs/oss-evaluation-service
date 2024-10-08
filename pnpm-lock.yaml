@@ -588,6 +588,9 @@ importers:
       tsoa:
         specifier: ^6.2.0
         version: 6.2.0
+      undici:
+        specifier: ^6.19.4
+        version: 6.19.4
       winston:
         specifier: ^3.13.0
         version: 3.13.0

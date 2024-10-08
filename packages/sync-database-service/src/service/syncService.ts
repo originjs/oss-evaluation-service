@@ -5,6 +5,7 @@ import shelljs from 'shelljs';
 import { Result } from '@orginjs/oss-evaluation-util';
 import { Readable } from 'stream';
 import { dirname } from 'path';
+import { ProxyAgent } from 'undici';
 
 export async function executeDatabaseSync(): Promise<Result<void>> {
   // get binlog status
@@ -64,7 +65,7 @@ function buildBinlogFileList(positionAndFileInfo: {
   stopPosition: number;
 }): syncParam[] {
   const { startFilename, startPosition, stopFilename, stopPosition } = positionAndFileInfo;
-  const res = [];
+  const res: syncParam[] = [];
   const startIndex = getIndexOfBinlogFile(startFilename);
   const endIndex = getIndexOfBinlogFile(stopFilename);
   if (startIndex > endIndex) {
@@ -113,7 +114,12 @@ async function getLastSyncRecord() {
 }
 
 async function downloadFile(url: string, filePath: string) {
-  const response = await fetch(url);
+  const proxyUrl = process.env.PROXY_URL;
+  const response = await fetch(
+    url,
+    // @ts-expect-error no need handle
+    proxyUrl ? { dispatcher: new ProxyAgent(process.env.PROXY_URL) } : undefined,
+  );
   if (!response.ok) {
     throw new Error(`download file failed, status code: ${response.status} , url:${url}`);
   }
@@ -176,8 +182,13 @@ function getTargetMySQLInfo() {
 }
 
 async function getBinlogStatus(): Promise<{ position: number; filename: string }> {
+  const proxyUrl = process.env.PROXY_URL;
   const getStatusUrl = `${process.env.DOWNLOAD_BINLOG_URL}/download/binlog-status`;
-  const response = await fetch(getStatusUrl);
+  const response = await fetch(
+    getStatusUrl,
+    // @ts-expect-error no need handle
+    proxyUrl ? { dispatcher: new ProxyAgent(process.env.PROXY_URL) } : undefined,
+  );
   if (!response.ok) {
     throw new Error(
       `get binlog status failed, status code: ${response.status} , url:${getStatusUrl}`,
