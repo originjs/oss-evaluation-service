@@ -177,7 +177,7 @@ function getTargetMySQLInfo() {
     host: url.hostname,
     port: url.port,
     username: url.username,
-    password: url.password,
+    password: decodeURIComponent(url.password),
   };
 }
 
