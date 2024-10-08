@@ -5,6 +5,8 @@ import { existsSync, readFileSync } from 'fs';
 import { Readable } from 'stream';
 import { unlink } from 'fs/promises';
 import logger from '../logger/pino-logger.js';
+import { outerSequelize } from '../model/database.js';
+import { QueryTypes } from 'sequelize';
 
 @Route('download')
 export class RepoController extends Controller {
@@ -33,6 +35,15 @@ export class RepoController extends Controller {
       logger.error(`delete ${cpFilePath} failed`, err);
     });
     return stream;
+  }
+
+  @Get('binlog-status')
+  public async binlogStatus() {
+    const [{ Position: position, File: filename }] = (await outerSequelize.query(
+      'show master status',
+      { type: QueryTypes.SELECT },
+    )) as { Position: string; File: string }[];
+    return { position: parseInt(position), filename };
   }
 
   file2Buffer(filePath: string, filename: string) {
