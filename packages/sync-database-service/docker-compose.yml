@@ -15,7 +15,7 @@ services:
     image: mysql:8.0
     container_name: mysql2
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: "r@oot"
     volumes:
       - /Users/ruleeeer/docker-data/mysql2_data:/var/lib/mysql
     ports:
