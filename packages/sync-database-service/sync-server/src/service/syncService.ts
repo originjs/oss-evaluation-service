@@ -14,7 +14,7 @@ export async function executeDatabaseSync(): Promise<Result<void>> {
   const syncRecord = await createSyncRecord(positionAndFileInfo);
   try {
     // download all binlog files
-    await downloadAllBinlogFiles(fileList, syncRecord);
+    await downloadAndScpAllBinlogFiles(fileList, syncRecord);
     // run mysqlbinlog command
     runMySQLBinlog(fileList, syncRecord);
     syncRecord.set('success', true);
@@ -135,29 +135,29 @@ async function downloadFile(url: string, filePath: string) {
   });
 }
 
-async function downloadAllBinlogFiles(fileList: syncParam[], syncRecord: SyncDatabaseRecord) {
+async function downloadAndScpAllBinlogFiles(fileList: syncParam[], syncRecord: SyncDatabaseRecord) {
   const downloadFileDir = getDownloadFileDir(syncRecord);
   for (const syncParam of fileList) {
+    const filePath = `${downloadFileDir}/${syncParam.filename}`;
     await downloadFile(
       `${process.env.DOWNLOAD_BINLOG_URL}/download/downloadFile?filename=${syncParam.filename}`,
-      `${downloadFileDir}/${syncParam.filename}`,
+      filePath,
     );
     syncRecord.set('msg', `${syncRecord.dataValues.msg} download ${syncParam.filename} success;\n`);
+    // scp to target server
   }
+  scp2AnotherServer(downloadFileDir, getScpTargetFileDir(syncRecord), syncRecord);
 }
 
 function runMySQLBinlog(fileList: syncParam[], syncRecord: SyncDatabaseRecord) {
-  const downloadFileDir = getDownloadFileDir(syncRecord);
-  const commandPath = shelljs.which('mysqlbinlog')?.stdout;
-  if (!commandPath) {
-    throw new Error(`mysqlbinlog not found`);
-  }
+  const targetFileDir = getScpTargetFileDir(syncRecord);
   const mysqlInfo = getTargetMySQLInfo();
   for (const syncParam of fileList) {
-    const binlogCommand = `${commandPath} ${downloadFileDir}/${syncParam.filename} \
+    const binlogCommand = `ssh -p ${process.env.SSH_PORT} ${process.env.SSH_USERNAME}@${process.env.SSH_HOST}\
+      "mysqlbinlog ${targetFileDir}/${syncParam.filename} \
       ${syncParam.startPosition ? `--start-position=${syncParam.startPosition}` : ''} \
       ${syncParam.stopPosition ? `--stop-position=${syncParam.stopPosition}` : ''}\
-      | mysql -u${mysqlInfo.username} -p${mysqlInfo.password} -h${mysqlInfo.host} -P${mysqlInfo.port}`;
+      | mysql -u${mysqlInfo.username} -p${mysqlInfo.password} -h${mysqlInfo.host} -P${mysqlInfo.port} "`;
     const result = shelljs.exec(binlogCommand);
     if (result.code !== 0) {
       throw new Error(`run mysqlbinlog:{${binlogCommand}} failed, err:${result.stderr}`);
@@ -168,6 +168,10 @@ function runMySQLBinlog(fileList: syncParam[], syncRecord: SyncDatabaseRecord) {
 
 function getDownloadFileDir(syncRecord: SyncDatabaseRecord) {
   return `${process.env.DOWNLOAD_FILE_DIR}/${syncRecord.dataValues.id}`;
+}
+
+function getScpTargetFileDir(syncRecord: SyncDatabaseRecord): string {
+  return `${process.env.SCP_TARGET_DIR}/${syncRecord.dataValues.id}`;
 }
 
 function getTargetMySQLInfo() {
@@ -195,4 +199,13 @@ async function getBinlogStatus(): Promise<{ position: number; filename: string }
     );
   }
   return await response.json();
+}
+
+function scp2AnotherServer(sourceDir: string, targetDir: string, syncRecord: SyncDatabaseRecord) {
+  const commmand = `scp -r -P ${process.env.SSH_PORT} ${sourceDir} ${process.env.SSH_USERNAME}@${process.env.SSH_HOST}:${targetDir}`;
+  const result = shelljs.exec(commmand);
+  if (result.code !== 0) {
+    throw new Error(`scp:{${commmand}} failed, err:${result.stderr}`);
+  }
+  syncRecord.set('msg', `${syncRecord.dataValues.msg} run command:{${commmand}} success\n`);
 }
