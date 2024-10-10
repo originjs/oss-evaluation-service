@@ -1,6 +1,6 @@
 import { authorizationHeader } from '../../util.js';
 
-export function chat(query, token) {
+export function chat(query, token, bot_id) {
   const headers = authorizationHeader(token);
   headers.append('Content-Type', 'application/json');
   headers.append('Accept', '*/*');
@@ -10,7 +10,7 @@ export function chat(query, token) {
     method: 'POST',
     headers,
     body: JSON.stringify({
-      bot_id: '7371714000902045712',
+      bot_id,
       //bot_id: '7372168213741764619',
       user: 'oss-evaluation',
       query,
