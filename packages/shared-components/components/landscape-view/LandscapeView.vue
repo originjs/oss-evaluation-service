@@ -253,6 +253,7 @@ const props = defineProps<{
     goBenchmark?: (project: Project) => void;
     sortProject?: (p1: Project, p2: Project) => number;
     toTechRadar?: (project: Project) => void;
+    addProjectToCompare?: (project: Project) => void;
   };
 }>();
 

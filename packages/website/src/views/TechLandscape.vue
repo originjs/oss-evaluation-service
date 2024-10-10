@@ -93,6 +93,9 @@ const landscapeOptions = {
     }
     return '';
   },
+  addProjectToCompare(project: Project) {
+    addProjectToCompare(project as unknown as CompareProject);
+  },
 };
 
 function clickProject(project: Project) {
@@ -125,14 +128,6 @@ function compareProjects(projects: SoftwareBaseInfo[]) {
       :options="landscapeOptions"
       @click-project="clickProject"
     >
-      <template #popover-toolbar-right="{ project }">
-        <el-tooltip effect="light" content="添加对比" placement="bottom" :teleported="false">
-          <span
-            class="i-custom:add-versus ml8px cursor-pointer font-size-8 color-[#409eff]"
-            @click="addProjectToCompare(project as unknown as CompareProject)"
-          ></span>
-        </el-tooltip>
-      </template>
       <template #projectDialogBody="scoped">
         <!-- 启用项目弹框才会显示，有两个区域（projectDialogHeader，projectDialogBody） -->
         <span>{{ scoped.project.name }}</span>
