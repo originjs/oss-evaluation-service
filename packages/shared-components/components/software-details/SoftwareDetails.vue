@@ -56,6 +56,8 @@ import countriesInfo from '../../assets/json/countriesInfo.json';
 import { ApplyAdd } from '../apply-add';
 import type { ColumnData, RowData } from '../benchmark-compare/BenchmarkCompareTable.vue';
 import BenchmarkCompareTable, { EMPTY_VALUE } from '../benchmark-compare/BenchmarkCompareTable.vue';
+import type { RadarRing } from '../landscape-view/constant';
+import { radarRingColors, radarRingNames } from '../landscape-view/constant';
 
 dayjs.extend(relativeTime);
 const props = defineProps<{ repoName: string }>();
@@ -63,27 +65,6 @@ const props = defineProps<{ repoName: string }>();
 type TableRow = {
   label: string;
   value: string | number;
-};
-
-enum RadarRing {
-  Adopt = 0,
-  Trial = 1,
-  Assess = 2,
-  Hold = 3,
-}
-
-const radarRingNames = {
-  [RadarRing.Adopt]: '采纳',
-  [RadarRing.Trial]: '试验',
-  [RadarRing.Assess]: '评估',
-  [RadarRing.Hold]: '暂缓',
-};
-
-const radarRingColors = {
-  [RadarRing.Adopt]: '#5ba300',
-  [RadarRing.Trial]: '#009eb0',
-  [RadarRing.Assess]: '#c7ba00',
-  [RadarRing.Hold]: '#e09b96',
 };
 
 const encodedRepoName = computed(() => encodeURIComponent(props.repoName));

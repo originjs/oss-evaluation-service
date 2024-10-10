@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import GenerateProjectAvatar from './GenerateProjectAvatar.vue';
 import type { Project } from './type';
+import { RadarRing, radarRingColors } from './constant';
 
 const props = defineProps<{
   project: Project;
@@ -33,15 +34,31 @@ const projectStyle = computed(() => {
       borderColor = options.value.borderColor['_default_'];
       hasBorder = true;
     }
-  }
-
-  // 可以通过 function 参数覆盖上面配置的 borderColor
-  if (typeof options.value.borderColor === 'function') {
+  } else if (typeof options.value.borderColor === 'function') {
     const borderColorResult = options.value.borderColor(project.value);
     if (borderColorResult) {
       borderColor = borderColorResult;
       hasBorder = true;
     }
+  }
+
+  if (typeof project.value.radarRing === 'number' && project.value.radarRing in RadarRing) {
+    borderColor = radarRingColors[project.value.radarRing];
+
+    if (project.value.bigProject === 'Y') {
+      return {
+        width: `${options.value.boxSize * 2 + 5}px`,
+        height: `${options.value.boxSize * 2 + 5}px`,
+        gridColumnEnd: 'span 2',
+        gridRowEnd: 'span 2',
+        border: `2px solid ${borderColor}`,
+      };
+    }
+    return {
+      width: `${options.value.boxSize}px`,
+      height: `${options.value.boxSize}px`,
+      border: `1px solid ${borderColor}`,
+    };
   }
 
   if (project?.value?.bigProject !== 'Y') {
