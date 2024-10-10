@@ -1,3 +1,10 @@
+enum RadarRing {
+  Adopt = 0,
+  Trial = 1,
+  Assess = 2,
+  Hold = 3,
+}
+
 export interface Project {
   category: string;
   subcategory: string;
@@ -11,6 +18,7 @@ export interface Project {
   bigProject: string;
   labels: string[];
   language: string;
+  radarRing?: RadarRing;
 }
 
 export interface Subcategory {

@@ -245,13 +245,14 @@ const props = defineProps<{
     enableProjectPopover?: boolean;
     boxSize?: number; // || {width:number,height:number}
     boxGap?: number;
-    borderColor?: string | { [key: string]: string };
+    borderColor?: string | { [key: string]: string } | ((project: Project) => undefined | string);
     layout?: Layout;
     autoLayout?: AutoLayout; // 设定一行中可以有多少列子类，用于自动布局计算，默认为 3 列
     autoLayoutMaxCol?: number; // 如果没有配置 autoLayout 或类别不在 autoLayout 中，则使用该默认值 3 列
     evaluation?: (project: Project) => void;
     goBenchmark?: (project: Project) => void;
     sortProject?: (p1: Project, p2: Project) => number;
+    toTechRadar?: (project: Project) => void;
   };
 }>();
 

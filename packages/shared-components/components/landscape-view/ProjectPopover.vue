@@ -8,10 +8,32 @@ const props = defineProps<{
   options?: {
     evaluation?: (project: Project) => void;
     goBenchmark?: (project: Project) => void;
+    toTechRadar?: (project: Project) => void;
   };
 }>();
 
 const { project, options } = toRefs(props);
+
+enum RadarRing {
+  Adopt = 0,
+  Trial = 1,
+  Assess = 2,
+  Hold = 3,
+}
+
+const radarRingNames = {
+  [RadarRing.Adopt]: '采纳',
+  [RadarRing.Trial]: '试验',
+  [RadarRing.Assess]: '评估',
+  [RadarRing.Hold]: '暂缓',
+};
+
+const radarRingColors = {
+  [RadarRing.Adopt]: '#5ba300',
+  [RadarRing.Trial]: '#009eb0',
+  [RadarRing.Assess]: '#c7ba00',
+  [RadarRing.Hold]: '#e09b96',
+};
 </script>
 
 <template>
@@ -34,9 +56,9 @@ const { project, options } = toRefs(props);
             borderColor: '#e5e7eb',
           }"
         />
-        <div class="flex flex-1 flex-col">
+        <div class="min-w210px flex flex-1 flex-col">
           <span class="text-lg fw-bold">
-            <el-text line-clamp="2">
+            <el-text w-full line-clamp="2">
               {{ project.name }}
             </el-text>
           </span>
@@ -56,7 +78,7 @@ const { project, options } = toRefs(props);
             ></a>
           </div>
         </div>
-        <div class="flex items-center">
+        <div class="max-w132px flex flex-warp items-center">
           <slot name="toolbar-left"></slot>
           <slot>
             <div v-if="options?.evaluation" class="toolbar-item flex flex-col items-center">
@@ -79,6 +101,28 @@ const { project, options } = toRefs(props);
                 ></span>
               </el-tooltip>
             </div>
+            <el-tooltip
+              v-if="typeof project?.radarRing === 'number'"
+              effect="light"
+              :content="`技术雷达：${radarRingNames[project.radarRing]}`"
+              placement="bottom"
+            >
+              <span
+                class="toolbar-item"
+                px-2px
+                font-600
+                rounded
+                border-solid
+                border-size-2
+                :style="{
+                  'background-color': radarRingColors[project.radarRing],
+                  color: radarRingColors[project.radarRing],
+                }"
+                :class="{ 'cursor-pointer': options?.toTechRadar }"
+                @click="options?.toTechRadar && options?.toTechRadar(project)"
+                >{{ radarRingNames[project.radarRing] }}</span
+              >
+            </el-tooltip>
           </slot>
           <slot name="toolbar-right"></slot>
         </div>
@@ -91,7 +135,7 @@ const { project, options } = toRefs(props);
 </template>
 
 <style scoped lang="less">
-.toolbar-item + .toolbar-item {
-  margin-left: 12px;
+.toolbar-item {
+  margin-left: 8px;
 }
 </style>

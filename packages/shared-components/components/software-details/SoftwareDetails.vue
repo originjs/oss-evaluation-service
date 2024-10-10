@@ -1065,7 +1065,7 @@ onBeforeUnmount(() => {
             }}</el-descriptions-item>
             <el-descriptions-item label="License">{{ baseInfo.license }}</el-descriptions-item>
             <el-descriptions-item label="官网地址">{{ baseInfo.homePage }}</el-descriptions-item>
-            <el-descriptions-item label="技术雷达" :rowspan="2">
+            <el-descriptions-item label="技术雷达" :span="2">
               <span
                 v-if="typeof projectTechStack?.radarRing === 'number'"
                 px-8px
