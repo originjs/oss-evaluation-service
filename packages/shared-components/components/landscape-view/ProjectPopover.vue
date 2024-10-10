@@ -10,6 +10,7 @@ const props = defineProps<{
     evaluation?: (project: Project) => void;
     goBenchmark?: (project: Project) => void;
     toTechRadar?: (project: Project) => void;
+    addProjectToCompare?: (project: Project) => void;
   };
 }>();
 
@@ -69,18 +70,18 @@ const { project, options } = toRefs(props);
                 ></span>
               </el-tooltip>
             </div>
-            <div
-              v-if="project?.hasBenchmark == 'Y'"
-              class="toolbar-item flex flex-col items-center"
+            <el-tooltip
+              v-if="options?.addProjectToCompare"
+              effect="light"
+              content="添加对比"
+              placement="bottom"
+              :teleported="false"
             >
-              <el-tooltip effect="light" content="性能Benchmark" placement="bottom">
-                <span
-                  class="i-custom:benchmark font-size-8"
-                  :class="{ 'cursor-pointer': options?.goBenchmark }"
-                  @click="options?.goBenchmark && options?.goBenchmark(project)"
-                ></span>
-              </el-tooltip>
-            </div>
+              <span
+                class="i-custom:add-versus ml8px cursor-pointer font-size-8 color-[#409eff]"
+                @click="options.addProjectToCompare(project)"
+              ></span>
+            </el-tooltip>
             <el-tooltip
               v-if="typeof project?.radarRing === 'number'"
               effect="light"
