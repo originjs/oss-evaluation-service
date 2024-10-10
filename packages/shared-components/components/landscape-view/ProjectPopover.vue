@@ -31,7 +31,7 @@ const { project, options } = toRefs(props);
       <div class="flex items-center mb-3">
         <project-thumbnails
           class="mr-3"
-          :project="{ ...project, bigProject: 'N' }"
+          :project="project"
           :options="{
             boxSize: 70,
             borderColor: '#e5e7eb',
@@ -87,6 +87,7 @@ const { project, options } = toRefs(props);
               effect="light"
               :content="`技术雷达：${radarRingNames[project.radarRing]}`"
               placement="bottom"
+              :teleported="false"
             >
               <span
                 class="toolbar-item"

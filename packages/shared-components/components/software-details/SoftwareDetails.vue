@@ -1049,13 +1049,16 @@ onBeforeUnmount(() => {
             <el-descriptions-item label="技术雷达" :span="2">
               <span
                 v-if="typeof projectTechStack?.radarRing === 'number'"
-                px-8px
-                inline-block
-                color-white
+                px-2px
                 font-600
-                rounded-full
+                rounded
+                border-solid
+                border-size-2
                 cursor-pointer
-                :style="{ 'background-color': radarRingColors[projectTechStack.radarRing] }"
+                :style="{
+                  'border-color': radarRingColors[projectTechStack.radarRing],
+                  color: radarRingColors[projectTechStack.radarRing],
+                }"
                 @click="emits('toTechRadar')"
                 >{{ radarRingNames[projectTechStack.radarRing] }}</span
               >

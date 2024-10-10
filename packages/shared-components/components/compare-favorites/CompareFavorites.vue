@@ -59,7 +59,7 @@ function cleanCompareFavorites() {
 }
 
 const compatibleField = (p: any): CompareProject => {
-  let project = { ...p, bigProject: 'N' };
+  let project = { ...p };
   project.url = project.url || project.htmlUrl;
   if (!project.repoName && project.url) {
     project.repoName = extractRepositoryName(project.url);
@@ -158,7 +158,7 @@ defineExpose({
             <project-thumbnails
               class="mr-14px"
               :project="project as unknown as Project"
-              :options="options"
+              :options="{ ...options, needBigSize: false }"
             />
             <div class="project-info">
               <span>

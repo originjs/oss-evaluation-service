@@ -83,7 +83,7 @@
                   <project-thumbnails
                     class="project-logo"
                     :project="project"
-                    :options="options"
+                    :options="{ ...options, needBigSize: options.needBigSize ?? true }"
                     @click="clickProject(project)"
                   />
                 </template>
@@ -101,7 +101,7 @@
                 :key="`${categoryName}-${subcategoryName}-${project.name}-${pIndex}`"
                 class="project-logo"
                 :project="project"
-                :options="options"
+                :options="{ ...options, needBigSize: options.needBigSize ?? true }"
                 @click="clickProject(project)"
               />
             </template>
@@ -120,6 +120,7 @@
             :options="{
               ...options,
               boxSize: 80,
+              needBigSize: false,
             }"
             mr-4
             @click="emit('toDetailsPage', dialogProject)"
@@ -203,6 +204,7 @@ import { getTagType, toKilo, getSystemTagType } from '@orginjs/oss-evaluation-co
 import ProjectPopover from './ProjectPopover.vue';
 import type { Category, Subcategory } from './type';
 import ProjectThumbnails from './ProjectThumbnails.vue';
+import { RadarRing } from './constant';
 
 interface Project {
   category: string;
@@ -214,7 +216,6 @@ interface Project {
   starCount: number;
   forksCount: number;
   hasBenchmark: string;
-  bigProject: string;
   labels: string[];
   language: string;
   projectType?: string;
@@ -222,6 +223,7 @@ interface Project {
     os: string;
     introduceVersion: string;
   }>;
+  radarRing?: RadarRing;
 }
 
 type Layout = {
@@ -254,6 +256,7 @@ const props = defineProps<{
     sortProject?: (p1: Project, p2: Project) => number;
     toTechRadar?: (project: Project) => void;
     addProjectToCompare?: (project: Project) => void;
+    needBigSize?: boolean;
   };
 }>();
 
@@ -285,7 +288,6 @@ const dialogProject = ref<Project>({
   starCount: 0,
   forksCount: 0,
   hasBenchmark: '',
-  bigProject: '',
   labels: [],
   language: '',
 });
@@ -434,7 +436,7 @@ const processLandscapeData = (projects: Project[], isInit?: boolean) => {
         layout[categoryName][subcategoryName] = !widthRate || widthRate > 1 ? 1 : widthRate; // 为 0 或 大于 1 的情况，设定为 1
         category[categoryName][subcategoryName] = {
           subTechStackName: subcategoryName,
-          hasBigProject: false,
+          isRadarRingAdopt: false,
           projects: [],
           count: 0,
           displayCount: 0,
@@ -453,7 +455,7 @@ const processLandscapeData = (projects: Project[], isInit?: boolean) => {
     if (!category[item.category][item.subcategory]) {
       category[item.category][item.subcategory] = {
         subTechStackName: item.subcategory,
-        hasBigProject: false,
+        isRadarRingAdopt: false,
         projects: [],
         count: 0,
         displayCount: 0,
@@ -470,14 +472,14 @@ const processLandscapeData = (projects: Project[], isInit?: boolean) => {
     const subcategory = category[item.category][item.subcategory];
     subcategory.count++; // 计算子类别项目总数
 
-    const isBigProject = item.bigProject === 'Y';
-    if (isBigProject) {
-      // 当前子类别有大项目
-      subcategory.hasBigProject = true;
+    const isRadarRingAdopt = item.radarRing === RadarRing.Adopt;
+    if (isRadarRingAdopt) {
+      // 当前子类别技术雷达指标值为【采纳】的项目
+      subcategory.isRadarRingAdopt = true;
     }
 
     if (
-      isBigProject ||
+      isRadarRingAdopt ||
       !options.value.maxProjects ||
       subcategory.projects.length < options.value.maxProjects
     ) {
@@ -500,15 +502,15 @@ const processLandscapeData = (projects: Project[], isInit?: boolean) => {
       // 先按 sortProject 排序项目；默认按名称排序
       subcategory.projects.sort(options.value.sortProject);
 
-      if (!subcategory.hasBigProject) {
+      if (!subcategory.isRadarRingAdopt) {
         continue;
       }
 
-      // 再按 bigProject 排序项目
+      // 再按 isRadarRingAdopt 排序项目
       subcategory.projects.sort((p1, p2) => {
-        if (p1.bigProject === 'Y' && p2.bigProject !== 'Y') {
+        if (p1.radarRing === RadarRing.Adopt && p2.radarRing !== RadarRing.Adopt) {
           return -1;
-        } else if (p1.bigProject !== 'Y' && p2.bigProject === 'Y') {
+        } else if (p1.radarRing !== RadarRing.Adopt && p2.radarRing === RadarRing.Adopt) {
           return 1;
         } else {
           return 0;
