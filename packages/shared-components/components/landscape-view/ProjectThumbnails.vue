@@ -6,7 +6,7 @@ import type { Project } from './type';
 const props = defineProps<{
   project: Project;
   options?: {
-    borderColor?: string | { [key: string]: string };
+    borderColor?: string | { [key: string]: string } | ((project: Project) => undefined | string);
     boxSize?: number;
     labelFormat?: (project: Project) => string;
   };
@@ -31,6 +31,15 @@ const projectStyle = computed(() => {
       borderColor = options.value.borderColor['_bigProject_'];
     } else if (options?.value?.borderColor['_default_']) {
       borderColor = options.value.borderColor['_default_'];
+      hasBorder = true;
+    }
+  }
+
+  // 可以通过 function 参数覆盖上面配置的 borderColor
+  if (typeof options.value.borderColor === 'function') {
+    const borderColorResult = options.value.borderColor(project.value);
+    if (borderColorResult) {
+      borderColor = borderColorResult;
       hasBorder = true;
     }
   }

@@ -128,7 +128,7 @@ function compareProjects(projects: SoftwareBaseInfo[]) {
       <template #popover-toolbar-right="{ project }">
         <el-tooltip effect="light" content="添加对比" placement="bottom" :teleported="false">
           <span
-            class="i-custom:add-versus ml3 cursor-pointer font-size-8 color-[#409eff]"
+            class="i-custom:add-versus ml8px cursor-pointer font-size-8 color-[#409eff]"
             @click="addProjectToCompare(project as unknown as CompareProject)"
           ></span>
         </el-tooltip>
