@@ -78,7 +78,7 @@ const radarRingColors = {
             ></a>
           </div>
         </div>
-        <div class="max-w132px flex flex-warp items-center">
+        <div class="max-w132px flex flex-wrap items-center">
           <slot name="toolbar-left"></slot>
           <slot>
             <div v-if="options?.evaluation" class="toolbar-item flex flex-col items-center">
@@ -115,7 +115,7 @@ const radarRingColors = {
                 border-solid
                 border-size-2
                 :style="{
-                  'background-color': radarRingColors[project.radarRing],
+                  'border-color': radarRingColors[project.radarRing],
                   color: radarRingColors[project.radarRing],
                 }"
                 :class="{ 'cursor-pointer': options?.toTechRadar }"
