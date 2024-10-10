@@ -1,4 +1,4 @@
-enum RadarRing {
+export enum RadarRing {
   Adopt = 0,
   Trial = 1,
   Assess = 2,
@@ -15,7 +15,6 @@ export interface Project {
   starCount: number;
   forksCount: number;
   hasBenchmark: string;
-  bigProject: string;
   labels: string[];
   language: string;
   radarRing?: RadarRing;
@@ -25,7 +24,7 @@ export interface Subcategory {
   subTechStackName: string;
   projects: Project[];
   width?: number;
-  hasBigProject?: boolean;
+  isRadarRingAdopt?: boolean;
   count: number; // 所有项目数量
   displayCount: number; // 展示项目数量
 }
