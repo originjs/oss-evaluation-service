@@ -27,3 +27,7 @@ create index schedule_task_monitor_status_index
 
 create index schedule_task_monitor_task_name_index
     on schedule_task_monitor (task_name);
+
+
+ALTER TABLE schedule_task_monitor
+    modify column task_exception mediumtext charset utf8mb4  null comment 'task的异常';
