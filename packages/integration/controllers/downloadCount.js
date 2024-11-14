@@ -9,6 +9,7 @@ import {
 import { getWeekOfYearList } from '../util/weekOfYearUtil.js';
 import { getProjectByUrl } from '../util/util.js';
 import Dayjs from 'dayjs';
+import { addMonitoringToTask } from '../scheduler/schdulerMonitor.js';
 
 const PAGE_SIZE = 128;
 
@@ -225,7 +226,7 @@ export async function sendRequestByPoint(start, end, name) {
   };
 }
 
-export async function packageDownloadCountTimer() {
+export async function packageDownloadCountScheduler() {
   logger.info(
     '[Integration][PackageDownloadCount] ProjectPackageDownloadCount Integration Job start',
   );
@@ -243,3 +244,10 @@ export async function packageDownloadCountTimer() {
           The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
   );
 }
+
+// Add monitoring to all task functions in your scheduled task
+export const packageDownloadCountTimer = addMonitoringToTask(
+  packageDownloadCountScheduler,
+  'packageDownloadCountTimer',
+  'Scheduled integration package download count',
+);
