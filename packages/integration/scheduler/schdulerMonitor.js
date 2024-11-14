@@ -2,43 +2,37 @@ import { logger, ScheduleTaskMonitor } from '@orginjs/oss-evaluation-data-model'
 import * as uuid from 'uuid';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
+import { JobConfig } from './config.js';
 dayjs.extend(utc);
-
-// Used for caching proxy objects
-const taskMonitorCache = new Map();
 
 /**
  * addMonitoringToTask
  *
- * @param {task} task task function
- * @param {string} taskName task name
- * @param {string} taskDesc task description
- * @returns {Proxy<*>} Proxy
+ * @param func func
+ * @param taskName task name
+ * @param taskDesc task description
+ * @returns Proxy proxy
  */
-export function addMonitoringToTask(task, taskName, taskDesc) {
-  if (!taskMonitorCache.has(taskName)) {
-    // If the proxy object for the task is not found in the cache, create and cache it
-    taskMonitorCache.set(taskName, createTaskMonitor(task, taskName, taskDesc));
-  }
-  // Return the cached proxy object
-  return taskMonitorCache.get(taskName);
+export function addMonitoringToTask(func, taskName, taskDesc) {
+  return createTaskMonitor(func, taskName, taskDesc);
 }
 
-function createTaskMonitor(task, taskName, taskDesc) {
-  return new Proxy(task, {
+function createTaskMonitor(func, taskName, taskDesc) {
+  const taskMap = new Map(JobConfig.tasks.map(task => [task.name, task]));
+  return new Proxy(func, {
     async apply(target, thisArg, argumentsList) {
       // Generate a taskId using UUID
       const taskId = uuid.v4();
-      await writeLog(taskId, taskName, taskDesc, '');
+      await writeLog(taskId, taskName, taskDesc, '', taskMap);
       logger.info(`task ${taskName} start execution`);
       try {
         const result = await Reflect.apply(target, thisArg, argumentsList);
         logger.info(`task ${taskName} execution success`);
-        await writeLog(taskId, taskName, taskDesc, '');
+        await writeLog(taskId, taskName, taskDesc, '', taskMap);
         return result;
       } catch (error) {
         logger.error(`task ${taskName} execution failed : ${error.message}`);
-        await writeLog(taskId, taskName, taskDesc, error.message);
+        await writeLog(taskId, taskName, taskDesc, error.message, taskMap);
       }
     },
   });
@@ -50,13 +44,12 @@ const taskStatus = Object.freeze({
   FAILED: 2,
 });
 
-async function writeLog(taskId, taskName, taskDesc, errorMsg) {
+async function writeLog(taskId, taskName, taskDesc, errorMsg, taskMap) {
   let task = await ScheduleTaskMonitor.findOne({
     where: {
       taskId: taskId,
     },
   });
-
   const currentTime = dayjs().utc().format('YYYY-MM-DD HH:mm:ss');
   if (task == null) {
     await ScheduleTaskMonitor.create({
@@ -65,7 +58,7 @@ async function writeLog(taskId, taskName, taskDesc, errorMsg) {
       taskDesc: taskDesc,
       startTime: currentTime,
       status: taskStatus.IN_PROGRESS,
-      cron: '0 0 0 0 0 0',
+      cron: taskMap.get(taskName).cronScheduleTime,
     });
   } else {
     // Calculate the difference between the current time and the task start time
@@ -78,7 +71,7 @@ async function writeLog(taskId, taskName, taskDesc, errorMsg) {
       endTime: currentTime,
       duration: duration,
       status: errorMsg === '' ? taskStatus.SUCCESS : taskStatus.FAILED,
-      cron: '0 0 0 0 0 0',
+      cron: taskMap.get(taskName).cronScheduleTime,
       taskException: errorMsg,
     });
   }
