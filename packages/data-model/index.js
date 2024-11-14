@@ -38,3 +38,4 @@ export { default as GithubProjectsRank } from './models/GithubProjectsRank.js';
 export { default as TrendHistory } from './models/TrendHistory.js';
 export { default as TrendRankHistory } from './models/TrendRankHistory.js';
 export { default as NewProjectApply } from './models/NewProjectApply.js';
+export { default as ScheduleTaskMonitor } from './models/ScheduleTaskMonitor.js';
