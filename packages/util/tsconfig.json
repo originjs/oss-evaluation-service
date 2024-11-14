@@ -2,7 +2,7 @@
   "compilerOptions": {
     "outDir": "./dist",
     "declaration": true,
-    "module": "ES6",
+    "module": "NodeNext",
     "target": "es6",
     "rootDir": "./src",
     "strict": true, // 可以根据需要选择

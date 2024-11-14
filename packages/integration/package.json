@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "test": "vitest",
-    "dev": "set DEBUG=* & nodemon ./bin/www.js",
+    "dev": "set DEBUG=* & pnpm nodemon ./bin/www.js",
+    "predev":"pnpm --filter @orginjs/oss-evaluation-util build",
+    "prestart":"pnpm --filter @orginjs/oss-evaluation-util build",
     "start": "node ./bin/www.js"
   },
   "nodemonConfig": {
