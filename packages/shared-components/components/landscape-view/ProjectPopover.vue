@@ -2,6 +2,7 @@
 import type { Project } from './type';
 import { toKilo } from '@orginjs/oss-evaluation-components-utils';
 import ProjectThumbnails from './ProjectThumbnails.vue';
+import { radarRingColors, radarRingNames } from './constant';
 
 const props = defineProps<{
   project: Project;
@@ -9,31 +10,11 @@ const props = defineProps<{
     evaluation?: (project: Project) => void;
     goBenchmark?: (project: Project) => void;
     toTechRadar?: (project: Project) => void;
+    addProjectToCompare?: (project: Project) => void;
   };
 }>();
 
 const { project, options } = toRefs(props);
-
-enum RadarRing {
-  Adopt = 0,
-  Trial = 1,
-  Assess = 2,
-  Hold = 3,
-}
-
-const radarRingNames = {
-  [RadarRing.Adopt]: '采纳',
-  [RadarRing.Trial]: '试验',
-  [RadarRing.Assess]: '评估',
-  [RadarRing.Hold]: '暂缓',
-};
-
-const radarRingColors = {
-  [RadarRing.Adopt]: '#5ba300',
-  [RadarRing.Trial]: '#009eb0',
-  [RadarRing.Assess]: '#c7ba00',
-  [RadarRing.Hold]: '#e09b96',
-};
 </script>
 
 <template>
@@ -50,7 +31,7 @@ const radarRingColors = {
       <div class="flex items-center mb-3">
         <project-thumbnails
           class="mr-3"
-          :project="{ ...project, bigProject: 'N' }"
+          :project="project"
           :options="{
             boxSize: 70,
             borderColor: '#e5e7eb',
@@ -89,23 +70,24 @@ const radarRingColors = {
                 ></span>
               </el-tooltip>
             </div>
-            <div
-              v-if="project?.hasBenchmark == 'Y'"
-              class="toolbar-item flex flex-col items-center"
+            <el-tooltip
+              v-if="options?.addProjectToCompare"
+              effect="light"
+              content="添加对比"
+              placement="bottom"
+              :teleported="false"
             >
-              <el-tooltip effect="light" content="性能Benchmark" placement="bottom">
-                <span
-                  class="i-custom:benchmark font-size-8"
-                  :class="{ 'cursor-pointer': options?.goBenchmark }"
-                  @click="options?.goBenchmark && options?.goBenchmark(project)"
-                ></span>
-              </el-tooltip>
-            </div>
+              <span
+                class="i-custom:add-versus ml8px cursor-pointer font-size-8 color-[#409eff]"
+                @click="options.addProjectToCompare(project)"
+              ></span>
+            </el-tooltip>
             <el-tooltip
               v-if="typeof project?.radarRing === 'number'"
               effect="light"
               :content="`技术雷达：${radarRingNames[project.radarRing]}`"
               placement="bottom"
+              :teleported="false"
             >
               <span
                 class="toolbar-item"

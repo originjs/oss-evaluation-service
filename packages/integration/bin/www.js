@@ -32,7 +32,12 @@ server.on('listening', onListening);
 /**
  * Schedule Integration Job
  */
-scheduleJob();
+if (process.env.NODE_ENV == 'development') {
+  logger.warn('Scheduling Integration Not Started!');
+} else {
+  scheduleJob();
+}
+
 
 /**
  * Normalize a port into a number, string, or false.

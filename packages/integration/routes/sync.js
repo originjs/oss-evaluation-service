@@ -1,5 +1,5 @@
 import express from 'express';
-import { syncAlternativeHandler } from '../controllers/alternative.js';
+import { syncAlternativeHandler, syncClassificationHandler } from '../controllers/alternative.js';
 import {
   getScorecardHandler,
   syncScorecardHandler,
@@ -330,6 +330,30 @@ router.route('/opendigger').post(syncOpendiggerHandler);
  *         description: success.
  */
 router.route('/alternative').post(syncAlternativeHandler);
+
+/**
+ * @swagger
+ * /sync/aiClassification:
+ *   post:
+ *     summary: AI 自动分类
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               repoUrl:
+ *                 type: string
+ *                 example: "https://github.com/vuejs/vue"
+ *               projectId:
+ *                 type: Array<number>
+ *                 example: [1000,1123]
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/aiClassification').post(syncClassificationHandler);
 
 /**
  * @swagger

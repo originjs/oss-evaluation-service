@@ -47,7 +47,7 @@ export async function syncAllProjectAlternative() {
 
 export async function syncSingleProjectAlternative(project) {
   logger.info('syncSingleProjectAlternative: ' + project.fullName);
-  const cozeSdk = new CozeSdk();
+  const cozeSdk = new CozeSdk(CozeSdk.ALTERNATIVE_BOT);
   const response = await cozeSdk.chat(project.htmlUrl);
   if (response.ok) {
     const rsp = await response.json();
@@ -100,4 +100,57 @@ async function updateProjectId() {
 
   await sequelize.query(approvedSql);
   await sequelize.query(notApprovedSql);
+}
+
+export async function syncClassificationHandler(req, res) {
+  const { repoUrl, projectId } = req.body;
+  if (repoUrl) {
+    // sync single project
+    const project = await getProjectByUrl(repoUrl);
+    const result = await getSingleProjectClassification(project);
+    res.status(200).json(result);
+  } else if (projectId) {
+    for (const id of projectId) {
+      const project = await GithubProjects.findByPk(id);
+      await getSingleProjectClassification(project);
+    }
+    await updateProjectId();
+    res.status(200).json('ok');
+  } else {
+    // sync all
+    syncAllProjectAlternative();
+    res.status(200).json('ok');
+  }
+}
+
+export async function getSingleProjectClassification(project) {
+  logger.info('getSingleProjectClassification: ' + project.fullName);
+  const cozeSdk = new CozeSdk(CozeSdk.CLASSIFICATION_BOT);
+  const response = await cozeSdk.chat(project.htmlUrl);
+  if (response.ok) {
+    const rsp = await response.json();
+    for (const msg of rsp.messages) {
+      if (msg.type === 'answer') {
+        let json = msg.content;
+        logger.info(json);
+        if (json.startsWith('```')) {
+          // remove markdown block
+          json = json.substring(json.indexOf('\n'), json.lastIndexOf('\n'));
+        }
+        try {
+          const content = JSON5.parse(json);
+          if (content.tags && content.tags.length > 0) {
+            project.openAiRemark = JSON.stringify(content.tags);
+          }
+          if (content.description) {
+            project.openAiRecommendRemark = content.description;
+          }
+          project.save();
+          return content;
+        } catch (e) {
+          logger.error(e);
+        }
+      }
+    }
+  }
 }
