@@ -3,6 +3,7 @@ import * as uuid from 'uuid';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import { JobConfig } from './config.js';
+import os from 'os';
 dayjs.extend(utc);
 
 /**
@@ -44,6 +45,18 @@ const taskStatus = Object.freeze({
   FAILED: 2,
 });
 
+function getLocalIp() {
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const net of interfaces[name]) {
+      if (net.family === 'IPv4' && !net.internal) {
+        return net.address;
+      }
+    }
+  }
+  return '0.0.0.0';
+}
+
 async function writeLog(taskId, taskName, taskDesc, errorMsg, taskMap) {
   let task = await ScheduleTaskMonitor.findOne({
     where: {
@@ -59,6 +72,7 @@ async function writeLog(taskId, taskName, taskDesc, errorMsg, taskMap) {
       startTime: currentTime,
       status: taskStatus.IN_PROGRESS,
       cron: taskMap.get(taskName).cronScheduleTime,
+      ip: getLocalIp(),
     });
   } else {
     // Calculate the difference between the current time and the task start time
@@ -72,6 +86,7 @@ async function writeLog(taskId, taskName, taskDesc, errorMsg, taskMap) {
       duration: duration,
       status: errorMsg === '' ? taskStatus.SUCCESS : taskStatus.FAILED,
       cron: taskMap.get(taskName).cronScheduleTime,
+      ip: getLocalIp(),
       taskException: errorMsg,
     });
   }
