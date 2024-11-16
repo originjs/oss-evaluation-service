@@ -6,6 +6,7 @@ import {
 } from '@orginjs/oss-evaluation-data-model';
 import { CheerioCrawler, Configuration } from 'crawlee';
 import { getProjectByUrl } from '../util/util.js';
+import { addMonitoringToTask } from '../scheduler/schdulerMonitor.js';
 
 GithubProjects.hasMany(ProjectPackage, {
   foreignKey: 'project_id',
@@ -174,7 +175,7 @@ async function getProjectMainPackageUrl(url, packageName) {
   return urlResult;
 }
 
-export async function projectDependentCountTimer() {
+export async function projectDependentCountScheduler() {
   const startTime = process.hrtime();
   logger.info('[Integration][DependentCount] Integration Job start');
   await syncAllProjectDependentCount();
@@ -184,3 +185,10 @@ export async function projectDependentCountTimer() {
     `[Integration][DependentCount] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
   );
 }
+
+// Add monitoring to all task functions in your scheduled task
+export const projectDependentCountTimer = addMonitoringToTask(
+  projectDependentCountScheduler,
+  'projectDependentCountTimer',
+  'projectDependentCountTimer',
+);

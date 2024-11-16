@@ -1,6 +1,7 @@
 import { Octokit } from '@octokit/core';
 import { GithubProjects, CncfDocumentScore, logger } from '@orginjs/oss-evaluation-data-model';
 import { getProjectByUrl, sleep } from '../util/util.js';
+import { addMonitoringToTask } from '../scheduler/schdulerMonitor.js';
 
 // cncf document checks item
 const cncfDocumentChecksSet = {
@@ -367,7 +368,7 @@ async function getRelease(octokit, owner, repo) {
   return release.data[0].body;
 }
 
-export async function cncfDocumentScoreTimer(startIndex = 0) {
+export async function cncfDocumentScoreScheduler(startIndex = 0) {
   try {
     logger.info('[Integration][Document Best Practice Score] Document Score Integration Job start');
     await syncAllProjectCncfDocumentScore({ startIndex });
@@ -382,9 +383,16 @@ export async function cncfDocumentScoreTimer(startIndex = 0) {
       logger.error('Retry, wait 10s restart');
       await sleep(10000);
       // restart
-      await cncfDocumentScoreTimer(startIndex);
+      await cncfDocumentScoreScheduler(startIndex);
     } else {
       logger.error(`Some Unknown Error Happened: ${err}`);
     }
   }
 }
+
+// Add monitoring to all task functions in your scheduled task
+export const cncfDocumentScoreTimer = addMonitoringToTask(
+  cncfDocumentScoreScheduler,
+  'cncfDocumentScoreTimer',
+  'cncfDocumentScoreTimer',
+);
