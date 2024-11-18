@@ -3,6 +3,7 @@ import { getProjectByUrl } from '../util/util.js';
 import { fetchWithTimeout } from '../util/fetchWitTimeout.js';
 import { fetchWithRetries } from '../util/fetchWithRetries.js';
 import * as cheerio from 'cheerio';
+import { addMonitoringToTask } from '../scheduler/schdulerMonitor.js';
 
 export async function syncSingleProjectContributorsHandler(req, res) {
   const { repoUrl: repoUrl } = req.params;
@@ -160,7 +161,7 @@ export async function getAlllContributors(repoName) {
   return contributors.length;
 }
 
-export async function projectContributorsTimer() {
+export async function projectContributorsScheduler() {
   const startTime = process.hrtime();
   logger.info('[Integration][ProjectContributors] Integration Job start');
   await syncAllProjectContributors();
@@ -170,3 +171,11 @@ export async function projectContributorsTimer() {
     `[Integration][ProjectContributors] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
   );
 }
+
+// Add monitoring to all task functions in your scheduled task
+export const projectContributorsTimer = addMonitoringToTask(
+  projectContributorsScheduler,
+  'projectContributorsScheduler',
+  'projectContributorsScheduler',
+);
+

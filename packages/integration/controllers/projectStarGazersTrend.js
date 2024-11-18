@@ -7,6 +7,7 @@ import {
 import fetch from '@adobe/node-fetch-retry';
 import { getProjectByUrl } from '../util/util.js';
 import dayjs from 'dayjs';
+import { addMonitoringToTask } from '../scheduler/schdulerMonitor.js';
 
 const starHistoryUrl = 'https://api.ossinsight.io/q/analyze-stars-history?repoId=:projectId';
 
@@ -26,7 +27,7 @@ where isnull(project_id)
 order by id;
 `;
 
-export async function githubStargazersTrendTimer() {
+export async function githubStargazersTrendScheduler() {
   let startDate = dayjs().format('YYYY-MM-DD');
   let startTime = process.hrtime();
   logger.info('[Integration][GithubStargazersTrend] GithubStargazersTrend Integration Job start');
@@ -37,6 +38,13 @@ export async function githubStargazersTrendTimer() {
     `[Integration] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
   );
 }
+
+// Add monitoring to all task functions in your scheduled task
+export const githubStargazersTrendTimer = addMonitoringToTask(
+  githubStargazersTrendScheduler,
+  'githubStargazersTrendTimer',
+  'githubStargazersTrendTimer',
+);
 
 export async function syncAllProjectStargazersTrendHandler(req, res) {
   const { startDate } = req.body;

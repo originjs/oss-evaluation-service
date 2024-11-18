@@ -41,7 +41,8 @@
     "shelljs": "^0.8.5",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
-    "underscore": "^1.13.6"
+    "underscore": "1.13.6",
+    "uuid": "^11.0.0-0"
   },
   "devDependencies": {
     "nodemon": "^3.0.3"

@@ -2,6 +2,7 @@ import { GithubProjects, GithubProjectsTable, logger } from '@orginjs/oss-evalua
 import * as cheerio from 'cheerio';
 import { Op } from 'sequelize';
 import { fetchWithTimeout } from '../util/fetchWitTimeout.js';
+import { addMonitoringToTask } from '../scheduler/schdulerMonitor.js';
 
 export async function syncProjectCodeSizeByProjectIdHandler(req, res) {
   const projectIds = req.body;
@@ -127,7 +128,7 @@ async function getCodeSizeBelow500M(project) {
   }
 }
 
-export async function projectCodeSizeTimer() {
+export async function projectCodeSizeScheduler() {
   const startTime = process.hrtime();
   logger.info('[Integration][ProjectCodeSize] Integration Job start');
   await syncProjectCodeSize();
@@ -137,3 +138,10 @@ export async function projectCodeSizeTimer() {
     `[Integration][ProjectCodeSize] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
   );
 }
+
+// Add monitoring to all task functions in your scheduled task
+export const projectCodeSizeTimer = addMonitoringToTask(
+  projectCodeSizeScheduler,
+  'projectCodeSizeTimer',
+  'projectCodeSizeTimer',
+);
