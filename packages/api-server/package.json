@@ -10,7 +10,9 @@
     "build": "tsoa spec-and-routes && tsc",
     "start": "node ./dist/app.js",
     "swagger": "tsoa spec-and-routes",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prestart": "pnpm --filter @orginjs/oss-evaluation-util build",
+    "predev": "pnpm --filter @orginjs/oss-evaluation-util build"
   },
   "nodemonConfig": {
     "watch": [
