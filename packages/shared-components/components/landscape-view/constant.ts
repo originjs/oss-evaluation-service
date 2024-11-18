@@ -6,10 +6,10 @@ export enum RadarRing {
 }
 
 export const radarRingNames = {
-  [RadarRing.Adopt]: '采纳',
-  [RadarRing.Trial]: '试验',
-  [RadarRing.Assess]: '评估',
-  [RadarRing.Hold]: '暂缓',
+  [RadarRing.Adopt]: '优选',
+  [RadarRing.Trial]: '可选',
+  [RadarRing.Assess]: '慎选',
+  [RadarRing.Hold]: '禁选',
 };
 
 export const radarRingColors = {

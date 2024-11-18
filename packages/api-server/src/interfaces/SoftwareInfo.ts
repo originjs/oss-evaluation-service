@@ -23,7 +23,7 @@ export interface TechRadarItem {
   label: string;
   link: string;
   quadrant: number; //象限顺时针从右下开始：0 语言; 1 框架; 2 库; 3 工具;
-  ring: number; //圈从内到外：0 采纳; 1 试验; 2 评估; 3 暂缓;
+  ring: number; //圈从内到外：0 优选; 1 可选; 2 慎选; 3 禁选;
   moved: number;
 }
 

@@ -9,10 +9,10 @@ onMounted(async () => {
     height: 950,
     quadrants: [{ name: '语言' }, { name: '框架' }, { name: '库' }, { name: '工具' }],
     rings: [
-      { name: '采纳', color: '#5ba300' },
-      { name: '试验', color: '#009eb0' },
-      { name: '评估', color: '#c7ba00' },
-      { name: '暂缓', color: '#e09b96' },
+      { name: '优选', color: '#5ba300' },
+      { name: '可选', color: '#009eb0' },
+      { name: '慎选', color: '#c7ba00' },
+      { name: '禁选', color: '#e09b96' },
     ],
     entries: radarList.data,
   });
@@ -30,10 +30,10 @@ onMounted(async () => {
         </p>
 
         <ul>
-          <li><strong>采纳</strong> &mdash; 推荐使用，技术成熟使用风险低。</li>
-          <li><strong>试验</strong> &mdash; 建议使用，小规模使用。较成熟但有一定风险。</li>
-          <li><strong>评估</strong> &mdash; 有前景的新兴技术，值得投入一些研究和原型。</li>
-          <li><strong>暂缓</strong> &mdash; 不建议在新项目中使用的技术。</li>
+          <li><strong>优选</strong> &mdash; 推荐使用，技术成熟使用风险低。</li>
+          <li><strong>可选</strong> &mdash; 建议使用，小规模使用。较成熟但有一定风险。</li>
+          <li><strong>慎选</strong> &mdash; 有前景的新兴技术，值得投入一些研究和原型。</li>
+          <li><strong>禁选</strong> &mdash; 不建议在项目中使用的技术。</li>
         </ul>
       </td>
       <td>

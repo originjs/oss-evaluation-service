@@ -474,7 +474,7 @@ const processLandscapeData = (projects: Project[], isInit?: boolean) => {
 
     const isRadarRingAdopt = item.radarRing === RadarRing.Adopt;
     if (isRadarRingAdopt) {
-      // 当前子类别技术雷达指标值为【采纳】的项目
+      // 当前子类别技术雷达指标值为【优选】的项目
       subcategory.isRadarRingAdopt = true;
     }
 
