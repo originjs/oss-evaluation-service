@@ -17,6 +17,7 @@
     "dev-server": "pnpm -C packages/api-server dev",
     "dev-web": "pnpm -C packages/website dev",
     "dev": "run-p dev-server dev-web",
+    "build-util": "pnpm -C packages/util build",
     "build-share": "pnpm -C packages/shared-components build",
     "build-api-server": "pnpm -C packages/api-server build",
     "build-website": "pnpm -C packages/website build",
