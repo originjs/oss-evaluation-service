@@ -32,6 +32,7 @@ jobs:
         env:
             VITE_BACKEND_SERVICE_URL: ${{ secrets.BACKEND_SERVICE_URL }}
         run: |
+          pnpm build-util
           pnpm build-share
           pnpm build-api-server
           pnpm build-website
