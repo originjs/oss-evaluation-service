@@ -8,10 +8,9 @@ import {
 import {
   mondayOfCurrentWeek,
   mondayOfPreviousWeek,
-  firstDayOfCurrentYear,
-  firstDayOfPreviousYear,
   firstDayOfCurrentMonth,
   firstDayOfPreviousMonth,
+  firstDayOfCurrentYear,
   simpleDateFormat,
   simpleWeekFormat,
 } from '@orginjs/oss-evaluation-util';
@@ -317,10 +316,11 @@ async function getDatabaseDateByType(
         previous: firstDayOfPreviousMonth(dayJsDate),
       };
     }
+    // Every year's first day to the current time
     case DATE_TYPE.YEAR: {
       return {
-        current: firstDayOfCurrentYear(dayJsDate),
-        previous: firstDayOfPreviousYear(dayJsDate),
+        current: dayJsDate,
+        previous: firstDayOfCurrentYear(dayJsDate),
       };
     }
   }

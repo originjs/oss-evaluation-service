@@ -10,11 +10,12 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import {
   firstDayOfPreviousMonth,
-  firstDayOfPreviousYear,
   mondayOfPreviousWeek,
   isFirstDayOfMonth,
   isFirstDayOfWeek,
+  firstDayOfCurrentYear,
   isFirstDayOfYear,
+  firstDayOfPreviousYear,
 } from '@orginjs/oss-evaluation-util';
 
 dayjs.extend(utc);
@@ -68,7 +69,7 @@ export async function storeTrendHistory(projectId, date) {
     count += 1;
     // 2. update project trend
     await storeGithubHistory(project.id, date);
-    await storeEvaluateScore(project.id, date);
+    // await storeEvaluateScore(project.id, date);
   }
 }
 
@@ -122,14 +123,23 @@ function getCalculateDateAndType(date) {
       dateType: DATE_TYPE.MONTH,
     });
   }
-  if (isFirstDayOfYear(date)) {
-    res.push({
-      currentDate: date,
-      previousDate: firstDayOfPreviousYear(date),
-      dateType: DATE_TYPE.YEAR,
-    });
-  }
-  if (!res.length) {
+  if (res.length) {
+    // eslint-disable-next-line max-len
+    //  Any calculation time will be accompanied by a trend of calculation years, because the year is always the trend from the latest January 01 of this year to the latest data.
+    if (isFirstDayOfYear(date)) {
+      res.push({
+        currentDate: date,
+        previousDate: firstDayOfPreviousYear(date),
+        dateType: DATE_TYPE.YEAR,
+      });
+    } else {
+      res.push({
+        currentDate: date,
+        previousDate: firstDayOfCurrentYear(date),
+        dateType: DATE_TYPE.YEAR,
+      });
+    }
+  } else {
     logger.warn(
       `[trendHistory] ${date} is not the first day of the month or week, no logic is executed`,
     );
