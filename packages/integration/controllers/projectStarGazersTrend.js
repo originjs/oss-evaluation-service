@@ -8,8 +8,10 @@ import fetch from '@adobe/node-fetch-retry';
 import { getProjectByUrl } from '../util/util.js';
 import dayjs from 'dayjs';
 import { addMonitoringToTask } from '../scheduler/schdulerMonitor.js';
+import { Sequelize } from 'sequelize';
 
 const starHistoryUrl = 'https://api.ossinsight.io/q/analyze-stars-history?repoId=:projectId';
+const defaultDate = '1010-01-01';
 
 const QUERY_SQL = `
 select distinct project.id,
@@ -81,7 +83,7 @@ async function syncAllProjectStargazersTrend(options) {
 export async function syncSingleProjectStargazersTrend(project, options) {
   options = options ?? {};
   if (!options.startDate) {
-    options.startDate = '1010-01-01';
+    options.startDate = defaultDate;
   }
   await getStargazersTrend(options.startDate, project.id, project.id);
 }
@@ -100,8 +102,9 @@ async function getStargazersTrend(startDate, startId, endId) {
       logger.info('sync error! project:{}  fullName{}', project.id, project.fullName);
       continue;
     }
+    let maxDate = await getProjectMaxDate(project.fullName);
     for (let trend of trendList) {
-      if (trend.event_month >= startDate) {
+      if (trend.event_month >= maxDate) {
         resTrend.push({
           projectId: project.id,
           name: project.name,
@@ -132,6 +135,16 @@ async function getStargazersTrend(startDate, startId, endId) {
       await GithubProjectsStargazersTrend.bulkCreate(resTrend);
     }
   }
+}
+
+async function getProjectMaxDate(fullName) {
+  const resTrend = await GithubProjectsStargazersTrend.findAll({
+    attributes: [[Sequelize.fn('MAX', Sequelize.col('date')), 'maxDate']],
+    where: {
+      full_name: fullName,
+    },
+  });
+  return resTrend[0].dataValues.maxDate == null ? defaultDate : resTrend[0].dataValues.maxDate;
 }
 
 export async function sendRequestByFullName(projectId) {
