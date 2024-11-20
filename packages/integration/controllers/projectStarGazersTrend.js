@@ -104,7 +104,7 @@ async function getStargazersTrend(startDate, startId, endId) {
     }
     let maxDate = await getProjectMaxDate(project.fullName);
     for (let trend of trendList) {
-      if (trend.event_month >= maxDate) {
+      if (trend.event_month > maxDate) {
         resTrend.push({
           projectId: project.id,
           name: project.name,
