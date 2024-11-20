@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { getWeekOfYearList } from '../util/weekOfYearUtil.js';
+import { getWeekOfYearList } from '@orginjs/oss-evaluation-util';
 
 describe('week of month', () => {
   it('get day of current week', async () => {
