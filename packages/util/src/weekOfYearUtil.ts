@@ -1,8 +1,9 @@
+import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import weekYear from 'dayjs/plugin/weekYear.js';
 import weekOfYear from 'dayjs/plugin/weekOfYear.js';
 
-export function getWeekOfYearList(startDate, endDate) {
+export function getWeekOfYearList(startDate: string, endDate: string) {
   dayjs.extend(weekOfYear);
   dayjs.extend(weekYear);
   let firstDate = dayjs(startDate);
@@ -35,6 +36,6 @@ export function getWeekOfYearList(startDate, endDate) {
   return weekOfYearList;
 }
 
-export function getWeekOfYearStr(date) {
+export function getWeekOfYearStr(date: Dayjs) {
   return `${String(date.weekYear())}-${String(date.week()).padStart(2, '0')}`;
 }

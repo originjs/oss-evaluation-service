@@ -6,7 +6,7 @@ import {
   sequelize,
   logger,
 } from '@orginjs/oss-evaluation-data-model';
-import { getWeekOfYearList } from '../util/weekOfYearUtil.js';
+import { getWeekOfYearList } from '@orginjs/oss-evaluation-util';
 import { getProjectByUrl } from '../util/util.js';
 import Dayjs from 'dayjs';
 import { addMonitoringToTask } from '../scheduler/schdulerMonitor.js';
