@@ -24,7 +24,7 @@ export async function getProjectByUrl(repoUrl) {
       htmlUrl: repoUrl,
     },
   });
-  if (project === null) {
+  if (!project) {
     logger.info('project not exists');
     return;
   }

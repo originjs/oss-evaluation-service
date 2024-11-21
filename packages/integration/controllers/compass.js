@@ -8,6 +8,7 @@ import {
 } from '@orginjs/oss-evaluation-data-model';
 import { getProjectByUrl, sleep } from '../util/util.js';
 import { addMonitoringToTask } from '../scheduler/schdulerMonitor.js';
+import dayjs from 'dayjs';
 
 const query = gql`
   query MetricActivity(
@@ -36,7 +37,7 @@ const compassUrl = 'https://oss-compass.org/api/graphql';
 
 export async function syncProjectCompassMetricHandler(req, res) {
   const { repoUrl, beginDate, startIndex } = req.body;
-  const fullIntegration = repoUrl === undefined || repoUrl === null || repoUrl === '';
+  const fullIntegration = !repoUrl;
 
   if (fullIntegration) {
     await syncAllProjectCompassMetric({ startIndex, beginDate })
@@ -69,7 +70,9 @@ export async function syncProjectCompassMetricHandler(req, res) {
  * @returns {Promise<*>} inserted compass metrics
  */
 export async function syncSingleProjectCompassMetric(project, options) {
-  const beginDate = options?.beginDate ? options.beginDate : '2023-04-01';
+  // no date default current subtract six month
+  const beginDate =
+    options?.beginDate ?? dayjs(new Date()).subtract(6, 'month').format('YYYY-MM-DD');
   const compassData = await request(compassUrl, query, {
     label: project.htmlUrl,
     beginDate,
@@ -125,7 +128,7 @@ export async function syncAllProjectCompassMetric(options) {
   logger.info(
     `Compass: This round needs to integrate projects: ${projectList.length}, and project count: ${projectCount}`,
   );
-  let count = startIndex;
+  let count = startIndex ?? 0;
 
   for (const project of projectList) {
     logger.info(`Compass integration - Current Progress: ${count + 1} / ${projectCount}`);
@@ -159,12 +162,8 @@ async function getIncrementalIntegrationArray(repoUrl, projectId, activityMetric
   return compassMetricsList;
 }
 
-export async function compassScheduler(
-  startIndex = 0,
-  beginDate = '2023-04-01',
-  maxRetries = 3,
-  currentAttempt = 1,
-) {
+export async function compassScheduler(startIndex = 0, maxRetries = 3, currentAttempt = 1) {
+  const beginDate = dayjs(new Date()).subtract(6, 'month').format('YYYY-MM-DD');
   try {
     let startTime = process.hrtime();
     logger.info('[Integration][Compass] Compass Integration Job start');
@@ -211,11 +210,7 @@ export async function compassScheduler(
 }
 
 // Add monitoring to all task functions in your scheduled task
-export const compassTimer = addMonitoringToTask(
-  compassScheduler,
-  'compassTimer',
-  'compassTimer',
-);
+export const compassTimer = addMonitoringToTask(compassScheduler, 'compassTimer', 'compassTimer');
 
 export async function syncAllProjectCompassSubstituteHandler(req, res) {
   await syncAllProjectCompassSubstitute();
