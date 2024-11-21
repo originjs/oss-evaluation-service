@@ -21,7 +21,7 @@ function createTimer(name, pattern, timer) {
     pattern,
     {
       name,
-      timezone: 'Etc/UTC',
+      timezone: 'Asia/Shanghai',
       catch: err => {
         logger.error(err); // only logging error
       },
