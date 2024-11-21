@@ -57,7 +57,7 @@ export const JobConfig = {
     },
     {
       name: 'githubStargazersTrendTimer',
-      cronScheduleTime: '0 0 12 5 * ?', // 每月5号 12:00
+      cronScheduleTime: '0 12 5 * *', // 每月5号 12:00
       enabled: isProduction, // only start in production environment
     },
   ],
