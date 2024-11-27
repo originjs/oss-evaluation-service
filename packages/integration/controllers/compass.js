@@ -166,7 +166,6 @@ export async function compassSchedulerHandler(req, res) {
   await compassScheduler(parseInt(req.query.startIndex), parseInt(req.query.maxRetries));
   res.status(200).json('ok');
 }
-
 export async function compassScheduler(startIndex = 0, maxRetries = 3, currentAttempt = 1) {
   const beginDate = dayjs(new Date()).subtract(6, 'month').format('YYYY-MM-DD');
   try {
