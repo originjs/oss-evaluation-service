@@ -16,6 +16,7 @@ import {
   syncSingleProjectPackageSizeHandler,
 } from '../controllers/packageSize.js';
 import {
+  compassSchedulerHandler,
   syncAllProjectCompassSubstituteHandler,
   syncProjectCompassMetricHandler,
 } from '../controllers/compass.js';
@@ -274,6 +275,32 @@ router.route('/CNCFDocumentScore').post(syncProjectCncfDocumentScoreHandler);
  *         description: Compass activity metric synchronized
  */
 router.route('/compass').post(syncProjectCompassMetricHandler);
+
+/**
+ * @swagger
+ * /sync/compass/timer:
+ *   get:
+ *     summary: compassSchedulerHandler
+ *     parameters:
+ *       - name: startIndex
+ *         in: query
+ *         description: startIndex
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           example: 0
+ *       - name: maxRetries
+ *         in: query
+ *         description: maxRetries
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           example: 3
+ *     responses:
+ *       200:
+ *         description: Compass activity metric synchronized
+ */
+router.route('/compass/timer').get(compassSchedulerHandler);
 
 /**
  * @swagger
