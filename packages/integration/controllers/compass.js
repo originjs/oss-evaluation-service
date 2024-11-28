@@ -182,6 +182,7 @@ export async function compassScheduler(startIndex = 0, maxRetries = 3, currentAt
     if (currentAttempt >= maxRetries) {
       logger.error('[Integration][Compass] Maximum number of retries: Integration Failure ');
       logger.error('Max retries reached. Giving up.');
+      logger.error(`currentAttempt:${currentAttempt}, maxRetries:${maxRetries}`);
       return;
     }
     logger.info(`Retrying... (${currentAttempt + 1}/${maxRetries})`);
@@ -196,11 +197,11 @@ export async function compassScheduler(startIndex = 0, maxRetries = 3, currentAt
           `[Integration][Compass] Compass integrates flow limiting, waits 1 hour and restarts the timer, and current process: ${startIndex}`,
         );
         await sleep(3600001);
-        await compassScheduler(startIndex, beginDate, maxRetries, currentAttempt);
+        await compassScheduler(startIndex, maxRetries, currentAttempt);
       } else {
         logger.error('[Integration][Compass] Unknown error occurs, wait 10s and re-execute');
         await sleep(10000);
-        await compassScheduler(startIndex, beginDate, maxRetries, currentAttempt + 1);
+        await compassScheduler(startIndex, maxRetries, currentAttempt + 1);
       }
     } else if (
       // Sequelize error, just exit
