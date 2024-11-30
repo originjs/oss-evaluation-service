@@ -10,7 +10,7 @@ export const JobConfig = {
     },
     {
       name: 'compassTimer',
-      cronScheduleTime: '0 0 * * 2', // 周二 00:00
+      cronScheduleTime: '0 0 2,16 * *', // 周二 00:00
       enabled: isProduction, // only start in production environment
     },
     {
