@@ -55,11 +55,11 @@ export async function syncSingleProjectPackageDownloadCountHandler(req, res) {
 }
 
 /**
- * syncAllProjectPackageDownloadCount
+ * Syncs the package download count for all projects within the given date range.
  *
- * @param {Object} options
- * @param {string} [options.beginDate]  integrate  begin date
- * @param {string} [options.endDate] integrate end date
+ * @param {Object} options - The options for the synchronization.
+ * @param {dayjs.Date} options.startDate - The start date for the download count synchronization.
+ * @param {dayjs.Date} options.endDate - The end date for the download count synchronization.
  */
 async function syncAllProjectPackageDownloadCount(options) {
   const maxId = await GithubProjects.max('id');
@@ -88,6 +88,9 @@ export async function syncSingleProjectPackageDownloadCount(project, options) {
 
 async function getNoneScopedPackageDownloadCount(startDate, endDate, startId, endId) {
   const weekOfYearList = getWeekOfYearList(startDate, endDate);
+  if (weekOfYearList.length === 0) {
+    return;
+  }
   const maxWeek = weekOfYearList[weekOfYearList.length - 1].weekOfYear;
   const needSyncPackage = await sequelize.query(
     QUERY_PACKAGE_START + QUERY_NONE_SCOPED_PACKAGE + QUERY_PACKAGE_END,
@@ -123,6 +126,9 @@ async function getNoneScopedPackageDownloadCount(startDate, endDate, startId, en
 
 async function getScopedPackageDownloadCount(startDate, endDate, startId, endId) {
   const weekOfYearList = getWeekOfYearList(startDate, endDate);
+  if (weekOfYearList.length === 0) {
+    return;
+  }
   const maxWeek = weekOfYearList[weekOfYearList.length - 1].weekOfYear;
   const needSyncPackage = await sequelize.query(
     QUERY_PACKAGE_START + QUERY_SCOPED_PACKAGE + QUERY_PACKAGE_END,
@@ -235,12 +241,12 @@ export async function packageDownloadCountScheduler() {
   const lastDate = await sequelize.query(queryLastDate, {
     type: sequelize.QueryTypes.SELECT,
   });
-  const beginDate = new Dayjs(lastDate[0].endDate).add(1, 'day');
+  const startDate = new Dayjs(lastDate[0].endDate).add(1, 'day');
   const endDate = new Dayjs(new Date());
-  await syncAllProjectPackageDownloadCount({ beginDate, endDate });
+  await syncAllProjectPackageDownloadCount({ startDate, endDate });
   let endTime = process.hrtime(startTime);
   logger.info(
-    `[Integration][ProjectPackageDownloadCount] ProjectPackageDownloadCount End!, 
+    `[Integration][ProjectPackageDownloadCount] ProjectPackageDownloadCount End!,
           The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
   );
 }
