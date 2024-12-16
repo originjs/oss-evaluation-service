@@ -26,9 +26,13 @@ interface Props {
   failMessage?: string;
   successMessageConfig?: MessageOptions;
   failMessageConfig?: MessageOptions;
+  techStacks?: string[];
+  subTechStacks?: string[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  techStacks: () => [],
+  subTechStacks: () => [],
   applicationType: ApplicationType.Evaluation,
   username: '',
   employeeNumber: '',
@@ -241,10 +245,35 @@ defineExpose({
         </el-form-item>
         <template v-if="applicationType === ApplicationType.Evaluation">
           <el-form-item label="技术栈" prop="techStack" class="form-item-tech-stack">
-            <el-input v-model="applicationInfo.techStack" placeholder="请输入技术栈" />
+            <el-select
+              v-if="props.techStacks.length"
+              v-model="applicationInfo.techStack"
+              placeholder="请输入或选择技术栈"
+              filterable
+              allow-create
+              default-first-option
+            >
+              <el-option v-for="item in props.techStacks" :key="item" :label="item" :value="item" />
+            </el-select>
+            <el-input v-else v-model="applicationInfo.techStack" placeholder="请输入技术栈" />
           </el-form-item>
           <el-form-item label="子技术栈" prop="subTechStack" class="form-item-sub-tech-stack">
-            <el-input v-model="applicationInfo.subTechStack" placeholder="请输入子技术栈" />
+            <el-select
+              v-if="props.subTechStacks.length"
+              v-model="applicationInfo.subTechStack"
+              placeholder="请输入或选择子技术栈"
+              filterable
+              allow-create
+              default-first-option
+            >
+              <el-option
+                v-for="item in props.subTechStacks"
+                :key="item"
+                :label="item"
+                :value="item"
+              />
+            </el-select>
+            <el-input v-else v-model="applicationInfo.subTechStack" placeholder="请输入子技术栈" />
           </el-form-item>
         </template>
         <el-form-item
