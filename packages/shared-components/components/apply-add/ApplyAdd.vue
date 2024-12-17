@@ -14,6 +14,12 @@ enum ApplicationType {
   Benchmark = 3,
 }
 
+interface TreeData {
+  id: string;
+  label: string;
+  children?: TreeData[];
+}
+
 interface Props {
   applicationType?: ApplicationType;
   username?: string;
@@ -26,13 +32,11 @@ interface Props {
   failMessage?: string;
   successMessageConfig?: MessageOptions;
   failMessageConfig?: MessageOptions;
-  techStacks?: string[];
-  subTechStacks?: string[];
+  techStacks?: TreeData[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
   techStacks: () => [],
-  subTechStacks: () => [],
   applicationType: ApplicationType.Evaluation,
   username: '',
   employeeNumber: '',
@@ -97,14 +101,14 @@ const formRules = reactive({
   techStack: [
     {
       required: true,
-      message: '请输入技术栈',
+      message: '请输入或选择技术栈',
       trigger: 'blur',
     },
   ],
   subTechStack: [
     {
       required: true,
-      message: '请输入子技术栈',
+      message: '请输入或选择子技术栈',
       trigger: 'blur',
     },
   ],
@@ -206,6 +210,14 @@ async function downloadExcel() {
   saveAs(blob as unknown as Blob, 'benchmark_template.xlsx');
 }
 
+const subTechStacks = computed(() => {
+  const res = props.techStacks.find(item => item.label === applicationInfo.techStack);
+  if (res && res.children?.length) {
+    return res.children;
+  }
+  return [];
+});
+
 defineExpose({
   submitApplication,
   cancelApply,
@@ -252,14 +264,20 @@ defineExpose({
               filterable
               allow-create
               default-first-option
+              @change="applicationInfo.subTechStack = ''"
             >
-              <el-option v-for="item in props.techStacks" :key="item" :label="item" :value="item" />
+              <el-option
+                v-for="{ label } in props.techStacks"
+                :key="label"
+                :label="label"
+                :value="label"
+              />
             </el-select>
             <el-input v-else v-model="applicationInfo.techStack" placeholder="请输入技术栈" />
           </el-form-item>
           <el-form-item label="子技术栈" prop="subTechStack" class="form-item-sub-tech-stack">
             <el-select
-              v-if="props.subTechStacks.length"
+              v-if="subTechStacks.length"
               v-model="applicationInfo.subTechStack"
               placeholder="请输入或选择子技术栈"
               filterable
@@ -267,10 +285,10 @@ defineExpose({
               default-first-option
             >
               <el-option
-                v-for="item in props.subTechStacks"
-                :key="item"
-                :label="item"
-                :value="item"
+                v-for="{ label } in subTechStacks"
+                :key="label"
+                :label="label"
+                :value="label"
               />
             </el-select>
             <el-input v-else v-model="applicationInfo.subTechStack" placeholder="请输入子技术栈" />
