@@ -168,9 +168,11 @@ export async function githubRank(
               : 'total_value desc, increased_value desc'
           }) as \`rank\`
         from trend_history
-        where data_type = :dataType
+        where 
+          date = :date
+          and data_type = :dataType
           and date_type = :dateType
-          and date = :date`;
+          `;
   const removeNoneValSQL = ` and ${rankType === RANK_TYPE.INCREASE ? ' increased_value ' : ' total_value '} is not null
     and ${rankType === RANK_TYPE.INCREASE ? ' increased_value ' : ' total_value '} > 0`;
   const orderSQL = 'order by `rank`';
