@@ -13,6 +13,7 @@ import {
   firstDayOfCurrentYear,
   simpleDateFormat,
   simpleWeekFormat,
+  firstDayOfPreviousYear,
 } from '@orginjs/oss-evaluation-util';
 import _ from 'underscore';
 import { Op } from 'sequelize';
@@ -318,11 +319,10 @@ async function getDatabaseDateByType(
         previous: firstDayOfPreviousMonth(dayJsDate),
       };
     }
-    // Every year's first day to the current time
     case DATE_TYPE.YEAR: {
       return {
-        current: dayJsDate,
-        previous: firstDayOfCurrentYear(dayJsDate),
+        current: firstDayOfCurrentYear(dayJsDate),
+        previous: firstDayOfPreviousYear(dayJsDate),
       };
     }
   }
@@ -411,4 +411,3 @@ export function getLanguageFilterCondition(): { value: string; label: string }[]
     { value: 'Rust', label: 'Rust' },
   ];
 }
-
