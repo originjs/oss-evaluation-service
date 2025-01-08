@@ -5,6 +5,9 @@ import { RankType, DateType } from '@orginjs/oss-evaluation-components-api';
 import { getSoftwareRankApi, DataType } from '@orginjs/oss-evaluation-components-api';
 import { formatFloat, toKilo } from '@orginjs/oss-evaluation-components-utils';
 
+const route = useRoute();
+const router = useRouter();
+
 const dataTypeNameMap = {
   [DataType.star]: 'Stars',
   [DataType.contributor]: 'Contributors',
@@ -29,13 +32,13 @@ const dateTypeNameMap = {
   [DateType.month]: '月',
   [DateType.week]: '周',
 };
-const dateType = ref(DateType.week);
+const dateType = ref(route.query.dateType || DateType.week);
 
 const rankTypeNameMap = {
   [RankType.increase]: '增长',
   [RankType.total]: '总量',
 };
-const rankType = ref(RankType.increase);
+const rankType = ref(route.query.rankType || RankType.increase);
 
 const tableRef = ref();
 const pageNo = ref(1);
@@ -135,6 +138,10 @@ onUnmounted(() => {
   if (tableRef.value) {
     tableRef.value.scrollBarRef.wrapRef.removeEventListener('scroll', handleTableScroll);
   }
+});
+
+watch([dateType, rankType], ([newDateType, newRankType]) => {
+  router.push({ query: { ...route.query, dateType: newDateType, rankType: newRankType } });
 });
 </script>
 
