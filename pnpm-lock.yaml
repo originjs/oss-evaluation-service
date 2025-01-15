@@ -162,88 +162,6 @@ importers:
         specifier: ^3.0.3
         version: 3.0.3
 
-  packages/api-server/dist:
-    dependencies:
-      '@orginjs/oss-evaluation-data-model':
-        specifier: workspace:^
-        version: link:../../data-model
-      '@tsoa/runtime':
-        specifier: ^6.2.0
-        version: 6.2.0
-      cors:
-        specifier: ^2.8.5
-        version: 2.8.5
-      dayjs:
-        specifier: ^1.11.10
-        version: 1.11.10
-      dotenv:
-        specifier: ^16.4.1
-        version: 16.4.1
-      ejsexcel:
-        specifier: ^4.2.2
-        version: 4.2.2
-      exceljs:
-        specifier: ^4.4.0
-        version: 4.4.0
-      express:
-        specifier: ^4.16.1
-        version: 4.19.2
-      express-async-errors:
-        specifier: ^3.1.1
-        version: 3.1.1(express@4.19.2)
-      moment:
-        specifier: ^2.30.1
-        version: 2.30.1
-      morgan:
-        specifier: ^1.9.1
-        version: 1.10.0
-      multer:
-        specifier: 1.4.5-lts.1
-        version: 1.4.5-lts.1
-      sequelize:
-        specifier: ^6.37.1
-        version: 6.37.3(mysql2@3.11.3)
-      swagger-ui-express:
-        specifier: ^5.0.0
-        version: 5.0.1(express@4.19.2)
-      tsoa:
-        specifier: ^6.2.0
-        version: 6.2.0
-      underscore:
-        specifier: ^1.13.6
-        version: 1.13.6
-      undici:
-        specifier: ^6.19.4
-        version: 6.19.4
-      xlsx:
-        specifier: ^0.18.5
-        version: 0.18.5
-    devDependencies:
-      '@types/cors':
-        specifier: ^2.8.17
-        version: 2.8.17
-      '@types/express':
-        specifier: ^4.17.21
-        version: 4.17.21
-      '@types/morgan':
-        specifier: ^1.9.9
-        version: 1.9.9
-      '@types/multer':
-        specifier: ^1.4.11
-        version: 1.4.11
-      '@types/node':
-        specifier: ^18.11.12
-        version: 18.19.21
-      '@types/swagger-ui-express':
-        specifier: ^4.1.6
-        version: 4.1.6
-      '@types/underscore':
-        specifier: ^1.11.15
-        version: 1.11.15
-      nodemon:
-        specifier: ^3.0.3
-        version: 3.0.3
-
   packages/data-model:
     dependencies:
       mysql2:
@@ -464,7 +382,7 @@ importers:
         version: 2.1.22
       '@orginjs/oss-evaluation-api-server':
         specifier: workspace:^
-        version: link:../api-server/dist
+        version: link:../api-server
       '@orginjs/oss-evaluation-components-api':
         specifier: workspace:^
         version: link:api
@@ -534,6 +452,9 @@ importers:
       vue-i18n:
         specifier: ^9.11.1
         version: 9.11.1(vue@3.4.21(typescript@5.4.5))
+      vue-router:
+        specifier: ^4.3.0
+        version: 4.3.0(vue@3.4.21(typescript@5.4.5))
 
   packages/shared-components/api: {}
 
@@ -762,7 +683,7 @@ importers:
         version: 2.1.22
       '@orginjs/oss-evaluation-api-server':
         specifier: workspace:^
-        version: link:../api-server/dist
+        version: link:../api-server
       '@types/file-saver':
         specifier: ^2.0.7
         version: 2.0.7
