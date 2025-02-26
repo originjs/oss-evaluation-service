@@ -49,11 +49,14 @@ export async function newProjectApply(
     if (!repoUrl) {
       return Result.fail(500, 'repoUrl is empty!');
     }
-    // handle batch apply
-    for (const url of repoUrl.split(';')) {
+    // Process each repository URL in batch mode
+    const urls = repoUrl.split(';');
+    for (const url of urls) {
+      // Normalize URL by trimming and removing .git suffix if present
+      const normalizedUrl = url.trim().endsWith('.git') ? url.trim().slice(0, -4) : url.trim();
       data.push({
         ...application,
-        repoUrl: url,
+        repoUrl: normalizedUrl,
       });
     }
   } else {
