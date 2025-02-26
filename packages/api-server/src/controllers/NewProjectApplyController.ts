@@ -1,6 +1,7 @@
-import { Controller, FormField, Get, Post, Query, Route, Tags, UploadedFile } from 'tsoa';
+import { Controller, Delete, FormField, Get, Post, Query, Route, Tags, UploadedFile } from 'tsoa';
 import type { NewProjectApply } from '../interfaces/SoftwareInfo.js';
 import {
+  deleteApplicationById,
   existsApplication,
   getApplyRecordByEmployeeNumber,
   newProjectApply,
@@ -52,5 +53,10 @@ export class NewProjectApplyController extends Controller {
   @Get('getApplyRecord')
   public async getApplyRecordByEmployeeNumber(@Query() employeeNumber: string) {
     return Result.ignoreErrorWithDefault(() => getApplyRecordByEmployeeNumber(employeeNumber), {});
+  }
+
+  @Delete('deleteApplyRecord')
+  public async deleteApplyRecord(@Query() id: string, @Query() employeeNumber: string) {
+    return deleteApplicationById(id, employeeNumber);
   }
 }

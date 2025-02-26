@@ -4,6 +4,12 @@ import sequelize from '../util/database.js';
 const newProjectApply = sequelize.define(
   'NewProjectApply',
   {
+    id: {
+      type: DataTypes.STRING(256),
+      primaryKey: true,
+      defaultValue: DataTypes.UUIDV4,
+      allowNull: false,
+    },
     repoUrl: {
       type: DataTypes.STRING(255),
       allowNull: false,
@@ -67,6 +73,16 @@ const newProjectApply = sequelize.define(
       allowNull: false,
       defaultValue: '',
     },
+    deleted: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    reason: {
+      type: DataTypes.STRING(1000),
+      allowNull: false,
+      defaultValue: '',
+    },
   },
   {
     tableName: 'new_project_apply',
@@ -75,5 +91,4 @@ const newProjectApply = sequelize.define(
     noPrimaryKey: true,
   },
 );
-newProjectApply.removeAttribute('id');
 export default newProjectApply;

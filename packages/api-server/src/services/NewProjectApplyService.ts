@@ -7,8 +7,10 @@ export async function getApplyRecordByEmployeeNumber(employeeNumber: string) {
   const list = await NewProjectApply.findAll({
     where: {
       employeeNumber,
+      deleted: false,
     },
-    attributes: ['type', 'repoUrl', 'alternativeProjectId', 'createdAt', 'state'],
+    attributes: ['id', 'type', 'repoUrl', 'alternativeProjectId', 'createdAt', 'state', 'reason'],
+    order: [['createdAt', 'DESC']],
   });
 
   if (!list?.length) {
@@ -97,7 +99,31 @@ export async function existsApplication(
     where: {
       username,
       repoUrl,
+      deleted: false,
     },
   });
   return historyApplication ? Result.ok(true) : Result.ok(false);
+}
+
+export async function deleteApplicationById(
+  id: string,
+  employeeNumber: string,
+): Promise<Result<boolean>> {
+  if (!id) {
+    return Result.fail(500, 'id is empty!');
+  }
+  const rowsAffected = await NewProjectApply.update(
+    { deleted: true },
+    {
+      where: {
+        id,
+        employeeNumber,
+        deleted: false,
+      },
+    },
+  );
+  if (rowsAffected[0] === 0) {
+    return Result.fail(404, 'application not found');
+  }
+  return Result.ok(true);
 }
