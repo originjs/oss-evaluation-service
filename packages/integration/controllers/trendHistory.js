@@ -28,7 +28,8 @@ export async function storeSingleProjectTrendHandler(req, res) {
 }
 
 export async function storeAllProjectTrendHandler(req, res) {
-  await storeTrendHistory(null, dayjs(req.params.date));
+  const date = dayjs.utc(req.params.date).startOf('day');
+  await storeTrendHistory(null, date);
   res.status(200).send('success');
 }
 
