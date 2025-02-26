@@ -218,6 +218,21 @@ const subTechStacks = computed(() => {
   return [];
 });
 
+const onChangeSubTechStack = (value: string) => {
+  // 以下情况不做处理
+  if (
+    !value ||
+    !value.includes(' / ') || // 值为手动输入(通过下拉选项选择的值一定包含[' / '])
+    applicationInfo.techStack // 技术栈已有值
+  ) {
+    return;
+  }
+
+  const [techStack, subTechStack] = value.split(' / ');
+  applicationInfo.techStack = techStack;
+  applicationInfo.subTechStack = subTechStack;
+};
+
 defineExpose({
   submitApplication,
   cancelApply,
@@ -262,6 +277,7 @@ defineExpose({
               v-model="applicationInfo.techStack"
               placeholder="请输入或选择技术栈"
               filterable
+              clearable
               allow-create
               default-first-option
               @change="applicationInfo.subTechStack = ''"
@@ -280,6 +296,7 @@ defineExpose({
               v-if="subTechStacks.length"
               v-model="applicationInfo.subTechStack"
               placeholder="请输入或选择子技术栈"
+              clearable
               filterable
               allow-create
               default-first-option
@@ -290,6 +307,29 @@ defineExpose({
                 :label="label"
                 :value="label"
               />
+            </el-select>
+            <el-select
+              v-else-if="props.techStacks.length"
+              v-model="applicationInfo.subTechStack"
+              placeholder="请输入或选择子技术栈"
+              clearable
+              filterable
+              allow-create
+              default-first-option
+              @change="onChangeSubTechStack"
+            >
+              <el-option-group
+                v-for="techStack in props.techStacks"
+                :key="techStack.id"
+                :label="techStack.label"
+              >
+                <el-option
+                  v-for="item in techStack.children"
+                  :key="item.id"
+                  :label="item.label"
+                  :value="item.id"
+                />
+              </el-option-group>
             </el-select>
             <el-input v-else v-model="applicationInfo.subTechStack" placeholder="请输入子技术栈" />
           </el-form-item>
