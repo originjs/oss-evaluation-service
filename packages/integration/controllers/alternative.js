@@ -14,6 +14,7 @@ export async function syncAlternativeHandler(req, res) {
     // sync single project
     const project = await getProjectByUrl(repoUrl);
     const result = await syncSingleProjectAlternative(project);
+    await updateProjectId();
     res.status(200).json(result);
   } else if (projectId) {
     for (const id of projectId) {
