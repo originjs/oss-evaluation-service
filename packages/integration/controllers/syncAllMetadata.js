@@ -24,6 +24,7 @@ import { syncSingleProjectDependencies } from './projectDependencies.js';
 import { syncSingleProjectCreatorsCountries } from './ossinsightCreatorsCountry.js';
 import { syncSingleProjectCreatorsOrg } from './ossinsightCreatorsOrg.js';
 import { sonarScanByProject } from './sonarCloud.js';
+import { syncSingleProjectAlternative, updateProjectId } from './alternative.js';
 
 export default async function syncSingleProjectAllMetadataHandler(req, res) {
   const options = req.body;
@@ -127,6 +128,8 @@ async function syncSingleProjectAllMetadata(options) {
     syncSingleProjectCreatorsOrg,
     // 14. Evaluate the score
     syncSingleProjectEvaluation,
+    // 15. AI project alternative
+    syncSingleProjectAlternative,
   ];
 
   for (const _function of functions) {
@@ -155,6 +158,10 @@ async function syncSingleProjectAllMetadata(options) {
     // 9.3 package size
     await syncSingleProjectPackageSize(project);
   }
+
+  // 15.1 update project id
+  await updateProjectId();
+
   logger.info(`Project ${repoUrl}: all metadata information integrated`);
 }
 
