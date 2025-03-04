@@ -14,6 +14,7 @@ export async function syncAlternativeHandler(req, res) {
     // sync single project
     const project = await getProjectByUrl(repoUrl);
     const result = await syncSingleProjectAlternative(project);
+    await updateProjectId();
     res.status(200).json(result);
   } else if (projectId) {
     for (const id of projectId) {
@@ -90,7 +91,7 @@ export async function syncSingleProjectAlternative(project) {
   }
 }
 
-async function updateProjectId() {
+export async function updateProjectId() {
   const approvedSql = `UPDATE alternative_projects t1 INNER JOIN github_projects t2 ON t1.alternative_url= t2.html_url
   SET t1.alternative_id= t2.id, t1.alternative_name = t2.full_name, t1.approved=1
 	WHERE t1.alternative_id IS NULL`;
