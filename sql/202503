@@ -1,0 +1,8 @@
+CREATE TABLE `oss-eval`.`benchmark_tech_stacks`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `tech_stack` varchar(255) NOT NULL,
+  `approved` tinyint NOT NULL DEFAULT 1 COMMENT '0:不展示 1:展示',
+  `description` varchar(1024) NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+);
