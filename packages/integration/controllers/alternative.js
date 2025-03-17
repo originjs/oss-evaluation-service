@@ -7,17 +7,19 @@ import {
 import { getProjectByUrl } from '../util/util.js';
 import JSON5 from 'json5';
 import CozeSdk from '@orginjs/coze-sdk';
+import { chat } from '../../api-sdk/extChat.js';
 
 export async function syncAlternativeHandler(req, res) {
-  const { repoUrl, projectId } = req.body;
-  if (repoUrl) {
-    // sync single project
-    const project = await getProjectByUrl(repoUrl);
-    const result = await syncSingleProjectAlternative(project);
-    await updateProjectId();
-    res.status(200).json(result);
-  } else if (projectId) {
-    for (const id of projectId) {
+  const { repoUrls, projectIds } = req.body;
+  if (repoUrls) {
+    for (const repoUrl of repoUrls) {
+      const project = await getProjectByUrl(repoUrl);
+      await syncSingleProjectAlternative(project);
+      await updateProjectId();
+    }
+    res.status(200).json('ok');
+  } else if (projectIds) {
+    for (const id of projectIds) {
       const project = await GithubProjects.findByPk(id);
       await syncSingleProjectAlternative(project);
     }
@@ -46,45 +48,70 @@ export async function syncAllProjectAlternative() {
   await updateProjectId();
 }
 
+const saveAltList = async (json, project) => {
+  logger.info(json);
+  if (json.startsWith('```')) {
+    // remove markdown block
+    json = json.substring(json.indexOf('\n'), json.lastIndexOf('\n'));
+  }
+  try {
+    const content = JSON5.parse(json);
+    if (content.data && content.data.length > 0) {
+      const altList = [];
+      for (const line of content.data) {
+        if (!line[0].startsWith('https://')) continue;
+        // exclude duplicate
+        if (altList.find(e => e.alternativeUrl === line[0])) continue;
+        // exclude self
+        if (line[0] === 'https://github.com/' + project.fullName) continue;
+        altList.push({
+          projectId: project.id,
+          fullName: project.fullName,
+          alternativeUrl: line[0],
+          distance: line[1],
+          source: 'ai',
+        });
+      }
+      await AlternativeProjects.bulkCreate(altList, {
+        updateOnDuplicate: ['distance'],
+      });
+      return altList;
+    }
+  } catch (e) {
+    logger.error(e);
+  }
+};
+
 export async function syncSingleProjectAlternative(project) {
   logger.info('syncSingleProjectAlternative: ' + project.fullName);
-  const cozeSdk = new CozeSdk(CozeSdk.ALTERNATIVE_BOT);
-  const response = await cozeSdk.chat(project.htmlUrl);
-  if (response.ok) {
-    const rsp = await response.json();
-    for (const msg of rsp.messages) {
-      if (msg.type === 'answer') {
-        let json = msg.content;
-        logger.info(json);
-        if (json.startsWith('```')) {
-          // remove markdown block
-          json = json.substring(json.indexOf('\n'), json.lastIndexOf('\n'));
-        }
-        try {
-          const content = JSON5.parse(json);
-          if (content.data && content.data.length > 0) {
-            const altList = [];
-            for (const line of content.data) {
-              if (!line[0].startsWith('https://')) continue;
-              // exclude duplicate
-              if (altList.find(e => e.alternativeUrl === line[0])) continue;
-              // exclude self
-              if (line[0] === 'https://github.com/' + project.fullName) continue;
-              altList.push({
-                projectId: project.id,
-                fullName: project.fullName,
-                alternativeUrl: line[0],
-                distance: line[1],
-                source: 'ai',
-              });
-            }
-            await AlternativeProjects.bulkCreate(altList, {
-              updateOnDuplicate: ['distance'],
-            });
+  if (process.env.EXT_AI_SERVICE_URL) {
+    const response = await chat(
+      {
+        GithubUrl: project.htmlUrl,
+        topics: project.topics || '',
+        description: project.description,
+        readme: project.readme || '',
+      },
+      process.env.EXT_ALTERNATIVE_BOT,
+    );
+    if (response.ok) {
+      const rsp = await response.json();
+      return await saveAltList(
+        rsp.data.outputs.result.replace(/<think>[\s\S]*?<\/think>(\n*)/, ''),
+        project,
+      );
+    }
+  } else {
+    const cozeSdk = new CozeSdk(CozeSdk.ALTERNATIVE_BOT);
+    const response = await cozeSdk.chat(project.htmlUrl);
+    if (response.ok) {
+      const rsp = await response.json();
+      for (const msg of rsp.messages) {
+        if (msg.type === 'answer') {
+          const altList = await saveAltList(msg.content, project);
+          if (altList) {
             return altList;
           }
-        } catch (e) {
-          logger.error(e);
         }
       }
     }

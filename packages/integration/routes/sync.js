@@ -346,10 +346,10 @@ router.route('/opendigger').post(syncOpendiggerHandler);
  *           schema:
  *             type: object
  *             properties:
- *               repoUrl:
- *                 type: string
- *                 example: "https://github.com/vuejs/vue"
- *               projectId:
+ *               repoUrls:
+ *                 type: Array<string>
+ *                 example: ["https://github.com/vuejs/vue"]
+ *               projectIds:
  *                 type: Array<number>
  *                 example: [1000,1123]
  *     responses:

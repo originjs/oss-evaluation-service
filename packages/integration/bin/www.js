@@ -32,7 +32,7 @@ server.on('listening', onListening);
 /**
  * Schedule Integration Job
  */
-if (process.env.NODE_ENV == 'development') {
+if (process.env.NODE_ENV == 'development' || process.env.DISABLE_SCHEDULE_JOB) {
   logger.warn('Scheduling Integration Not Started!');
 } else {
   scheduleJob();
