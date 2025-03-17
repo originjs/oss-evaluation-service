@@ -13,6 +13,7 @@ import type {
   BenchmarkIndex,
   BenchmarkResult,
   SoftwareBaseInfo,
+  BenchmarkTechStack,
 } from '../interfaces/SoftwareInfo.js';
 import { fixedRound } from '../utils/math.js';
 import { Op } from 'sequelize';
@@ -439,4 +440,27 @@ export async function exportBenchmrkByTechStackHandler(techStack: string) {
   }
 
   return workbook.xlsx.writeBuffer();
+}
+
+
+/**
+ * query all tech stack
+ *
+ * @returns tech stack set result
+ */
+export async function queryAllTechStacks(): Promise<Array<BenchmarkTechStack>> {
+  const sql = `SELECT
+                tech_stack AS techStack,
+                description,
+                created_at AS createdAt 
+              FROM
+                benchmark_tech_stacks 
+              WHERE
+                approved = 1`;
+
+  const techStacksList = await sequelize.query(sql, {   
+    type: sequelize.QueryTypes.SELECT,
+  });
+
+  return techStacksList;
 }

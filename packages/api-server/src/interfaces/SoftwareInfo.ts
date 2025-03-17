@@ -261,3 +261,13 @@ export interface NewProjectApply {
   file?: File;
   envInfo?: string;
 }
+
+export interface BenchmarkTechStack {
+  techStack: string;
+  description: string;
+  createdAt: string;
+}
+
+
+
+

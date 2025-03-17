@@ -3,6 +3,7 @@ import type {
   BenchmarkIndex,
   BenchmarkResult,
   SoftwareBaseInfo,
+  BenchmarkTechStack,
 } from '../interfaces/SoftwareInfo.js';
 import {
   getBenchmarkResultByTechStack,
@@ -10,6 +11,7 @@ import {
   getIndexByTechStack,
   queryProjectsByTechStack,
   exportBenchmrkByTechStackHandler,
+  queryAllTechStacks,
 } from '../services/BenchmarkService.js';
 
 import { Result } from '../utils/result.js';
@@ -107,5 +109,11 @@ export class BenchmarkController extends Controller {
       // return Result.fail(400, 'export failed');
       return Result.fail(400, e.message);
     }
+  }
+
+  @Get('techStacks')
+  public async techStacks() : Promise<Result<Array<BenchmarkTechStack>>> {
+    const techStacks = await queryAllTechStacks();
+    return Result.ok(techStacks)
   }
 }
