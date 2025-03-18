@@ -14,7 +14,16 @@ export async function syncAlternativeHandler(req, res) {
   if (repoUrls) {
     for (const repoUrl of repoUrls) {
       const project = await getProjectByUrl(repoUrl);
-      await syncSingleProjectAlternative(project);
+      let retryCount = 0;
+      while (retryCount !== -1 && retryCount < 5) {
+        try {
+          await syncSingleProjectAlternative(project);
+          retryCount = -1;
+        } catch (e) {
+          retryCount++;
+          logger.error(`syncSingleProjectAlternative failed! Retry count: ${retryCount}\n`, e);
+        }
+      }
       await updateProjectId();
     }
     res.status(200).json('ok');
@@ -54,31 +63,27 @@ const saveAltList = async (json, project) => {
     // remove markdown block
     json = json.substring(json.indexOf('\n'), json.lastIndexOf('\n'));
   }
-  try {
-    const content = JSON5.parse(json);
-    if (content.data && content.data.length > 0) {
-      const altList = [];
-      for (const line of content.data) {
-        if (!line[0].startsWith('https://')) continue;
-        // exclude duplicate
-        if (altList.find(e => e.alternativeUrl === line[0])) continue;
-        // exclude self
-        if (line[0] === 'https://github.com/' + project.fullName) continue;
-        altList.push({
-          projectId: project.id,
-          fullName: project.fullName,
-          alternativeUrl: line[0],
-          distance: line[1],
-          source: 'ai',
-        });
-      }
-      await AlternativeProjects.bulkCreate(altList, {
-        updateOnDuplicate: ['distance'],
+  const content = JSON5.parse(json);
+  if (content.data && content.data.length > 0) {
+    const altList = [];
+    for (const line of content.data) {
+      if (!line[0].startsWith('https://')) continue;
+      // exclude duplicate
+      if (altList.find(e => e.alternativeUrl === line[0])) continue;
+      // exclude self
+      if (line[0] === 'https://github.com/' + project.fullName) continue;
+      altList.push({
+        projectId: project.id,
+        fullName: project.fullName,
+        alternativeUrl: line[0],
+        distance: line[1],
+        source: 'ai',
       });
-      return altList;
     }
-  } catch (e) {
-    logger.error(e);
+    await AlternativeProjects.bulkCreate(altList, {
+      updateOnDuplicate: ['distance'],
+    });
+    return altList;
   }
 };
 
