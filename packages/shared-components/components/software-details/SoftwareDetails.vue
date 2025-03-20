@@ -107,7 +107,7 @@ watchEffect(async () => {
   const { data } = await getSoftwareInfo(encodedRepoName.value);
   project.value = data ?? {};
   project.value.categories = [
-    ...new Set([data.projectTechStack.category, data.projectTechStack.subcategory].filter(Boolean)),
+    ...new Set([data.projectTechStack?.category, data.projectTechStack?.subcategory].filter(Boolean)),
   ] as string[];
   tagList.value = data.tags ? data.tags.split('|') : [];
   baseInfo.value = {
