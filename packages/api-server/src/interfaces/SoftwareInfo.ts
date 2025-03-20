@@ -100,8 +100,10 @@ export interface SoftwareInfo extends SoftwareBaseInfo {
     year: number;
     val: number;
   }[];
-  projectTechStack: {
+  projectTechStack?: {
     radarRing: number;
+    category?: string;
+    subcategory?: string;
   };
   satisfactionExport?: string;
   gzipSize?: number;

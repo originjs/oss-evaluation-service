@@ -68,7 +68,7 @@ type TableRow = {
 };
 
 const encodedRepoName = computed(() => encodeURIComponent(props.repoName));
-const project = ref<SoftwareInfo>();
+const project = ref<SoftwareInfo & { categories?: string[] }>();
 const isRequestingProjectInfo = ref(false);
 const baseInfo = ref<Partial<{ [k in keyof SoftwareInfo]: string }>>({});
 const projectTechStack = ref<{
@@ -106,6 +106,9 @@ watchEffect(async () => {
   isRequestingProjectInfo.value = true;
   const { data } = await getSoftwareInfo(encodedRepoName.value);
   project.value = data ?? {};
+  project.value.categories = [
+    ...new Set([data.projectTechStack?.category, data.projectTechStack?.subcategory].filter(Boolean)),
+  ] as string[];
   tagList.value = data.tags ? data.tags.split('|') : [];
   baseInfo.value = {
     star: `${toKilo(data.star)}`,
@@ -1019,8 +1022,15 @@ onBeforeUnmount(() => {
                   <div max-w-900px>{{ repoName }}</div>
                 </template>
               </el-tooltip>
-              <el-tag v-if="project?.techStack" mr-3 size="small" type="danger" effect="dark">
-                {{ project?.techStack }}
+              <el-tag
+                v-for="p in project?.categories"
+                :key="p"
+                mr-3
+                size="small"
+                type="danger"
+                effect="dark"
+              >
+                {{ p }}
               </el-tag>
             </div>
             <el-tooltip effect="light" :teleported="false">
