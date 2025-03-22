@@ -268,6 +268,9 @@ export interface BenchmarkTechStack {
   techStack: string;
   description: string;
   createdAt: string;
+  category: string;
+  subcategory: string;
+  orderNum: number;
 }
 
 
