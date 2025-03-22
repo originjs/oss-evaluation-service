@@ -452,7 +452,10 @@ export async function queryAllTechStacks(): Promise<Array<BenchmarkTechStack>> {
   const sql = `SELECT
                 tech_stack AS techStack,
                 description,
-                created_at AS createdAt 
+                created_at AS createdAt,
+                category,
+                subcategory,
+                order_num AS orderNum
               FROM
                 benchmark_tech_stacks 
               WHERE
