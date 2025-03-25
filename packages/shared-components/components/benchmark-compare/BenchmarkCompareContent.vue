@@ -375,6 +375,7 @@ const selectedLanguage = ref('js');
     </div>
 
     <BenchmarkCompareTable
+      v-if="!isLoadingData && techStack === activeTechStack"
       :rows="tableRows"
       :columns="tableColumns"
       :sorted-index-name="sortedIndexName"
