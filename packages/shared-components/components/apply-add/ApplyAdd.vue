@@ -26,6 +26,8 @@ interface Props {
   employeeNumber?: string;
   email?: string;
   expandField1?: string;
+  buName?: string,
+  isBuOwner?: boolean, 
   alternativeProjectId?: string;
   showInDialog?: boolean;
   successMessage?: string;
@@ -42,6 +44,8 @@ const props = withDefaults(defineProps<Props>(), {
   employeeNumber: '',
   email: '',
   expandField1: '',
+  buName: '',
+  isBuOwner: false,
   alternativeProjectId: '',
   showInDialog: true,
   successMessage: '提交成功',
@@ -139,6 +143,8 @@ function submitApplication() {
         applicantEmail: props.email || applicationInfo.email,
         username: props.username,
         employeeNumber: props.employeeNumber,
+        buName: props.buName,
+        isBuOwner: props.isBuOwner,
         alternativeProjectId: props.alternativeProjectId,
         type: props.applicationType,
         expandField1: props.expandField1,

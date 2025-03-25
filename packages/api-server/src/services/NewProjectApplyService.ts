@@ -3,24 +3,53 @@ import { NewProjectApply, GithubProjectsTable } from '@orginjs/oss-evaluation-da
 import { Result } from '../utils/result.js';
 import moment from 'moment';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
-export async function getApplyRecordByEmployeeNumber(employeeNumber: string) {
-  const list = await NewProjectApply.findAll({
-    where: {
+export async function getApplyRecordByEmployeeNumber(
+  employeeNumber: string,
+  buName: string,
+  isBuOwner: boolean,
+) {
+  let filterOpt = {};
+
+  if (isBuOwner) {
+    filterOpt = {
+      buName,
+      deleted: false,
+    };
+  } else {
+    filterOpt = {
       employeeNumber,
       deleted: false,
-    },
-    attributes: ['id', 'type', 'repoUrl', 'alternativeProjectId', 'createdAt', 'state', 'reason'],
+    };
+  }
+  const list = await NewProjectApply.findAll({
+    where: filterOpt,
+    attributes: [
+      'id',
+      'type',
+      'techStack',
+      'subTechStack',
+      'repoUrl',
+      'alternativeProjectId',
+      'username',
+      'buName',
+      'isBuOwner',
+      'createdAt',
+      'state',
+      'reason',
+    ],
     order: [['createdAt', 'DESC']],
   });
 
   if (!list?.length) {
     return;
   }
-  const regexp = new RegExp(/(?<=https?:\/\/github.com\/)[a-zA-Z0-9_-]+?\/[a-zA-Z0-9_-]+/, 'i');
+  const regexpGit = new RegExp(/(?<=https?:\/\/github.com\/)[a-zA-Z0-9_-]+?\/[a-zA-Z0-9_-]+/, 'i');
+  const regexpGitee = new RegExp(/(?<=https?:\/\/gitee.com\/)[a-zA-Z0-9_-]+?\/[a-zA-Z0-9_-]+/, 'i');
   for (const val of list) {
     // format date
     val.dataValues.createdAt = moment(val.createdAt).format('YYYY-MM-DD HH:mm:ss');
-    val.dataValues.fullName = val.repoUrl?.match(regexp)?.[0];
+    val.dataValues.fullName =
+      val.repoUrl?.match(regexpGit)?.[0] || val.repoUrl?.match(regexpGitee)?.[0];
     if (val.type === 2 && val.alternativeProjectId) {
       const githubProject = await GithubProjectsTable.findOne({
         where: {

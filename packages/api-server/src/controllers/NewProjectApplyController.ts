@@ -23,6 +23,8 @@ export class NewProjectApplyController extends Controller {
     @FormField() expandField1?: string,
     @FormField() techStack?: string,
     @FormField() employeeNumber?: string,
+    @FormField() buName?: string,
+    @FormField() isBuOwner?: boolean,
     @FormField() subTechStack?: string,
     @FormField() envInfo?: string,
   ): Promise<Result<string>> {
@@ -35,6 +37,8 @@ export class NewProjectApplyController extends Controller {
       expandField1,
       techStack,
       employeeNumber,
+      buName,
+      isBuOwner,
       subTechStack,
       envInfo,
       type: Number(type),
@@ -51,8 +55,15 @@ export class NewProjectApplyController extends Controller {
   }
 
   @Get('getApplyRecord')
-  public async getApplyRecordByEmployeeNumber(@Query() employeeNumber: string) {
-    return Result.ignoreErrorWithDefault(() => getApplyRecordByEmployeeNumber(employeeNumber), {});
+  public async getApplyRecordByEmployeeNumber(
+    @Query() employeeNumber: string,
+    @Query() buName: string,
+    @Query() isBuOwner: boolean,
+  ) {
+    return Result.ignoreErrorWithDefault(
+      () => getApplyRecordByEmployeeNumber(employeeNumber, buName, isBuOwner),
+      {},
+    );
   }
 
   @Delete('deleteApplyRecord')

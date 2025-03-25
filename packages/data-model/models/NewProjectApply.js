@@ -20,6 +20,14 @@ const newProjectApply = sequelize.define(
     username: {
       type: DataTypes.STRING(255),
     },
+    buName: {
+      type: DataTypes.STRING(255),
+    },
+    isBuOwner: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
     alternativeProjectId: {
       type: DataTypes.STRING(255),
     },
