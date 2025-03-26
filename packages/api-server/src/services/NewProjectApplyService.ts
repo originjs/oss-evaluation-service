@@ -50,6 +50,9 @@ export async function getApplyRecordByEmployeeNumber(
     val.dataValues.createdAt = moment(val.createdAt).format('YYYY-MM-DD HH:mm:ss');
     val.dataValues.fullName =
       val.repoUrl?.match(regexpGit)?.[0] || val.repoUrl?.match(regexpGitee)?.[0];
+    val.dataValues.softwareName = val.dataValues.fullName
+      ? val.dataValues.fullName.split('/').pop() || ''
+      : '';
     if (val.type === 2 && val.alternativeProjectId) {
       const githubProject = await GithubProjectsTable.findOne({
         where: {
