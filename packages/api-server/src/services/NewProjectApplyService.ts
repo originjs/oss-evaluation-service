@@ -3,6 +3,8 @@ import { NewProjectApply, GithubProjectsTable } from '@orginjs/oss-evaluation-da
 import { Result } from '../utils/result.js';
 import moment from 'moment';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import exceljs from 'exceljs';
+import { Readable } from 'node:stream';
 export async function getApplyRecordByEmployeeNumber(
   employeeNumber: string,
   buName: string,
@@ -158,4 +160,74 @@ export async function deleteApplicationById(
     return Result.fail(404, 'application not found');
   }
   return Result.ok(true);
+}
+
+export async function exportApplyRecordToExcel(
+  employeeNumber: string,
+  buName: string,
+  isBuOwner: boolean,
+) {
+  const list = await getApplyRecordByEmployeeNumber(employeeNumber, buName, isBuOwner);
+  if (!list?.length) {
+    return null;
+  }
+
+  const workbook = new exceljs.Workbook();
+  const worksheet = workbook.addWorksheet('申请记录');
+
+  const headers = [
+    '类型',
+    '软件名称',
+    '技术栈',
+    '子技术栈',
+    '社区源码仓地址',
+    '申请人',
+    'BU名称',
+    '申请时间',
+    '进展',
+    '原因',
+  ];
+  const statusMapping = {
+    1: 'Submit Application',
+    2: 'In the process of data collection',
+    3: 'Collection completed',
+    4: 'Suspend',
+    5: 'Reject',
+  };
+
+  const typeMapping = {
+    1: 'New project application',
+    2: 'Similar software application',
+    3: 'Benchmark software application',
+  };
+
+  worksheet.addRow(headers);
+  for (const item of list) {
+    const rowData = [
+      statusMapping[item.type],
+      item.dataValues.softwareName,
+      item.techStack,
+      item.subTechStack,
+      item.repoUrl,
+      item.username.concat(' ').concat(item.employeeNumber ? item.employeeNumber : ''),
+      item.buName,
+      item.createdAt,
+      typeMapping[item.state],
+      item.reason,
+    ];
+    worksheet.addRow(rowData);
+  }
+  worksheet.columns.forEach(column => {
+    column.width = 15;
+  });
+  const buffer = await workbook.xlsx.writeBuffer();
+
+  if (!buffer) {
+    throw new Error('No data to export');
+  }
+
+  const stream = new Readable();
+  stream.push(buffer);
+  stream.push(null);
+  return stream;
 }

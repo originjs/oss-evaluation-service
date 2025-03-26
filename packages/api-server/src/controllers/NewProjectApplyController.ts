@@ -1,12 +1,25 @@
-import { Controller, Delete, FormField, Get, Post, Query, Route, Tags, UploadedFile } from 'tsoa';
+import {
+  Body,
+  Controller,
+  Delete,
+  FormField,
+  Get,
+  Post,
+  Query,
+  Route,
+  Tags,
+  UploadedFile,
+} from 'tsoa';
 import type { NewProjectApply } from '../interfaces/SoftwareInfo.js';
 import {
   deleteApplicationById,
   existsApplication,
   getApplyRecordByEmployeeNumber,
   newProjectApply,
+  exportApplyRecordToExcel,
 } from '../services/NewProjectApplyService.js';
 import { Result } from '../utils/result.js';
+import type { Readable } from 'stream';
 
 @Tags('新软件申请')
 @Route('newProjectApply')
@@ -69,5 +82,21 @@ export class NewProjectApplyController extends Controller {
   @Delete('deleteApplyRecord')
   public async deleteApplyRecord(@Query() id: string, @Query() employeeNumber: string) {
     return deleteApplicationById(id, employeeNumber);
+  }
+
+  @Post('exportApplyRecord')
+  public async exportApplyRecord(
+    @Body() body: { employeeNumber: string; buName: string; isBuOwner: boolean },
+  ): Promise<Readable> {
+    const { employeeNumber, buName, isBuOwner } = body;
+    const fileName = `apply-record-${buName}-${new Date().toISOString().split('T')[0]}.xlsx`;
+
+    this.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    this.setHeader('Content-Disposition', `attachment; filename=${encodeURIComponent(fileName)}`);
+
+    return exportApplyRecordToExcel(employeeNumber, buName, isBuOwner);
   }
 }
