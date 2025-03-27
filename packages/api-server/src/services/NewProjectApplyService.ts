@@ -5,6 +5,7 @@ import moment from 'moment';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import exceljs from 'exceljs';
 import { Readable } from 'node:stream';
+import { Op } from 'sequelize';
 export async function getApplyRecordByEmployeeNumber(
   employeeNumber: string,
   buName: string,
@@ -14,7 +15,7 @@ export async function getApplyRecordByEmployeeNumber(
 
   if (isBuOwner) {
     filterOpt = {
-      buName,
+      [Op.or]: [{ buName }, { employeeNumber }],
       deleted: false,
     };
   } else {
@@ -188,17 +189,17 @@ export async function exportApplyRecordToExcel(
     '原因',
   ];
   const statusMapping = {
-    1: 'Submit Application',
-    2: 'In the process of data collection',
-    3: 'Collection completed',
-    4: 'Suspend',
-    5: 'Reject',
+    1: '提交申请',
+    2: '数据采集中',
+    3: '采集完毕',
+    4: '挂起',
+    5: '拒绝',
   };
 
   const typeMapping = {
-    1: 'New project application',
-    2: 'Similar software application',
-    3: 'Benchmark software application',
+    1: '新Project申请',
+    2: '相似软件申请',
+    3: 'Benchmark软件申请',
   };
 
   worksheet.addRow(headers);

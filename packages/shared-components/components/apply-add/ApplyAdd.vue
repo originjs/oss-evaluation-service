@@ -26,8 +26,8 @@ interface Props {
   employeeNumber?: string;
   email?: string;
   expandField1?: string;
-  buName?: string,
-  isBuOwner?: boolean, 
+  buName?: string;
+  isBuOwner?: boolean;
   alternativeProjectId?: string;
   showInDialog?: boolean;
   successMessage?: string;
