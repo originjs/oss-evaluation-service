@@ -173,9 +173,6 @@ export async function exportApplyRecordToExcel(
   isBuOwner: boolean,
 ) {
   const list = await getApplyRecordByEmployeeNumber(employeeNumber, buName, isBuOwner);
-  if (!list?.length) {
-    return null;
-  }
 
   const workbook = new exceljs.Workbook();
   const worksheet = workbook.addWorksheet('申请记录');
@@ -207,21 +204,25 @@ export async function exportApplyRecordToExcel(
   };
 
   worksheet.addRow(headers);
-  for (const item of list) {
-    const rowData = [
-      typeMapping[item.type],
-      item.dataValues.softwareName,
-      item.techStack,
-      item.subTechStack,
-      item.repoUrl,
-      item.username,
-      item.buName,
-      item.createdAt,
-      statusMapping[item.state],
-      item.reason,
-    ];
-    worksheet.addRow(rowData);
+
+  if (list?.length !== undefined) {
+    for (const item of list) {
+      const rowData = [
+        typeMapping[item.type],
+        item.dataValues.softwareName,
+        item.techStack,
+        item.subTechStack,
+        item.repoUrl,
+        item.username,
+        item.buName,
+        item.createdAt,
+        statusMapping[item.state],
+        item.reason,
+      ];
+      worksheet.addRow(rowData);
+    }
   }
+
   worksheet.columns.forEach(column => {
     column.width = 15;
   });
