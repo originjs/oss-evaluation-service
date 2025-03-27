@@ -34,6 +34,7 @@ export async function getApplyRecordByEmployeeNumber(
       'repoUrl',
       'alternativeProjectId',
       'username',
+      'employeeNumber',
       'buName',
       'isBuOwner',
       'createdAt',
@@ -56,6 +57,9 @@ export async function getApplyRecordByEmployeeNumber(
     val.dataValues.softwareName = val.dataValues.fullName
       ? val.dataValues.fullName.split('/').pop() || ''
       : '';
+    val.dataValues.username = val.dataValues.username
+      .concat(' ')
+      .concat(val.dataValues.employeeNumber ? val.dataValues.employeeNumber : '');
     if (val.type === 2 && val.alternativeProjectId) {
       const githubProject = await GithubProjectsTable.findOne({
         where: {
@@ -205,15 +209,15 @@ export async function exportApplyRecordToExcel(
   worksheet.addRow(headers);
   for (const item of list) {
     const rowData = [
-      statusMapping[item.type],
+      typeMapping[item.type],
       item.dataValues.softwareName,
       item.techStack,
       item.subTechStack,
       item.repoUrl,
-      item.username.concat(' ').concat(item.employeeNumber ? item.employeeNumber : ''),
+      item.username,
       item.buName,
       item.createdAt,
-      typeMapping[item.state],
+      statusMapping[item.state],
       item.reason,
     ];
     worksheet.addRow(rowData);

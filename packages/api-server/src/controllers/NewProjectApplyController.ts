@@ -89,7 +89,7 @@ export class NewProjectApplyController extends Controller {
     @Body() body: { employeeNumber: string; buName: string; isBuOwner: boolean },
   ): Promise<Readable> {
     const { employeeNumber, buName, isBuOwner } = body;
-    const fileName = `apply-record-${buName}-${new Date().toISOString().split('T')[0]}.xlsx`;
+    const fileName = `apply_record_${buName}_${new Date().toISOString().split('T')[0]}.xlsx`;
 
     this.setHeader(
       'Content-Type',
