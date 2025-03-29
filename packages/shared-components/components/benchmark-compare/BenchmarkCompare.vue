@@ -5,6 +5,7 @@ import { Search } from '@element-plus/icons-vue';
 import { getTechStacks } from '@orginjs/oss-evaluation-components-api';
 import type { BenchmarkTechStack } from '@orginjs/oss-evaluation-api-server';
 import BenchmarkCompareContent from './BenchmarkCompareContent.vue';
+import { useRoute, useRouter } from 'vue-router';
 
 const isLoadingBenchmarkTechStacks = ref(true);
 const checkedTabs = useStorage<string[]>('local-checked-benchmark-tabs', []);
@@ -27,16 +28,42 @@ const updateCheckAllTabsState = () => {
     checkedTabs.value.length > 0 && checkedTabs.value.length < benchmarkTechStacks.value.length;
 };
 
+const route = useRoute();
+const router = useRouter();
 getTechStacks().then(res => {
   benchmarkTechStacks.value = res.data || [];
+  const reqTechStacks = benchmarkTechStacks.value.map(item => item.techStack);
   checkedTabs.value = checkedTabs.value.length
     ? checkedTabs.value.filter(tab =>
         benchmarkTechStacks.value.some(item => item.techStack === tab),
       )
-    : benchmarkTechStacks.value.map(item => item.techStack);
-  activeName.value = checkedTabs.value[0];
+    : reqTechStacks;
+
+  const queryTechStack = route.query.techStack as string;
+  if (
+    queryTechStack &&
+    reqTechStacks.includes(queryTechStack) &&
+    !checkedTabs.value.includes(queryTechStack)
+  ) {
+    checkedTabs.value.push(queryTechStack);
+  }
+
+  if (queryTechStack && checkedTabs.value.includes(queryTechStack)) {
+    activeName.value = decodeURIComponent(queryTechStack);
+  } else {
+    activeName.value = checkedTabs.value[0];
+  }
+
   updateCheckAllTabsState();
   isLoadingBenchmarkTechStacks.value = false;
+});
+watch(activeName, () => {
+  router.push({
+    path: route.path,
+    query: {
+      techStack: activeName.value,
+    },
+  });
 });
 
 const onCheckedTabsChange = (tabNames: CheckboxValueType[]) => {
