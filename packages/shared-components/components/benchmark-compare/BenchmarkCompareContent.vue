@@ -1,49 +1,32 @@
-<script lang="ts">
-import type { ColumnData, RowData, CallbackFn } from './BenchmarkCompareTable.vue';
-import type {
-  SoftwareBaseInfo,
-  BenchmarkResult,
-  BenchmarkIndex,
-  getIndexByTechStack,
-  getProjectsByTechStack,
-  getBenchmarkResultByTechStack,
-} from '@orginjs/oss-evaluation-components-api';
-
-export type Resource = {
-  getProjects: () => ReturnType<typeof getProjectsByTechStack>;
-  getBenchmarkIndex: () => ReturnType<typeof getIndexByTechStack>;
-  getBenchmarkResult: () => ReturnType<typeof getBenchmarkResultByTechStack>;
-};
-
-export type HandleFilterTableRows = (params: {
-  rows: RowData[];
-  benchmarkIndex: BenchmarkIndex[];
-}) => RowData[];
-
-export type HandleSortTableColumns = (
-  a: ColumnData,
-  b: ColumnData,
-  sortedIndexName: keyof ColumnData,
-) => number | undefined;
-
-export type PreventClickIndexName = (sortedIndexName: string) => boolean | void;
-</script>
-
 <script setup lang="ts">
 import { ElMessage } from 'element-plus';
 import ChooseProjectsDialog from './ChooseProjectsDialog.vue';
 import ChooseBenchmarkDialog from './ChooseBenchmarkDialog.vue';
 import BenchmarkCompareTable, { EMPTY_VALUE } from './BenchmarkCompareTable.vue';
+import type { BenchmarkTechStack } from '@orginjs/oss-evaluation-api-server';
+import {
+  getBenchmarkResultByTechStack,
+  getIndexByTechStack,
+  getProjectsByTechStack,
+} from '@orginjs/oss-evaluation-components-api';
+import { ApplyAdd } from '../apply-add';
+import { InfoFilled } from '@element-plus/icons-vue';
+import type { ColumnData, RowData, CallbackFn } from './BenchmarkCompareTable.vue';
+import type {
+  SoftwareBaseInfo,
+  BenchmarkResult,
+  BenchmarkIndex,
+} from '@orginjs/oss-evaluation-components-api';
 
 const props = defineProps<{
-  resource: Resource;
-  options?: {
-    handleFilterTableRows?: HandleFilterTableRows;
-    handleSortTableColumns?: HandleSortTableColumns;
-    preventClickIndexName?: PreventClickIndexName;
-  };
+  benchmarkTechStacks: BenchmarkTechStack[];
+  techStack: string;
+  activeTechStack: string;
 }>();
-const { resource, options } = toRefs(props);
+const { benchmarkTechStacks, techStack, activeTechStack } = toRefs(props);
+const benchmarkTechStack = computed(
+  () => benchmarkTechStacks.value.find(item => item.techStack === techStack.value)!,
+);
 
 const projectsRaw = ref<SoftwareBaseInfo[]>([]); // 所有软件
 const projects = ref<SoftwareBaseInfo[]>([]); // 选中的软件，可修改其值改变展示的表格列
@@ -103,17 +86,41 @@ const initTableData = () => {
   [tableRowsRaw.value, tableColumnsRaw.value] = [rows, columns];
 };
 
-Promise.all([
-  resource.value.getProjects(),
-  resource.value.getBenchmarkIndex(),
-  resource.value.getBenchmarkResult(),
-]).then(([{ data: projectsData }, { data: benchmarkIndexData }, { data: benchmarkResultData }]) => {
-  projectsRaw.value = projectsData;
-  projects.value = projectsData.filter(item => item.version); // 默认仅显示有评测数据的软件
-  benchmarkIndexRaw.value = benchmarkIndexData; // 保留原始数据
-  benchmarkIndex.value = [...benchmarkIndexData]; // 使用 ... 运算符断开引用，防止原始数据被修改
-  benchmarkResult.value = benchmarkResultData;
-  initTableData();
+const isLoadingData = ref(true);
+watchEffect(() => {
+  // 已经获取过数据
+  if (activeTechStack.value !== techStack.value || projectsRaw.value.length) {
+    return;
+  }
+
+  isLoadingData.value = true;
+  Promise.all([
+    getProjectsByTechStack(benchmarkTechStack.value.category, benchmarkTechStack.value.subcategory),
+    getIndexByTechStack(benchmarkTechStack.value.techStack),
+    getBenchmarkResultByTechStack(benchmarkTechStack.value.techStack),
+  ]).then(
+    ([{ data: projectsData }, { data: benchmarkIndexData }, { data: benchmarkResultData }]) => {
+      projectsRaw.value = projectsData;
+      projects.value = projectsData.filter(item => item.version); // 默认仅显示有评测数据的软件
+      benchmarkIndexRaw.value = [
+        {
+          indexName: 'score',
+          displayName: '得分',
+          unit: '',
+        },
+        {
+          indexName: 'version',
+          displayName: '版本',
+          unit: '',
+        },
+        ...benchmarkIndexData,
+      ]; // 添加指定行；备份原始数据
+      benchmarkIndex.value = [...benchmarkIndexRaw.value]; // 使用 ... 运算符断开引用，防止原始数据被修改
+      benchmarkResult.value = benchmarkResultData;
+      initTableData();
+      isLoadingData.value = false;
+    },
+  );
 });
 
 const removeColumn = ({ projectId, version }: ColumnData) => {
@@ -136,15 +143,10 @@ const removeColumn = ({ projectId, version }: ColumnData) => {
 
 // 实际表格展示的行，根据选中的指标项，并基于原始表格数据计算更新
 const tableRows = computed<RowData[]>(() => {
-  if (options.value?.handleFilterTableRows) {
-    return options.value?.handleFilterTableRows({
-      rows: tableRowsRaw.value,
-      benchmarkIndex: benchmarkIndex.value,
-    });
-  }
-
-  return tableRowsRaw.value.filter(row =>
-    benchmarkIndex.value.some(item => item.indexName === row.indexName),
+  return tableRowsRaw.value.filter(
+    row =>
+      benchmarkIndex.value.some(item => item.indexName === row.indexName) ||
+      ['score', 'version'].includes(row.indexName),
   );
 });
 
@@ -168,12 +170,9 @@ const tableColumns = computed<ColumnData[]>(() => {
       if (!b[sortedIndexName.value!]) {
         return -1;
       }
-      // 自定义排序
-      if (options.value?.handleSortTableColumns) {
-        const val = options.value.handleSortTableColumns(a, b, sortedIndexName.value!);
-        if (typeof val === 'number') {
-          return val;
-        }
+      // 分数从大到小排序
+      if (sortedIndexName.value === 'score') {
+        return b[sortedIndexName.value]! - a[sortedIndexName.value]!;
       }
       // 默认从小排到大
       return (a[sortedIndexName.value!] as number) - (b[sortedIndexName.value!] as number);
@@ -184,7 +183,8 @@ const tableColumns = computed<ColumnData[]>(() => {
 });
 
 const clickIndexName: CallbackFn<() => void> = ({ row: { benchmarkName, indexName } }) => {
-  if (options.value?.preventClickIndexName && options.value.preventClickIndexName(benchmarkName)) {
+  // 版本列禁止排序
+  if (benchmarkName === '版本') {
     return;
   }
 
@@ -208,17 +208,140 @@ const clickColumnHeader = (column: ColumnData) => {
   }
   window.open(`/#/software-details?repoName=${projectInfo.repoName}`, '_blank');
 };
+
+const selectedProject = ref('Vue3');
+const selectedCompile = ref('babel');
+const selectedLanguage = ref('js');
 </script>
 
 <template>
-  <div>
+  <div v-loading="isLoadingData">
     <div
-      class="flex justify-between items-center py-6px px-20px border-solid border-1px border-#e6e6e6"
+      class="flex justify-between items-center py-10px px-20px border-solid border-1px border-#e6e6e6"
     >
       <div class="flex-col w-full">
-        <slot name="tool-top"></slot>
-        <div class="flex mt-10px">
-          <slot name="tool-left"></slot>
+        <div v-if="techStack === '构建工具'" class="flex w-full">
+          <div class="flex flex-items-center mr-8">
+            <span>样本工程:</span>
+            <el-select v-model="selectedProject" placeholder="Select" style="width: 200px">
+              <el-option label="React示例工程" value="react" style="height: 68px">
+                <div class="flex flex-items-center">
+                  <div>
+                    <span class="i-custom:react mr-2 h-50px w-50px" />
+                  </div>
+                  <div class="flex flex-col flex-1">
+                    <span>React示例工程</span>
+                    <span style="color: var(--el-text-color-secondary); font-size: 13px">
+                      该工程是一个普通React框架的前端工程
+                    </span>
+                  </div>
+                </div>
+              </el-option>
+              <el-option label="Vue3示例工程" value="Vue3" style="height: 68px">
+                <div class="flex flex-items-center">
+                  <div>
+                    <span class="i-custom:vue mr-2 h-50px w-50px" />
+                  </div>
+                  <div class="flex flex-col flex-1">
+                    <span>Vue3示例工程</span>
+                    <span style="color: var(--el-text-color-secondary); font-size: 13px">
+                      该工程是一个普通Vue3框架的前端工程
+                    </span>
+                  </div>
+                </div>
+              </el-option>
+              <el-option label="React大量组件工程" value="react-big" style="height: 68px">
+                <div class="flex flex-items-center">
+                  <div>
+                    <span class="i-custom:react mr-2 h-50px w-50px" />
+                  </div>
+                  <div class="flex flex-col flex-1">
+                    <span>React大量组件工程</span>
+                    <span style="color: var(--el-text-color-secondary); font-size: 13px">
+                      该工程是一个React框架的前端工程，工程包含1000个组件嵌套组成。
+                    </span>
+                  </div>
+                </div>
+              </el-option>
+              <el-option label="Vue3大量组件工程" value="vue3-big" style="height: 68px">
+                <div class="flex flex-items-center">
+                  <div>
+                    <span class="i-custom:vue mr-2 h-50px w-50px" />
+                  </div>
+                  <div class="flex flex-col flex-1">
+                    <span>Vue3大量组件工程</span>
+                    <span style="color: var(--el-text-color-secondary); font-size: 13px">
+                      该工程是一个Vue3框架的前端工程，工程包含1000个组件嵌套组成。
+                    </span>
+                  </div>
+                </div>
+              </el-option>
+            </el-select>
+          </div>
+          <div class="flex flex-items-center mr-8">
+            <span class="mr-2">编译器:</span>
+            <el-select v-model="selectedCompile" placeholder="Select" style="width: 200px">
+              <el-option label="Babel" value="babel" style="height: 68px">
+                <div class="flex flex-items-center">
+                  <div>
+                    <span class="i-custom:babel mr-2 h-50px w-50px" />
+                  </div>
+                  <div class="flex flex-col flex-1">
+                    <span>Babel</span>
+                    <span style="color: var(--el-text-color-secondary); font-size: 13px">
+                      一个流行的开源JavaScript编译器，用于将新版本的JavaScript代码转换为向后兼容的旧版本代码。
+                    </span>
+                  </div>
+                </div>
+              </el-option>
+              <el-option label="SWC" value="swc" style="height: 68px">
+                <div class="flex flex-items-center">
+                  <div>
+                    <span class="i-custom:swc mr-2 h-50px w-50px" />
+                  </div>
+                  <div class="flex flex-col flex-1">
+                    <span>SWC - Speedy Web Compiler</span>
+                    <span style="color: var(--el-text-color-secondary); font-size: 13px">
+                      一个用Rust编写的开源JavaScript/TypeScript编译器。
+                    </span>
+                  </div>
+                </div>
+              </el-option>
+            </el-select>
+          </div>
+          <div class="flex flex-items-center mr-8">
+            <span class="mr-2">编程语言:</span>
+            <el-select v-model="selectedLanguage" placeholder="Select" style="width: 200px">
+              <el-option label="JavaScript" value="js" style="height: 68px">
+                <div class="flex flex-items-center">
+                  <div>
+                    <span class="i-custom:javascript mr-2 h-50px w-50px" />
+                  </div>
+                  <div class="flex flex-col flex-1">
+                    <span>JavaScript</span>
+                    <span style="color: var(--el-text-color-secondary); font-size: 13px">
+                      样本工程主要使用JavaScript ES6语法编写
+                    </span>
+                  </div>
+                </div>
+              </el-option>
+              <el-option label="TypeScript" value="ts" style="height: 68px">
+                <div class="flex flex-items-center">
+                  <div>
+                    <span class="i-custom:typescript mr-2 h-50px w-50px" />
+                  </div>
+                  <div class="flex flex-col flex-1">
+                    <span>TypeScript</span>
+                    <span style="color: var(--el-text-color-secondary); font-size: 13px">
+                      样本工程主要使用JavaScript ES6语法编写
+                    </span>
+                  </div>
+                </div>
+              </el-option>
+            </el-select>
+          </div>
+        </div>
+        <div class="flex">
           <div class="flex flex-items-center mr-8">
             <span class="mr-2">开源软件:</span>
             <el-button text type="primary" @click="showChooseProjects = true"
@@ -231,13 +354,28 @@ const clickColumnHeader = (column: ColumnData) => {
               >{{ benchmarkIndex.length }}项Benchmark</el-button
             >
           </div>
-          <slot name="tool-right" :benchmark-result="benchmarkResult"></slot>
+          <div class="ml-a flex flex-items-center">
+            <ApplyAdd :application-type="3">
+              <template #trigger>
+                <el-button type="primary" text>新增Benchmark</el-button>
+              </template>
+              <template #dialog-header>
+                <div font-size-18px>新增Benchmark</div>
+              </template>
+            </ApplyAdd>
+          </div>
         </div>
-        <slot name="tool-bottom" :benchmark-result="benchmarkResult"></slot>
+        <div v-if="benchmarkResult[0]?.envInfo" class="flex flex-items-center font-size-12px">
+          <el-icon class="mr-8px" color="#fdbb7b">
+            <InfoFilled />
+          </el-icon>
+          {{ benchmarkResult[0].envInfo }}
+        </div>
       </div>
     </div>
 
     <BenchmarkCompareTable
+      v-if="!isLoadingData && techStack === activeTechStack"
       :rows="tableRows"
       :columns="tableColumns"
       :sorted-index-name="sortedIndexName"
@@ -248,7 +386,12 @@ const clickColumnHeader = (column: ColumnData) => {
       }"
     >
       <template #cell-content="{ row, column }">
-        <slot name="cell-content" :row="row" :column="column" />
+        <div
+          v-if="row.benchmarkName === '得分' || row.benchmarkName === '版本'"
+          class="text-center"
+        >
+          {{ row[column.prop] }}
+        </div>
       </template>
     </BenchmarkCompareTable>
 

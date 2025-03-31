@@ -3,24 +3,63 @@ import { NewProjectApply, GithubProjectsTable } from '@orginjs/oss-evaluation-da
 import { Result } from '../utils/result.js';
 import moment from 'moment';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
-export async function getApplyRecordByEmployeeNumber(employeeNumber: string) {
-  const list = await NewProjectApply.findAll({
-    where: {
+import exceljs from 'exceljs';
+import { Readable } from 'node:stream';
+import { Op } from 'sequelize';
+export async function getApplyRecordByEmployeeNumber(
+  employeeNumber: string,
+  buName: string,
+  isBuOwner: boolean,
+) {
+  let filterOpt = {};
+
+  if (isBuOwner) {
+    filterOpt = {
+      [Op.or]: [{ buName }, { employeeNumber }],
+      deleted: false,
+    };
+  } else {
+    filterOpt = {
       employeeNumber,
       deleted: false,
-    },
-    attributes: ['id', 'type', 'repoUrl', 'alternativeProjectId', 'createdAt', 'state', 'reason'],
+    };
+  }
+  const list = await NewProjectApply.findAll({
+    where: filterOpt,
+    attributes: [
+      'id',
+      'type',
+      'techStack',
+      'subTechStack',
+      'repoUrl',
+      'alternativeProjectId',
+      'username',
+      'employeeNumber',
+      'buName',
+      'isBuOwner',
+      'createdAt',
+      'state',
+      'reason',
+    ],
     order: [['createdAt', 'DESC']],
   });
 
   if (!list?.length) {
     return;
   }
-  const regexp = new RegExp(/(?<=https?:\/\/github.com\/)[a-zA-Z0-9_-]+?\/[a-zA-Z0-9_-]+/, 'i');
+  const regexpGit = new RegExp(/(?<=https?:\/\/github.com\/)[a-zA-Z0-9_-]+?\/[a-zA-Z0-9_-]+/, 'i');
+  const regexpGitee = new RegExp(/(?<=https?:\/\/gitee.com\/)[a-zA-Z0-9_-]+?\/[a-zA-Z0-9_-]+/, 'i');
   for (const val of list) {
     // format date
     val.dataValues.createdAt = moment(val.createdAt).format('YYYY-MM-DD HH:mm:ss');
-    val.dataValues.fullName = val.repoUrl?.match(regexp)?.[0];
+    val.dataValues.fullName =
+      val.repoUrl?.match(regexpGit)?.[0] || val.repoUrl?.match(regexpGitee)?.[0];
+    val.dataValues.softwareName = val.dataValues.fullName
+      ? val.dataValues.fullName.split('/').pop() || ''
+      : '';
+    val.dataValues.username = val.dataValues.username
+      .concat(' ')
+      .concat(val.dataValues.employeeNumber ? val.dataValues.employeeNumber : '');
     if (val.type === 2 && val.alternativeProjectId) {
       const githubProject = await GithubProjectsTable.findOne({
         where: {
@@ -126,4 +165,75 @@ export async function deleteApplicationById(
     return Result.fail(404, 'application not found');
   }
   return Result.ok(true);
+}
+
+export async function exportApplyRecordToExcel(
+  employeeNumber: string,
+  buName: string,
+  isBuOwner: boolean,
+) {
+  const list = await getApplyRecordByEmployeeNumber(employeeNumber, buName, isBuOwner);
+
+  const workbook = new exceljs.Workbook();
+  const worksheet = workbook.addWorksheet('申请记录');
+
+  const headers = [
+    '类型',
+    '软件名称',
+    '技术栈',
+    '子技术栈',
+    '社区源码仓地址',
+    '申请人',
+    'BU名称',
+    '申请时间',
+    '进展',
+    '原因',
+  ];
+  const statusMapping = {
+    1: '提交申请',
+    2: '数据采集中',
+    3: '采集完毕',
+    4: '挂起',
+    5: '拒绝',
+  };
+
+  const typeMapping = {
+    1: '新Project申请',
+    2: '相似软件申请',
+    3: 'Benchmark软件申请',
+  };
+
+  worksheet.addRow(headers);
+
+  if (list?.length !== undefined) {
+    for (const item of list) {
+      const rowData = [
+        typeMapping[item.type],
+        item.dataValues.softwareName,
+        item.techStack,
+        item.subTechStack,
+        item.repoUrl,
+        item.username,
+        item.buName,
+        item.createdAt,
+        statusMapping[item.state],
+        item.reason,
+      ];
+      worksheet.addRow(rowData);
+    }
+  }
+
+  worksheet.columns.forEach(column => {
+    column.width = 15;
+  });
+  const buffer = await workbook.xlsx.writeBuffer();
+
+  if (!buffer) {
+    throw new Error('No data to export');
+  }
+
+  const stream = new Readable();
+  stream.push(buffer);
+  stream.push(null);
+  return stream;
 }
