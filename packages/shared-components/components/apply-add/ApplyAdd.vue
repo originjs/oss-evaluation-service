@@ -74,6 +74,7 @@ const formInstance = ref();
 const applicationSubmitting = ref(false);
 const applicationInfo = reactive({
   repoUrl: '',
+  benchmarkName: '',
   comment: '',
   techStack: '',
   subTechStack: '',
@@ -87,6 +88,13 @@ const formRules = reactive({
       required: true,
       pattern: /^https?:\/\/(github|gitee).com/,
       message: '请输入 github 或 gitee 社区源码仓地址',
+      trigger: 'blur',
+    },
+  ],
+  benchmarkName: [
+    {
+      required: true,
+      message: '请输入Benchmark名称',
       trigger: 'blur',
     },
   ],
@@ -137,6 +145,7 @@ function submitApplication() {
       applicationSubmitting.value = true;
       submit({
         repoUrl: applicationInfo.repoUrl,
+        benchmarkName: applicationInfo.benchmarkName,
         techStack: applicationInfo.techStack,
         subTechStack: applicationInfo.subTechStack,
         comment: applicationInfo.comment,
@@ -276,7 +285,19 @@ defineExpose({
             placeholder="https://github.com/owner-name/repo-name"
           />
         </el-form-item>
-        <template v-if="applicationType === ApplicationType.Evaluation">
+        <el-form-item
+          v-if="applicationType === ApplicationType.Benchmark"
+          label="Benchmark名称"
+          prop="benchmarkName"
+        >
+          <el-input v-model="applicationInfo.benchmarkName" placeholder="请输入Benchmark名称" />
+        </el-form-item>
+        <template
+          v-if="
+            applicationType === ApplicationType.Evaluation ||
+            applicationType === ApplicationType.Benchmark
+          "
+        >
           <el-form-item label="技术栈" prop="techStack" class="form-item-tech-stack">
             <el-select
               v-if="props.techStacks.length"
