@@ -6,6 +6,7 @@ import { getTechStacks } from '@orginjs/oss-evaluation-components-api';
 import type { BenchmarkTechStack } from '@orginjs/oss-evaluation-api-server';
 import BenchmarkCompareContent from './BenchmarkCompareContent.vue';
 import { useRoute, useRouter } from 'vue-router';
+import { ApplyAdd } from '../apply-add';
 
 const isLoadingBenchmarkTechStacks = ref(true);
 const checkedTabs = useStorage<string[]>('local-checked-benchmark-tabs', []);
@@ -155,7 +156,20 @@ const handleTabsEdit = (targetName: TabPaneName | undefined, action: 'remove' | 
           :benchmark-tech-stacks="benchmarkTechStacks"
           :tech-stack="tabName"
           :active-tech-stack="activeName"
-        />
+        >
+          <template #application>
+            <slot name="application">
+              <ApplyAdd :application-type="3">
+                <template #trigger>
+                  <el-button type="primary" text>新增Benchmark</el-button>
+                </template>
+                <template #dialog-header>
+                  <div font-size-18px>新增Benchmark</div>
+                </template>
+              </ApplyAdd>
+            </slot>
+          </template>
+        </BenchmarkCompareContent>
       </el-tab-pane>
     </el-tabs>
   </div>
