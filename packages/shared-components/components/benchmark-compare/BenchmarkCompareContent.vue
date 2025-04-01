@@ -9,7 +9,6 @@ import {
   getIndexByTechStack,
   getProjectsByTechStack,
 } from '@orginjs/oss-evaluation-components-api';
-import { ApplyAdd } from '../apply-add';
 import { InfoFilled } from '@element-plus/icons-vue';
 import type { ColumnData, RowData, CallbackFn } from './BenchmarkCompareTable.vue';
 import type {
@@ -355,14 +354,7 @@ const selectedLanguage = ref('js');
             >
           </div>
           <div class="ml-a flex flex-items-center">
-            <ApplyAdd :application-type="3">
-              <template #trigger>
-                <el-button type="primary" text>新增Benchmark</el-button>
-              </template>
-              <template #dialog-header>
-                <div font-size-18px>新增Benchmark</div>
-              </template>
-            </ApplyAdd>
+            <slot name="application"></slot>
           </div>
         </div>
         <div v-if="benchmarkResult[0]?.envInfo" class="flex flex-items-center font-size-12px">

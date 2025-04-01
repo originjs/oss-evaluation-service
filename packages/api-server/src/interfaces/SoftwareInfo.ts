@@ -249,6 +249,7 @@ export interface SummaryHighlightInfo {
 
 export interface NewProjectApply {
   repoUrl?: string;
+  benchmarkName?: string;
   comment?: string;
   applicantEmail: string;
   username?: string;
@@ -258,6 +259,8 @@ export interface NewProjectApply {
   createdAt?: Date;
   techStack?: string;
   employeeNumber?: string;
+  buName?: string;
+  isBuOwner?: boolean;
   subTechStack?: string;
   filename?: string;
   file?: File;
@@ -272,7 +275,3 @@ export interface BenchmarkTechStack {
   subcategory: string;
   orderNum: number;
 }
-
-
-
-
