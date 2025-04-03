@@ -4,6 +4,8 @@ import {
   BenchmarkIndex as BenchmarkIndexPo,
   sequelize,
   logger,
+  BenchmarkTechStacks,
+  BenchmarkVersionScore,
 } from '@orginjs/oss-evaluation-data-model';
 import { randomUUID } from 'crypto';
 import exceljs from 'exceljs';
@@ -18,6 +20,7 @@ import type {
 import { fixedRound } from '../utils/math.js';
 import { Op } from 'sequelize';
 import { ProxyAgent } from 'undici';
+import { readFileSync } from 'fs';
 
 const sleep = ms =>
   new Promise(resolve => {
@@ -149,8 +152,102 @@ interface BenchmarkValue {
   projectId: number;
   patchId: string;
   envInfo: string;
+  techStack?: string;
+  bId?: number;
 }
 
+
+export async function importBenchmarkApply(applyUUID: string) {
+  const apply = await NewProjectApply.findOne({
+    where: {
+      id: applyUUID,
+      integrationFinishedTime: {
+        [Op.is]: null,
+      },
+    },
+  });
+
+  // err if no benchmark apply 
+  if (!apply) {
+    throw new Error(`Application record not found, please check the application record ID`);
+  }
+
+  const filePath = `${process.env.UPLOAD_PATH ?? '/root/upload'}/benchmark/${apply.filename}`;
+
+  const fileBuffer = readFileSync(filePath);
+
+  const data = await parseBenchmarkExcel2JSON(fileBuffer, apply.benchmarkName);
+
+  await setOthersParam4Benchmark(data.benchmark, apply);
+  
+  await fillBenchmarkBid(data.benchmark, apply);
+  // call integration url to import benchmark data
+  await importBenchmarkData(data);
+
+
+  const benchmarkTechStack = await BenchmarkTechStacks.findOne({
+    where: {
+      techStack: apply.benchmarkName
+    },
+  });
+
+  if (!benchmarkTechStack) {
+    await BenchmarkTechStacks.create({
+      techStack: apply.benchmarkName,
+      approved: 0,
+      category: apply.techStack,
+      subcategory: apply.subTechStack
+    });
+  }
+
+  const projectIds = data.benchmark.map(benchmark => benchmark.projectId);
+  // set integration finished time if not err
+  await NewProjectApply.update(
+    {
+      // dont set finishedTime, bacause need time to sync data from outer into inner
+      // integrationFinishedTime: new Date(),
+      // set imported projectId for this apply
+      alternativeProjectId: [...new Set(projectIds)].join(','),
+    },
+    {
+      where: {
+        id: applyUUID,
+      },
+    },
+  );
+
+  return data;
+}
+
+async function fillBenchmarkBid(benchmarks: BenchmarkValue[], apply: any) {
+  const hash = {};
+
+  for (const benchmark of benchmarks) {
+    if (hash[`${benchmark.projectId}##${benchmark.displayName}`] !== undefined) {
+      benchmark.bId = hash[`${benchmark.projectId}##${benchmark.displayName}`];
+      continue;
+    }
+
+    const benchmarkVersion = await BenchmarkVersionScore.create({
+      projectId: benchmark.projectId,
+      version: benchmark.displayName || 'none',
+      score: null,
+      techStack: apply.benchmarkName,
+      isPublish: 0,
+      description: benchmark.patchId,
+      envInfo: apply.envInfo,
+    });
+    benchmark.bId = benchmarkVersion.id;
+    hash[`${benchmark.projectId}##${benchmark.displayName}`] = benchmarkVersion.id;
+  }
+}
+
+
+/**
+ * 不推荐使用，建议使用importBenchmarkApply
+ * @see importBenchmarkApply
+ * @deprecated 
+ */
 export async function importBenchmarkFromExcel(file: Express.Multer.File) {
   if (!file) {
     throw new Error(`file is empty`);
@@ -200,7 +297,7 @@ export async function importBenchmarkFromExcel(file: Express.Multer.File) {
   return data;
 }
 
-async function parseBenchmarkExcel2JSON(buffer: Buffer) {
+async function parseBenchmarkExcel2JSON(buffer: Buffer, benchamrkName?: string) {
   const workbook = new exceljs.Workbook();
   await workbook.xlsx.load(buffer);
   const sheet = workbook.getWorksheet(1);
@@ -222,6 +319,8 @@ async function parseBenchmarkExcel2JSON(buffer: Buffer) {
     if (techStackName) {
       index.techStack = techStackName;
     }
+
+
     row.eachCell(async (cell, num) => {
       const cellVal = cell.value?.toString()?.trim();
       // skip notes
@@ -251,6 +350,7 @@ async function parseBenchmarkExcel2JSON(buffer: Buffer) {
           if (!softwareName2Data.has(softwareNameAndVersion)) {
             softwareName2Data.set(softwareNameAndVersion, {
               benchmark: index.indexName,
+              techStack: benchamrkName || '',
               projectName: fullSoftwareName,
               displayName: softwareNameAndVersion.includes('/')
                 ? softwareNameAndVersion.split('/')[1]
@@ -262,6 +362,10 @@ async function parseBenchmarkExcel2JSON(buffer: Buffer) {
       }
     });
     if (Object.getOwnPropertyNames(index).length !== 0) {
+      // 优先采用传入的
+      if (benchamrkName) {
+        index.techStack = benchamrkName;
+      }
       indexData.push(index);
     }
     benchmarkData.push(...softwareName2Data.values());

@@ -1,4 +1,4 @@
-import { Controller, Get, Path, Post, Route, Tags, UploadedFile } from 'tsoa';
+import { Controller, Get, Path, Query, Post, Route, Tags, UploadedFile } from 'tsoa';
 import type {
   BenchmarkIndex,
   BenchmarkResult,
@@ -8,6 +8,7 @@ import type {
 import {
   getBenchmarkResultByTechStack,
   importBenchmarkFromExcel,
+  importBenchmarkApply,
   getIndexByTechStack,
   queryProjectsByTechStack,
   exportBenchmrkByTechStackHandler,
@@ -52,6 +53,16 @@ export class BenchmarkController extends Controller {
   public async importBenchmarkByExcelHandler(@UploadedFile() file: Express.Multer.File) {
     try {
       await importBenchmarkFromExcel(file);
+      return Result.ok('ok');
+    } catch (e) {
+      return Result.fail(400, e.message);
+    }
+  }
+
+  @Get('importBenchmarkByApply')
+  public async importBenchmarkByApplyHandler(@Query() applyUUID: string) {
+    try {
+      await importBenchmarkApply(applyUUID);
       return Result.ok('ok');
     } catch (e) {
       return Result.fail(400, e.message);

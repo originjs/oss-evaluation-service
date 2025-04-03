@@ -49,4 +49,6 @@ app.use((err: Error, req: Request, res: Response) => {
 
 app.listen(port, () => {
   logger.info(`server started at http://localhost:${port}`);
+  logger.info(`api documentation at http://localhost:${port}/api-docs`);
+
 });
