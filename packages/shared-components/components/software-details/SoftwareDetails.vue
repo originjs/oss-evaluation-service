@@ -107,7 +107,9 @@ watchEffect(async () => {
   const { data } = await getSoftwareInfo(encodedRepoName.value);
   project.value = data ?? {};
   project.value.categories = [
-    ...new Set([data.projectTechStack?.category, data.projectTechStack?.subcategory].filter(Boolean)),
+    ...new Set(
+      [data.projectTechStack?.category, data.projectTechStack?.subcategory].filter(Boolean),
+    ),
   ] as string[];
   tagList.value = data.tags ? data.tags.split('|') : [];
   baseInfo.value = {
@@ -1255,8 +1257,18 @@ onBeforeUnmount(() => {
             :rows="benchmarkCompareRows"
             :columns="benchmarkCompareColumns"
           />
-          <slot v-else name="benchmark" :project="project">
-            <ApplyAdd :application-type="3">
+          <slot v-else-if="project" name="benchmark" :project="project">
+            <ApplyAdd
+              :application-type="3"
+              :benchmark-tech-stack="{
+                techStack: '',
+                description: '',
+                createdAt: '',
+                category: project?.categories?.[0] || '',
+                subcategory: project?.categories?.[1] || '',
+                orderNum: 0,
+              }"
+            >
               <template #trigger>
                 <span>
                   <span>暂无性能数据，</span>

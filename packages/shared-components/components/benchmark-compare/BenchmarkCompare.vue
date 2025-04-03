@@ -157,9 +157,17 @@ const handleTabsEdit = (targetName: TabPaneName | undefined, action: 'remove' | 
           :tech-stack="tabName"
           :active-tech-stack="activeName"
         >
-          <template #application>
-            <slot name="application">
-              <ApplyAdd :application-type="3">
+          <template #application="slotProps">
+            <slot
+              name="application"
+              :benchmark-tech-stack="slotProps.benchmarkTechStack"
+              :benchmark-tech-stacks="slotProps.benchmarkTechStacks"
+            >
+              <ApplyAdd
+                :application-type="3"
+                :benchmark-tech-stack="slotProps.benchmarkTechStack"
+                :benchmark-tech-stacks="slotProps.benchmarkTechStacks"
+              >
                 <template #trigger>
                   <el-button type="primary" text>新增Benchmark</el-button>
                 </template>

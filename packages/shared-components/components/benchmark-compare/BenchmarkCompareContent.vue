@@ -354,7 +354,11 @@ const selectedLanguage = ref('js');
             >
           </div>
           <div class="ml-a flex flex-items-center">
-            <slot name="application"></slot>
+            <slot
+              name="application"
+              :benchmark-tech-stack="benchmarkTechStack"
+              :benchmark-tech-stacks="benchmarkTechStacks"
+            ></slot>
           </div>
         </div>
         <div v-if="benchmarkResult[0]?.envInfo" class="flex flex-items-center font-size-12px">
