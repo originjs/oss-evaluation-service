@@ -7,6 +7,7 @@ import { ElMessage } from 'element-plus';
 import type { UploadFile, UploadRawFile, UploadInstance, MessageOptions } from 'element-plus';
 import { createReusableTemplate } from '@vueuse/core';
 import { saveAs } from 'file-saver';
+import type { BenchmarkTechStack } from '@orginjs/oss-evaluation-api-server';
 
 enum ApplicationType {
   Evaluation = 1,
@@ -35,9 +36,13 @@ interface Props {
   successMessageConfig?: MessageOptions;
   failMessageConfig?: MessageOptions;
   techStacks?: TreeData[];
+  benchmarkTechStack?: BenchmarkTechStack;
+  benchmarkTechStacks?: BenchmarkTechStack[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  benchmarkTechStack: undefined,
+  benchmarkTechStacks: undefined,
   techStacks: () => [],
   applicationType: ApplicationType.Evaluation,
   username: '',
@@ -74,10 +79,10 @@ const formInstance = ref();
 const applicationSubmitting = ref(false);
 const applicationInfo = reactive({
   repoUrl: '',
-  benchmarkName: '',
+  benchmarkName: props.benchmarkTechStack?.techStack,
   comment: '',
-  techStack: '',
-  subTechStack: '',
+  techStack: props.benchmarkTechStack?.category,
+  subTechStack: props.benchmarkTechStack?.subcategory,
   email: '',
   file: undefined as File | undefined,
   envInfo: '',
@@ -94,7 +99,7 @@ const formRules = reactive({
   benchmarkName: [
     {
       required: true,
-      message: '请输入Benchmark名称',
+      message: '请输入或选择Benchmark名称',
       trigger: 'blur',
     },
   ],
@@ -290,7 +295,27 @@ defineExpose({
           label="Benchmark名称"
           prop="benchmarkName"
         >
-          <el-input v-model="applicationInfo.benchmarkName" placeholder="请输入Benchmark名称" />
+          <el-select
+            v-if="props.benchmarkTechStacks?.length"
+            v-model="applicationInfo.benchmarkName"
+            placeholder="请输入或选择Benchmark名称"
+            filterable
+            clearable
+            allow-create
+            default-first-option
+          >
+            <el-option
+              v-for="{ techStack } in props.benchmarkTechStacks"
+              :key="techStack"
+              :label="techStack"
+              :value="techStack"
+            />
+          </el-select>
+          <el-input
+            v-else
+            v-model="applicationInfo.benchmarkName"
+            placeholder="请输入Benchmark名称"
+          />
         </el-form-item>
         <template
           v-if="
