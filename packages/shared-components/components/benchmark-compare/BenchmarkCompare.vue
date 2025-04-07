@@ -7,10 +7,11 @@ import type { BenchmarkTechStack } from '@orginjs/oss-evaluation-api-server';
 import BenchmarkCompareContent from './BenchmarkCompareContent.vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ApplyAdd } from '../apply-add';
+import { difference } from 'lodash-es';
 
 const isLoadingBenchmarkTechStacks = ref(true);
 const checkedTabs = useStorage<string[]>('local-checked-benchmark-tabs', []);
-const benchmarkTechStacks = ref<BenchmarkTechStack[]>([]);
+const benchmarkTechStacks = useStorage<BenchmarkTechStack[]>('local-benchmark-tabs', []);
 const activeName = ref<string>('');
 const searchTabValue = ref('');
 const searchTabs = computed(() => {
@@ -32,14 +33,25 @@ const updateCheckAllTabsState = () => {
 const route = useRoute();
 const router = useRouter();
 getTechStacks().then(res => {
+  const oldTechStacks = benchmarkTechStacks.value.map(item => item.techStack);
+
   benchmarkTechStacks.value = res.data || [];
   const reqTechStacks = benchmarkTechStacks.value.map(item => item.techStack);
-  checkedTabs.value = checkedTabs.value.length
-    ? checkedTabs.value.filter(tab =>
-        benchmarkTechStacks.value.some(item => item.techStack === tab),
-      )
-    : reqTechStacks;
 
+  if (checkedTabs.value.length) {
+    // 过滤掉已经失效的技术栈
+    const validCheckedTabs = checkedTabs.value.filter(tab =>
+      benchmarkTechStacks.value.some(item => item.techStack === tab),
+    );
+    // 新增的技术栈
+    const addedTabs = difference(reqTechStacks, oldTechStacks);
+
+    checkedTabs.value = [...validCheckedTabs, ...addedTabs];
+  } else {
+    checkedTabs.value = reqTechStacks;
+  }
+
+  // 加上路由参数指定的技术栈
   const queryTechStack = route.query.techStack as string;
   if (
     queryTechStack &&
