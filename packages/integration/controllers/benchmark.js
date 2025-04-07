@@ -237,7 +237,12 @@ export async function importBenchmarkByExcelJSONHandler(req, res) {
 export async function importBenchmarkIndexByGetHandler(req, res) {
   const index = req.query;
   if (Object.getOwnPropertyNames(index).length > 0) {
-    await BenchmarkIndex.create(index);
+    try {
+      await BenchmarkIndex.upsert(index);
+    } catch (error) {
+      logger.error(error);
+      throw error;
+    }
   }
   res.status(200).json(await randomGithubProject());
 }
