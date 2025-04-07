@@ -67,8 +67,8 @@ INNER JOIN project_tech_stack pts
 
   projects.forEach(element => {
     element['versionList'] = element.version ? element.version.split('##') : [];
-    element['selectedVersions'] = [];
-    element.selectedVersion && element['selectedVersions'].push(element.selectedVersion);
+    element['selectedVersions'] = element['versionList'];
+    // element.selectedVersion && element['selectedVersions'].push(element.selectedVersion);
   });
   return projects;
 }
