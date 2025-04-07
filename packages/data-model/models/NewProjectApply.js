@@ -38,6 +38,10 @@ const newProjectApply = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    benchmarkName: {
+      type: DataTypes.STRING(255),
+      field: 'benchmark_name',
+    },
     expandField1: {
       type: DataTypes.STRING(255),
       field: 'expand_field1',

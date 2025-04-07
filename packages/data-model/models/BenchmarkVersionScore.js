@@ -6,8 +6,8 @@ export default sequelize.define(
   {
     id: {
       type: DataTypes.BIGINT,
-      allowNull: false,
       primaryKey: true,
+      autoIncrement: true,
     },
     projectId: {
       type: DataTypes.BIGINT,

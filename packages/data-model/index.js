@@ -39,3 +39,5 @@ export { default as TrendHistory } from './models/TrendHistory.js';
 export { default as TrendRankHistory } from './models/TrendRankHistory.js';
 export { default as NewProjectApply } from './models/NewProjectApply.js';
 export { default as ScheduleTaskMonitor } from './models/ScheduleTaskMonitor.js';
+export { default as BenchmarkTechStacks } from './models/BenchmarkTechStacks.js';
+export { default as BenchmarkVersionScore } from './models/BenchmarkVersionScore.js';
