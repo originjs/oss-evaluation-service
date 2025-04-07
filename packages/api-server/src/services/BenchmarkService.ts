@@ -156,6 +156,85 @@ interface BenchmarkValue {
   bId?: number;
 }
 
+export async function importBenchmarkJson(data: {
+  benchmark: BenchmarkValue[];
+  benchmarkIndex: BenchmarkIndex[];
+}) {
+  const { benchmark, benchmarkIndex } = data;
+  const errorInfo = `The necessary parameters are missing, the complete parameters are as follows：
+    {
+      benchmark: [{ techStack: string, projectId: number, projectName: string, displayName: string, 
+                    benchmark: string, rawValue: number, platform: string, envInfo: string }],
+      benchmarkIndex: [{ techStack: string, category: string, indexName: string, displayName: string, unit: string, order: number }]
+    }
+  `;
+  if (!benchmark || !benchmarkIndex || !benchmark.length || !benchmarkIndex.length) {
+    throw new Error(errorInfo);
+  }
+
+  const indexs = new Set();
+  const benchmarkName = benchmark[0].techStack;
+
+  benchmarkIndex.forEach(item => {
+    if (
+      !item.indexName ||
+      !item.displayName ||
+      !item.unit ||
+      !item.category ||
+      !item.order ||
+      !item.techStack
+    ) {
+      throw new Error(errorInfo);
+    }
+
+    if (benchmarkName !== item.techStack) {
+      throw new Error(
+        `The list of Benchmark's tech stacks does not match, check the techStack field.`,
+      );
+    }
+
+    indexs.add(item.indexName);
+  });
+
+  benchmark.forEach(item => {
+    if (
+      !item.projectName ||
+      !item.displayName ||
+      !item.benchmark ||
+      !item.rawValue ||
+      !item.platform ||
+      !item.projectId ||
+      !item.envInfo ||
+      !item.techStack
+    ) {
+      throw new Error(errorInfo);
+    }
+
+    if (benchmarkName !== item.techStack) {
+      throw new Error(
+        `The list of Benchmark's tech stacks does not match, check the techStack field.`,
+      );
+    }
+
+    if (!item.patchId) {
+      const patchId = moment(new Date()).format('YYYYMMDDHHmmssSSS');
+      item.patchId = patchId;
+    }
+
+    if (!indexs.has(item.benchmark)) {
+      throw new Error(
+        `Benchmark metrics do not exist in the index collection, check for consistency between the benchmark and indexName fields.`,
+      );
+    }
+  });
+
+  await fillBenchmarkBid(data.benchmark, {
+    benchmarkName: benchmarkName,
+    envInfo: benchmark[0].envInfo,
+  });
+  // call integration url to import benchmark data
+  await importBenchmarkData({ benchmark, index: benchmarkIndex });
+}
 
 export async function importBenchmarkApply(applyUUID: string) {
   const apply = await NewProjectApply.findOne({
@@ -167,7 +246,7 @@ export async function importBenchmarkApply(applyUUID: string) {
     },
   });
 
-  // err if no benchmark apply 
+  // err if no benchmark apply
   if (!apply) {
     throw new Error(`Application record not found, please check the application record ID`);
   }
@@ -179,15 +258,14 @@ export async function importBenchmarkApply(applyUUID: string) {
   const data = await parseBenchmarkExcel2JSON(fileBuffer, apply.benchmarkName);
 
   await setOthersParam4Benchmark(data.benchmark, apply);
-  
+
   await fillBenchmarkBid(data.benchmark, apply);
   // call integration url to import benchmark data
   await importBenchmarkData(data);
 
-
   const benchmarkTechStack = await BenchmarkTechStacks.findOne({
     where: {
-      techStack: apply.benchmarkName
+      techStack: apply.benchmarkName,
     },
   });
 
@@ -196,7 +274,7 @@ export async function importBenchmarkApply(applyUUID: string) {
       techStack: apply.benchmarkName,
       approved: 0,
       category: apply.techStack,
-      subcategory: apply.subTechStack
+      subcategory: apply.subTechStack,
     });
   }
 
@@ -242,11 +320,10 @@ async function fillBenchmarkBid(benchmarks: BenchmarkValue[], apply: any) {
   }
 }
 
-
 /**
  * 不推荐使用，建议使用importBenchmarkApply
  * @see importBenchmarkApply
- * @deprecated 
+ * @deprecated
  */
 export async function importBenchmarkFromExcel(file: Express.Multer.File) {
   if (!file) {
@@ -319,7 +396,6 @@ async function parseBenchmarkExcel2JSON(buffer: Buffer, benchamrkName?: string) 
     if (techStackName) {
       index.techStack = techStackName;
     }
-
 
     row.eachCell(async (cell, num) => {
       const cellVal = cell.value?.toString()?.trim();
@@ -546,7 +622,6 @@ export async function exportBenchmrkByTechStackHandler(techStack: string) {
   return workbook.xlsx.writeBuffer();
 }
 
-
 /**
  * query all tech stack
  *
@@ -565,7 +640,7 @@ export async function queryAllTechStacks(): Promise<Array<BenchmarkTechStack>> {
               WHERE
                 approved = 1`;
 
-  const techStacksList = await sequelize.query(sql, {   
+  const techStacksList = await sequelize.query(sql, {
     type: sequelize.QueryTypes.SELECT,
   });
 

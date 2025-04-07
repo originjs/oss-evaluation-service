@@ -1,4 +1,4 @@
-import { Controller, Get, Path, Query, Post, Route, Tags, UploadedFile } from 'tsoa';
+import { Controller, Get, Path, Query, Post, Route, Tags, UploadedFile, Body } from 'tsoa';
 import type {
   BenchmarkIndex,
   BenchmarkResult,
@@ -13,6 +13,7 @@ import {
   queryProjectsByTechStack,
   exportBenchmrkByTechStackHandler,
   queryAllTechStacks,
+  importBenchmarkJson,
 } from '../services/BenchmarkService.js';
 
 import { Result } from '../utils/result.js';
@@ -63,6 +64,38 @@ export class BenchmarkController extends Controller {
   public async importBenchmarkByApplyHandler(@Query() applyUUID: string) {
     try {
       await importBenchmarkApply(applyUUID);
+      return Result.ok('ok');
+    } catch (e) {
+      return Result.fail(400, e.message);
+    }
+  }
+
+  @Post('upload')
+  public async uploadBenchmarkJson(
+    @Body()
+    data: {
+      benchmark: Array<{
+        techStack: string;
+        projectId: number;
+        projectName: string;
+        displayName: string;
+        benchmark: string;
+        rawValue: number;
+        platform: string;
+        envInfo: string;
+      }>;
+      benchmarkIndex: Array<{
+        techStack: string;
+        category: string;
+        indexName: string;
+        displayName: string;
+        unit: string;
+        order: number;
+      }>;
+    },
+  ) {
+    try {
+      await importBenchmarkJson(data as any);
       return Result.ok('ok');
     } catch (e) {
       return Result.fail(400, e.message);
@@ -123,8 +156,8 @@ export class BenchmarkController extends Controller {
   }
 
   @Get('techStacks')
-  public async techStacks() : Promise<Result<Array<BenchmarkTechStack>>> {
+  public async techStacks(): Promise<Result<Array<BenchmarkTechStack>>> {
     const techStacks = await queryAllTechStacks();
-    return Result.ok(techStacks)
+    return Result.ok(techStacks);
   }
 }
