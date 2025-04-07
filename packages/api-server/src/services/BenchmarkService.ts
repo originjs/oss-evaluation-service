@@ -246,7 +246,7 @@ export async function importBenchmarkApply(applyUUID: string) {
     },
   });
 
-  // err if no benchmark apply
+  // err if no benchmark apply 
   if (!apply) {
     throw new Error(`Application record not found, please check the application record ID`);
   }
@@ -258,14 +258,15 @@ export async function importBenchmarkApply(applyUUID: string) {
   const data = await parseBenchmarkExcel2JSON(fileBuffer, apply.benchmarkName);
 
   await setOthersParam4Benchmark(data.benchmark, apply);
-
+  
   await fillBenchmarkBid(data.benchmark, apply);
   // call integration url to import benchmark data
   await importBenchmarkData(data);
 
+
   const benchmarkTechStack = await BenchmarkTechStacks.findOne({
     where: {
-      techStack: apply.benchmarkName,
+      techStack: apply.benchmarkName
     },
   });
 
@@ -274,7 +275,7 @@ export async function importBenchmarkApply(applyUUID: string) {
       techStack: apply.benchmarkName,
       approved: 0,
       category: apply.techStack,
-      subcategory: apply.subTechStack,
+      subcategory: apply.subTechStack
     });
   }
 
@@ -320,10 +321,11 @@ async function fillBenchmarkBid(benchmarks: BenchmarkValue[], apply: any) {
   }
 }
 
+
 /**
  * 不推荐使用，建议使用importBenchmarkApply
  * @see importBenchmarkApply
- * @deprecated
+ * @deprecated 
  */
 export async function importBenchmarkFromExcel(file: Express.Multer.File) {
   if (!file) {
