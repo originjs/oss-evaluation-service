@@ -86,7 +86,7 @@ const initTableData = () => {
 };
 
 const isLoadingData = ref(true);
-watchEffect(() => {
+const getData = () => {
   // 已经获取过数据
   if (activeTechStack.value !== techStack.value || projectsRaw.value.length) {
     return;
@@ -120,7 +120,8 @@ watchEffect(() => {
       isLoadingData.value = false;
     },
   );
-});
+};
+watch(() => activeTechStack.value, getData, { immediate: true });
 
 const removeColumn = ({ projectId, version }: ColumnData) => {
   if (!(projectId && version)) {
