@@ -9,6 +9,7 @@ import {
 } from '@orginjs/oss-evaluation-data-model';
 import { randomUUID } from 'crypto';
 import exceljs from 'exceljs';
+import type { CellValue } from 'exceljs';
 import moment from 'moment';
 import { isNumber } from 'underscore';
 import type {
@@ -246,7 +247,7 @@ export async function importBenchmarkApply(applyUUID: string) {
     },
   });
 
-  // err if no benchmark apply 
+  // err if no benchmark apply
   if (!apply) {
     throw new Error(`Application record not found, please check the application record ID`);
   }
@@ -258,15 +259,14 @@ export async function importBenchmarkApply(applyUUID: string) {
   const data = await parseBenchmarkExcel2JSON(fileBuffer, apply.benchmarkName);
 
   await setOthersParam4Benchmark(data.benchmark, apply);
-  
+
   await fillBenchmarkBid(data.benchmark, apply);
   // call integration url to import benchmark data
   await importBenchmarkData(data);
 
-
   const benchmarkTechStack = await BenchmarkTechStacks.findOne({
     where: {
-      techStack: apply.benchmarkName
+      techStack: apply.benchmarkName,
     },
   });
 
@@ -275,7 +275,7 @@ export async function importBenchmarkApply(applyUUID: string) {
       techStack: apply.benchmarkName,
       approved: 0,
       category: apply.techStack,
-      subcategory: apply.subTechStack
+      subcategory: apply.subTechStack,
     });
   }
 
@@ -321,11 +321,10 @@ async function fillBenchmarkBid(benchmarks: BenchmarkValue[], apply: any) {
   }
 }
 
-
 /**
  * 不推荐使用，建议使用importBenchmarkApply
  * @see importBenchmarkApply
- * @deprecated 
+ * @deprecated
  */
 export async function importBenchmarkFromExcel(file: Express.Multer.File) {
   if (!file) {
@@ -376,7 +375,7 @@ export async function importBenchmarkFromExcel(file: Express.Multer.File) {
   return data;
 }
 
-async function parseBenchmarkExcel2JSON(buffer: Buffer, benchamrkName?: string) {
+async function parseBenchmarkExcel2JSON(buffer: Buffer, benchmarkName?: string) {
   const workbook = new exceljs.Workbook();
   await workbook.xlsx.load(buffer);
   const sheet = workbook.getWorksheet(1);
@@ -391,44 +390,57 @@ async function parseBenchmarkExcel2JSON(buffer: Buffer, benchamrkName?: string) 
   const benchmarkData: BenchmarkValue[] = [];
   const indexData: BenchmarkIndex[] = [];
   const techStackName: string = sheet.name.match(/(?<=<).+(?=>)/)?.[0];
-  let i = 1;
+  let order = 1;
   for (const row of rows) {
     const softwareName2Data = new Map<string, BenchmarkValue>();
     const index = {} as BenchmarkIndex;
     if (techStackName) {
       index.techStack = techStackName;
     }
+    // 优先采用传入的
+    if (benchmarkName) {
+      index.techStack = benchmarkName;
+    }
 
-    row.eachCell(async (cell, num) => {
-      const cellVal = cell.value?.toString()?.trim();
+    const cellValues = row.values as CellValue[];
+    for (let num = 1; num < cellValues.length; num++) {
+      const cellVal = cellValues[num]?.toString()?.trim();
       // skip notes
       if (cellVal.startsWith('注意事项')) {
-        return;
+        continue;
       }
       if (!cellVal) {
-        return;
+        continue;
       }
+      let indexRecord: { indexName: string };
       switch (num) {
         case 1:
           index.category = cellVal;
-          index.order = i++;
+          index.order = order++;
           break;
         case 2:
           index.displayName = cellVal;
-          index.indexName = randomUUID();
+          indexRecord = await BenchmarkIndexPo.findOne({
+            where: {
+              techStack: index.techStack,
+              category: index.category,
+              displayName: index.displayName,
+            },
+          });
+          index.indexName = indexRecord ? indexRecord.indexName : randomUUID();
           break;
         case 3:
           index.unit = cellVal;
           break;
         default: {
           // get softwareName
-          const softwareNameAndVersion = header.getCell(cell.col).value.toString();
+          const softwareNameAndVersion = header.getCell(num).value.toString();
           const fullSoftwareName =
             softwareNameAndVersion.match(softwareReg)?.[0] ?? softwareNameAndVersion;
           if (!softwareName2Data.has(softwareNameAndVersion)) {
             softwareName2Data.set(softwareNameAndVersion, {
               benchmark: index.indexName,
-              techStack: benchamrkName || '',
+              techStack: benchmarkName || '',
               projectName: fullSoftwareName,
               displayName: softwareNameAndVersion.includes('/')
                 ? softwareNameAndVersion.split('/')[1]
@@ -438,12 +450,11 @@ async function parseBenchmarkExcel2JSON(buffer: Buffer, benchamrkName?: string) 
           }
         }
       }
-    });
-    if (Object.getOwnPropertyNames(index).length !== 0) {
-      // 优先采用传入的
-      if (benchamrkName) {
-        index.techStack = benchamrkName;
-      }
+    }
+
+    // 防止插入空行
+    const indexKeysLen = Object.keys(index).length;
+    if (index.techStack ? indexKeysLen - 1 : indexKeysLen) {
       indexData.push(index);
     }
     benchmarkData.push(...softwareName2Data.values());
