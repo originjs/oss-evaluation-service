@@ -117,14 +117,14 @@ const formRules = reactive({
   ],
   techStack: [
     {
-      required: true,
+      required: props.applicationType === ApplicationType.Evaluation,
       message: '请输入或选择技术栈',
       trigger: 'blur',
     },
   ],
   subTechStack: [
     {
-      required: true,
+      required: props.applicationType === ApplicationType.Evaluation,
       message: '请输入或选择子技术栈',
       trigger: 'blur',
     },
@@ -144,6 +144,7 @@ const formRules = reactive({
     },
   ],
 });
+
 function submitApplication() {
   formInstance.value.validate((valid: boolean) => {
     if (valid) {
@@ -197,6 +198,7 @@ function submitApplication() {
     }
   });
 }
+
 function cancelApply() {
   formInstance.value.resetFields();
   dialogVisible.value = false;
@@ -485,6 +487,7 @@ defineExpose({
 :deep(.dialog-apply) {
   min-width: 600px;
   border-radius: 6px;
+
   .el-dialog__header {
     margin-bottom: 16px;
     border-bottom: 1px solid #f2f3f5;

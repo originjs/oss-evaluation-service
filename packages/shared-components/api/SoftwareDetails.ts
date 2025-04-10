@@ -68,7 +68,10 @@ export function getGeoDistributionInfo(repoName: string) {
 export function submitApplication(param: NewProjectApply) {
   const formData = new FormData();
   for (const [key, value] of Object.entries(param)) {
-    formData.append(key, value);
+    // 防止 undefined 会被设置成 'undefined'
+    if (value) {
+      formData.append(key, value);
+    }
   }
 
   return HttpRequest.post<string>('/newProjectApply/submitApplication', formData, {
