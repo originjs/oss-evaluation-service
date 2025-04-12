@@ -250,7 +250,7 @@ export async function importBenchmarkIndexByGetHandler(req, res) {
 export async function importBenchmarkVersionScoreByGetHandler(req, res) {
   const params = req.query;
   const benchmarks = JSON.parse(params.benchmarks);
-  const apply = params.apply;
+  const apply = JSON.parse(params.apply);
   const hash = {};
 
   for (const benchmark of benchmarks) {
