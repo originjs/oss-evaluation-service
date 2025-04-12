@@ -247,6 +247,34 @@ export async function importBenchmarkIndexByGetHandler(req, res) {
   res.status(200).json(await randomGithubProject());
 }
 
+export async function importBenchmarkVersionScoreByGetHandler(req, res) {
+  const params = req.query;
+  const benchmarks = JSON.parse(params.benchmarks);
+  const apply = params.apply;
+  const hash = {};
+
+  for (const benchmark of benchmarks) {
+    if (hash[`${benchmark.projectId}##${benchmark.displayName}`] !== undefined) {
+      benchmark.bId = hash[`${benchmark.projectId}##${benchmark.displayName}`];
+      continue;
+    }
+
+    const benchmarkVersion = await BenchmarkVersionScore.create({
+      projectId: benchmark.projectId,
+      version: benchmark.displayName || 'none',
+      score: null,
+      techStack: apply.benchmarkName,
+      isPublish: 0,
+      description: benchmark.patchId,
+      envInfo: apply.envInfo,
+    });
+    benchmark.bId = benchmarkVersion.id;
+    hash[`${benchmark.projectId}##${benchmark.displayName}`] = benchmarkVersion.id;
+  }
+
+  res.status(200).json(await randomGithubProject());
+}
+
 export async function importBenchmarkValueByGetHandler(req, res) {
   const benchmark = req.query;
   if (Object.getOwnPropertyNames(benchmark).length > 0) {

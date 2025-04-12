@@ -37,6 +37,7 @@ import {
   importBenchmarkByExcelJSONHandler,
   importBenchmarkIndexByGetHandler,
   importBenchmarkValueByGetHandler,
+  importBenchmarkVersionScoreByGetHandler,
   syncBenchmarkHandler,
   updateScore,
 } from '../controllers/benchmark.js';
@@ -1470,6 +1471,20 @@ router.route('/benchmark/importBenchmarkByExcelJSON').post(importBenchmarkByExce
  *         description: Bad request
  */
 router.route('/benchmark/getBenchmarkValue').get(importBenchmarkValueByGetHandler);
+
+/**
+ * @swagger
+ * /sync/benchmark/getBenchmarkVersionScore:
+ *   get:
+ *     tags: [Benchmark]
+ *     summary: import benchmark version score
+ *     responses:
+ *       200:
+ *         description: File uploaded successfully
+ *       400:
+ *         description: Bad request
+ */
+router.route('/benchmark/getBenchmarkVersionScore').get(importBenchmarkVersionScoreByGetHandler);
 
 /**
  * @swagger
