@@ -5,9 +5,6 @@ const sleep = ms =>
     setTimeout(resolve, ms);
   });
 
-if (!process.env.INTEGRATION_URL) {
-  throw new Error('no env named {INTEGRATION_URL} , skip import');
-}
 const requestOpts: RequestInit = {
   method: 'GET',
   headers: {
@@ -27,6 +24,9 @@ if (proxyUrl) {
   requestOpts.dispatcher = new ProxyAgent(proxyUrl);
 }
 export const requestFn = async (urlParam: string, arr: unknown[]) => {
+  if (!process.env.INTEGRATION_URL) {
+    throw new Error('no env named {INTEGRATION_URL} , skip import');
+  }
   for (const obj of arr) {
     const url = new URL(urlParam);
     Object.getOwnPropertyNames(obj).forEach(key => {
