@@ -299,7 +299,7 @@ async function fillBenchmarkBid(benchmarks: BenchmarkValue[], apply: any) {
     await requestFn(`${process.env.INTEGRATION_URL}/sync/benchmark/getBenchmarkVersionScore`, [
       {
         benchmarks: JSON.stringify(benchmarks),
-        apply: { benchmarkName: apply.benchmarkName, envInfo: apply.envInfo },
+        apply: JSON.stringify({ benchmarkName: apply.benchmarkName, envInfo: apply.envInfo }),
       },
     ]);
   }
