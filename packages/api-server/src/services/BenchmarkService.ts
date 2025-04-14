@@ -295,13 +295,23 @@ export async function importBenchmarkApply(applyUUID: string) {
 }
 
 async function fillBenchmarkBid(benchmarks: BenchmarkValue[], apply: any) {
-  if (benchmarks.length) {
-    await requestFn(`${process.env.INTEGRATION_URL}/sync/benchmark/getBenchmarkVersionScore`, [
-      {
-        benchmarks: JSON.stringify(benchmarks),
-        apply: JSON.stringify({ benchmarkName: apply.benchmarkName, envInfo: apply.envInfo }),
-      },
-    ]);
+  const hash = {};
+  for (const benchmark of benchmarks) {
+    if (hash[`${benchmark.projectId}##${benchmark.displayName}`] !== undefined) {
+      benchmark.bId = hash[`${benchmark.projectId}##${benchmark.displayName}`];
+      continue;
+    }
+
+    const responses = await requestFn(
+      `${process.env.INTEGRATION_URL}/sync/benchmark/getBenchmarkVersionScore`,
+      [{ benchmark: JSON.stringify(benchmark), apply: JSON.stringify(apply) }],
+    );
+
+    if (responses.length) {
+      const bId = responses[0][0].description;
+      benchmark.bId = bId;
+      hash[`${benchmark.projectId}##${benchmark.displayName}`] = bId;
+    }
   }
 }
 

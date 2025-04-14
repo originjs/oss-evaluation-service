@@ -248,31 +248,21 @@ export async function importBenchmarkIndexByGetHandler(req, res) {
 }
 
 export async function importBenchmarkVersionScoreByGetHandler(req, res) {
-  const params = req.query;
-  const benchmarks = JSON.parse(params.benchmarks);
-  const apply = JSON.parse(params.apply);
-  const hash = {};
+  let { benchmark, apply } = req.query;
+  benchmark = JSON.parse(benchmark);
+  apply = JSON.parse(apply);
 
-  for (const benchmark of benchmarks) {
-    if (hash[`${benchmark.projectId}##${benchmark.displayName}`] !== undefined) {
-      benchmark.bId = hash[`${benchmark.projectId}##${benchmark.displayName}`];
-      continue;
-    }
+  const benchmarkVersion = await BenchmarkVersionScore.create({
+    projectId: benchmark.projectId,
+    version: benchmark.displayName || 'none',
+    score: null,
+    techStack: apply.benchmarkName,
+    isPublish: 0,
+    description: benchmark.patchId,
+    envInfo: apply.envInfo,
+  });
 
-    const benchmarkVersion = await BenchmarkVersionScore.create({
-      projectId: benchmark.projectId,
-      version: benchmark.displayName || 'none',
-      score: null,
-      techStack: apply.benchmarkName,
-      isPublish: 0,
-      description: benchmark.patchId,
-      envInfo: apply.envInfo,
-    });
-    benchmark.bId = benchmarkVersion.id;
-    hash[`${benchmark.projectId}##${benchmark.displayName}`] = benchmarkVersion.id;
-  }
-
-  res.status(200).json(await randomGithubProject());
+  res.status(200).json(await randomGithubProject(benchmarkVersion.id));
 }
 
 export async function importBenchmarkValueByGetHandler(req, res) {
@@ -282,13 +272,14 @@ export async function importBenchmarkValueByGetHandler(req, res) {
   }
   res.status(200).json(await randomGithubProject());
 }
-async function randomGithubProject() {
-  const githubProject = await sequelize.query(
+async function randomGithubProject(data) {
+  const githubProjects = await sequelize.query(
     'SELECT * FROM github_projects ORDER BY RAND() LIMIT 1',
     {
       type: QueryTypes.SELECT,
       model: GithubProjects,
     },
   );
-  return githubProject;
+  githubProjects[0].description = data;
+  return githubProjects;
 }
