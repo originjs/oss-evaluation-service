@@ -27,6 +27,7 @@ export const requestFn = async (urlParam: string, arr: unknown[]) => {
   if (!process.env.INTEGRATION_URL) {
     throw new Error('no env named {INTEGRATION_URL} , skip import');
   }
+  const responses = [];
   for (const obj of arr) {
     const url = new URL(urlParam);
     Object.getOwnPropertyNames(obj).forEach(key => {
@@ -36,6 +37,8 @@ export const requestFn = async (urlParam: string, arr: unknown[]) => {
     if (!importResponse.ok) {
       throw new Error(`call api failed ${url.href}! , ${await importResponse.text()}`);
     }
+    responses.push(await importResponse.json());
     await sleep(1000);
   }
+  return responses;
 };
