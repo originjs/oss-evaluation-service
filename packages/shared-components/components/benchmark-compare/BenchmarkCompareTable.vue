@@ -144,7 +144,7 @@ const computeColor: (row: RowData, column: ColumnData) => string = (row, column)
       class-name="benchmark-value-cell"
     >
       <template #header>
-        <div class="text-center">
+        <div class="flex justify-center text-center">
           <el-link
             v-if="options?.clickColumnHeader"
             :underline="false"

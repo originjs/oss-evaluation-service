@@ -381,6 +381,7 @@ async function parseBenchmarkExcel2JSON(buffer: Buffer, benchmarkName?: string) 
   const header = sheet.getRow(1);
   const rows = sheet.getRows(2, rowCount - 1);
   const softwareReg = /.+(?=[(（].+[)）])/;
+  const versionReg = /(?<=[(（]).+(?=[)）])/;
   const benchmarkData: BenchmarkValue[] = [];
   const indexData: BenchmarkIndex[] = [];
   const techStackName: string = sheet.name.match(/(?<=<).+(?=>)/)?.[0];
@@ -431,14 +432,13 @@ async function parseBenchmarkExcel2JSON(buffer: Buffer, benchmarkName?: string) 
           const softwareNameAndVersion = header.getCell(num).value.toString();
           const fullSoftwareName =
             softwareNameAndVersion.match(softwareReg)?.[0] ?? softwareNameAndVersion;
+          const versionName = softwareNameAndVersion.match(versionReg)?.[0];
           if (!softwareName2Data.has(softwareNameAndVersion)) {
             softwareName2Data.set(softwareNameAndVersion, {
               benchmark: index.indexName,
               techStack: benchmarkName || '',
               projectName: fullSoftwareName,
-              displayName: softwareNameAndVersion.includes('/')
-                ? softwareNameAndVersion.split('/')[1]
-                : softwareNameAndVersion,
+              displayName: versionName,
               rawValue: Number(cellVal),
             } as BenchmarkValue);
           }
