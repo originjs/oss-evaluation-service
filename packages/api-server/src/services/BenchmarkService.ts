@@ -146,7 +146,7 @@ interface BenchmarkValue {
   benchmark: string;
   rawValue: number;
   platform: string;
-  projectId: number;
+  projectId?: number;
   patchId: string;
   envInfo: string;
   techStack?: string;
@@ -160,7 +160,7 @@ export async function importBenchmarkJson(data: {
   const { benchmark, benchmarkIndex } = data;
   const errorInfo = `The necessary parameters are missing, the complete parameters are as follows：
     {
-      benchmark: [{ techStack: string, projectId: number, projectName: string, displayName: string, 
+      benchmark: [{ techStack: string, projectName: string, displayName: string, 
                     benchmark: string, rawValue: number, platform: string, envInfo: string }],
       benchmarkIndex: [{ techStack: string, category: string, indexName: string, displayName: string, unit: string, order: number }]
     }
@@ -200,7 +200,6 @@ export async function importBenchmarkJson(data: {
       !item.benchmark ||
       !item.rawValue ||
       !item.platform ||
-      !item.projectId ||
       !item.envInfo ||
       !item.techStack
     ) {
@@ -213,11 +212,6 @@ export async function importBenchmarkJson(data: {
       );
     }
 
-    if (!item.patchId) {
-      const patchId = moment(new Date()).format('YYYYMMDDHHmmssSSS');
-      item.patchId = patchId;
-    }
-
     if (!indexs.has(item.benchmark)) {
       throw new Error(
         `Benchmark metrics do not exist in the index collection, check for consistency between the benchmark and indexName fields.`,
@@ -225,10 +219,12 @@ export async function importBenchmarkJson(data: {
     }
   });
 
-  await fillBenchmarkBid(data.benchmark, {
+  const apply = {
     benchmarkName: benchmarkName,
     envInfo: benchmark[0].envInfo,
-  });
+  };
+  await setOthersParam4Benchmark(data.benchmark, apply);
+  await fillBenchmarkBid(data.benchmark, apply);
   // call integration url to import benchmark data
   await importBenchmarkData({ benchmark, index: benchmarkIndex });
 }
