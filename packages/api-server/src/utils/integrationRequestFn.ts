@@ -33,11 +33,16 @@ export const requestFn = async (urlParam: string, arr: unknown[]) => {
     Object.getOwnPropertyNames(obj).forEach(key => {
       url.searchParams.append(key, obj[key]);
     });
-    const importResponse = await fetch(url.href, requestOpts);
-    if (!importResponse.ok) {
-      throw new Error(`call api failed ${url.href}! , ${await importResponse.text()}`);
+    const response = await fetch(url.href, requestOpts);
+    try {
+      const result = await response.clone().json();
+      if (!result || !result.length) {
+        throw new Error();
+      }
+      responses.push(result);
+    } catch (error) {
+      throw new Error(`call api failed ${url.href}! , ${await response.text()}`);
     }
-    responses.push(await importResponse.json());
     await sleep(1000);
   }
   return responses;
