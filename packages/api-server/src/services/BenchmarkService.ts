@@ -262,7 +262,7 @@ export async function importBenchmarkApply(applyUUID: string) {
     },
   });
 
-  if (!benchmarkTechStack) {
+  if (!benchmarkTechStack && !process.env.INTEGRATION_URL) {
     await BenchmarkTechStacks.create({
       techStack: apply.benchmarkName,
       approved: 0,
