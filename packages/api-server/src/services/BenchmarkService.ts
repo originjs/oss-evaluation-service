@@ -396,11 +396,11 @@ async function parseBenchmarkExcel2JSON(buffer: Buffer, benchmarkName?: string) 
     const cellValues = row.values as CellValue[];
     for (let num = 1; num < cellValues.length; num++) {
       const cellVal = cellValues[num]?.toString()?.trim();
-      // skip notes
-      if (cellVal.startsWith('注意事项')) {
+      if (!cellVal) {
         continue;
       }
-      if (!cellVal) {
+      // skip notes
+      if (cellVal.startsWith('注意事项')) {
         continue;
       }
       let indexRecord: { indexName: string };
