@@ -396,11 +396,11 @@ async function parseBenchmarkExcel2JSON(buffer: Buffer, benchmarkName?: string) 
     const cellValues = row.values as CellValue[];
     for (let num = 1; num < cellValues.length; num++) {
       const cellVal = cellValues[num]?.toString()?.trim();
-      // skip notes
-      if (cellVal.startsWith('注意事项')) {
+      if (!cellVal) {
         continue;
       }
-      if (!cellVal) {
+      // skip notes
+      if (cellVal.startsWith('注意事项')) {
         continue;
       }
       let indexRecord: { indexName: string };
@@ -425,7 +425,10 @@ async function parseBenchmarkExcel2JSON(buffer: Buffer, benchmarkName?: string) 
           break;
         default: {
           // get softwareName
-          const softwareNameAndVersion = header.getCell(num).value.toString();
+          const softwareNameAndVersion = header.getCell(num).value?.toString()?.trim();
+          if (!softwareNameAndVersion) {
+            continue;
+          }
           const fullSoftwareName =
             softwareNameAndVersion.match(softwareReg)?.[0] ?? softwareNameAndVersion;
           const versionName = softwareNameAndVersion.match(versionReg)?.[0];
