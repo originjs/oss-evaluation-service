@@ -425,7 +425,10 @@ async function parseBenchmarkExcel2JSON(buffer: Buffer, benchmarkName?: string) 
           break;
         default: {
           // get softwareName
-          const softwareNameAndVersion = header.getCell(num).value.toString();
+          const softwareNameAndVersion = header.getCell(num).value?.toString()?.trim();
+          if (!softwareNameAndVersion) {
+            continue;
+          }
           const fullSoftwareName =
             softwareNameAndVersion.match(softwareReg)?.[0] ?? softwareNameAndVersion;
           const versionName = softwareNameAndVersion.match(versionReg)?.[0];
