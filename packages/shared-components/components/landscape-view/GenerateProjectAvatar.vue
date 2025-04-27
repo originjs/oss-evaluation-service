@@ -5,9 +5,12 @@
     flex
     items-center
   >
-    <span ref="projectNameRef" class="landscape-generate-avatar-text" style="text-align: center">{{
-      projectName
-    }}</span>
+    <span
+      ref="projectNameRef"
+      class="landscape-generate-avatar-text"
+      style="text-align: center; white-space: pre-line"
+      >{{ projectName }}</span
+    >
   </div>
 </template>
 <script setup lang="ts">
@@ -21,10 +24,10 @@ const props = defineProps<{
 const formatProjectName = (projectName?: string) => {
   if (!projectName) return '';
   return projectName
-    .replaceAll('-', ' ')
-    .replaceAll('_', ' ')
-    .replaceAll(':', ' ')
-    .replaceAll('/', ' ');
+    .replaceAll('-', '-\n')
+    .replaceAll('_', '_\n')
+    .replaceAll(':', ':\n')
+    .replaceAll('/', '/\n');
 };
 
 const projectName = ref(formatProjectName(model.value));
