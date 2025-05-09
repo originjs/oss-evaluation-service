@@ -29,4 +29,8 @@ export interface Subcategory {
   displayCount: number; // 展示项目数量
 }
 
+export type ThirdCategory = Subcategory & {
+  level3: string;
+};
+
 export type Category = Record<string, Record<string, Subcategory>>;
