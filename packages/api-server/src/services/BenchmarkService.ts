@@ -437,7 +437,7 @@ async function parseBenchmarkExcel2JSON(buffer: Buffer, benchmarkName?: string) 
               benchmark: index.indexName,
               techStack: benchmarkName || '',
               projectName: fullSoftwareName,
-              displayName: versionName,
+              displayName: versionName || 'none',
               rawValue: Number(cellVal),
             } as BenchmarkValue);
           }
