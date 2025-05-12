@@ -495,7 +495,7 @@ const processLandscapeData = (projects: Project[], isInit?: boolean) => {
     if (!category[item.category][item.subcategory]) {
       category[item.category][item.subcategory] = {};
     }
-    const level3 = item.labels[0] || '未分类';
+    const level3 = item.labels[0] || item.subcategory;
 
     if (!category[item.category][item.subcategory][level3]) {
       category[item.category][item.subcategory][level3] = {
