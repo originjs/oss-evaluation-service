@@ -66,6 +66,9 @@ export default sequelize.define(
     dependentRepositories: {
       type: DataTypes.BIGINT,
     },
+    aiDescription: {
+      type: DataTypes.JSON,
+    },
   },
   {
     tableName: 'github_projects',

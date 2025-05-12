@@ -176,6 +176,9 @@ export default sequelize.define(
     dataType: {
       type: DataTypes.TINYINT,
     },
+    aiDescription: {
+      type: DataTypes.JSON,
+    },
   },
   {
     tableName: 'github_projects_t',

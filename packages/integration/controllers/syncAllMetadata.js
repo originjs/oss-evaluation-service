@@ -25,6 +25,7 @@ import { syncSingleProjectCreatorsCountries } from './ossinsightCreatorsCountry.
 import { syncSingleProjectCreatorsOrg } from './ossinsightCreatorsOrg.js';
 import { sonarScanByProject } from './sonarCloud.js';
 import { syncSingleProjectAlternative, updateProjectId } from './alternative.js';
+import { syncSingleProjectDescription } from './projectDescription.js';
 
 export default async function syncSingleProjectAllMetadataHandler(req, res) {
   const options = req.body;
@@ -130,6 +131,8 @@ async function syncSingleProjectAllMetadata(options) {
     syncSingleProjectEvaluation,
     // 15. AI project alternative
     syncSingleProjectAlternative,
+    // 16. AI project description
+    syncSingleProjectDescription,
   ];
 
   for (const _function of functions) {

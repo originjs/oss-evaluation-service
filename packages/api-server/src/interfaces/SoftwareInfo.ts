@@ -27,6 +27,14 @@ export interface TechRadarItem {
   moved: number;
 }
 
+export interface aiDescription {
+  feature: string;
+  summary: string;
+  coreFeature: string;
+  introduction: string;
+  usageSuggestion: string;
+}
+
 export interface SoftwareInfo extends SoftwareBaseInfo {
   language: string;
   firstCommit: string;
@@ -107,6 +115,7 @@ export interface SoftwareInfo extends SoftwareBaseInfo {
   };
   satisfactionExport?: string;
   gzipSize?: number;
+  aiDescription?: aiDescription;
 }
 
 export type CompareProject = Pick<SoftwareInfo, 'repoName' | 'logo' | 'url' | 'description'>;
