@@ -173,6 +173,9 @@ export default sequelize.define(
     recordDesc: {
       type: DataTypes.STRING(255),
     },
+    aiDescription: {
+      type: DataTypes.JSON,
+    },
   },
   {
     tableName: 'github_projects',

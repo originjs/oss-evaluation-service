@@ -1048,6 +1048,19 @@ onBeforeUnmount(() => {
         </div>
         <div flex justify-between items-center>
           <el-descriptions w-1000px border py-20px :column="2">
+            <el-descriptions-item
+              v-if="project?.aiDescription"
+              label="软件介绍"
+              :span="2"
+              label-width="100px"
+            >
+              <span relative>
+                {{ project.aiDescription.introduction }}
+                <el-tooltip content="软件介绍内容为AI大模型生成">
+                  <span i-custom:ai class="badge-icon ai-introduction"></span>
+                </el-tooltip>
+              </span>
+            </el-descriptions-item>
             <el-descriptions-item label="Stars">{{ baseInfo.star }}</el-descriptions-item>
             <el-descriptions-item label="Forks">{{ baseInfo.fork }}</el-descriptions-item>
             <el-descriptions-item label="开发语言">{{ baseInfo.language }}</el-descriptions-item>
@@ -2042,6 +2055,11 @@ onBeforeUnmount(() => {
   right: 0;
   width: 24px;
   height: 24px;
+}
+
+.ai-introduction {
+  top: 0;
+  left: -40px;
 }
 
 .alter-item + .alter-item {

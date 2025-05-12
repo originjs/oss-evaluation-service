@@ -99,6 +99,7 @@ import {
   storeAllProjectTrendHandler,
 } from '../controllers/trendHistory.js';
 import { storeTrendRankHistoryHandler } from '../controllers/trendRankHistory.js';
+import { syncProjectDescriptionHandler } from '../controllers/projectDescription.js';
 
 const router = express.Router();
 
@@ -358,6 +359,27 @@ router.route('/opendigger').post(syncOpendiggerHandler);
  *         description: success.
  */
 router.route('/alternative').post(syncAlternativeHandler);
+
+/**
+ * @swagger
+ * /sync/projectDescription:
+ *   post:
+ *     summary: Synchronize Project Description from AI
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               repoUrls:
+ *                 type: Array<string>
+ *                 example: ["https://github.com/vuejs/vue"]
+ *     responses:
+ *       200:
+ *         description: success.
+ */
+router.route('/projectDescription').post(syncProjectDescriptionHandler);
 
 /**
  * @swagger
