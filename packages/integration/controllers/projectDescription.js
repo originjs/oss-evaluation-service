@@ -42,9 +42,11 @@ export async function syncSingleProjectDescription(project) {
         // remove markdown block
         json = json.substring(json.indexOf('\n'), json.lastIndexOf('\n'));
       }
-      const content = JSON5.parse(json);
-      if (content) {
+      try {
+        const content = JSON5.parse(json);
         await GithubProjectsTable.update({ aiDescription: content }, { where: { id: project.id } });
+      } catch (e) {
+        logger.error('Parse json data failed! Skip it.', json, e);
       }
     }
   }
