@@ -3,12 +3,13 @@
     <div
       v-for="(categoryName, index) in Object.keys(landscapeData)"
       :key="categoryName"
+      class="category-wrap"
       w-full
       flex
       mb-16px
     >
       <div
-        :style="`background-color:${options.colors[index % options.colors.length]}`"
+        :style="`background-color:${bgColor || options.colors[index % options.colors.length]}`"
         w-32px
         rd-4px
         c-white
@@ -33,7 +34,7 @@
           :style="`width: ${landscapeData[categoryName][subcategoryName].width}px;`"
         >
           <div
-            :style="`background-color:${options.colors[index % options.colors.length]}`"
+            :style="`background-color:${bgColor || options.colors[index % options.colors.length]}`"
             h-32px
             rd-4px
             c-white
@@ -207,6 +208,7 @@ import ProjectThumbnails from './ProjectThumbnails.vue';
 import { RadarRing } from './constant';
 
 interface Project {
+  rootCategory?: string;
   category: string;
   subcategory: string;
   name: string;
@@ -238,7 +240,9 @@ type AutoLayout = {
 
 const props = defineProps<{
   projects: Array<Project>;
+  bgColor?: string;
   options?: {
+    hasThirdLevel?: boolean;
     colors?: Array<string>;
     maxProjects?: number;
     labelFormat?: (project: Project) => string;
@@ -301,9 +305,16 @@ const getLandscapeWidth = () => {
 
 const MIN_COLUMN_PROJECTS = 4; // 一列中至少要展示多少个项目数，用来计算最小列宽
 
+function getLayout() {
+  if (options.value.hasThirdLevel && options.value.layout && props.projects.length) {
+    return options.value.layout[props.projects[0].rootCategory || ''];
+  }
+  return options.value.layout;
+}
+
 // 对于没有使用 layout 设置宽度的子类别，根据 maxCol + 权重 计算子类别宽度
 const calcWidth = (category: Category, calcCategory: Category) => {
-  const layout = options.value.layout;
+  const layout = getLayout();
   const autoLayout = options.value.autoLayout;
   const width = getLandscapeWidth();
 
@@ -421,7 +432,7 @@ const calcWidth = (category: Category, calcCategory: Category) => {
 };
 
 const processLandscapeData = (projects: Project[], isInit?: boolean) => {
-  const layout = options.value.layout;
+  const layout = getLayout();
   const width = getLandscapeWidth();
   const category: Category = {}; // 处理后的数据
   const calcCategory: Category = {}; // 需要计算宽度的类别
