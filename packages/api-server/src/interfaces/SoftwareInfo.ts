@@ -285,3 +285,13 @@ export interface BenchmarkTechStack {
   subcategory: string;
   orderNum: number;
 }
+
+export interface RepoInfo {
+  repoUrl: string;
+  landspace?: string;
+}
+
+export interface RepoList {
+  repoUrls: string[];
+  landspace?: string;
+}

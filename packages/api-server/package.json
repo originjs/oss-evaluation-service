@@ -40,7 +40,9 @@
     "tsoa": "^6.2.0",
     "underscore": "^1.13.6",
     "undici": "^6.19.4",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "axios": "^1.6.7",
+    "json5": "^2.2.3"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
