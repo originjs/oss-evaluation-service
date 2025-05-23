@@ -40,12 +40,12 @@ async function extractResult(rawPatchId) {
   }
   for (const result of resultList) {
     const framework = frameworkList[result.f];
-    const {projectId, projectName, techStack} = await matchProject(framework);
-    if (projectId == null || techStack !== '前端框架') {
+    const {pId, projectName, techStack} = await matchProject(framework);
+    if (pId == null || techStack !== '前端框架') {
       continue;
     }
     const versionRow = {
-      projectId,
+      pId,
       projectName,
       displayName: framework.name,
       techStack: '前端框架',
@@ -65,7 +65,7 @@ async function extractResult(rawPatchId) {
         value = valueArray.reduce((a, b) => a + b, 0) / valueArray.length;
       }
       const row = {
-        projectId,
+        pId,
         projectName,
         displayName: framework.name,
         benchmark: BENCHMARK_MAP[benchmark.label],
@@ -110,10 +110,10 @@ async function matchProject(framework) {
     }
   }
   if (project === null) {
-    return {projectId: null, projectName: null};
+    return {pId: null, projectName: null};
   }
   return {
-    projectId: project.projectId,
+    pId: project.pId,
     projectName: project.name,
     techStack: project.subcategory
   }

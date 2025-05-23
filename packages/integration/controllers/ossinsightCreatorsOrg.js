@@ -1,5 +1,5 @@
 import {
-  GithubProjects,
+  ViewProjects,
   logger,
   OssinsightCreatorsOrganizations,
   sequelize,
@@ -15,17 +15,17 @@ const issueOrganizationsUrl =
   'https://api.ossinsight.io/q/analyze-issue-creators-company?repoId=:repoId&limit=50';
 
 const QUERY_SQL = `
-select distinct project.id,
-                project.name,
-                project.full_name as fullName
-from github_projects project
-         left join (select *
-                    from ossinsight_creators_organizations
-                    where updated_at >= :startDate) organization on project.id = project_id
-where isnull(project_id)
-and project.id >= :startId
-and project.id <= :endId
-order by id;
+    select distinct project.p_id,
+                    project.name,
+                    project.full_name as fullName
+    from view_projects project
+             left join (select *
+                        from ossinsight_creators_organizations
+                        where updated_at >= :startDate) organization on project.p_id = organization.p_id
+    where isnull(organization.p_id)
+      and project.p_id >= :startId
+      and project.p_id <= :endId
+    order by p_id;
 `;
 const integrationInfo = {
   prOrganizations: { type: 0, url: prOrganizationsUrl },
@@ -61,11 +61,11 @@ export async function syncAllProjectCreatorsOrgHandler(req, res) {
  */
 export async function syncSingleProjectCreatorsOrgHandler(req, res) {
   const { repoUrl } = req.body;
-  let project = await GithubProjects.findOne({
+  let project = await ViewProjects.findOne({
     where: {
       htmlUrl: repoUrl,
     },
-    attributes: ['id', 'fullName'],
+    attributes: ['pId', 'fullName'],
   });
   await syncSingleProjectCreatorsOrg(project);
 
@@ -98,8 +98,8 @@ export async function syncSingleProjectCreatorsOrg(project) {
  * @return {Promise<void>} A promise that resolves when the synchronization is complete.
  */
 export async function syncAllProjectCreatorsOrg(options) {
-  const startId = options?.minId || (await GithubProjects.min('id'));
-  const endId = options?.maxId || (await GithubProjects.max('id'));
+  const startId = options?.minId || (await ViewProjects.min('pId'));
+  const endId = options?.maxId || (await ViewProjects.max('pId'));
   const startDate = options?.startDate || getCurrentDate();
 
   const projectList = await sequelize.query(QUERY_SQL, {
@@ -107,7 +107,7 @@ export async function syncAllProjectCreatorsOrg(options) {
     type: sequelize.QueryTypes.SELECT,
   });
   for (let project of projectList) {
-    if (project && project.id) {
+    if (project && project.pId) {
       await syncSingleProjectCreatorsOrg(project);
     }
   }
@@ -115,7 +115,7 @@ export async function syncAllProjectCreatorsOrg(options) {
 
 async function getCreatorsOrg(project, option) {
   const res = [];
-  const result = await sendRequestByFullName(project.id, option.url);
+  const result = await sendRequestByFullName(project.pId, option.url);
   const organizationList = result?.data;
   if (
     organizationList === null ||
@@ -125,13 +125,13 @@ async function getCreatorsOrg(project, option) {
     logger.info(
       'sync project data from ossinsight, data not found!',
       project.fullName,
-      project.id,
+      project.pId,
       option.url,
     );
   } else {
     organizationList.forEach(el => {
       res.push({
-        project_id: project.id,
+        pId: project.pId,
         org_name: el.company_name,
         creators_num: getCreatorsNum(el, option.type),
         percentage: el.proportion,
@@ -141,7 +141,7 @@ async function getCreatorsOrg(project, option) {
     logger.info(
       'sync project data from ossinsight, successful!',
       project.fullName,
-      project.id,
+      project.pId,
       option.url,
     );
   }
@@ -192,7 +192,7 @@ async function bulkInsertData(data) {
       await OssinsightCreatorsOrganizations.destroy(
         {
           where: {
-            project_id: data[0]?.project_id,
+            p_id: data[0]?.pId,
             type: data[0]?.type,
           },
         },
@@ -202,7 +202,7 @@ async function bulkInsertData(data) {
         data,
         {
           updateOnDuplicate: [
-            'project_id',
+            'p_id',
             'org_name',
             'creators_num',
             'percentage',

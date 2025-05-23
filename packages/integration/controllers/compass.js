@@ -1,7 +1,7 @@
 import { gql, request } from 'graphql-request';
 import {
   CompassActivity,
-  GithubProjects,
+  ViewProjects,
   logger,
   sequelizeExt,
   sequelize,
@@ -93,7 +93,7 @@ export async function syncSingleProjectCompassMetric(project, options) {
 
   const compassActivityList = await getIncrementalIntegrationArray(
     project.htmlUrl,
-    project.id,
+    project.pId,
     activityMetrics,
   );
   if (compassActivityList.length === 0) {
@@ -119,8 +119,8 @@ export async function syncSingleProjectCompassMetric(project, options) {
  */
 export async function syncAllProjectCompassMetric(options) {
   const { startIndex, beginDate } = options;
-  let projectList = await GithubProjects.findAll({
-    attributes: ['id', 'htmlUrl'],
+  let projectList = await ViewProjects.findAll({
+    attributes: ['pId', 'htmlUrl'],
   });
   const projectCount = projectList.length;
 
@@ -139,7 +139,7 @@ export async function syncAllProjectCompassMetric(options) {
   }
 }
 
-async function getIncrementalIntegrationArray(repoUrl, projectId, activityMetrics) {
+async function getIncrementalIntegrationArray(repoUrl, pId, activityMetrics) {
   const existCompassDateList = await CompassActivity.findAll({
     attributes: ['grimoireCreationDate'],
     where: {
@@ -154,7 +154,7 @@ async function getIncrementalIntegrationArray(repoUrl, projectId, activityMetric
     if (!existCompassDateList.includes(activityDate)) {
       activity.id = 0;
       activity.hasCompassMetric = 1;
-      activity.projectId = projectId;
+      activity.pId = pId;
       activity.repoUrl = activity.label;
       compassMetricsList.push(activity);
     }
@@ -227,42 +227,39 @@ async function syncAllProjectCompassSubstitute() {
   logger.info('syncAllProjectCompassSubstitute start');
   logger.info('Add full_name field');
   const sql1 = `
-    update \`oss-eval-inner\`.compass_activity_detail_substitute detail
-    set full_name = substring_index(detail.repo_url, 'https://github.com/', -1)
-    where isnull(project_id);
+      update \`oss-eval-inner\`.compass_activity_detail_substitute detail
+      set full_name = substring_index(detail.repo_url, 'https://github.com/', -1)
+      where isnull(p_id);
   `;
   await sequelizeExt.query(sql1, { type: sequelize.QueryTypes.UPDATE });
 
-  logger.info('Add project_id field');
+  logger.info('Add p_id field');
   const sql2 = `
-    update \`oss-eval-inner\`.compass_activity_detail_substitute detail
-        inner join \`oss-eval\`.github_projects projects on detail.repo_url = html_url
-    set detail.project_id = projects.id
-    where isnull(project_id);
+      update \`oss-eval-inner\`.compass_activity_detail_substitute detail
+          inner join \`oss-eval\`.view_projects projects on detail.repo_url = html_url
+      set detail.p_id = projects.p_id
+      where isnull(p_id);
   `;
   await sequelizeExt.query(sql2, { type: sequelize.QueryTypes.UPDATE });
 
   logger.info('enrich evaluation_summary field');
   const sql3 = `
-    update \`oss-eval\`.oss_evaluation_summary t1 inner join
-      (
-        select a.*
-        from \`oss-eval-inner\`.compass_activity_detail_substitute a,
-        (select project_id, Max(grimoire_creation_date) grimoire_creation_date
-        from \`oss-eval-inner\`.compass_activity_detail_substitute
-        group by project_id
-        )b
-        where a.project_id = b.project_id
-        and a.grimoire_creation_date = b.grimoire_creation_date
-      )t2 on t1.project_id = t2.project_id
-    set t1.contributor_count = t2.contributor_count,
-    t1.closed_issues_count = t2.closed_issues_count,
-    t1.commit_frequency = t2.commit_frequency,
-    t1.comment_frequency = t2.comment_frequency,
-    t1.code_review_count = t2.code_review_count,
-    t1.org_count = t2.org_count,
-    t1.updated_issues_count = t2.updated_issues_count,
-    t1.recent_releases_count = t2.recent_releases_count
+      update \`oss-eval\`.oss_evaluation_summary t1 inner join
+          (select a.*
+           from \`oss-eval-inner\`.compass_activity_detail_substitute a,
+                (select pId, Max(grimoire_creation_date) grimoire_creation_date
+                 from \`oss-eval-inner\`.compass_activity_detail_substitute
+                 group by pId) b
+           where a.pId = b.pId
+             and a.grimoire_creation_date = b.grimoire_creation_date) t2 on t1.pId = t2.pId
+      set t1.contributor_count     = t2.contributor_count,
+          t1.closed_issues_count   = t2.closed_issues_count,
+          t1.commit_frequency      = t2.commit_frequency,
+          t1.comment_frequency     = t2.comment_frequency,
+          t1.code_review_count     = t2.code_review_count,
+          t1.org_count             = t2.org_count,
+          t1.updated_issues_count  = t2.updated_issues_count,
+          t1.recent_releases_count = t2.recent_releases_count
   `;
 
   await sequelizeExt.query(sql3, { type: sequelize.QueryTypes.UPDATE });

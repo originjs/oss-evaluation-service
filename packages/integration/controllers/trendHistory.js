@@ -1,5 +1,5 @@
 import {
-  GithubProjects,
+  ViewProjects,
   EvaluationSummaryHistory,
   TrendHistory,
   logger,
@@ -23,7 +23,7 @@ dayjs.extend(utc);
 export async function storeSingleProjectTrendHandler(req, res) {
   const { repoUrl: repoUrl, date: dateStr } = req.params;
   const project = await getProjectByUrl(repoUrl);
-  await storeTrendHistory(project.id, dayjs(dateStr));
+  await storeTrendHistory(project.pId, dayjs(dateStr));
   res.status(200).send('success');
 }
 
@@ -46,22 +46,22 @@ const DATE_TYPE = {
   WEEK: 3,
 };
 
-async function getProjectList(projectId) {
-  const projectList = await GithubProjects.findAll({
-    attributes: ['id'],
-    where: projectId
+async function getProjectList(pId) {
+  const projectList = await ViewProjects.findAll({
+    attributes: ['pId'],
+    where: pId
       ? {
-          id: projectId,
+          pId,
         }
       : {},
   });
   return projectList;
 }
 
-export async function storeTrendHistory(projectId, date) {
+export async function storeTrendHistory(pId, date) {
   logger.info('Store Trend History');
-  // 1. get all github project
-  const projectList = await getProjectList(projectId);
+  // 1. get all project
+  const projectList = await getProjectList(pId);
   const sumOfProject = projectList.length;
   logger.info(`The Number of Project : ${sumOfProject}`);
   let count = 1;
@@ -69,8 +69,8 @@ export async function storeTrendHistory(projectId, date) {
     logger.info('**Current Progress**: ', `${count}/${sumOfProject}`);
     count += 1;
     // 2. update project trend
-    await storeGithubHistory(project.id, date);
-    // await storeEvaluateScore(project.id, date);
+    await storeGithubHistory(project.pId, date);
+    // await storeEvaluateScore(project.pId, date);
   }
 }
 
@@ -78,14 +78,14 @@ export async function storeTrendHistory(projectId, date) {
  * Stores the evaluation trend history for a specific project or all projects.
  *
  * @export
- * @param {number|null} projectId - The ID of the project to update. If null, updates all projects.
+ * @param {number|null} pId - The ID of the project to update. If null, updates all projects.
  * @param {dayjs.Dayjs} dayjsDate - The date for which to store the evaluation trend history.
  * @returns {Promise<void>} - A promise that resolves when the operation is complete.
  */
-export async function storeEvaluateTrendHistory(projectId, dayjsDate) {
+export async function storeEvaluateTrendHistory(pId, dayjsDate) {
   logger.info('Store Evaluate Trend History');
-  // 1. get all github project
-  const projectList = await getProjectList(projectId);
+  // 1. get all project
+  const projectList = await getProjectList(pId);
   const sumOfProject = projectList.length;
   logger.info(`The Number of Project : ${sumOfProject}`);
   let count = 1;
@@ -93,7 +93,7 @@ export async function storeEvaluateTrendHistory(projectId, dayjsDate) {
     logger.info('**Current Progress**: ', `${count}/${sumOfProject}`);
     count += 1;
     // 2. update project trend
-    await storeEvaluateScore(project.id, dayjsDate);
+    await storeEvaluateScore(project.pId, dayjsDate);
   }
 }
 
@@ -154,11 +154,11 @@ function getCalculateDateAndType(date) {
  * retrieves the GitHub information for those dates, and then upserts
  * the trend data into the TrendHistory table.
  *
- * @param {number} projectId - The ID of the project for which to store the history.
+ * @param {number} pId - The ID of the project for which to store the history.
  * @param {dayjs.Date} date - The date for which to calculate the GitHub history.
  * @returns {Promise<void>} - A promise that resolves when the operation is complete.
  */
-export async function storeGithubHistory(projectId, date) {
+export async function storeGithubHistory(pId, date) {
   const dateInfos = getCalculateDateAndType(date);
   const propertyTypes = [
     { dataType: DATA_TYPE.STAR, name: 'stars' },
@@ -169,19 +169,19 @@ export async function storeGithubHistory(projectId, date) {
       attributes: ['stars', 'contributors'],
       where: {
         date: dateInfo.currentDate.toDate(),
-        projectId,
+        pId,
       },
     });
     const previousGithubInfo = await GithubProjectsHistory.findOne({
       attributes: ['stars', 'contributors'],
       where: {
         date: dateInfo.previousDate.toDate(),
-        projectId,
+        pId,
       },
     });
     for (const property of propertyTypes) {
       const updateData = {
-        projectId,
+        pId,
         date: date.toDate(),
         dateType: dateInfo.dateType,
         dataType: property.dataType,
@@ -202,11 +202,11 @@ export async function storeGithubHistory(projectId, date) {
  * It retrieves the current and previous evaluation scores, calculates
  * the increase in scores, and upserts the trend data into the TrendHistory table.
  *
- * @param {number} projectId - The ID of the project for which to store the evaluation scores.
+ * @param {number} pId - The ID of the project for which to store the evaluation scores.
  * @param {dayjs.Date} dayjsDate - The date for which to calculate the evaluation scores.
  * @returns {Promise<void>} - A promise that resolves when the operation is complete.
  */
-export async function storeEvaluateScore(projectId, dayjsDate) {
+export async function storeEvaluateScore(pId, dayjsDate) {
   const dateInfos = getCalculateDateAndType(dayjsDate);
   const propertyTypes = [
     { dataType: DATA_TYPE.ECOLOGY, name: 'ecologyScore' },
@@ -217,19 +217,19 @@ export async function storeEvaluateScore(projectId, dayjsDate) {
       attributes: ['ecologyScore', 'qualityScore'],
       where: {
         date: dateInfo.currentDate.toDate(),
-        projectId,
+        pId,
       },
     });
     const previous = await EvaluationSummaryHistory.findOne({
       attributes: ['ecologyScore', 'qualityScore'],
       where: {
         date: dateInfo.previousDate.toDate(),
-        projectId,
+        pId,
       },
     });
     for (const property of propertyTypes) {
       const updateData = {
-        projectId,
+        pId,
         date: dayjsDate.toDate(),
         dateType: dateInfo.dateType,
         dataType: property.dataType,

@@ -1,5 +1,5 @@
 import {
-  GithubProjects,
+  ViewProjects,
   GithubProjectsStargazersTrend,
   logger,
   sequelize,
@@ -10,23 +10,23 @@ import dayjs from 'dayjs';
 import { addMonitoringToTask } from '../scheduler/schdulerMonitor.js';
 import { Sequelize } from 'sequelize';
 
-const starHistoryUrl = 'https://api.ossinsight.io/q/analyze-stars-history?repoId=:projectId';
+const starHistoryUrl = 'https://api.ossinsight.io/q/analyze-stars-history?repoId=:pId';
 const defaultDate = '1010-01-01';
 
 const QUERY_SQL = `
-select distinct project.id,
-                project.name,
-                project.full_name as fullName,
-                project.html_url  as htmlUrl,
-                project_id        as projectId
-from github_projects project
-         left join (select *
-                    from github_projects_stargazers_trend
-                    where date >= :startDate) trend on project.id = project_id
-where isnull(project_id)
-  and project.id >= :startId
-  and project.id <= :endId
-order by id;
+    select distinct project.p_id,
+                    project.name,
+                    project.full_name as fullName,
+                    project.html_url  as htmlUrl,
+                    trend.p_id        as pId
+    from view_projects project
+             left join (select *
+                        from github_projects_stargazers_trend
+                        where date >= :startDate) trend on project.p_id = trend.p_id
+    where isnull(trend.p_id)
+      and project.p_id >= :startId
+      and project.p_id <= :endId
+    order by p_id;
 `;
 
 export async function githubStargazersTrendScheduler() {
@@ -68,8 +68,8 @@ export async function syncSingleProjectStargazersTrendHandler(req, res) {
  * @param {string} [options.beginDate]  integrate  begin date
  */
 async function syncAllProjectStargazersTrend(options) {
-  const maxId = await GithubProjects.max('id');
-  const minId = await GithubProjects.min('id');
+  const maxId = await ViewProjects.max('pId');
+  const minId = await ViewProjects.min('pId');
   await getStargazersTrend(options.startDate, minId, maxId);
 }
 
@@ -85,7 +85,7 @@ export async function syncSingleProjectStargazersTrend(project, options) {
   if (!options.startDate) {
     options.startDate = defaultDate;
   }
-  await getStargazersTrend(options.startDate, project.id, project.id);
+  await getStargazersTrend(options.startDate, project.pId, project.pId);
 }
 
 async function getStargazersTrend(startDate, startId, endId) {
@@ -95,18 +95,18 @@ async function getStargazersTrend(startDate, startId, endId) {
   });
 
   for (let project of needSyncProject) {
-    const response = await sendRequestByFullName(project.id);
+    const response = await sendRequestByFullName(project.pId);
     const trendList = response.data;
     let resTrend = [];
     if (trendList === null || trendList === undefined || trendList.length === 0) {
-      logger.info('sync error! project:{}  fullName{}', project.id, project.fullName);
+      logger.info('sync error! project:{}  fullName{}', project.pId, project.fullName);
       continue;
     }
     let maxDate = await getProjectMaxDate(project.fullName);
     for (let trend of trendList) {
       if (trend.event_month > maxDate) {
         resTrend.push({
-          projectId: project.id,
+          pId: project.pId,
           name: project.name,
           fullName: project.fullName,
           htmlUrl: project.htmlUrl,
@@ -119,7 +119,9 @@ async function getStargazersTrend(startDate, startId, endId) {
       const addedStars =
         trendList[trendList.length - 1].total - trendList[trendList.length - 4].total;
       sequelize.query(
-        `UPDATE oss_evaluation_summary SET star_rate = ${addedStars} WHERE project_id = ${project.id}`,
+        `UPDATE oss_evaluation_summary
+         SET star_rate = ${addedStars}
+         WHERE p_id = ${project.pId}`,
       );
     }
 
@@ -147,8 +149,8 @@ async function getProjectMaxDate(fullName) {
   return resTrend[0].dataValues.maxDate == null ? defaultDate : resTrend[0].dataValues.maxDate;
 }
 
-export async function sendRequestByFullName(projectId) {
-  const url = starHistoryUrl.replace(':projectId', projectId);
+export async function sendRequestByFullName(pId) {
+  const url = starHistoryUrl.replace(':pId', pId);
   logger.info(url);
   const response = await fetch(url, {
     retryOptions: {

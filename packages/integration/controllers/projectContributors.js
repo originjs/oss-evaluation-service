@@ -1,4 +1,4 @@
-import { GithubProjects, GithubProjectsTable, logger } from '@orginjs/oss-evaluation-data-model';
+import { ViewProjects, GithubProjectsTable, logger } from '@orginjs/oss-evaluation-data-model';
 import { getProjectByUrl } from '../util/util.js';
 import { fetchWithTimeout } from '../util/fetchWitTimeout.js';
 import { fetchWithRetries } from '../util/fetchWithRetries.js';
@@ -23,29 +23,29 @@ export async function syncAllProjectContributorsHandler(req, res) {
  * @returns {Promise<*>} inserted project contributors
  */
 export async function syncSingleProjectContributors(project) {
-  await syncProjectContributors(project.id);
+  await syncProjectContributors(project.pId);
 }
 
 export async function syncAllProjectContributors() {
   await syncProjectContributors();
 }
 
-async function getProjectList(projectId) {
-  const projectList = await GithubProjects.findAll({
-    attributes: ['id', 'htmlUrl', 'fullName', 'contributors'],
-    where: projectId
+async function getProjectList(pId) {
+  const projectList = await ViewProjects.findAll({
+    attributes: ['pId', 'platformType', 'htmlUrl', 'fullName', 'contributors'],
+    where: pId
       ? {
-          id: projectId,
+          pId,
         }
       : {},
   });
   return projectList;
 }
 
-export default async function syncProjectContributors(projectId) {
+export default async function syncProjectContributors(pId) {
   logger.info('Sync Project Contributors');
-  // 1. get all github project
-  const projectList = await getProjectList(projectId);
+  // 1. get all project
+  const projectList = await getProjectList(pId);
   const sumOfProject = projectList.length;
   logger.info(`The Number of Project : ${sumOfProject}`);
   let count = 1;
@@ -66,7 +66,7 @@ export default async function syncProjectContributors(projectId) {
       { contributors: contributors === -1 ? null : contributors },
       {
         where: {
-          id: project.id,
+          pId: project.pId,
         },
       },
     );
@@ -178,4 +178,3 @@ export const projectContributorsTimer = addMonitoringToTask(
   'projectContributorsScheduler',
   'projectContributorsScheduler',
 );
-

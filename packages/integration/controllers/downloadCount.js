@@ -2,7 +2,7 @@ import fetch from '@adobe/node-fetch-retry';
 import { chunk } from 'underscore';
 import {
   PackageDownloadCount,
-  GithubProjects,
+  ViewProjects,
   sequelize,
   logger,
 } from '@orginjs/oss-evaluation-data-model';
@@ -14,20 +14,19 @@ import { addMonitoringToTask } from '../scheduler/schdulerMonitor.js';
 const PAGE_SIZE = 128;
 
 const QUERY_PACKAGE_START = `
-    select project_id as projectId, package
+    select p_id as pId, package
     from project_packages
-         left join (SELECT package_name
-                    FROM package_download_count
-                    where !isnull(package_name)
-                      and week = :maxWeek) as base on package = package_name
-    where
-        project_id >= :startId
-        and project_id <= :endId
-        and isnull(package_name)
-        and !isnull(package)
-        and package != ''
-        and main_package = 1
-    `;
+             left join (SELECT package_name
+                        FROM package_download_count
+                        where !isnull(package_name)
+                          and week = :maxWeek) as base on package = package_name
+    where p_id >= :startId
+      and p_id <= :endId
+      and isnull(package_name)
+      and !isnull(package)
+      and package != ''
+      and main_package = 1
+`;
 
 const QUERY_SCOPED_PACKAGE = `
         and package like '%/%'
@@ -38,7 +37,7 @@ const QUERY_NONE_SCOPED_PACKAGE = `
     `;
 
 const QUERY_PACKAGE_END = `
-        order by project_id, package
+        order by p_id, package
     `;
 
 export async function syncAllProjectPackageDownloadCountHandler(req, res) {
@@ -62,8 +61,8 @@ export async function syncSingleProjectPackageDownloadCountHandler(req, res) {
  * @param {dayjs.Date} options.endDate - The end date for the download count synchronization.
  */
 async function syncAllProjectPackageDownloadCount(options) {
-  const maxId = await GithubProjects.max('id');
-  const minId = await GithubProjects.min('id');
+  const maxId = await ViewProjects.max('p_id');
+  const minId = await ViewProjects.min('p_id');
   await getNoneScopedPackageDownloadCount(options.startDate, options.endDate, minId, maxId);
   await getScopedPackageDownloadCount(options.startDate, options.endDate, minId, maxId);
 }
@@ -80,10 +79,15 @@ export async function syncSingleProjectPackageDownloadCount(project, options) {
   await getNoneScopedPackageDownloadCount(
     options.startDate,
     options.endDate,
-    project.id,
-    project.id,
+    project.p_id,
+    project.p_id,
   );
-  await getScopedPackageDownloadCount(options.startDate, options.endDate, project.id, project.id);
+  await getScopedPackageDownloadCount(
+    options.startDate,
+    options.endDate,
+    project.p_id,
+    project.p_id,
+  );
 }
 
 async function getNoneScopedPackageDownloadCount(startDate, endDate, startId, endId) {
@@ -100,7 +104,7 @@ async function getNoneScopedPackageDownloadCount(startDate, endDate, startId, en
     },
   );
   const packageToProjectIdMap = needSyncPackage.reduce(
-    (map, obj) => map.set(obj.package, obj.projectId),
+    (map, obj) => map.set(obj.package, obj.pId),
     new Map(),
   );
   const needSyncPackageNumList = chunk(needSyncPackage, PAGE_SIZE);
@@ -137,9 +141,9 @@ async function getScopedPackageDownloadCount(startDate, endDate, startId, endId)
   let current = 0;
   for (const packageInfo of needSyncPackage) {
     logger.info(
-      '---------------getScopedPackageDownloadCount---------------package:%s, projectId:%s, total:%s, current:%s',
+      '---------------getScopedPackageDownloadCount---------------package:%s, pId:%s, total:%s, current:%s',
       packageInfo.package,
-      packageInfo.projectId,
+      packageInfo.pId,
       needSyncPackage.length,
       (current += 1),
     );
@@ -156,7 +160,7 @@ async function dealSinglePackage(week, packageInfo) {
     const downloadCountJson = await sendRequestByPoint(week.start, week.end, packageInfo.package);
     if (downloadCountJson.error === undefined) {
       PackageDownloadCount.upsert({
-        projectId: packageInfo.projectId,
+        pId: packageInfo.pId,
         packageName: downloadCountJson.package,
         startDate: downloadCountJson.start,
         endDate: downloadCountJson.end,
@@ -181,7 +185,7 @@ async function dealMultiPackage(week, packageName, packageToProjectIdMap) {
     if (downloadCountJson.error === undefined) {
       if (downloadCountJson.package != null) {
         downloadCountList.push({
-          projectId: packageToProjectIdMap.get(downloadCountJson.package),
+          pId: packageToProjectIdMap.get(downloadCountJson.package),
           packageName: downloadCountJson.package,
           startDate: downloadCountJson.start,
           endDate: downloadCountJson.end,
@@ -192,7 +196,7 @@ async function dealMultiPackage(week, packageName, packageToProjectIdMap) {
         Object.values(downloadCountJson).forEach(element => {
           if (element != null) {
             downloadCountList.push({
-              projectId: packageToProjectIdMap.get(element.package),
+              pId: packageToProjectIdMap.get(element.package),
               packageName: element.package,
               startDate: element.start,
               endDate: element.end,

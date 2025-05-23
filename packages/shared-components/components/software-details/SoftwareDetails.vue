@@ -345,7 +345,7 @@ function getCompaniesSeriesData(data: Array<InnovationCompaniesInfo>): SeriesDat
     count += 1;
     return {
       depth: 1,
-      id: 'option.' + item['projectId'] + count,
+      id: 'option.' + item['pId'] + count,
       index: count,
       value: item['creatorsNum'],
       name: '-' + item['orgName'],
@@ -984,14 +984,14 @@ onBeforeUnmount(() => {
             :disabled="!project"
             class="btn-compare"
             @click="addProjectToCompare(project)"
-            ><span class="add-version-icon"></span>添加对比</el-button
-          >
+            ><span class="add-version-icon"></span>添加对比
+          </el-button>
           <el-button type="primary" plain :icon="Download" @click="exportToExcel"
-            >导出报告</el-button
-          >
+            >导出报告
+          </el-button>
           <el-button type="primary" plain class="btn-benchmark" @click="toBenchmarkPage"
-            ><span class="benchmark-icon"></span>Benchmark</el-button
-          >
+            ><span class="benchmark-icon"></span>Benchmark
+          </el-button>
         </div>
         <div class="software-introduction">
           <el-image :src="project?.logo" fit="contain" class="w-96px h-96px mr-14px">
@@ -1053,9 +1053,9 @@ onBeforeUnmount(() => {
             <el-descriptions-item label="开发语言">{{ baseInfo.language }}</el-descriptions-item>
             <el-descriptions-item label="代码量">{{ baseInfo.codeLines }}</el-descriptions-item>
             <el-descriptions-item label="首次提交">{{ baseInfo.firstCommit }}</el-descriptions-item>
-            <el-descriptions-item label="最近代码提交">{{
-              baseInfo.lastCommit
-            }}</el-descriptions-item>
+            <el-descriptions-item label="最近代码提交"
+              >{{ baseInfo.lastCommit }}
+            </el-descriptions-item>
             <el-descriptions-item label="License">{{ baseInfo.license }}</el-descriptions-item>
             <el-descriptions-item label="官网地址">{{ baseInfo.homePage }}</el-descriptions-item>
             <el-descriptions-item label="技术雷达" :span="2">
@@ -1109,7 +1109,7 @@ onBeforeUnmount(() => {
             success-message="已反馈相似软件"
           >
             <template #trigger>
-              <el-button round ml-3 :icon="Plus" size="small"> 反馈相似软件 </el-button>
+              <el-button round ml-3 :icon="Plus" size="small">反馈相似软件</el-button>
             </template>
             <template #dialog-header>
               <div font-size-18px>反馈相似软件</div>
@@ -1913,8 +1913,8 @@ onBeforeUnmount(() => {
             @update:model-value="handleCompaniesActiveClick"
           >
             <el-tab-pane label="Stargazers" name="star"></el-tab-pane>
-            <el-tab-pane label="Issue Creators" name="issue"> </el-tab-pane>
-            <el-tab-pane label="Pull Requests Creators" name="pr"> </el-tab-pane>
+            <el-tab-pane label="Issue Creators" name="issue"></el-tab-pane>
+            <el-tab-pane label="Pull Requests Creators" name="pr"></el-tab-pane>
             <div flex>
               <div w-922px mr-4>
                 <div

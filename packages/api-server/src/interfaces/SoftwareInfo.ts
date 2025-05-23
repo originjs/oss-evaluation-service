@@ -1,6 +1,6 @@
 export interface SoftwareBaseInfo {
   id?: string;
-  projectId?: string;
+  pId?: string;
   projectName?: string;
   repoName: string;
   url: string;
@@ -64,7 +64,7 @@ export interface SoftwareInfo extends SoftwareBaseInfo {
     recentReleasesCount: number;
   };
   scorecard: {
-    projectId: number;
+    pId: number;
     repoName: string;
     collectionDate: string;
     score: string | number;
@@ -121,7 +121,7 @@ export interface SoftwareInfo extends SoftwareBaseInfo {
 export type CompareProject = Pick<SoftwareInfo, 'repoName' | 'logo' | 'url' | 'description'>;
 
 export interface EcologyActivity {
-  projectId?: number;
+  pId?: number;
   value: number;
   date: string;
 }
@@ -194,7 +194,7 @@ export interface PerformanceInfo {
 }
 
 export interface BenchmarkResult {
-  projectId: string;
+  pId: string;
   projectName: string;
   displayName: string;
   benchmark: string;
@@ -219,7 +219,7 @@ export interface BenchmarkIndex {
 }
 
 export interface InnovationCompaniesInfo {
-  projectId: number;
+  pId: number;
   orgName: string;
   creatorsNum: number;
   percentage: number;
@@ -262,7 +262,7 @@ export interface NewProjectApply {
   comment?: string;
   applicantEmail: string;
   username?: string;
-  alternativeProjectId?: string;
+  alternativePId?: string;
   type: number;
   expandField1?: string;
   createdAt?: Date;

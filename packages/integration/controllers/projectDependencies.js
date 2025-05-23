@@ -2,7 +2,7 @@ import { gql, request } from 'graphql-request';
 import { authorizationHeader } from '../../api-sdk/util.js';
 import GithubSdk from '@orginjs/github-sdk';
 import {
-  GithubProjects,
+  ViewProjects,
   GithubProjectsDependencies,
   logger,
 } from '@orginjs/oss-evaluation-data-model';
@@ -66,9 +66,9 @@ export async function syncSingleProjectDependencies(project) {
 
 export async function syncAllProjectDependencies() {
   logger.info('Sync Project Dependent');
-  // 1. get all github project
-  const projectList = await GithubProjects.findAll({
-    attributes: ['id', 'ownerName', 'name', 'ownerType'],
+  // 1. get all project
+  const projectList = await ViewProjects.findAll({
+    attributes: ['pId', 'ownerName', 'name', 'ownerType'],
   });
   const sumOfProject = projectList.length;
   logger.info(`The Number of Project : ${sumOfProject}`);
@@ -127,6 +127,7 @@ async function softDeleteDependencies(project, dependFullNameList) {
     updateOnDuplicate: ['deleted'],
   });
 }
+
 async function parseDependenciesData(project, dependenciesData, seen) {
   let dependencies = dependenciesData['repository']['dependencyGraphManifests']['nodes'];
   let dependenciesList = [];
@@ -156,12 +157,12 @@ async function parseDependenciesData(project, dependenciesData, seen) {
         const dependProject = await getProjectInfoByUrl(dependentHtmlUrl);
         const data = {
           fullName: `${project.ownerName}/${project.name}`,
-          projectId: project.id,
+          pId: project.pId,
           ownerName: project.ownerName,
           name: project.name,
           language: language,
           ownerType: project.ownerType,
-          dependentProjectId: dependProject === undefined ? null : dependProject.id,
+          dependentPId: dependProject === undefined ? null : dependProject.pId,
           dependentFullName: `${dependentOwner}/${dependentName}`,
           dependentOwnerName: dependentOwner,
           dependentName: dependentName,
@@ -193,8 +194,8 @@ async function saveDate(dependenciesList) {
 }
 
 async function getProjectInfoByUrl(repoUrl) {
-  const project = await GithubProjects.findOne({
-    attributes: ['id', 'ownerName', 'name', 'ownerType'],
+  const project = await ViewProjects.findOne({
+    attributes: ['pId', 'ownerName', 'name', 'ownerType'],
     where: {
       htmlUrl: repoUrl,
     },

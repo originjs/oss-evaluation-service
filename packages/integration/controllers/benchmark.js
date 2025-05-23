@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 import {
   Benchmark,
   BenchmarkIndex,
-  GithubProjects,
+  ViewProjects,
   logger,
   ProjectTechStack,
   sequelize,
@@ -22,10 +22,10 @@ export async function syncBenchmarkHandler(req, res) {
 
 export async function insertBenchmarkVersion(input) {
   const { projectName, techStack, displayName, envInfo } = input;
-  let { projectId, patchId } = input;
-  if (!projectId) {
-    projectId = await getIdByName(projectName, techStack);
-    if (!projectId) {
+  let { pId, patchId } = input;
+  if (!pId) {
+    pId = await getIdByName(projectName, techStack);
+    if (!pId) {
       throw new ServerError(`Project ${projectName} not found in list!`);
     }
   }
@@ -33,7 +33,7 @@ export async function insertBenchmarkVersion(input) {
     patchId = generatePatchId();
   }
   const [response] = await BenchmarkVersionScore.upsert({
-    projectId,
+    pId,
     version: displayName,
     score: null,
     techStack,
@@ -46,10 +46,10 @@ export async function insertBenchmarkVersion(input) {
 
 export async function insertBenchmark(input, versionId) {
   const { projectName, benchmark, techStack, rawValue, content, platform, displayName } = input;
-  let { projectId, patchId } = input;
-  if (!projectId) {
-    projectId = await getIdByName(projectName, techStack);
-    if (!projectId) {
+  let { pId, patchId } = input;
+  if (!pId) {
+    pId = await getIdByName(projectName, techStack);
+    if (!pId) {
       throw new ServerError(`Project ${projectName} not found in list!`);
     }
   }
@@ -57,7 +57,7 @@ export async function insertBenchmark(input, versionId) {
     patchId = generatePatchId();
   }
   await Benchmark.upsert({
-    projectId,
+    pId,
     projectName,
     displayName: displayName ?? '',
     benchmark,
@@ -80,10 +80,14 @@ export async function updateScore(req, res) {
   const weightMap = getWeightMap();
   const newWeightMap = updateThreshold(dataList, weightMap, isDesc);
   for (const benchmarkItem of dataList) {
-    const { projectId, content, patchId: itemPatchId, benchmark: itemBenchmark } = benchmarkItem;
+    const { pId, content, patchId: itemPatchId, benchmark: itemBenchmark } = benchmarkItem;
     const score = await calScore(newWeightMap, content);
     await sequelize.query(
-      `UPDATE benchmark SET score=${score} WHERE project_id = ${projectId} AND benchmark = '${itemBenchmark}' AND patch_id = '${itemPatchId}'`,
+      `UPDATE benchmark
+       SET score=${score}
+       WHERE p_id = ${pId}
+         AND benchmark = '${itemBenchmark}'
+         AND patch_id = '${itemPatchId}'`,
     );
   }
   res.status(200).send('Update Success!');
@@ -139,8 +143,8 @@ async function getIdByName(projectName, techStack) {
       subcategory: techStack,
     },
   });
-  const { projectId } = project;
-  return projectId;
+  const { pId } = project;
+  return pId;
 }
 
 async function calScore(weightMap, param) {
@@ -210,9 +214,9 @@ async function genBenchmarkList(projectName, techStack, platform, patchId, list)
   for (const data of list) {
     const dataProjectName = projectName || data.projectName;
     const { benchmark, content, rawValue, displayName } = data;
-    const projectId = await getIdByName(dataProjectName);
+    const pId = await getIdByName(dataProjectName);
     const item = {
-      projectId,
+      pId,
       projectName: dataProjectName,
       techStack,
       platform,
@@ -253,7 +257,7 @@ export async function importBenchmarkVersionScoreByGetHandler(req, res) {
   apply = JSON.parse(apply);
 
   const benchmarkVersion = await BenchmarkVersionScore.create({
-    projectId: benchmark.projectId,
+    pId: benchmark.pId,
     version: benchmark.displayName || 'none',
     score: null,
     techStack: apply.benchmarkName,
@@ -262,7 +266,7 @@ export async function importBenchmarkVersionScoreByGetHandler(req, res) {
     envInfo: apply.envInfo,
   });
 
-  res.status(200).json(await randomGithubProject(benchmarkVersion.id));
+  res.status(200).json(await randomGithubProject(benchmarkVersion.pId));
 }
 
 export async function importBenchmarkValueByGetHandler(req, res) {
@@ -272,14 +276,12 @@ export async function importBenchmarkValueByGetHandler(req, res) {
   }
   res.status(200).json(await randomGithubProject());
 }
+
 async function randomGithubProject(data) {
-  const githubProjects = await sequelize.query(
-    'SELECT * FROM github_projects ORDER BY RAND() LIMIT 1',
-    {
-      type: QueryTypes.SELECT,
-      model: GithubProjects,
-    },
-  );
-  githubProjects[0].description = data;
-  return githubProjects;
+  const projects = await sequelize.query('SELECT * FROM view_projects ORDER BY RAND() LIMIT 1', {
+    type: QueryTypes.SELECT,
+    model: ViewProjects,
+  });
+  projects[0].description = data;
+  return projects;
 }

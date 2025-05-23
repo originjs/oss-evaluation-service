@@ -1,12 +1,12 @@
-import { GithubProjects, GithubProjectsTable, logger } from '@orginjs/oss-evaluation-data-model';
+import { ViewProjects, GithubProjectsTable, logger } from '@orginjs/oss-evaluation-data-model';
 import * as cheerio from 'cheerio';
 import { Op } from 'sequelize';
 import { fetchWithTimeout } from '../util/fetchWitTimeout.js';
 import { addMonitoringToTask } from '../scheduler/schdulerMonitor.js';
 
-export async function syncProjectCodeSizeByProjectIdHandler(req, res) {
-  const projectIds = req.body;
-  await syncProjectCodeSize(projectIds);
+export async function syncProjectCodeSizeByPIdsHandler(req, res) {
+  const pIds = req.body;
+  await syncProjectCodeSize(pIds);
   res.status(200).send('success');
 }
 
@@ -15,28 +15,28 @@ export async function syncAllProjectCodeSizeHandler(req, res) {
   res.status(200).send('success');
 }
 
-async function updateCodeSizeByProjectId(codeLines, projectId) {
-  if (codeLines && projectId) {
+async function updateCodeSizeByPId(codeLines, pId) {
+  if (codeLines && pId) {
     await GithubProjectsTable.update(
       { codeSize: codeLines },
       {
         where: {
-          id: projectId,
+          pId,
         },
       },
     );
   }
 }
 
-async function syncProjectCodeSize(projectIds) {
+async function syncProjectCodeSize(pIds) {
   logger.info('Sync Project Code Size');
-  const projectList = await GithubProjects.findAll({
-    attributes: ['id', 'size', 'cloneUrl', 'ownerName', 'name', 'codeSize', 'fullName'],
+  const projectList = await ViewProjects.findAll({
+    attributes: ['pId', 'size', 'cloneUrl', 'ownerName', 'name', 'codeSize', 'fullName'],
     where:
-      projectIds?.length > 0
+      pIds?.length > 0
         ? {
-            id: {
-              [Op.in]: projectIds,
+            pId: {
+              [Op.in]: pIds,
             },
           }
         : {
@@ -62,7 +62,7 @@ export async function getCodeSizeByProject(project) {
   }
 
   if (codeLines) {
-    await updateCodeSizeByProjectId(codeLines, project.id);
+    await updateCodeSizeByPId(codeLines, project.pId);
   } else {
     // api failed , try to use cloc to get the codeLines
     await getCodeSizeUsingCloc(project);
@@ -82,7 +82,7 @@ async function getCodeSizeUsingCloc(project) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      id: project.id,
+      pId: project.pId,
       owner: project.ownerName,
       repoName: project.name,
     }),

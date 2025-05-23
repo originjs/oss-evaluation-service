@@ -1,5 +1,5 @@
 import {
-  GithubProjects,
+  ViewProjects,
   GithubProjectsHistory,
   GithubProjectsTable,
   logger,
@@ -13,12 +13,13 @@ import { Op } from 'sequelize';
 import { isFirstDayOfMonth, isFirstDayOfWeek } from '@orginjs/oss-evaluation-util';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
+
 dayjs.extend(utc);
 
 export async function syncSingleProjectHistoryHandler(req, res) {
   const { repoUrl: repoUrl } = req.params;
   const project = await getProjectByUrl(repoUrl);
-  await syncProjectHistory(project.id);
+  await syncProjectHistory(project.pId);
   res.status(200).send('success');
 }
 
@@ -27,12 +28,12 @@ export async function syncAllProjectHistoryHandler(req, res) {
   res.status(200).send('success');
 }
 
-async function getProjectList(projectId) {
-  const projectList = await GithubProjects.findAll({
-    attributes: ['id', 'htmlUrl', 'fullName', 'contributors'],
-    where: projectId
+async function getProjectList(pId) {
+  const projectList = await ViewProjects.findAll({
+    attributes: ['pId', 'htmlUrl', 'fullName', 'contributors'],
+    where: pId
       ? {
-          id: projectId,
+          pId,
         }
       : {},
   });
@@ -91,40 +92,40 @@ export async function syncHistoryByProjectList(projectList, currentDate) {
       { contributors: contributors === -1 ? null : contributors, stargazersCount: stars },
       {
         where: {
-          id: project.id,
+          pId: project.pId,
         },
       },
     );
     // store github_projects_history
     await GithubProjectsHistory.upsert(
       {
-        projectId: project.id,
+        pId: project.pId,
         date: currentDate,
         contributors: contributors === -1 ? null : contributors,
         stars: stars,
       },
       {
         where: {
-          projectId: project.id,
+          pId: project.pId,
           date: currentDate,
         },
       },
     );
-    await storeGithubHistory(project.id, dayjs(currentDate));
+    await storeGithubHistory(project.pId, dayjs(currentDate));
   }
 }
 
-async function filterNotExistProject(projectId, currentDate) {
-  const allProjectList = await getProjectList(projectId);
-  const existRecordProjectIds = new Set((await getExistRecord(currentDate)).map(x => x.projectId));
-  return allProjectList.filter(project => !existRecordProjectIds.has(project.id));
+async function filterNotExistProject(pId, currentDate) {
+  const allProjectList = await getProjectList(pId);
+  const existRecordPIds = new Set((await getExistRecord(currentDate)).map(x => x.pId));
+  return allProjectList.filter(project => !existRecordPIds.has(project.pId));
 }
 
-export default async function syncProjectHistory(projectId) {
+export default async function syncProjectHistory(pId) {
   const currentDate = new Date();
   for (let tryTimes = 0; tryTimes < 5; tryTimes++) {
     logger.info(`Sync Project History......Try Time: ${tryTimes + 1}`);
-    const projectList = await filterNotExistProject(projectId, currentDate);
+    const projectList = await filterNotExistProject(pId, currentDate);
     if (projectList.length <= 0) {
       // integration finished
       break;

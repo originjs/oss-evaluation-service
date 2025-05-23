@@ -53,9 +53,13 @@ async function updateData() {
       subcategories: [],
     };
     for (const categoryName of group.subcategories) {
-      const [rows] =
-        await connection.query(`SELECT p.* FROM github_projects AS p LEFT JOIN project_tech_stack AS t ON p.id = t.project_id 
-      WHERE t.category = '${categoryName}' AND t.archived IS NULL ORDER BY stargazers_count DESC LIMIT 30`);
+      const [rows] = await connection.query(`SELECT p.*
+                                FROM view_projects AS p
+                                         LEFT JOIN project_tech_stack AS t ON p.p_id = t.p_id
+                                WHERE t.category = '${categoryName}'
+                                  AND t.archived IS NULL
+                                ORDER BY stargazers_count DESC
+                                LIMIT 30`);
       count += rows.length;
       const subcategory = {
         subcategory: null,

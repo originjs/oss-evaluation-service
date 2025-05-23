@@ -13,4 +13,4 @@ const dbOps = new Sequelize(process.env.DATABASE_URL, {
   dialectModule: mysql,
 });
 
-export { dbOps};
+export { dbOps };

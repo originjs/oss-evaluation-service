@@ -29,7 +29,7 @@ interface Props {
   expandField1?: string;
   buName?: string;
   isBuOwner?: boolean;
-  alternativeProjectId?: string;
+  alternativePId?: string;
   showInDialog?: boolean;
   successMessage?: string;
   failMessage?: string;
@@ -51,7 +51,7 @@ const props = withDefaults(defineProps<Props>(), {
   expandField1: '',
   buName: '',
   isBuOwner: false,
-  alternativeProjectId: '',
+  alternativePId: '',
   showInDialog: true,
   successMessage: '提交成功',
   failMessage: '提交失败，请稍后重试',
@@ -160,7 +160,7 @@ function submitApplication() {
         employeeNumber: props.employeeNumber,
         buName: props.buName,
         isBuOwner: props.isBuOwner,
-        alternativeProjectId: props.alternativeProjectId,
+        alternativePId: props.alternativePId,
         type: props.applicationType,
         expandField1: props.expandField1,
         createdAt: new Date(),

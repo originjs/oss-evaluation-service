@@ -1,5 +1,5 @@
 import { Octokit } from '@octokit/core';
-import { GithubProjects, CncfDocumentScore, logger } from '@orginjs/oss-evaluation-data-model';
+import { ViewProjects, CncfDocumentScore, logger } from '@orginjs/oss-evaluation-data-model';
 import { getProjectByUrl, sleep } from '../util/util.js';
 import { addMonitoringToTask } from '../scheduler/schdulerMonitor.js';
 
@@ -91,7 +91,7 @@ export async function syncSingleProjectCncfDocumentScore(project) {
   runDocumentChecks(readme, filename, website, release);
   const score = calculateCncfScore();
   await CncfDocumentScore.upsert({
-    projectId: project.id,
+    pId: project.pId,
     repoUrl: project.htmlUrl,
     documentScore: score,
     hasReadme: cncfDocumentChecksSet.readme.checked,
@@ -112,8 +112,8 @@ export async function syncSingleProjectCncfDocumentScore(project) {
 export async function syncAllProjectCncfDocumentScore(options) {
   const { startIndex } = options;
   // 1. get all GitHub project
-  let projectList = await GithubProjects.findAll({
-    attributes: ['id', 'htmlUrl'],
+  let projectList = await ViewProjects.findAll({
+    attributes: ['pId', 'htmlUrl'],
   });
 
   const projectCount = projectList.length;

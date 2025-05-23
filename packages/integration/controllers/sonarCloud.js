@@ -1,5 +1,5 @@
 import {
-  GithubProjects,
+  ViewProjects,
   logger,
   OssGitlabFork,
   SonarCloudProject,
@@ -69,9 +69,9 @@ export async function collectSonarCloudData(req, res) {
 const sonarCloudSdk = new SonarCloudSdk();
 
 export async function changeSonarKey2OfficialKeys(req, res) {
-  const githubIds = req.body;
-  for (const id of githubIds) {
-    await collectSonarCloudByOfficialKey(id);
+  const pIds = req.body;
+  for (const pId of pIds) {
+    await collectSonarCloudByOfficialKey(pId);
   }
   res.status(200);
   res.json({
@@ -79,26 +79,26 @@ export async function changeSonarKey2OfficialKeys(req, res) {
   });
 }
 
-async function collectSonarCloudByOfficialKey(githubId) {
-  if (!githubId) {
+async function collectSonarCloudByOfficialKey(pId) {
+  if (!pId) {
     return false;
   }
 
-  const githubProject = await GithubProjects.findOne({
+  const project = await ViewProjects.findOne({
     where: {
-      id: githubId,
+      pId,
     },
   });
 
-  if (!githubProject) {
+  if (!project) {
     return false;
   }
   // try to get official sonar cloud data
-  if (githubProject.ownerType !== 'Organization') {
+  if (project.ownerType !== 'Organization') {
     return false;
   }
-  const officialKey = githubProject.fullName.replaceAll('/', '_');
-  const measures = await getAllMeasuresSonarCloudData(officialKey, githubProject.defaultBranch);
+  const officialKey = project.fullName.replaceAll('/', '_');
+  const measures = await getAllMeasuresSonarCloudData(officialKey, project.defaultBranch);
   if (!measures) {
     return false;
   }
@@ -106,23 +106,23 @@ async function collectSonarCloudByOfficialKey(githubId) {
   // get last analyse time
   const branchAnalyseResponse = await sonarCloudSdk.getBranchAnalyseTime(
     officialKey,
-    githubProject.defaultBranch,
+    project.defaultBranch,
   );
   if (!branchAnalyseResponse.ok) {
     logger.error(`officialSonarProject:{${officialKey}} has result but misses time`);
     return false;
   }
   measures.analysisDate = (await branchAnalyseResponse.json()).analyses[0].date;
-  measures.defaultBranch = githubProject.defaultBranch;
+  measures.defaultBranch = project.defaultBranch;
 
   const sonarProject = await SonarCloudProject.findOne({
     where: {
-      githubProjectId: githubId,
+      pId,
     },
   });
   if (sonarProject) {
     if (sonarProject?.sonarProjectKey !== officialKey) {
-      measures.sonarOrg = githubProject.ownerName;
+      measures.sonarOrg = project.ownerName;
       measures.sonarProjectKey = officialKey;
     }
     SonarCloudProject.update(measures, {
@@ -309,30 +309,30 @@ export async function updateDefaultBranchAfterImport(req, res) {
   res.send('success');
 }
 
-export async function createAndScanSonarProjectByGithubIdHandler(req, res) {
-  const githubIds = req.body;
-  for (const githubId of githubIds) {
-    const githubProject = await GithubProjects.findOne({
+export async function createAndScanSonarProjectByProjectIdHandler(req, res) {
+  const pIds = req.body;
+  for (const pId of pIds) {
+    const project = await ViewProjects.findOne({
       where: {
-        id: githubId,
+        pId,
       },
     });
-    await sonarScanByProject(githubProject);
+    await sonarScanByProject(project);
   }
   res.status(200);
   res.json('success');
 }
 
-export async function sonarScanByProject(githubProject) {
+export async function sonarScanByProject(project) {
   const sonarScanHost = process.env.REPO_SERVICE_URL;
   if (!sonarScanHost || !process.env.SONAR_CLOUD_TOKEN) {
     logger.warn(`no env \${REPO_SERVICE_URL} or \${SONAR_CLOUD_TOKEN},skip sonar!`);
     return;
   }
-  const githubId = githubProject.id;
+  const pId = project.pId;
   const sonarProject = await SonarCloudProject.findOne({
     where: {
-      githubProjectId: githubId,
+      pId,
     },
   });
   let sonarProjectKey;
@@ -340,17 +340,17 @@ export async function sonarScanByProject(githubProject) {
     const sonarCloudSdk = new SonarCloudSdk();
     //   create sonar project
     const param = {
-      name: githubProject.fullName,
+      name: project.fullName,
       newCodeDefinitionType: 'previous_version',
       organization: process.env.SONAR_ORG_NAME,
       visibility: 'public',
       newCodeDefinitionValue: 'previous_version',
-      project: `${process.env.SONAR_ORG_NAME}_${githubProject.fullName.replaceAll('/', '-')}`,
+      project: `${process.env.SONAR_ORG_NAME}_${project.fullName.replaceAll('/', '-')}`,
     };
     // request for creating sonar project
     const createSonarProjectResponse = await recordTime(
       sonarCloudSdk.createProject,
-      `create sonar project from gitlab:${githubProject.fullName}`,
+      `create sonar project from gitlab:${project.fullName}`,
       param,
     );
     if (!createSonarProjectResponse.ok) {
@@ -360,8 +360,8 @@ export async function sonarScanByProject(githubProject) {
       sonarProjectKey = (await createSonarProjectResponse.json()).project.key;
     }
     const createSonarProject = {
-      githubProjectId: githubId,
-      githubFullName: githubProject.fullName,
+      pId,
+      pFullName: project.fullName,
       sonarProjectKey: sonarProjectKey,
     };
     await SonarCloudProject.create(createSonarProject);
@@ -374,10 +374,10 @@ export async function sonarScanByProject(githubProject) {
   }
   const url = `${sonarScanHost}/sonar/scan`;
   const body = {
-    owner: githubProject.ownerName,
-    repoName: githubProject.name,
-    id: githubId,
-    language: githubProject.language,
+    owner: project.ownerName,
+    repoName: project.name,
+    id: pId,
+    language: project.language,
     sonarOrg: process.env.SONAR_ORG_NAME,
     sonarKey: sonarProjectKey,
     sonarHostUrl: 'https://sonarcloud.io',
@@ -411,13 +411,13 @@ export async function deleteSonarByKeys(req, res) {
 }
 
 export async function createSonarProjectsFromGithub(req, res) {
-  const githubIds = req.body;
+  const pIds = req.body;
   const sonarCloudSdk = new SonarCloudSdk();
-  for (const githubId of githubIds) {
+  for (const pId of pIds) {
     try {
-      const githubProject = await GithubProjects.findOne({
+      const githubProject = await ViewProjects.findOne({
         where: {
-          id: githubId,
+          pId,
         },
       });
 
@@ -428,7 +428,7 @@ export async function createSonarProjectsFromGithub(req, res) {
       //   query for sonar
       let sonarProject = await SonarCloudProject.findOne({
         where: {
-          githubProjectId: githubId,
+          pId,
         },
       });
       if (sonarProject) {
@@ -439,7 +439,7 @@ export async function createSonarProjectsFromGithub(req, res) {
           await collectSonarCloudDataBySonarKeys([sonarProject.sonarProjectKey]);
           sonarProject = await SonarCloudProject.findOne({
             where: {
-              githubProjectId: githubId,
+              pId,
             },
           });
           if (sonarProject.analysisDate) {
@@ -453,14 +453,14 @@ export async function createSonarProjectsFromGithub(req, res) {
         }
       } else {
         const sonarProject4Db = {
-          githubProjectId: githubId,
+          pId,
           githubFullName: githubProject.fullName,
           sonarOrg: process.env.SONAR_GITHUB_FORK_ORG_NAME,
           sonarProjectKey: `${process.env.SONAR_GITHUB_FORK_ORG_NAME}_${githubProject.fullName.replaceAll('/', '-')}`,
         };
         await SonarCloudProject.create(sonarProject4Db);
         logger.info(
-          `create sonar db project. githubId:${githubId},sonarKey:${sonarProject4Db.sonarProjectKey}`,
+          `create sonar db project. pId:${pId},sonarKey:${sonarProject4Db.sonarProjectKey}`,
         );
         sonarProject = sonarProject4Db;
       }
@@ -489,7 +489,7 @@ export async function createSonarProjectsFromGithub(req, res) {
           };
           await SonarCloudProject.update(updateInfo, {
             where: {
-              githubProjectId: githubId,
+              pId,
             },
           });
           sonarProject.forkGithubFullName = infoResult.data.full_name;
@@ -549,19 +549,19 @@ export async function createSonarProjectsFromGithub(req, res) {
 }
 
 export async function createGitlabProject(req, res) {
-  const paramProjectIds = req.body;
+  const pIds = req.body;
   const { namespaceId } = req.params;
-  const githubProjects = await GithubProjects.findAll({
+  const projects = await ViewProjects.findAll({
     where: {
-      id: {
-        [Op.in]: paramProjectIds,
+      pId: {
+        [Op.in]: pIds,
       },
     },
-    attributes: ['fullName', 'ownerName', 'name', 'id', 'cloneUrl'],
-    order: [['id', 'desc']],
+    attributes: ['fullName', 'ownerName', 'name', 'pId', 'cloneUrl'],
+    order: [['pId', 'desc']],
   });
 
-  if (!githubProjects?.length) {
+  if (!projects?.length) {
     res.status(200);
     res.send('no projects');
     return;
@@ -569,11 +569,11 @@ export async function createGitlabProject(req, res) {
 
   const gitlabSdk = new GitlabSdk();
   let count = 0;
-  for (const project of githubProjects) {
-    const projectId = project.id;
+  for (const project of projects) {
+    const pId = project.pId;
     const gitlabFork = await OssGitlabFork.findOne({
       where: {
-        githubProjectId: projectId,
+        pId,
       },
     });
     if (gitlabFork) {
@@ -598,7 +598,7 @@ export async function createGitlabProject(req, res) {
     }
     let json = await response.json();
     const forkResult = {
-      githubProjectId: projectId,
+      pId,
       projectId: json.id,
       githubFullName: project.fullName,
       fullName: json.name_with_namespace,
@@ -614,25 +614,25 @@ export async function createGitlabProject(req, res) {
     };
     await OssGitlabFork.upsert(forkResult);
     count++;
-    logger.info(`create gitlab project ${count} / ${paramProjectIds.length}`);
+    logger.info(`create gitlab project ${count} / ${pIds.length}`);
   }
   res.status(200);
-  res.send(`success ${count}/${paramProjectIds.length} projects`);
+  res.send(`success ${count}/${pIds.length} projects`);
 }
 
 export async function createSonarProjectFromGitlab(req, res) {
   //   query all gitlab project
   const gitlabForks = await OssGitlabFork.findAll({
     where: {
-      githubProjectId: {
-        [Op.notIn]: literal('(select github_project_id from sonar_cloud_project)'),
+      pId: {
+        [Op.notIn]: literal('(select p_id from sonar_cloud_project)'),
       },
     },
   });
   const sonarCloudSdk = new SonarCloudSdk();
   for (const fork of gitlabForks) {
     const {
-      githubProjectId,
+      pId,
       githubFullName,
       projectId: gitlabProjectId,
       fullPath: gitlabFullName,
@@ -642,7 +642,7 @@ export async function createSonarProjectFromGitlab(req, res) {
     // need to create sonar cloud project?
     const sonarProject = await SonarCloudProject.findOne({
       where: {
-        githubProjectId,
+        pId,
         gitlabProjectId,
       },
     });
@@ -671,7 +671,7 @@ export async function createSonarProjectFromGitlab(req, res) {
     }
     const json = await response.json();
     const createResult = {
-      githubProjectId,
+      pId,
       gitlabProjectId,
       githubFullName,
       gitlabFullName,
@@ -709,7 +709,7 @@ export async function uploadSonarCiConfigToGitlab(req, res) {
     where: {
       hasSonarPipeline: false,
     },
-    attributes: ['projectId', 'defaultBranch', 'namespacePath', 'githubProjectId'],
+    attributes: ['projectId', 'defaultBranch', 'namespacePath', 'pId'],
   });
   const gitlabSdk = new GitlabSdk();
   const templateDir = join(dirname(fileURLToPath(import.meta.url)), '../template');
@@ -729,17 +729,17 @@ export async function uploadSonarCiConfigToGitlab(req, res) {
       continue;
     }
 
-    const githubProject = await GithubProjects.findOne({
+    const project = await ViewProjects.findOne({
       where: {
-        id: fork.githubProjectId,
+        pId: fork.pId,
       },
       attributes: ['language'],
     });
-    if (!githubProject) {
+    if (!project) {
       continue;
     }
 
-    const ciFileContent = getGitlabCiConfigContent(fork, githubProject);
+    const ciFileContent = getGitlabCiConfigContent(fork, project);
     const sonarPropertyFileContent = _.template(sonarConfigTemplate)({
       sonarProjectKey: sonarProject.sonarProjectKey,
       namespacePath: fork.namespacePath,

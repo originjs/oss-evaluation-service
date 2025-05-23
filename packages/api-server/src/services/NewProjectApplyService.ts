@@ -1,11 +1,12 @@
 import type { NewProjectApply as NewProjectApplyInterface } from '../interfaces/SoftwareInfo';
-import { NewProjectApply, GithubProjectsTable } from '@orginjs/oss-evaluation-data-model';
+import { NewProjectApply, ViewProjects } from '@orginjs/oss-evaluation-data-model';
 import { Result } from '../utils/result.js';
 import moment from 'moment';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import exceljs from 'exceljs';
 import { Readable } from 'node:stream';
 import { Op } from 'sequelize';
+
 export async function getApplyRecordByEmployeeNumber(
   employeeNumber: string,
   buName: string,
@@ -32,7 +33,7 @@ export async function getApplyRecordByEmployeeNumber(
       'techStack',
       'subTechStack',
       'repoUrl',
-      'alternativeProjectId',
+      'alternativePId',
       'username',
       'employeeNumber',
       'buName',
@@ -60,16 +61,16 @@ export async function getApplyRecordByEmployeeNumber(
     val.dataValues.username = val.dataValues.username
       .concat(' ')
       .concat(val.dataValues.employeeNumber ? val.dataValues.employeeNumber : '');
-    if (val.type === 2 && val.alternativeProjectId) {
-      const githubProject = await GithubProjectsTable.findOne({
+    if (val.type === 2 && val.alternativePId) {
+      const project = await ViewProjects.findOne({
         where: {
-          id: val.alternativeProjectId,
+          pId: val.alternativePId,
         },
         attributes: ['htmlUrl', 'fullName'],
       });
       // set alternative project
-      val.dataValues.alternativeProjectRepoUrl = githubProject?.htmlUrl;
-      val.dataValues.alternativeProjectFullName = githubProject?.fullName;
+      val.dataValues.alternativeProjectRepoUrl = project?.htmlUrl;
+      val.dataValues.alternativeProjectFullName = project?.fullName;
     }
   }
   return list;

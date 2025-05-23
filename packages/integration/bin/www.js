@@ -38,7 +38,6 @@ if (process.env.NODE_ENV == 'development' || process.env.DISABLE_SCHEDULE_JOB) {
   scheduleJob();
 }
 
-
 /**
  * Normalize a port into a number, string, or false.
  */

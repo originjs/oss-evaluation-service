@@ -9,7 +9,7 @@ import {
   StateOfJsMin,
   SonarCloudProjectMin,
   EvaluationSummary,
-  GithubProjects,
+  ViewProjects,
   GithubProjectsStargazersTrend,
   PackageDownloadCount,
   OssinsightCreatorsOrganizations,
@@ -34,16 +34,19 @@ import { Op } from 'sequelize';
 import _ from 'underscore';
 import dayjs from 'dayjs';
 
-GithubProjects.hasOne(Scorecard, { foreignKey: 'project_id', as: 'scorecard' });
-GithubProjects.hasOne(SonarCloudProjectMin, { foreignKey: 'github_project_id', as: 'sonarCloudScan' });
-GithubProjects.hasOne(EvaluationSummary, { foreignKey: 'project_id', as: 'evaluation' });
-GithubProjects.hasMany(StateOfJsMin, { foreignKey: 'project_id', as: 'satisfaction' });
-GithubProjects.hasOne(CncfDocumentScoreMin, { foreignKey: 'project_id', as: 'document' });
-GithubProjects.hasOne(ProjectTechStack, { foreignKey: 'project_id', as: 'projectTechStack' });
+ViewProjects.hasOne(Scorecard, { foreignKey: 'p_id', as: 'scorecard' });
+ViewProjects.hasOne(SonarCloudProjectMin, {
+  foreignKey: 'p_id',
+  as: 'sonarCloudScan',
+});
+ViewProjects.hasOne(EvaluationSummary, { foreignKey: 'p_id', as: 'evaluation' });
+ViewProjects.hasMany(StateOfJsMin, { foreignKey: 'p_id', as: 'satisfaction' });
+ViewProjects.hasOne(CncfDocumentScoreMin, { foreignKey: 'p_id', as: 'document' });
+ViewProjects.hasOne(ProjectTechStack, { foreignKey: 'p_id', as: 'projectTechStack' });
 
 export async function getProjectDetailInfo(repoName: string): Promise<SoftwareInfo> {
-  const projectId = await getProjectIdByRepoName(repoName);
-  const softwareInfo = await GithubProjects.findOne({
+  const pId = await getProjectIdByRepoName(repoName);
+  const softwareInfo = await ViewProjects.findOne({
     include: [
       {
         model: EvaluationSummary,
@@ -77,7 +80,7 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
       },
     ],
     where: {
-      id: projectId,
+      pId,
     },
   });
 
@@ -124,10 +127,10 @@ export async function getPerformance(repoName: string): Promise<PerformanceInfo>
 }
 
 export async function getPerformanceBenchmark(repoName: string): Promise<BenchmarkData | null> {
-  const projectId = await getProjectIdByRepoName(repoName);
+  const pId = await getProjectIdByRepoName(repoName);
   const maxPatchIdData = await Benchmark.findOne({
     where: {
-      projectId,
+      pId,
     },
     limit: 1,
     order: [['patchId', 'desc']],
@@ -137,24 +140,24 @@ export async function getPerformanceBenchmark(repoName: string): Promise<Benchma
   }
 
   const benchmarkQuery = `
-  select if(benchmark.display_name = '',benchmark.project_name,benchmark.display_name) as displayName,
-    if(index_name.display_name is null, benchmark.benchmark, index_name.display_name) as indexName,
-       index_name.category as indexCategory,
-       benchmark.raw_value as rawValue,
-       unit,
-       description
-from benchmark
-       left join benchmark_index index_name
-              on benchmark.tech_stack = index_name.tech_stack
-                  and benchmark.benchmark = index_name.index_name
-where benchmark.project_id = :projectId
-      and benchmark.patch_id = :patchId
-order by benchmark.display_name, index_name.order`;
+      select if(benchmark.display_name = '', benchmark.project_name, benchmark.display_name)   as displayName,
+             if(index_name.display_name is null, benchmark.benchmark, index_name.display_name) as indexName,
+             index_name.category                                                               as indexCategory,
+             benchmark.raw_value                                                               as rawValue,
+             unit,
+             description
+      from benchmark
+               left join benchmark_index index_name
+                         on benchmark.tech_stack = index_name.tech_stack
+                             and benchmark.benchmark = index_name.index_name
+      where benchmark.p_id = :pId
+        and benchmark.patch_id = :patchId
+      order by benchmark.display_name, index_name.order`;
 
   const benchmarkData = await sequelize.query(benchmarkQuery, {
     type: sequelize.QueryTypes.SELECT,
     replacements: {
-      projectId,
+      pId,
       patchId: maxPatchIdData.patchId,
     },
   });
@@ -175,16 +178,16 @@ order by benchmark.display_name, index_name.order`;
     data.push({ displayName, indexName, rawValue, indexCategory, unit, description });
   });
   const queryBase = `
-  select if(index_name.display_name is null, benchmark.benchmark, index_name.display_name) as indexName,
-       category as indexCategory, 
-       min(benchmark.raw_value)                                                          as bestVal
-from benchmark
-         left join benchmark_index index_name
-                   on benchmark.tech_stack = index_name.tech_stack
-                       and benchmark.benchmark = index_name.index_name
-where benchmark.patch_id = :patchId
-  and benchmark.raw_value is not null
-group by category,if(index_name.display_name is null, benchmark.benchmark, index_name.display_name)`;
+      select if(index_name.display_name is null, benchmark.benchmark, index_name.display_name) as indexName,
+             category                                                                          as indexCategory,
+             min(benchmark.raw_value)                                                          as bestVal
+      from benchmark
+               left join benchmark_index index_name
+                         on benchmark.tech_stack = index_name.tech_stack
+                             and benchmark.benchmark = index_name.index_name
+      where benchmark.patch_id = :patchId
+        and benchmark.raw_value is not null
+      group by category, if(index_name.display_name is null, benchmark.benchmark, index_name.display_name)`;
   const bestVal = await sequelize.query(queryBase, {
     type: sequelize.QueryTypes.SELECT,
     replacements: {
@@ -198,18 +201,18 @@ group by category,if(index_name.display_name is null, benchmark.benchmark, index
 }
 
 export async function getProjectIdByRepoName(repoName: string): Promise<number> {
-  const data = await GithubProjects.findOne({
+  const data = await ViewProjects.findOne({
     where: {
       fullName: repoName,
     },
-    attributes: ['id'],
+    attributes: ['pId'],
   });
   if (!data) {
     const msg = `cant find repo named {${repoName}}!`;
     logger.info(msg);
     throw new Error(msg);
   }
-  return data.id;
+  return data.pId;
 }
 
 /**
@@ -238,6 +241,7 @@ PackageDownloadCount.belongsTo(ProjectPackage, {
   foreignKey: 'package_name',
   targetKey: 'package',
 });
+
 /**
  * getSoftwareCompassActivity
  *
@@ -246,7 +250,7 @@ PackageDownloadCount.belongsTo(ProjectPackage, {
  */
 export async function getSoftwareActivity(repoName: string): Promise<EcologyActivityCategory> {
   const sql = `
-        select project_id,
+      select project.p_id,
              commit_frequency,
              comment_frequency,
              updated_issues_count,
@@ -255,8 +259,8 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
              contributor_count,
              recent_releases_count,
              date_format(grimoire_creation_date, '%Y-%m-%d') as grimoire_creation_date
-      from github_projects project
-               inner join compass_activity_detail compass on project.id = compass.project_id
+      from view_projects project
+               inner join compass_activity_detail compass on project.p_id = compass.p_id
       where full_name = :repoName
       order by grimoire_creation_date desc
       limit 52
@@ -272,20 +276,20 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
     softwareActivity.length === 0
   ) {
     const sql = `
-        select project_id,
-             commit_frequency,
-             comment_frequency,
-             updated_issues_count,
-             closed_issues_count,
-             org_count,
-             contributor_count,
-             recent_releases_count,
-             date_format(grimoire_creation_date, '%Y-%m-%d') as grimoire_creation_date
-      from compass_activity_detail_substitute
-      where full_name = :repoName
-      order by grimoire_creation_date desc
-      limit 52
-  `;
+        select p_id,
+               commit_frequency,
+               comment_frequency,
+               updated_issues_count,
+               closed_issues_count,
+               org_count,
+               contributor_count,
+               recent_releases_count,
+               date_format(grimoire_creation_date, '%Y-%m-%d') as grimoire_creation_date
+        from compass_activity_detail_substitute
+        where full_name = :repoName
+        order by grimoire_creation_date desc
+        limit 52
+    `;
     softwareActivity = await sequelizeExt.query(sql, {
       replacements: { repoName },
       type: sequelize.QueryTypes.SELECT,
@@ -390,11 +394,11 @@ async function queryStarsTrend(repoName: string) {
 
 export async function getSoftwareInnovate(repoName: string): Promise<InnovationData> {
   const sql = `
-  select con.project_id, con.country_code, con.creators_num, con.percentage, con.type
-  from ossinsight_creators_countries con
-           left join github_projects git on git.id = con.project_id
-  where git.full_name = :repoName
-  order by creators_num desc;
+      select con.p_id, con.country_code, con.creators_num, con.percentage, con.type
+      from ossinsight_creators_countries con
+               left join view_projects git on git.p_id = con.p_id
+      where git.full_name = :repoName
+      order by creators_num desc;
   `;
   const softwareInnovate = await sequelize.query(sql, {
     replacements: { repoName },
@@ -449,10 +453,10 @@ export async function getSoftwareInnovate(repoName: string): Promise<InnovationD
 }
 
 export async function prCreatorCompanyAndAreaInfo(repoName: string) {
-  const projectId = await getProjectIdByRepoName(repoName);
+  const pId = await getProjectIdByRepoName(repoName);
   const orgSummaryInfo = await OssinsightCreatorsOrganizations.findAll({
     where: {
-      project_id: projectId,
+      pId,
       type: 0,
       org_name: {
         [Op.notIn]: ['.', '...', '-', 'none', 'null', 'no', 'china', 'China', 'undefined'],
@@ -460,7 +464,7 @@ export async function prCreatorCompanyAndAreaInfo(repoName: string) {
     },
     attributes: [
       // Why don't we use `underscored: true`?
-      ['project_id', 'projectId'],
+      ['p_id', 'pId'],
       ['org_name', 'orgName'],
       ['creators_num', 'creatorsNum'],
       'percentage',
@@ -471,14 +475,14 @@ export async function prCreatorCompanyAndAreaInfo(repoName: string) {
 
   const countrySummaryInfo = await OssinsightCreatorsCountries.findAll({
     where: {
-      project_id: projectId,
+      pId,
       type: 0,
       country_code: {
         [Op.ne]: 'UNKNOWN',
       },
     },
     attributes: [
-      ['project_id', 'projectId'],
+      ['p_id', 'pId'],
       ['country_code', 'countryCode'],
       ['creators_num', 'creatorsNum'],
       'percentage',
@@ -574,6 +578,7 @@ export async function compareExportScoreExcel(projectNameList: string[]) {
     logger.error(err);
   }
 }
+
 async function exportFieldSupplement(data: any) {
   const packageJson = readFileSync('../api-server/package.json', 'utf-8');
   const packageInfo = JSON.parse(packageJson);
@@ -620,13 +625,17 @@ export async function exportBenchmarkExcel(repoName: string) {
 
 export async function getInnovation(repoName: string) {
   const dependentProjectSql = `
-    select pd.full_name as fullName, pd.owner_name as ownerName, pd.owner_type as ownerType, p.stargazers_count as star
-    from github_projects_dependencies pd
-           inner join github_projects p on p.id = pd.project_id
-    where dependent_full_name = :repoName
-      and pd.full_name != :repoName
-      and pd.deleted = false
-    order by stargazers_count desc limit 50`;
+      select pd.full_name       as fullName,
+             pd.owner_name      as ownerName,
+             pd.owner_type      as ownerType,
+             p.stargazers_count as star
+      from github_projects_dependencies pd
+               inner join view_projects p on p.p_id = pd.p_id
+      where dependent_full_name = :repoName
+        and pd.full_name != :repoName
+        and pd.deleted = false
+      order by stargazers_count desc
+      limit 50`;
 
   const dependentProject = await sequelize.query(dependentProjectSql, {
     type: sequelize.QueryTypes.SELECT,
@@ -636,13 +645,15 @@ export async function getInnovation(repoName: string) {
   });
 
   const dependentOrganizationSql = `
-    select pd.owner_name as ownerName, p.stargazers_count as star
-    from github_projects_dependencies pd
-           inner join github_projects p on p.id = pd.project_id
-    where dependent_full_name = :repoName
-      and pd.full_name != :repoName
-      and pd.owner_type = 'Organization' and pd.deleted = false
-    order by stargazers_count desc limit 50;
+      select pd.owner_name as ownerName, p.stargazers_count as star
+      from github_projects_dependencies pd
+               inner join view_projects p on p.p_id = pd.p_id
+      where dependent_full_name = :repoName
+        and pd.full_name != :repoName
+        and pd.owner_type = 'Organization'
+        and pd.deleted = false
+      order by stargazers_count desc
+      limit 50;
   `;
   const dependentOrganization = await sequelize.query(dependentOrganizationSql, {
     type: sequelize.QueryTypes.SELECT,
@@ -652,15 +663,15 @@ export async function getInnovation(repoName: string) {
   });
 
   const companiesSql = `
-    select ocr.project_id   as projectId,
-           ocr.org_name     as orgName,
-           ocr.creators_num as creatorsNum,
-           ocr.percentage   as percentage,
-           ocr.type
-    from ossinsight_creators_organizations ocr
-           inner join github_projects gp on gp.id = ocr.project_id
-    where gp.full_name = :repoName
-    order by ocr.percentage desc;
+      select ocr.p_id         as pId,
+             ocr.org_name     as orgName,
+             ocr.creators_num as creatorsNum,
+             ocr.percentage   as percentage,
+             ocr.type
+      from ossinsight_creators_organizations ocr
+               inner join view_projects p on p.p_id = ocr.p_id
+      where p.full_name = :repoName
+      order by ocr.percentage desc;
   `;
 
   const filterCharacter = ['.', '...', '-', 'none', 'null', 'no', 'china', 'China', 'undefined'];
@@ -713,15 +724,16 @@ export async function getSummaryHighlightInfo(repoName: string) {
   const alternativeProjects = await getAlternativeProjects(repoName);
 
   const topPrCompaniesSql = `
-    select ocr.project_id   as projectId,
-           ocr.org_name     as orgName,
-           ocr.creators_num as creatorsNum,
-           ocr.percentage   as percentage
-    from ossinsight_creators_organizations ocr
-           inner join github_projects gp on gp.id = ocr.project_id
-    where gp.full_name = :repoName
-      and ocr.type = 0
-    order by ocr.percentage desc limit 20
+      select ocr.p_id         as pId,
+             ocr.org_name     as orgName,
+             ocr.creators_num as creatorsNum,
+             ocr.percentage   as percentage
+      from ossinsight_creators_organizations ocr
+               inner join view_projects p on p.p_id = ocr.p_id
+      where p.full_name = :repoName
+        and ocr.type = 0
+      order by ocr.percentage desc
+      limit 20
   `;
   const filterCharacter = ['.', '...', '-', 'none', 'null', 'no', 'china'];
 
