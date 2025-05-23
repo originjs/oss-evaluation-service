@@ -2,7 +2,7 @@ import DataTypes from 'sequelize';
 import sequelize from '../util/database.js';
 
 export default sequelize.define(
-  'GithubProjectsTable',
+  'GitcodeProjectsTable',
   {
     pId: {
       type: DataTypes.STRING(32),
@@ -187,7 +187,7 @@ export default sequelize.define(
     },
   },
   {
-    tableName: 'github_projects_t',
+    tableName: 'gitcode_projects_t',
     timestamps: false,
     underscored: true,
   },

@@ -10,8 +10,8 @@ export default sequelize.define(
       primaryKey: true,
       autoincrement: true,
     },
-    projectId: {
-      type: DataTypes.INTEGER,
+    pId: {
+      type: DataTypes.STRING(32),
     },
     fullName: {
       type: DataTypes.STRING(100),
@@ -28,8 +28,8 @@ export default sequelize.define(
     ownerType: {
       type: DataTypes.STRING(100),
     },
-    dependentProjectId: {
-      type: DataTypes.INTEGER,
+    dependentPId: {
+      type: DataTypes.STRING(32),
     },
     dependentFullName: {
       type: DataTypes.STRING(100),

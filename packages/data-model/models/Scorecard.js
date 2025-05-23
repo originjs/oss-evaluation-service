@@ -4,8 +4,8 @@ import sequelize from '../util/database.js';
 export default sequelize.define(
   'Scorecard',
   {
-    projectId: {
-      type: DataTypes.BIGINT,
+    pId: {
+      type: DataTypes.STRING(32),
       primaryKey: true,
       allowNull: false,
     },

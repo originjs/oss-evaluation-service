@@ -10,8 +10,8 @@ export default sequelize.define(
       autoIncrement: true,
       primaryKey: true,
     },
-    projectId: {
-      type: DataTypes.BIGINT,
+    pId: {
+      type: DataTypes.STRING(32),
       allowNull: false,
     },
     repoUrl: {

@@ -5,7 +5,6 @@ import {
   Benchmark,
   sequelize,
   sequelizeExt,
-  ProjectInfo,
   CncfDocumentScoreMin,
   StateOfJsMin,
   SonarCloudProjectMin,
@@ -35,16 +34,16 @@ import { Op } from 'sequelize';
 import _ from 'underscore';
 import dayjs from 'dayjs';
 
-ProjectInfo.hasOne(Scorecard, { foreignKey: 'project_id', as: 'scorecard' });
-ProjectInfo.hasOne(SonarCloudProjectMin, { foreignKey: 'github_project_id', as: 'sonarCloudScan' });
-ProjectInfo.hasOne(EvaluationSummary, { foreignKey: 'project_id', as: 'evaluation' });
-ProjectInfo.hasMany(StateOfJsMin, { foreignKey: 'project_id', as: 'satisfaction' });
-ProjectInfo.hasOne(CncfDocumentScoreMin, { foreignKey: 'project_id', as: 'document' });
-ProjectInfo.hasOne(ProjectTechStack, { foreignKey: 'project_id', as: 'projectTechStack' });
+GithubProjects.hasOne(Scorecard, { foreignKey: 'project_id', as: 'scorecard' });
+GithubProjects.hasOne(SonarCloudProjectMin, { foreignKey: 'github_project_id', as: 'sonarCloudScan' });
+GithubProjects.hasOne(EvaluationSummary, { foreignKey: 'project_id', as: 'evaluation' });
+GithubProjects.hasMany(StateOfJsMin, { foreignKey: 'project_id', as: 'satisfaction' });
+GithubProjects.hasOne(CncfDocumentScoreMin, { foreignKey: 'project_id', as: 'document' });
+GithubProjects.hasOne(ProjectTechStack, { foreignKey: 'project_id', as: 'projectTechStack' });
 
 export async function getProjectDetailInfo(repoName: string): Promise<SoftwareInfo> {
   const projectId = await getProjectIdByRepoName(repoName);
-  const softwareInfo = await ProjectInfo.findOne({
+  const softwareInfo = await GithubProjects.findOne({
     include: [
       {
         model: EvaluationSummary,

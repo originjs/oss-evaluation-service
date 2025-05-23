@@ -8,13 +8,10 @@ export default sequelize.define(
       type: DataTypes.INTEGER,
       primaryKey: true,
     },
-    githubProjectId: {
-      type: DataTypes.INTEGER,
+    pId: {
+      type: DataTypes.STRING(32),
     },
-    projectId: {
-      type: DataTypes.INTEGER,
-    },
-    githubFullName: {
+    pFullName: {
       type: DataTypes.STRING(512),
     },
     fullName: {

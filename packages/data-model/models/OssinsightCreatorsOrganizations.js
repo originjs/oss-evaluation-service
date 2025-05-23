@@ -10,10 +10,10 @@ export default sequelize.define(
       autoIncrement: true,
       primaryKey: true,
     },
-    project_id: {
-      type: DataTypes.INTEGER,
+    p_id: {
+      type: DataTypes.STRING(32),
       allowNull: true,
-      comment: 'github project_id',
+      comment: 'project id',
       unique: true,
     },
     org_name: {

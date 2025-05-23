@@ -28,7 +28,7 @@ const newProjectApply = sequelize.define(
       allowNull: false,
       defaultValue: false,
     },
-    alternativeProjectId: {
+    alternativePId: {
       type: DataTypes.STRING(255),
     },
     applicantEmail: {

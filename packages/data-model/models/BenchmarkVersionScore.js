@@ -9,8 +9,8 @@ export default sequelize.define(
       primaryKey: true,
       autoIncrement: true,
     },
-    projectId: {
-      type: DataTypes.BIGINT,
+    pId: {
+      type: DataTypes.STRING(32),
     },
     version: {
       type: DataTypes.STRING(128),

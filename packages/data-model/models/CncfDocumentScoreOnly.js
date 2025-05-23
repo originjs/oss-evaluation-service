@@ -4,8 +4,8 @@ import sequelize from '../util/database.js';
 export default sequelize.define(
   'CncfDocumentScoreOnly',
   {
-    projectId: {
-      type: DataTypes.INTEGER,
+    pId: {
+      type: DataTypes.STRING(32),
       primaryKey: true,
       allowNull: false,
     },

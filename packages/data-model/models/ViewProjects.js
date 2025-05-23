@@ -2,17 +2,17 @@ import DataTypes from 'sequelize';
 import sequelize from '../util/database.js';
 
 export default sequelize.define(
-  'GithubProjectsTable',
+  'ViewProjects',
   {
     pId: {
       type: DataTypes.STRING(32),
+      primaryKey: true,
     },
     platformType: {
       type: DataTypes.INTEGER,
     },
     id: {
       type: DataTypes.INTEGER,
-      primaryKey: true,
     },
     name: {
       type: DataTypes.STRING(512),
@@ -23,8 +23,20 @@ export default sequelize.define(
     htmlUrl: {
       type: DataTypes.STRING(512),
     },
+    url: {
+      type: DataTypes.STRING(512),
+      field: 'html_url',
+    },
     description: {
       type: DataTypes.STRING(512),
+    },
+    firstCommit: {
+      type: DataTypes.STRING(512),
+      field: 'created_at',
+    },
+    lastCommit: {
+      type: DataTypes.STRING(512),
+      field: 'pushed_at',
     },
     privateFlag: {
       type: DataTypes.STRING(10),
@@ -56,8 +68,16 @@ export default sequelize.define(
     codeSize: {
       type: DataTypes.INTEGER,
     },
+    codeLines: {
+      type: DataTypes.INTEGER,
+      field: 'code_size',
+    },
     stargazersCount: {
       type: DataTypes.INTEGER,
+    },
+    star: {
+      type: DataTypes.INTEGER,
+      field: 'stargazers_count',
     },
     watchersCount: {
       type: DataTypes.INTEGER,
@@ -71,6 +91,10 @@ export default sequelize.define(
     forksCount: {
       type: DataTypes.INTEGER,
     },
+    fork: {
+      type: DataTypes.INTEGER,
+      field: 'forks_count',
+    },
     archived: {
       type: DataTypes.STRING(10),
     },
@@ -80,14 +104,15 @@ export default sequelize.define(
     openIssuesCount: {
       type: DataTypes.INTEGER,
     },
-    license: {
-      type: DataTypes.STRING(512),
-    },
     allowForking: {
       type: DataTypes.STRING,
     },
     topics: {
       type: DataTypes.STRING(512),
+    },
+    tags: {
+      type: DataTypes.STRING(512),
+      field: 'topics',
     },
     visibility: {
       type: DataTypes.STRING,
@@ -106,6 +131,10 @@ export default sequelize.define(
     },
     ownerAvatarUrl: {
       type: DataTypes.STRING(512),
+    },
+    logo: {
+      type: DataTypes.STRING(512),
+      field: 'owner_avatar_url',
     },
     ownerType: {
       type: DataTypes.STRING,
@@ -146,6 +175,10 @@ export default sequelize.define(
     licenseName: {
       type: DataTypes.STRING(512),
     },
+    license: {
+      type: DataTypes.STRING(512),
+      field: 'license_name',
+    },
     isTemplate: {
       type: DataTypes.STRING,
     },
@@ -179,15 +212,12 @@ export default sequelize.define(
     recordDesc: {
       type: DataTypes.STRING(255),
     },
-    dataType: {
-      type: DataTypes.TINYINT,
-    },
     aiDescription: {
       type: DataTypes.JSON,
     },
   },
   {
-    tableName: 'github_projects_t',
+    tableName: 'view_projects',
     timestamps: false,
     underscored: true,
   },
