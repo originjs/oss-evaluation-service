@@ -1,5 +1,4 @@
 import {
-  ViewProjects,
   GithubProjectsStargazersTrend,
   logger,
   sequelize,
@@ -24,8 +23,21 @@ const QUERY_SQL = `
                         from github_projects_stargazers_trend
                         where date >= :startDate) trend on project.p_id = trend.p_id
     where isnull(trend.p_id)
-      and project.p_id >= :startId
-      and project.p_id <= :endId
+    order by p_id;
+`;
+
+const QUERY_SINGLE_SQL = `
+    select distinct project.p_id,
+                    project.name,
+                    project.full_name as fullName,
+                    project.html_url  as htmlUrl,
+                    trend.p_id        as pId
+    from view_projects project
+             left join (select *
+                        from github_projects_stargazers_trend
+                        where date >= :startDate) trend on project.p_id = trend.p_id
+    where isnull(trend.p_id)
+      and project.p_id = :pId
     order by p_id;
 `;
 
@@ -68,9 +80,7 @@ export async function syncSingleProjectStargazersTrendHandler(req, res) {
  * @param {string} [options.beginDate]  integrate  begin date
  */
 async function syncAllProjectStargazersTrend(options) {
-  const maxId = await ViewProjects.max('pId');
-  const minId = await ViewProjects.min('pId');
-  await getStargazersTrend(options.startDate, minId, maxId);
+  await getStargazersTrend(options.startDate);
 }
 
 /**
@@ -85,12 +95,12 @@ export async function syncSingleProjectStargazersTrend(project, options) {
   if (!options.startDate) {
     options.startDate = defaultDate;
   }
-  await getStargazersTrend(options.startDate, project.pId, project.pId);
+  await getStargazersTrend(options.startDate, project.pId);
 }
 
-async function getStargazersTrend(startDate, startId, endId) {
-  const needSyncProject = await sequelize.query(QUERY_SQL, {
-    replacements: { startDate, startId, endId },
+async function getStargazersTrend(startDate, pId) {
+  const needSyncProject = await sequelize.query(pId ? QUERY_SINGLE_SQL : QUERY_SQL, {
+    replacements: { startDate, pId },
     type: sequelize.QueryTypes.SELECT,
   });
 

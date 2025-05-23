@@ -23,10 +23,22 @@ const QUERY_SQL = `
                         from ossinsight_creators_organizations
                         where updated_at >= :startDate) organization on project.p_id = organization.p_id
     where isnull(organization.p_id)
-      and project.p_id >= :startId
-      and project.p_id <= :endId
     order by p_id;
 `;
+
+const QUERY_SINGLE_SQL = `
+    select distinct project.p_id,
+                    project.name,
+                    project.full_name as fullName
+    from view_projects project
+             left join (select *
+                        from ossinsight_creators_organizations
+                        where updated_at >= :startDate) organization on project.p_id = organization.p_id
+    where isnull(organization.p_id)
+      and project.p_id = :pId
+    order by p_id;
+`;
+
 const integrationInfo = {
   prOrganizations: { type: 0, url: prOrganizationsUrl },
   starOrganizations: { type: 1, url: starOrganizationsUrl },
@@ -92,18 +104,15 @@ export async function syncSingleProjectCreatorsOrg(project) {
  * Synchronizes the pull request creators organizations data for all projects.
  *
  * @param {Object} options - The options for the synchronization.
- * @param {number} [options.minId] - The minimum project ID to start the synchronization from.
- * @param {number} [options.maxId] - The maximum project ID to end the synchronization at.
+ * @param {number} [options.pId] - The project ID to start the synchronization.
  * @param {string} [options.startDate='2020-01-01'] - The start date for the synchronization.
  * @return {Promise<void>} A promise that resolves when the synchronization is complete.
  */
 export async function syncAllProjectCreatorsOrg(options) {
-  const startId = options?.minId || (await ViewProjects.min('pId'));
-  const endId = options?.maxId || (await ViewProjects.max('pId'));
   const startDate = options?.startDate || getCurrentDate();
 
-  const projectList = await sequelize.query(QUERY_SQL, {
-    replacements: { startDate, startId, endId },
+  const projectList = await sequelize.query(options?.pId ? QUERY_SINGLE_SQL : QUERY_SQL, {
+    replacements: { startDate, pId: options?.pId },
     type: sequelize.QueryTypes.SELECT,
   });
   for (let project of projectList) {

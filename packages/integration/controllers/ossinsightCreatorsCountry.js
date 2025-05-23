@@ -22,8 +22,19 @@ const QUERY_SQL = `
                         from ossinsight_creators_countries
                         where updated_at >= :startDate) country on project.p_id = country.p_id
     where isnull(country.p_id)
-      and project.p_id >= :startId
-      and project.p_id <= :endId
+    order by p_id;
+`;
+
+const QUERY_SINGLE_SQL = `
+    select distinct project.p_id,
+                    project.name,
+                    project.full_name as fullName
+    from view_projects project
+             left join (select *
+                        from ossinsight_creators_countries
+                        where updated_at >= :startDate) country on project.p_id = country.p_id
+    where isnull(country.p_id)
+      and project.p_id = :pId
     order by p_id;
 `;
 
@@ -91,18 +102,14 @@ export async function syncSingleProjectCreatorsCountries(project) {
  * Synchronizes the pull request creators countries data for all projects.
  *
  * @param {Object} options - The options for synchronization.
- * @param {number} [options.minId] - The minimum ID of the project.
- * @param {number} [options.maxId] - The maximum ID of the project.
+ * @param {number} [options.pId] - The ID of the project.
  * @param {string} [options.startDate] - The start date for synchronization. Defaults to '2020-01-01'.
  * @return {Promise<void>} A promise that resolves when all the data has been synchronized.
  */
 export async function syncAllProjectCreatorsCountries(options) {
-  const startId = options?.minId || (await ViewProjects.min('id'));
-  const endId = options?.maxId || (await ViewProjects.max('id'));
   const startDate = options?.startDate || getCurrentDate();
-
-  const projectList = await sequelize.query(QUERY_SQL, {
-    replacements: { startDate, startId, endId },
+  const projectList = await sequelize.query(options.pId ? QUERY_SINGLE_SQL : QUERY_SQL, {
+    replacements: { startDate, pId: options?.pId },
     type: sequelize.QueryTypes.SELECT,
   });
   for (let project of projectList) {
