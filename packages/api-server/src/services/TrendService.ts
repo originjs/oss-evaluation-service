@@ -1,5 +1,5 @@
 import {
-  GithubProjects,
+  ViewProjects,
   EvaluationSummary,
   GithubProjectsStargazersTrend,
   sequelize,
@@ -69,13 +69,13 @@ const RANK_TYPE = {
   TOTAL: 2,
 };
 
-GithubProjects.hasOne(EvaluationSummary, {
-  foreignKey: 'project_id',
+ViewProjects.hasOne(EvaluationSummary, {
+  foreignKey: 'p_id',
   as: 'evaluationSummary',
 });
 
-EvaluationSummary.belongsTo(GithubProjects, {
-  foreignKey: 'project_id',
+EvaluationSummary.belongsTo(ViewProjects, {
+  foreignKey: 'p_id',
   as: 'project',
 });
 
@@ -86,7 +86,7 @@ export async function githubTop(page: Page, type: string) {
   const pageSize = page.pageSize;
   const offset = page.pageSize * (page.pageNo - 1);
 
-  const result = await GithubProjects.findAll({
+  const result = await ViewProjects.findAll({
     attributes: [
       ['full_name', 'fullName'],
       ['owner_avatar_url', 'ownerAvatarUrl'],
@@ -157,23 +157,22 @@ export async function githubRank(
     dataType,
   );
   const languageFilterSQL = rankParam.language?.length
-    ? ' and project_id in (select id from github_projects where language in (:language)) '
+    ? ' and p_id in (select p_id from view_projects where language in (:language)) '
     : '';
-  const baseSQL = `select project_id as projectId,
-        increased_value as increasedValue,
-        total_value as totalValue,
-        row_number() over (
-          order by ${
-            rankType === RANK_TYPE.INCREASE
-              ? 'increased_value desc, total_value desc'
-              : 'total_value desc, increased_value desc'
-          }) as \`rank\`
-        from trend_history
-        where 
-          date = :date
-          and data_type = :dataType
-          and date_type = :dateType
-          `;
+  const baseSQL = `select p_id            as pId,
+                          increased_value as increasedValue,
+                          total_value     as totalValue,
+                          row_number() over (
+                              order by ${
+                                rankType === RANK_TYPE.INCREASE
+                                  ? 'increased_value desc, total_value desc'
+                                  : 'total_value desc, increased_value desc'
+                              })          as \`rank\`
+                   from trend_history
+                   where date = :date
+                     and data_type = :dataType
+                     and date_type = :dateType
+  `;
   const removeNoneValSQL = ` and ${rankType === RANK_TYPE.INCREASE ? ' increased_value ' : ' total_value '} is not null
     and ${rankType === RANK_TYPE.INCREASE ? ' increased_value ' : ' total_value '} > 0`;
   const orderSQL = 'order by `rank`';
@@ -181,20 +180,19 @@ export async function githubRank(
 
   // Returns up to the top 500 data
   const queryCurrent = `
-          select * from (
-          ${baseSQL}
-          ${languageFilterSQL}
-          ${removeNoneValSQL}
-          ${orderSQL}
-          ${pageSQL} ) tmp
-          where \`rank\` <= 500 `;
+      select *
+      from (
+               ${baseSQL}
+                   ${languageFilterSQL} ${removeNoneValSQL} ${orderSQL}
+                   ${pageSQL}) tmp
+      where \`rank\` <= 500 `;
   const commonReplacements = {
     dataType,
     dateType,
     language: rankParam.language,
   };
   type ProjectRank = {
-    projectId: number;
+    pId: string;
     increasedValue: number;
     totalValue: number;
     rank: number;
@@ -210,33 +208,32 @@ export async function githubRank(
     type: sequelize.QueryTypes.SELECT,
   });
   // query only the data returned by rank
-  const filteredProjectIds: number[] = currentResult.map(item => item.projectId);
-  const inProjectIdSQL = filteredProjectIds.length ? ' and projectId in (:projectIds) ' : '';
+  const filteredProjectIds: string[] = currentResult.map(item => item.pId);
+  const inProjectIdSQL = filteredProjectIds.length ? ' and pId in (:pId) ' : '';
   // query previous period rank
   const queryPreviousPeriodSQL = `
-      select * from (${baseSQL}
-      ${languageFilterSQL}
-      ${removeNoneValSQL}
-      ${orderSQL}) tmp
+      select *
+      from (${baseSQL}
+          ${languageFilterSQL} ${removeNoneValSQL} ${orderSQL}) tmp
       where 1 = 1
-      ${inProjectIdSQL}
-      `;
+          ${inProjectIdSQL}
+  `;
   const previousResult: ProjectRank[] = await sequelize.query(queryPreviousPeriodSQL, {
     replacements: {
       date: simpleDateFormat(previousDate),
-      projectIds: filteredProjectIds,
+      pId: filteredProjectIds,
       ...commonReplacements,
     },
     type: sequelize.QueryTypes.SELECT,
   });
   const tableData = [];
   // previous period rank map <number,rank>
-  const previousMap = new Map<number, ProjectRank>();
-  previousResult.forEach(result => previousMap.set(result.projectId, result));
+  const previousMap = new Map<string, ProjectRank>();
+  previousResult.forEach(result => previousMap.set(result.pId, result));
 
-  const projectInfo: GithubProjects[] = await GithubProjects.findAll({
+  const projectInfo: ViewProjects[] = await ViewProjects.findAll({
     attributes: [
-      'id',
+      'pId',
       'fullName',
       'htmlUrl',
       'description',
@@ -245,21 +242,21 @@ export async function githubRank(
       'language',
     ],
     where: {
-      id: {
+      pId: {
         [Op.in]: filteredProjectIds,
       },
     },
   });
-  // github project info map
-  const githubProjectMap = new Map<number, GithubProjects>();
-  projectInfo.forEach(project => githubProjectMap.set(project.id, project));
+  // project info map
+  const projectMap = new Map<string, ViewProjects>();
+  projectInfo.forEach(project => projectMap.set(project.pId, project));
   for (const result of currentResult) {
-    const projectId = result.projectId;
-    const project = githubProjectMap.get(projectId);
+    const pId = result.pId;
+    const project = projectMap.get(pId);
 
     const projectData: unknown = {
       currentRank: result.rank,
-      previousRank: previousMap.get(projectId)?.rank,
+      previousRank: previousMap.get(pId)?.rank,
       increasedValue: result.increasedValue,
       totalValue: result.totalValue,
       name: project?.fullName,
@@ -393,6 +390,7 @@ function getDateDisplay(date: Dayjs, dateType: number) {
     }
   }
 }
+
 /**
  * Retrieves the language filter condition for project filtering.
  *

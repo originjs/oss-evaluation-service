@@ -7,8 +7,7 @@ import { syncSingleProjectContributors } from './projectContributors.js';
 import { syncSingleProjectDependentCount } from './projectDependentCount.js';
 import {
   CriticalityScore,
-  GithubProjects,
-  GithubProjectsTable,
+  ViewProjects,
   logger,
   ProjectPackage,
   ProjectTechStack,
@@ -64,20 +63,18 @@ export async function syncBatchProjectAllMetadataByRepoUrlsHandler(req, res) {
   res.send('success');
 }
 
-export async function syncBatchProjectAllMetadataByProjectIdsHandler(req, res) {
-  const projectIds = req.body;
-  if (!projectIds?.length) {
+export async function syncBatchProjectAllMetadataByPIdsHandler(req, res) {
+  const pIds = req.body;
+  if (!pIds?.length) {
     res.status(200);
     res.send('empty projectId');
   }
-  for (let i = 0; i < projectIds.length; i++) {
-    const projectId = projectIds[i];
-    logger.info(
-      `[Batch Integration Process] Process: ${i + 1} / ${projectIds.length}, projectId: ${projectId}`,
-    );
-    const project = await GithubProjectsTable.findOne({
+  for (let i = 0; i < pIds.length; i++) {
+    const pId = pIds[i];
+    logger.info(`[Batch Integration Process] Process: ${i + 1} / ${pIds.length}, pId: ${pId}`);
+    const project = await ViewProjects.findOne({
       where: {
-        id: projectId,
+        pId,
       },
     });
     if (project) {
@@ -148,7 +145,7 @@ async function syncSingleProjectAllMetadata(options) {
     logger.info('Front-end software, computing package related data');
     // 9.1 insert main package project_packages: rule is manual
     await ProjectPackage.upsert({
-      projectId: project.id,
+      pId: project.pId,
       projectName: project.fullName,
       package: packageName,
       mainPackage: 1,
@@ -169,7 +166,7 @@ async function syncSingleProjectAllMetadata(options) {
 }
 
 async function createNewTechStack(repoUrl, category, subcategory) {
-  const project = await GithubProjects.findOne({
+  const project = await ViewProjects.findOne({
     where: {
       html_url: repoUrl,
     },
@@ -180,7 +177,7 @@ async function createNewTechStack(repoUrl, category, subcategory) {
   }
 
   await ProjectTechStack.upsert({
-    projectId: project.id,
+    pId: project.pId,
     name: project.name,
     fullName: project.fullName,
     htmlUrl: repoUrl,
@@ -192,10 +189,10 @@ async function createNewTechStack(repoUrl, category, subcategory) {
 async function createNewCriticalityScore(project) {
   // ： criticality_score_20240401
   const QUERY_SQL = `
-select default_score, collection_date
-from criticality_score_20240401 cs
-where cs.url = :repoUrl
-`;
+      select default_score, collection_date
+      from criticality_score_20240401 cs
+      where cs.url = :repoUrl
+  `;
   const newCriticalityScore = await sequelize.query(QUERY_SQL, {
     replacements: { repoUrl: project.htmlUrl },
     type: sequelize.QueryTypes.SELECT,
@@ -206,7 +203,7 @@ where cs.url = :repoUrl
   }
   // criticality_score
   await CriticalityScore.upsert({
-    projectId: project.id,
+    pId: project.pId,
     projectName: project.name,
     repoUrl: project.htmlUrl,
     score: newCriticalityScore.defaultScore,
@@ -216,7 +213,9 @@ where cs.url = :repoUrl
 
 async function getBatchProject() {
   // criticality_score_20240401
-  const QUERY_SQL = `SELECT *  from github_projects limit 100`;
+  const QUERY_SQL = `SELECT *
+                     from view_projects
+                     limit 100`;
   return await sequelize.query(QUERY_SQL, {
     type: sequelize.QueryTypes.SELECT,
   });

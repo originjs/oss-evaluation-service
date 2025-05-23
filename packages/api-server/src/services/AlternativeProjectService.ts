@@ -1,7 +1,7 @@
-import { AlternativeProjects, GithubProjects, sequelize } from '@orginjs/oss-evaluation-data-model';
+import { AlternativeProjects, ViewProjects, sequelize } from '@orginjs/oss-evaluation-data-model';
 import type { AlternativeInfo } from '../interfaces/SoftwareInfo';
 
-AlternativeProjects.hasOne(GithubProjects, { foreignKey: 'alternative_id' });
+AlternativeProjects.hasOne(ViewProjects, { foreignKey: 'p_id' });
 
 export async function getAlternativeProjects(fullName: string): Promise<AlternativeInfo[]> {
   const ALTERNATIVE_SIZE = 6;
@@ -15,7 +15,7 @@ export async function getAlternativeProjects(fullName: string): Promise<Alternat
                     stargazers_count as starCount,
                     forks_count      as forksCount
              FROM alternative_projects a
-                      LEFT JOIN github_projects g ON a.alternative_id = g.id
+                      LEFT JOIN view_projects p ON a.alternative_id = p.p_id
              WHERE a.full_name = :fullName
                AND approved = 1
              ORDER BY distance
@@ -26,7 +26,7 @@ export async function getAlternativeProjects(fullName: string): Promise<Alternat
   });
   const alternatives = list.map(item => {
     return {
-      id: item.alternative_id,
+      pId: item.alternative_id,
       repoName: item.alternative_name,
       logo: item.owner_avatar_url,
       starCount: item.starCount,
@@ -37,15 +37,15 @@ export async function getAlternativeProjects(fullName: string): Promise<Alternat
     };
   });
   // similar project by category and subcategory
-  sql = `SELECT id,
-                g.full_name,
-                g.html_url,
-                g.owner_avatar_url as logo,
+  sql = `SELECT p.p_id,
+                p.full_name,
+                p.html_url,
+                p.owner_avatar_url as logo,
                 description,
-                g.stargazers_count as starCount,
-                g.forks_count      as forksCount
-         FROM github_projects g
-                  JOIN project_tech_stack t ON g.id = t.project_id
+                p.stargazers_count as starCount,
+                p.forks_count      as forksCount
+         FROM view_projects p
+                  JOIN project_tech_stack t ON p.p_id = t.p_id
          WHERE category IN (SELECT category FROM project_tech_stack WHERE html_url = :repoName)
            and subcategory IN (SELECT subcategory FROM project_tech_stack WHERE html_url = :repoName)
          ORDER BY stargazers_count DESC`;
@@ -65,7 +65,7 @@ export async function getAlternativeProjects(fullName: string): Promise<Alternat
 
     if (alternatives.length < ALTERNATIVE_SIZE) {
       alternatives.push({
-        id: item.id,
+        pId: item.pId,
         repoName: item.full_name,
         logo: item.logo,
         starCount: item.starCount,

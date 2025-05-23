@@ -1,5 +1,5 @@
 import {
-  GithubProjects,
+  ViewProjects,
   NewProjectApply,
   BenchmarkIndex as BenchmarkIndexPo,
   sequelize,
@@ -34,28 +34,28 @@ export async function queryProjectsByTechStack(
   techStack: string,
 ): Promise<Array<SoftwareBaseInfo>> {
   const sql = `
-      SELECT gp.id               as         projectId,
-             gp.NAME             AS         projectName,
-             gp.full_name        as         repoName,
-             gp.html_url         as         url,
-             gp.description,
-             gp.owner_avatar_url as         logo,
-             gp.stargazers_count as         star,
-             gp.forks_count      as         forksCount,
+      SELECT p.p_id             as     pId,
+             p.NAME             AS     projectName,
+             p.full_name        as     repoName,
+             p.html_url         as     url,
+             p.description,
+             p.owner_avatar_url as     logo,
+             p.stargazers_count as     star,
+             p.forks_count      as     forksCount,
              (SELECT GROUP_CONCAT(distinct VERSION ORDER BY VERSION desc SEPARATOR '##')
               FROM benchmark_version_score bvs
-              WHERE bvs.project_id = gp.id) version,
+              WHERE bvs.p_id = p.p_id) version,
              (SELECT version
               FROM benchmark_version_score bvs
-              WHERE bvs.project_id = gp.id
+              WHERE bvs.p_id = p.p_id
               ORDER BY score DESC
-              LIMIT 1)                      selectedVersion
-      FROM github_projects gp
+              LIMIT 1)                 selectedVersion
+      FROM view_projects p
                INNER JOIN project_tech_stack pts
-                          ON gp.id = pts.project_id
+                          ON p.p_id = pts.p_id
       WHERE pts.category = :category
         AND pts.subcategory = :techStack
-      ORDER BY gp.stargazers_count DESC;
+      ORDER BY p.stargazers_count DESC;
   `;
 
   const projects = await sequelize.query(sql, {
@@ -96,32 +96,32 @@ export async function getBenchmarkResultByTechStack(
   techStack: string,
 ): Promise<Array<BenchmarkResult>> {
   const sql = `
-      SELECT bt.project_id             AS projectId,
-             bt.project_name           AS projectName,
-             bt.display_name           AS displayName,
+      SELECT bt.p_id         AS pId,
+             bt.project_name AS projectName,
+             bt.display_name AS displayName,
              bt.benchmark,
-             bt.raw_value              AS rawValue,
-             bt.created_at             AS createdAt,
+             bt.raw_value    AS rawValue,
+             bt.created_at   AS createdAt,
              bt.content,
              bt.platform,
              bvst.version,
-             bvst.env_info             AS envInfo,
+             bvst.env_info   AS envInfo,
              bvst.score,
-             github_projects.full_name as fullName
+             p.full_name     as fullName
       FROM benchmark bt
-               INNER JOIN (SELECT st.project_id,
+               INNER JOIN (SELECT st.p_id,
                                   st.VERSION,
                                   MAX(st.id)       b_id,
                                   MAX(st.env_info) env_info,
                                   MAX(st.score)    score
                            FROM benchmark_version_score st
                            WHERE st.tech_stack = :techStack
-                           GROUP BY st.project_id, st.VERSION) bvst
+                           GROUP BY st.p_id, st.VERSION) bvst
                           ON bvst.b_id = bt.b_id
-               join github_projects
-                    on bt.project_id = github_projects.id
+               join view_projects p
+                    on bt.p_id = p.p_id
       WHERE bt.raw_value IS NOT NULL
-      ORDER BY bt.project_id, bt.benchmark, bt.created_at;`;
+      ORDER BY bt.p_id, bt.benchmark, bt.created_at;`;
 
   const benchmark = await sequelize.query(sql, {
     replacements: { techStack },
@@ -146,7 +146,7 @@ interface BenchmarkValue {
   benchmark: string;
   rawValue: number;
   platform: string;
-  projectId?: number;
+  pId?: number;
   patchId: string;
   envInfo: string;
   techStack?: string;
@@ -271,14 +271,14 @@ export async function importBenchmarkApply(applyUUID: string) {
     });
   }
 
-  const projectIds = data.benchmark.map(benchmark => benchmark.projectId);
+  const pIds = data.benchmark.map(benchmark => benchmark.pId);
   // set integration finished time if not err
   await NewProjectApply.update(
     {
       // dont set finishedTime, bacause need time to sync data from outer into inner
       // integrationFinishedTime: new Date(),
-      // set imported projectId for this apply
-      alternativeProjectId: [...new Set(projectIds)].join(','),
+      // set imported pId for this apply
+      alternativePId: [...new Set(pIds)].join(','),
     },
     {
       where: {
@@ -293,8 +293,8 @@ export async function importBenchmarkApply(applyUUID: string) {
 async function fillBenchmarkBid(benchmarks: BenchmarkValue[], apply: any) {
   const hash = {};
   for (const benchmark of benchmarks) {
-    if (hash[`${benchmark.projectId}##${benchmark.displayName}`] !== undefined) {
-      benchmark.bId = hash[`${benchmark.projectId}##${benchmark.displayName}`];
+    if (hash[`${benchmark.pId}##${benchmark.displayName}`] !== undefined) {
+      benchmark.bId = hash[`${benchmark.pId}##${benchmark.displayName}`];
       continue;
     }
 
@@ -306,7 +306,7 @@ async function fillBenchmarkBid(benchmarks: BenchmarkValue[], apply: any) {
     if (responses.length) {
       const bId = responses[0][0].description;
       benchmark.bId = bId;
-      hash[`${benchmark.projectId}##${benchmark.displayName}`] = bId;
+      hash[`${benchmark.pId}##${benchmark.displayName}`] = bId;
     }
   }
 }
@@ -345,15 +345,15 @@ export async function importBenchmarkFromExcel(file: Express.Multer.File) {
   await setOthersParam4Benchmark(data.benchmark, apply);
   // call integration url to import benchmark data
   await importBenchmarkData(data);
-  const projectIds = data.benchmark.map(benchmark => benchmark.projectId);
+  const pIds = data.benchmark.map(benchmark => benchmark.pId);
   // set integration finished time if not err
   if (apply) {
     await NewProjectApply.update(
       {
         // dont set finishedTime, bacause need time to sync data from outer into inner
         // integrationFinishedTime: new Date(),
-        // set imported projectId for this apply
-        alternativeProjectId: [...new Set(projectIds)].join(','),
+        // set imported pId for this apply
+        alternativePId: [...new Set(pIds)].join(','),
       },
       {
         where: {
@@ -476,7 +476,7 @@ async function importBenchmarkData(data: { benchmark: BenchmarkValue[]; index: B
 }
 
 /**
- * set projectId and patchId for benchmark
+ * set pId and patchId for benchmark
  * @param data benchmarkData
  */
 async function setOthersParam4Benchmark(data: BenchmarkValue[], apply: any) {
@@ -491,18 +491,18 @@ async function setOthersParam4Benchmark(data: BenchmarkValue[], apply: any) {
       benchmark.platform = apply.envInfo;
     }
     if (!softwareName2Id.has(fullName)) {
-      const project = await GithubProjects.findOne({
+      const project = await ViewProjects.findOne({
         where: {
           fullName: fullName,
         },
-        attributes: ['id'],
+        attributes: ['p_id'],
       });
       if (!project) {
         throw new Error(`cant find project named:${fullName}`);
       }
-      softwareName2Id.set(fullName, project.id);
+      softwareName2Id.set(fullName, project.p_id);
     }
-    benchmark.projectId = softwareName2Id.get(fullName);
+    benchmark.pId = softwareName2Id.get(fullName);
     benchmark.patchId = patchId;
   }
 }

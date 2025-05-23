@@ -19,8 +19,8 @@ const showProjects = computed<SoftwareBaseInfo[]>(() => {
     .filter(project => project.repoName?.toLowerCase().includes(searchKeyWord.value.toLowerCase()));
 });
 
-const findProjectIndex = (projectId?: string) => {
-  return projects.value.findIndex(project => project.projectId === projectId);
+const findProjectIndex = (pId?: string) => {
+  return projects.value.findIndex(project => project.pId === pId);
 };
 
 const chooseProject = (project: SoftwareBaseInfo) => {
@@ -29,7 +29,7 @@ const chooseProject = (project: SoftwareBaseInfo) => {
     return;
   }
 
-  const index = findProjectIndex(project.projectId);
+  const index = findProjectIndex(project.pId);
   if (index === -1 && !project.selectedVersions.length) {
     ElMessage.warning('至少选择一个版本');
     return;
@@ -61,7 +61,7 @@ const selectAll = () => {
 
 const changeSelectedVersion = (project: SoftwareBaseInfo) => {
   if (!project.selectedVersions.length) {
-    projects.value.splice(findProjectIndex(project.projectId), 1);
+    projects.value.splice(findProjectIndex(project.pId), 1);
   }
 };
 </script>
@@ -87,13 +87,13 @@ const changeSelectedVersion = (project: SoftwareBaseInfo) => {
     <div overflow-y-scroll h-lg>
       <div
         v-for="item in showProjects"
-        :key="item.projectId"
+        :key="item.pId"
         flex
         items-center
         h-80px
         class="project"
         :class="{
-          selected: findProjectIndex(item.projectId) !== -1,
+          selected: findProjectIndex(item.pId) !== -1,
           disable: !item.version,
         }"
         @click="chooseProject(item)"
@@ -150,7 +150,7 @@ const changeSelectedVersion = (project: SoftwareBaseInfo) => {
           </el-text>
         </div>
         <div
-          v-if="findProjectIndex(item.projectId) !== -1"
+          v-if="findProjectIndex(item.pId) !== -1"
           i-custom:choose
           font-size-12
           position-absolute

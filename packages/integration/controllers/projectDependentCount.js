@@ -1,5 +1,5 @@
 import {
-  GithubProjects,
+  ViewProjects,
   GithubProjectsTable,
   logger,
   ProjectPackage,
@@ -8,8 +8,8 @@ import { CheerioCrawler, Configuration } from 'crawlee';
 import { getProjectByUrl } from '../util/util.js';
 import { addMonitoringToTask } from '../scheduler/schdulerMonitor.js';
 
-GithubProjects.hasMany(ProjectPackage, {
-  foreignKey: 'project_id',
+ViewProjects.hasMany(ProjectPackage, {
+  foreignKey: 'pId',
   as: 'projectPackage',
 });
 
@@ -31,17 +31,17 @@ export async function syncAllProjectDependentCountHandler(req, res) {
  * @returns {Promise<*>} inserted project dependent count
  */
 export async function syncSingleProjectDependentCount(project) {
-  await syncProjectDependentCount(project.id);
+  await syncProjectDependentCount(project.pId);
 }
 
 export async function syncAllProjectDependentCount() {
   await syncProjectDependentCount();
 }
 
-export default async function syncProjectDependentCount(projectId) {
+export default async function syncProjectDependentCount(pId) {
   logger.info('Sync Project dependent count');
-  // 1. get all github project
-  const projectList = await GithubProjects.findAll({
+  // 1. get all project
+  const projectList = await ViewProjects.findAll({
     include: [
       {
         model: ProjectPackage,
@@ -52,10 +52,10 @@ export default async function syncProjectDependentCount(projectId) {
         },
       },
     ],
-    attributes: ['id', 'htmlUrl', 'dependentRepositories', 'dependentPackages'],
-    where: projectId
+    attributes: ['pId', 'htmlUrl', 'dependentRepositories', 'dependentPackages'],
+    where: pId
       ? {
-          id: projectId,
+          pId,
         }
       : {},
   });
@@ -85,7 +85,7 @@ export default async function syncProjectDependentCount(projectId) {
         },
         {
           where: {
-            id: project.id,
+            pId: project.pId,
           },
         },
       );

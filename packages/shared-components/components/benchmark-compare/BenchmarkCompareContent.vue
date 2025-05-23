@@ -39,7 +39,7 @@ const initTableData = () => {
   // 生成列数据
   const propToColumn: { [k: string]: ColumnData } = {};
   for (const item of benchmarkResult.value) {
-    const prop = `${item.projectId}##${item.version}`;
+    const prop = `${item.pId}##${item.version}`;
     propToColumn[prop] = {
       ...item,
       ...propToColumn[prop],
@@ -123,12 +123,12 @@ const getData = () => {
 };
 watch(() => activeTechStack.value, getData, { immediate: true });
 
-const removeColumn = ({ projectId, version }: ColumnData) => {
-  if (!(projectId && version)) {
+const removeColumn = ({ pId, version }: ColumnData) => {
+  if (!(pId && version)) {
     return;
   }
   projects.value = projects.value.filter(item => {
-    if (projectId === item.projectId) {
+    if (pId === item.pId) {
       if (item.selectedVersions.length > 1) {
         item.selectedVersions.splice(item.selectedVersions.indexOf(version), 1);
         return true;
@@ -155,9 +155,7 @@ const sortedIndexName = ref<keyof ColumnData>();
 const tableColumns = computed<ColumnData[]>(() => {
   const columns = tableColumnsRaw.value.filter(column =>
     projects.value.some(
-      project =>
-        project.projectId === column.projectId &&
-        project.selectedVersions.includes(column.version!),
+      project => project.pId === column.pId && project.selectedVersions.includes(column.version!),
     ),
   );
 
@@ -201,7 +199,7 @@ const showChooseProjects = ref(false);
 const showChooseBenchmark = ref(false);
 
 const clickColumnHeader = (column: ColumnData) => {
-  const projectInfo = projectsRaw.value.find(p => p.projectId === column.projectId);
+  const projectInfo = projectsRaw.value.find(p => p.pId === column.pId);
   if (!projectInfo) {
     ElMessage.error('抱歉，系统缺少该开源软件的详情, 我们会尽快提供');
     return;
@@ -345,14 +343,14 @@ const selectedLanguage = ref('js');
           <div class="flex flex-items-center mr-8">
             <span class="mr-2">开源软件:</span>
             <el-button text type="primary" @click="showChooseProjects = true"
-              >{{ projects[0]?.projectName }}等{{ projects.length }}款软件</el-button
-            >
+              >{{ projects[0]?.projectName }}等{{ projects.length }}款软件
+            </el-button>
           </div>
           <div class="flex flex-items-center mr-8">
             <span class="mr-2">Benchmarks:</span>
             <el-button text type="primary" @click="showChooseBenchmark = true"
-              >{{ benchmarkIndex.length }}项Benchmark</el-button
-            >
+              >{{ benchmarkIndex.length }}项Benchmark
+            </el-button>
           </div>
           <div class="ml-a flex flex-items-center">
             <slot

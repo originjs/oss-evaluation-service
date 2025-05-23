@@ -1,8 +1,8 @@
 import {
   AlternativeProjects,
-  GithubProjects,
   sequelize,
   logger,
+  ViewProjects,
 } from '@orginjs/oss-evaluation-data-model';
 import { getProjectByUrl } from '../util/util.js';
 import JSON5 from 'json5';
@@ -10,7 +10,7 @@ import CozeSdk from '@orginjs/coze-sdk';
 import { chat } from '../../api-sdk/extChat.js';
 
 export async function syncAlternativeHandler(req, res) {
-  const { repoUrls, projectIds } = req.body;
+  const { repoUrls, pIds } = req.body;
   if (repoUrls) {
     for (const repoUrl of repoUrls) {
       const project = await getProjectByUrl(repoUrl);
@@ -27,9 +27,9 @@ export async function syncAlternativeHandler(req, res) {
       await updateProjectId();
     }
     res.status(200).json('ok');
-  } else if (projectIds) {
-    for (const id of projectIds) {
-      const project = await GithubProjects.findByPk(id);
+  } else if (pIds) {
+    for (const pId of pIds) {
+      const project = await ViewProjects.findByPk(pId);
       await syncSingleProjectAlternative(project);
     }
     await updateProjectId();
@@ -42,11 +42,15 @@ export async function syncAlternativeHandler(req, res) {
 }
 
 export async function syncAllProjectAlternative() {
-  let sql = `SELECT g.id,g.full_name,g.html_url from github_projects g LEFT JOIN project_tech_stack t 
-    ON g.id = t.project_id where subcategory is null and integrated_state&2!=0
-    AND g.id NOT IN(SELECT DISTINCT project_id FROM alternative_projects)`;
+  let sql = `SELECT p.p_id, p.full_name, p.html_url
+             from view_projects p
+                      LEFT JOIN project_tech_stack t
+                                ON p.p_id = t.p_id
+             where subcategory is null
+               and integrated_state & 2 != 0
+               AND p.p_id NOT IN (SELECT DISTINCT p_id FROM alternative_projects)`;
   const projects = await sequelize.query(sql, {
-    model: GithubProjects,
+    model: ViewProjects,
     mapToModel: true,
     type: sequelize.QueryTypes.SELECT,
   });
@@ -73,7 +77,7 @@ const saveAltList = async (json, project) => {
       // exclude self
       if (line[0] === 'https://github.com/' + project.fullName) continue;
       altList.push({
-        projectId: project.id,
+        pId: project.pId,
         fullName: project.fullName,
         alternativeUrl: line[0],
         distance: line[1],
@@ -124,27 +128,32 @@ export async function syncSingleProjectAlternative(project) {
 }
 
 export async function updateProjectId() {
-  const approvedSql = `UPDATE alternative_projects t1 INNER JOIN github_projects t2 ON t1.alternative_url= t2.html_url
-  SET t1.alternative_id= t2.id, t1.alternative_name = t2.full_name, t1.approved=1
-	WHERE t1.alternative_id IS NULL`;
-  const notApprovedSql = `UPDATE alternative_projects t1 INNER JOIN github_projects t2 ON t1.alternative_url= t2.html_url
-  SET t1.alternative_id= t2.id, t1.alternative_name = t2.full_name, t1.approved=0
-	WHERE t1.alternative_id IS NULL AND t1.approved IS NULL;`;
+  const approvedSql = `UPDATE alternative_projects t1 INNER JOIN view_projects t2 ON t1.alternative_url = t2.html_url
+                       SET t1.alternative_id= t2.p_id,
+                           t1.alternative_name = t2.full_name,
+                           t1.approved=1
+                       WHERE t1.alternative_id IS NULL`;
+  const notApprovedSql = `UPDATE alternative_projects t1 INNER JOIN view_projects t2 ON t1.alternative_url = t2.html_url
+                          SET t1.alternative_id= t2.p_id,
+                              t1.alternative_name = t2.full_name,
+                              t1.approved=0
+                          WHERE t1.alternative_id IS NULL
+                            AND t1.approved IS NULL;`;
 
   await sequelize.query(approvedSql);
   await sequelize.query(notApprovedSql);
 }
 
 export async function syncClassificationHandler(req, res) {
-  const { repoUrl, projectId } = req.body;
+  const { repoUrl, pIds } = req.body;
   if (repoUrl) {
     // sync single project
     const project = await getProjectByUrl(repoUrl);
     const result = await getSingleProjectClassification(project);
     res.status(200).json(result);
-  } else if (projectId) {
-    for (const id of projectId) {
-      const project = await GithubProjects.findByPk(id);
+  } else if (pIds) {
+    for (const pId of pIds) {
+      const project = await ViewProjects.findByPk(pId);
       await getSingleProjectClassification(project);
     }
     await updateProjectId();

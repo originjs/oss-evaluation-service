@@ -76,7 +76,7 @@ export class BenchmarkController extends Controller {
     data: {
       benchmark: Array<{
         techStack: string;
-        projectId?: number;
+        pId?: number;
         projectName: string;
         displayName: string;
         benchmark: string;

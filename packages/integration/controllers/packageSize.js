@@ -51,7 +51,7 @@ export async function getPackageSize(name, version) {
 export async function syncSingleProjectPackageSize(project) {
   const packageName = await ProjectPackage.findOne({
     where: {
-      [Op.and]: [{ projectId: project.id }, { package: { [Op.ne]: null } }, { main_package: true }],
+      [Op.and]: [{ pId: project.pId }, { package: { [Op.ne]: null } }, { main_package: true }],
     },
     attributes: ['package'],
   });

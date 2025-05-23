@@ -16,16 +16,15 @@ export async function syncCriticalityScoreHandler(req, res) {
  */
 async function syncCriticalityScore(originalData) {
   const tableName = originalData ? originalData : 'criticality_score_20240401';
-  await sequelize.query(`INSERT INTO criticality_score(project_id, project_name, repo_url, score, collection_date)
-  SELECT gp.id AS project_id,
-    gp.name AS project_name,
-    gp.html_url AS repo_url,
-    cs.default_score AS score,
-    str_to_date(left(cs.collection_date,10), '%Y-%m-%d') AS collection_date
-  FROM ${tableName} cs
-  join github_projects gp
-  on cs.url = gp.html_url
-  ON DUPLICATE KEY UPDATE
-  score = cs.default_score,
-  collection_date = str_to_date(left(cs.collection_date,10), '%Y-%m-%d')`);
+  await sequelize.query(`INSERT INTO criticality_score(p_id, project_name, repo_url, score, collection_date)
+                         SELECT p.p_id                                                AS p_id,
+                                p.name                                                AS project_name,
+                                p.html_url                                            AS repo_url,
+                                cs.default_score                                      AS score,
+                                str_to_date(left(cs.collection_date, 10), '%Y-%m-%d') AS collection_date
+                         FROM ${tableName} cs
+                                  join view_projects p
+                                       on cs.url = p.html_url
+                         ON DUPLICATE KEY UPDATE score           = cs.default_score,
+                                                 collection_date = str_to_date(left(cs.collection_date, 10), '%Y-%m-%d')`);
 }

@@ -72,7 +72,7 @@ function collectSonarScanData(sonarKey: string) {
 async function createGithubFork(info: SonarScanParam): Promise<GitRepoInfo> {
   const sonarProject = await SonarCloudProject.findOne({
     where: {
-      githubProjectId: info.id,
+      pId: info.id,
     },
   });
   const forkGithubToken = process.env.GITHUB_FORK_TOKEN;
@@ -111,7 +111,7 @@ async function createGithubFork(info: SonarScanParam): Promise<GitRepoInfo> {
       },
       {
         where: {
-          githubProjectId: info.id,
+          pId: info.id,
         },
       },
     );

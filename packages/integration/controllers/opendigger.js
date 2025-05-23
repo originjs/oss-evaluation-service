@@ -1,6 +1,6 @@
 import async from 'async';
 import sequelize, { Op } from 'sequelize';
-import { OpenDigger, GithubProjects, logger } from '@orginjs/oss-evaluation-data-model';
+import { OpenDigger, ViewProjects, logger } from '@orginjs/oss-evaluation-data-model';
 import { ServerError } from '../util/error.js';
 import { getProjectByUrl } from '../util/util.js';
 
@@ -56,7 +56,7 @@ export async function syncSingleProjectOpendigger(project) {
     busFactorDate: bus.date,
   };
   const [data, created] = await OpenDigger.findOrCreate({
-    where: { projectId: project.id },
+    where: { pId: project.pId },
     defaults: row,
   });
   if (!created) {
@@ -67,16 +67,16 @@ export async function syncSingleProjectOpendigger(project) {
 
 export async function syncAllProjectOpendigger() {
   const options = {
-    attributes: ['id', 'fullName', 'htmlUrl'],
+    attributes: ['pId', 'fullName', 'htmlUrl'],
     where: {
-      id: {
+      pId: {
         [Op.notIn]: sequelize.literal(
-          '(SELECT project_id from opendigger_info where updated_at >= DATE(NOW()) - INTERVAL 15 DAY)',
+          '(SELECT p_id from opendigger_info where updated_at >= DATE(NOW()) - INTERVAL 15 DAY)',
         ),
       },
     },
   };
-  const projects = await GithubProjects.findAll(options);
+  const projects = await ViewProjects.findAll(options);
   // 5 concurrent requests at the same time
   async.mapLimit(
     projects,

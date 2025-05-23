@@ -1,5 +1,5 @@
 import {
-  GithubProjects,
+  ViewProjects,
   sequelize,
   logger,
   GithubProjectsTable,
@@ -44,7 +44,10 @@ export async function syncSingleProjectDescription(project) {
       }
       try {
         const content = JSON5.parse(json);
-        await GithubProjectsTable.update({ aiDescription: content }, { where: { id: project.id } });
+        await GithubProjectsTable.update(
+          { aiDescription: content },
+          { where: { pId: project.pId } },
+        );
       } catch (e) {
         logger.error('Parse json data failed! Skip it.', json, e);
       }
@@ -53,11 +56,11 @@ export async function syncSingleProjectDescription(project) {
 }
 
 export async function syncAllProjectDescription() {
-  let sql = `SELECT g.id, g.full_name, g.html_url, g.home_page, g.description
-             from github_projects g
+  let sql = `SELECT p.p_id, p.full_name, p.html_url, p.home_page, p.description
+             from view_projects p
              where ai_description is null`;
   const projects = await sequelize.query(sql, {
-    model: GithubProjects,
+    model: ViewProjects,
     mapToModel: true,
     type: sequelize.QueryTypes.SELECT,
   });

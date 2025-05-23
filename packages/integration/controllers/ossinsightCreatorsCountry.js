@@ -1,5 +1,5 @@
 import {
-  GithubProjects,
+  ViewProjects,
   logger,
   OssinsightCreatorsCountries,
   sequelize,
@@ -14,18 +14,18 @@ const starCountriesUrl =
 const issueCountriesUrl = 'https://api.ossinsight.io/q/analyze-issue-creators-map?repoId=:repoId';
 
 const QUERY_SQL = `
-  select distinct project.id,
-                  project.name,
-                  project.full_name as fullName
-  from github_projects project
-           left join (select *
-                      from ossinsight_creators_countries
-                      where updated_at >= :startDate) country on project.id = project_id
-  where isnull(project_id)
-  and project.id >= :startId
-  and project.id <= :endId
-  order by id;
-  `;
+    select distinct project.p_id,
+                    project.name,
+                    project.full_name as fullName
+    from view_projects project
+             left join (select *
+                        from ossinsight_creators_countries
+                        where updated_at >= :startDate) country on project.p_id = country.p_id
+    where isnull(country.p_id)
+      and project.p_id >= :startId
+      and project.p_id <= :endId
+    order by p_id;
+`;
 
 const integrationInfo = {
   prCountries: { type: 0, url: prCountriesUrl },
@@ -61,11 +61,11 @@ export async function syncAllProjectCreatorsCountriesHandler(req, res) {
  */
 export async function syncSingleProjectCreatorsCountriesHandler(req, res) {
   const { repoUrl } = req.body;
-  let project = await GithubProjects.findOne({
+  let project = await ViewProjects.findOne({
     where: {
       htmlUrl: repoUrl,
     },
-    attributes: ['id', 'fullName'],
+    attributes: ['pId', 'fullName'],
   });
   await syncSingleProjectCreatorsCountries(project);
   res.status(200).json('ok');
@@ -91,14 +91,14 @@ export async function syncSingleProjectCreatorsCountries(project) {
  * Synchronizes the pull request creators countries data for all projects.
  *
  * @param {Object} options - The options for synchronization.
- * @param {number} [options.minId] - The minimum ID of the Github project.
- * @param {number} [options.maxId] - The maximum ID of the Github project.
+ * @param {number} [options.minId] - The minimum ID of the project.
+ * @param {number} [options.maxId] - The maximum ID of the project.
  * @param {string} [options.startDate] - The start date for synchronization. Defaults to '2020-01-01'.
  * @return {Promise<void>} A promise that resolves when all the data has been synchronized.
  */
 export async function syncAllProjectCreatorsCountries(options) {
-  const startId = options?.minId || (await GithubProjects.min('id'));
-  const endId = options?.maxId || (await GithubProjects.max('id'));
+  const startId = options?.minId || (await ViewProjects.min('id'));
+  const endId = options?.maxId || (await ViewProjects.max('id'));
   const startDate = options?.startDate || getCurrentDate();
 
   const projectList = await sequelize.query(QUERY_SQL, {
@@ -106,7 +106,7 @@ export async function syncAllProjectCreatorsCountries(options) {
     type: sequelize.QueryTypes.SELECT,
   });
   for (let project of projectList) {
-    if (project && project.id) {
+    if (project && project.pId) {
       await syncSingleProjectCreatorsCountries(project);
     }
   }
@@ -114,19 +114,19 @@ export async function syncAllProjectCreatorsCountries(options) {
 
 async function getCreatorsCountries(project, option) {
   const res = [];
-  const result = await sendRequestByFullName(project.id, option.url);
+  const result = await sendRequestByFullName(project.pId, option.url);
   const countryList = result?.data;
   if (countryList === null || countryList === undefined || countryList.length === 0) {
     logger.info(
       'sync project data from ossinsight, data not found!',
       project.fullName,
-      project.id,
+      project.pId,
       option.url,
     );
   } else {
     countryList.forEach(el => {
       res.push({
-        project_id: project.id,
+        pId: project.pId,
         country_code: el.country_or_area,
         creators_num: getCreatorsNum(el, option.type),
         percentage: el.percentage,
@@ -136,7 +136,7 @@ async function getCreatorsCountries(project, option) {
     logger.info(
       'sync project data from ossinsight, successful!',
       project.fullName,
-      project.id,
+      project.pId,
       option.url,
     );
   }
@@ -180,13 +180,14 @@ async function sendRequestByFullName(repoId, url) {
     });
   return response;
 }
+
 async function bulkInsertData(data) {
   try {
     await sequelize.transaction(async t => {
       await OssinsightCreatorsCountries.destroy(
         {
           where: {
-            project_id: data[0]?.project_id,
+            p_id: data[0]?.pId,
             type: data[0]?.type,
           },
         },
@@ -196,7 +197,7 @@ async function bulkInsertData(data) {
         data,
         {
           updateOnDuplicate: [
-            'project_id',
+            'p_id',
             'org_name',
             'creators_num',
             'percentage',

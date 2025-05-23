@@ -49,7 +49,7 @@ router.route('/').post(syncProjectEvaluationHandler);
  *               techStack:
  *                 type: string
  *                 example: "前端框架"
- *               projectId:
+ *               pId:
  *                 type: string
  *                 example: null
  *     responses:

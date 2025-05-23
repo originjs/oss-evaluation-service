@@ -46,7 +46,7 @@ import syncProjectCncfDocumentScoreHandler from '../controllers/documentScore.js
 import { refreshMainPackage } from '../controllers/refreshMainPackage.js';
 import {
   collectSonarCloudData,
-  createAndScanSonarProjectByGithubIdHandler,
+  createAndScanSonarProjectByProjectIdHandler,
   createGitlabProject,
   deleteSonarByKeys,
   createSonarProjectFromGitlab,
@@ -58,7 +58,7 @@ import {
 } from '../controllers/sonarCloud.js';
 import {
   syncAllProjectCodeSizeHandler,
-  syncProjectCodeSizeByProjectIdHandler,
+  syncProjectCodeSizeByPIdsHandler,
 } from '../controllers/projectCodeSize.js';
 import {
   syncAllProjectDependenciesHandler,
@@ -81,7 +81,7 @@ import {
   syncSingleProjectDependentCountHandler,
 } from '../controllers/projectDependentCount.js';
 import syncSingleProjectAllMetadataHandler, {
-  syncBatchProjectAllMetadataByProjectIdsHandler,
+  syncBatchProjectAllMetadataByPIdsHandler,
   syncBatchProjectAllMetadataByRepoUrlsHandler,
   syncBatchProjectAllMetadataHandler,
 } from '../controllers/syncAllMetadata.js';
@@ -109,7 +109,7 @@ const router = express.Router();
  *   name: SummaryMetadata
  * /sync/syncSingleProjectAllMetadata:
  *   post:
- *     summary: Batch fetch GitHub projects from specific repositories
+ *     summary: Batch fetch projects from specific repositories
  *     tags: [SummaryMetadata]
  *     requestBody:
  *       required: true
@@ -144,7 +144,7 @@ router.route('/syncSingleProjectAllMetadata').post(syncSingleProjectAllMetadataH
  *   name: SummaryMetadata
  * /sync/syncBatchProjectAllMetadata:
  *   post:
- *     summary: Batch fetch GitHub projects from specific repositories
+ *     summary: Batch fetch projects from specific repositories
  *     tags: [SummaryMetadata]
  *     requestBody:
  *       required: true
@@ -177,9 +177,9 @@ router.route('/syncBatchProjectAllMetadata').post(syncBatchProjectAllMetadataHan
  * @swagger
  * tags:
  *   name: SummaryMetadata
- * /sync/syncBatchProjectAllMetadataByProjectIds:
+ * /sync/syncBatchProjectAllMetadataByPIds:
  *   post:
- *     summary: Batch fetch GitHub projects from specific repositories
+ *     summary: Batch fetch projects from specific repositories
  *     tags: [SummaryMetadata]
  *     requestBody:
  *       required: true
@@ -194,9 +194,7 @@ router.route('/syncBatchProjectAllMetadata').post(syncBatchProjectAllMetadataHan
  *       500:
  *         description: Bad Request
  */
-router
-  .route('/syncBatchProjectAllMetadataByProjectIds')
-  .post(syncBatchProjectAllMetadataByProjectIdsHandler);
+router.route('/syncBatchProjectAllMetadataByPIds').post(syncBatchProjectAllMetadataByPIdsHandler);
 
 /**
  * @swagger
@@ -204,7 +202,7 @@ router
  *   name: SummaryMetadata
  * /sync/syncBatchProjectAllMetadataByRepoUrls:
  *   post:
- *     summary: Batch fetch GitHub projects from specific repositories
+ *     summary: Batch fetch projects from specific repositories
  *     tags: [SummaryMetadata]
  *     requestBody:
  *       required: true
@@ -351,9 +349,9 @@ router.route('/opendigger').post(syncOpendiggerHandler);
  *               repoUrls:
  *                 type: Array<string>
  *                 example: ["https://github.com/vuejs/vue"]
- *               projectIds:
- *                 type: Array<number>
- *                 example: [1000,1123]
+ *               pIds:
+ *                 type: Array<string>
+ *                 example: ["1#137078487"]
  *     responses:
  *       200:
  *         description: success.
@@ -396,9 +394,9 @@ router.route('/projectDescription').post(syncProjectDescriptionHandler);
  *               repoUrl:
  *                 type: string
  *                 example: "https://github.com/vuejs/vue"
- *               projectId:
- *                 type: Array<number>
- *                 example: [1000,1123]
+ *               pIds:
+ *                 type: Array<string>
+ *                 example: ["1#137078487"]
  *     responses:
  *       200:
  *         description: success.
@@ -477,7 +475,7 @@ router
  *           schema:
  *             type: object
  *             properties:
- *               id:
+ *               pId:
  *                 type: string
  *               category:
  *                 type: string
@@ -686,7 +684,7 @@ router.route('/stackoverflow').post(syncStackOverFlowResultData);
  *   name: Github
  * /sync/github/stars/observeprojects:
  *   post:
- *     summary: Watching front-end Github projects for a specified range of STARS
+ *     summary: Watching front-end projects for a specified range of STARS
  *     tags: [Github]
  *     requestBody:
  *       required: true
@@ -715,7 +713,7 @@ router.route('/github/stars/observeprojects').post(observeProjectsByStar);
  *   name: Github
  * /sync/github/stars/projects:
  *   post:
- *     summary: Batch fetch front-end Github projects for a specified range of stats
+ *     summary: Batch fetch front-end projects for a specified range of stats
  *     tags: [Github]
  *     requestBody:
  *       required: true
@@ -744,7 +742,7 @@ router.route('/github/stars/projects').post(syncProjectByStar);
  *   name: Github
  * /sync/github/repo/projects:
  *   post:
- *     summary: Batch fetch Github projects from specific repositories,
+ *     summary: Batch fetch projects from specific repositories,
  *             dataType can be 1 or 2, 1 means source is software for progressiveness assessment; 2 means Source is similar software recommended by AI
  *     tags: [Github]
  *     requestBody:
@@ -981,7 +979,7 @@ router.route('/sonarCloud/collect').post(await collectSonarCloudData);
  * @swagger
  * /sync/gitlab/importProjectFromUrl/{namespaceId}:
  *  post:
- *     summary: import Github projects for github
+ *     summary: import projects
  *     tags: [Gitlab]
  *     requestBody:
  *       required: true
@@ -989,7 +987,7 @@ router.route('/sonarCloud/collect').post(await collectSonarCloudData);
  *         application/json:
  *           schema:
  *             type: array
- *       example: [48296,298375]
+ *       example: ["1#48296"]
  *     parameters:
  *       - in: path
  *         name: namespaceId
@@ -1005,7 +1003,7 @@ router.route('/gitlab/importProjectFromUrl/:namespaceId').post(await createGitla
  * @swagger
  * /sync/sonarCloud/scan:
  *  post:
- *     summary: create and scan github project
+ *     summary: create and scan project
  *     tags: [Sonar]
  *     parameters:
  *       - name: force
@@ -1019,18 +1017,18 @@ router.route('/gitlab/importProjectFromUrl/:namespaceId').post(await createGitla
  *         application/json:
  *           schema:
  *             type: array
- *       example: [48296,298375]
+ *       example: ["1#48296"]
  *     responses:
  *       200:
  *         description: success.
  */
-router.route('/sonarCloud/scan').post(createAndScanSonarProjectByGithubIdHandler);
+router.route('/sonarCloud/scan').post(createAndScanSonarProjectByProjectIdHandler);
 
 /**
  * @swagger
  * /sync/sonarCloud/createGithubProjects:
  *  post:
- *     summary: create github project but not scan
+ *     summary: create project but not scan
  *     tags: [Sonar]
  *     requestBody:
  *       required: true
@@ -1038,7 +1036,7 @@ router.route('/sonarCloud/scan').post(createAndScanSonarProjectByGithubIdHandler
  *         application/json:
  *           schema:
  *             type: array
- *       example: [48296,298375]
+ *       example: ["1#158975124"]
  *     responses:
  *       200:
  *         description: success.
@@ -1057,7 +1055,7 @@ router.route('/sonarCloud/createGithubProjects').post(createSonarProjectsFromGit
  *         application/json:
  *           schema:
  *             type: array
- *       example: [158975124]
+ *       example: ["1#158975124"]
  *     responses:
  *       200:
  *         description: success.
@@ -1149,9 +1147,9 @@ router.route('/syncProjectCodeSize').get(syncAllProjectCodeSizeHandler);
 
 /**
  * @swagger
- * /sync/syncProjectCodeSizeByProjectId:
+ * /sync/syncProjectCodeSizeByPIds:
  *   post:
- *     summary: refresh code size of project
+ *     summary: refresh code size of pId
  *     tags: [CodeLines]
  *     requestBody:
  *       required: true
@@ -1159,12 +1157,12 @@ router.route('/syncProjectCodeSize').get(syncAllProjectCodeSizeHandler);
  *         application/json:
  *           schema:
  *             type: array
- *             items: number
+ *             items: string
  *     responses:
  *       200:
  *         description: success.
  */
-router.route('/syncProjectCodeSizeByProjectId').post(syncProjectCodeSizeByProjectIdHandler);
+router.route('/syncProjectCodeSizeByProjectId').post(syncProjectCodeSizeByPIdsHandler);
 
 /**
  * @swagger
@@ -1433,7 +1431,7 @@ router.route('/syncAllProjectCreatorsCountries').post(syncAllProjectCreatorsCoun
  * @swagger
  * /sync/github/searchAndIntegrationGithubProjects:
  *   get:
- *     summary: get github projects ranks
+ *     summary: get projects ranks
  *     tags: [Github]
  *     parameters:
  *       - in: query

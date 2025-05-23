@@ -70,19 +70,24 @@ export async function storeTrendRankHistory(dateType, date = '') {
 async function getRankData(dataType, dateType, selectedDate, rankType) {
   const rankTypeValue = rankType.VALUE;
   const orderCriteria = rankType.ORDER_CRITERIA;
-  const QUERY_SQL = `insert into trend_rank_history(project_id, data_type, date_type,
-      increased_value, total_value, date, rank_type, \`rank\`)
-      select project_id, data_type, date_type, increased_value, total_value, date,
-      :rankTypeValue, row_number() over () as \`rank\`
-      from trend_history
-      where data_type = :dataType
-        and date_type = :dateType
-        and date = :selectedDate
-      order by ${orderCriteria}
-      on duplicate key update
-      increased_value = VALUES(increased_value),
-      total_value = VALUES(total_value),
-      \`rank\` = VALUES(\`rank\`)`;
+  const QUERY_SQL = `insert into trend_rank_history(p_id, data_type, date_type,
+                                                    increased_value, total_value, date, rank_type, \`rank\`)
+                     select p_id,
+                            data_type,
+                            date_type,
+                            increased_value,
+                            total_value,
+                            date,
+                            :rankTypeValue,
+                            row_number() over () as \`rank\`
+                     from trend_history
+                     where data_type = :dataType
+                       and date_type = :dateType
+                       and date = :selectedDate
+                     order by ${orderCriteria}
+                     on duplicate key update increased_value = VALUES(increased_value),
+                                             total_value     = VALUES(total_value),
+                                             \`rank\`        = VALUES(\`rank\`)`;
   await sequelize
     .query(QUERY_SQL, {
       replacements: { rankTypeValue, dataType, dateType, selectedDate },

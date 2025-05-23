@@ -2,7 +2,7 @@ import {
   ProjectTechStack,
   Scorecard,
   sequelize,
-  GithubProjects,
+  ViewProjects,
   logger,
 } from '@orginjs/oss-evaluation-data-model';
 import { ServerError, BadRequestError } from '../util/error.js';
@@ -19,15 +19,15 @@ import shelljs from 'shelljs';
 export async function syncScorecardHandler(req, res) {
   try {
     // sync single project
-    if (req.body.id) {
-      const projectId = req.body.id;
-      const project = await GithubProjects.findByPk(projectId);
+    if (req.body.pId) {
+      const pId = req.body.pId;
+      const project = await ViewProjects.findByPk(pId);
       if (!project) {
         res.status(500).json({ error: 'can not find project!' });
         return;
       }
       const projectPath = project.htmlUrl.substring('https://'.length);
-      const result = await syncScorecard(projectId, projectPath);
+      const result = await syncScorecard(pId, projectPath);
       res.status(200).json(result);
     } else if (req.body.category) {
       // sync a category
@@ -37,11 +37,9 @@ export async function syncScorecardHandler(req, res) {
         logger.info('Starting full integration mode. Integrate all data from scratch!');
       }
       for (let project of projects) {
-        await syncScorecard(project.projectId, project.html_url.substring('https://'.length)).catch(
-          e => {
-            logger.error(`Integration Failed! Failure from project ${e.message}`);
-          },
-        );
+        await syncScorecard(project.pId, project.html_url.substring('https://'.length)).catch(e => {
+          logger.error(`Integration Failed! Failure from project ${e.message}`);
+        });
       }
       res.status(200).json({
         status: 'success',
@@ -66,9 +64,9 @@ export async function syncScorecardSpecial(req, res) {
     const [projectList] = await sequelize.query(sql);
     for (const project of projectList) {
       const projectPath = project.html_url.substring('https://'.length);
-      const projectId = project.id;
+      const pId = project.pId;
       try {
-        await syncScorecard(projectId, projectPath);
+        await syncScorecard(pId, projectPath);
         jobList.push(`Success for ${project.html_url}`);
       } catch (e) {
         logger.info(e);
@@ -82,14 +80,14 @@ export async function syncScorecardSpecial(req, res) {
 
 /**
  * Sync scorecard to mysql(run locally if no data online)
- * @param {string} projectId projectId of the project
- * @param {string} address project address（url of github without 'https://'）
+ * @param {string} pId pId of the project
+ * @param {string} address project address（url of project without 'https://'）
  * @param {string} platform platform name，like 'github.com'
  * @param {string} org organization name
  * @param {string} repo repo name
  * @returns inserted data
  */
-export async function syncScorecard(projectId, address, platform, org, repo) {
+export async function syncScorecard(pId, address, platform, org, repo) {
   let url = '';
   if (address && address.length > 0) {
     url = address;
@@ -99,9 +97,9 @@ export async function syncScorecard(projectId, address, platform, org, repo) {
     throw new BadRequestError();
   }
 
-  if (!projectId) {
-    const tempProject = await GithubProjects.findOne({ where: { htmlUrl: `https://${url}` } });
-    projectId = tempProject.id;
+  if (!pId) {
+    const tempProject = await ViewProjects.findOne({ where: { htmlUrl: `https://${url}` } });
+    pId = tempProject.pId;
   }
   // Obtain scorecard data
   let score;
@@ -115,9 +113,9 @@ export async function syncScorecard(projectId, address, platform, org, repo) {
   }
 
   // save scorecard score to sql
-  const row = { ...score, projectId };
+  const row = { ...score, pId };
   const [data, created] = await Scorecard.findOrCreate({
-    where: { projectId: row.projectId },
+    where: { pId: row.pId },
     defaults: row,
   });
   if (!created) {
@@ -213,13 +211,13 @@ export async function getScorecardHandler(req, res) {
  * @param projectUrl string html path for the project
  */
 export async function syncSingleProjectScorecard(projectUrl) {
-  const project = await GithubProjects.findOne({ where: { htmlUrl: projectUrl } });
+  const project = await ViewProjects.findOne({ where: { htmlUrl: projectUrl } });
   await syncSingleProjectScorecardByProject(project);
 }
 
 export async function syncSingleProjectScorecardByProject(project) {
   const { address, owner, repository } = parseRepoUrl(project.htmlUrl);
-  await syncScorecard(project.id, null, address, owner, repository);
+  await syncScorecard(project.pId, null, address, owner, repository);
 }
 
 export async function syncSingleProjectScorecardHandler(req, res) {

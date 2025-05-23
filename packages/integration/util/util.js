@@ -1,4 +1,4 @@
-import { GithubProjectsTable, logger } from '@orginjs/oss-evaluation-data-model';
+import { ViewProjects, logger } from '@orginjs/oss-evaluation-data-model';
 import { setTimeout } from 'node:timers';
 
 export const sleep = ms =>
@@ -19,7 +19,7 @@ export const timer = (fn, param, ms) =>
  * @returns {Promise<*>} project basic information
  */
 export async function getProjectByUrl(repoUrl) {
-  const project = await GithubProjectsTable.findOne({
+  const project = await ViewProjects.findOne({
     where: {
       htmlUrl: repoUrl,
     },
