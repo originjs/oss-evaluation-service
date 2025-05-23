@@ -49,7 +49,7 @@ jobs:
           REMOTE_USER: ${{ secrets.HW_USER }}
           REMOTE_PORT: ${{ secrets.HW_PORT }}  # 如果不是默认的22端口，需要更改
           SCRIPT_BEFORE: ls
-          SCRIPT_AFTER: bash /home/ci_deploy.sh
+          SCRIPT_AFTER: bash /home/ci_deploy_api_server.sh
 
       - name: Deploy Integration 🚀
         uses: easingthemes/ssh-deploy@main
@@ -63,4 +63,4 @@ jobs:
           REMOTE_USER: ${{ secrets.BT_USER }}
           REMOTE_PORT: ${{ secrets.BT_PORT }}  # 如果不是默认的22端口，需要更改
           SCRIPT_BEFORE: ls
-          SCRIPT_AFTER: bash /home/ci_deploy.sh
+          SCRIPT_AFTER: bash /home/ci_deploy_integration.sh
