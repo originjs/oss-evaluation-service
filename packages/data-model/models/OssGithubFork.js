@@ -14,8 +14,8 @@ export default sequelize.define(
     fullName: {
       type: DataTypes.STRING(512),
     },
-    projectId: {
-      type: DataTypes.INTEGER,
+    pId: {
+      type: DataTypes.STRING(32),
       unique: true,
     },
   },

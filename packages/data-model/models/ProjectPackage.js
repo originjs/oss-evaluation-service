@@ -4,8 +4,8 @@ import sequelize from '../util/database.js';
 export default sequelize.define(
   'ProjectPackage',
   {
-    projectId: {
-      type: DataTypes.BIGINT,
+    pId: {
+      type: DataTypes.STRING(32),
       allowNull: false,
       primaryKey: true,
     },
@@ -29,9 +29,9 @@ export default sequelize.define(
     timestamps: false,
     indexes: [
       {
-        name: 'idx_project_id',
+        name: 'p_id',
         using: 'BTREE',
-        fields: [{ name: 'project_id' }],
+        fields: [{ name: 'p_id' }],
       },
     ],
   },

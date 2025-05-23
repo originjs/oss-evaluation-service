@@ -4,15 +4,15 @@ import sequelize from '../util/database.js';
 export default sequelize.define(
   'AlternativeProjects',
   {
-    projectId: {
-      type: DataTypes.BIGINT,
+    pId: {
+      type: DataTypes.STRING(32),
       allowNull: false,
     },
     fullName: {
       type: DataTypes.STRING,
     },
     alternativeId: {
-      type: DataTypes.BIGINT,
+      type: DataTypes.STRING(32),
     },
     alternativeName: {
       type: DataTypes.STRING,

@@ -4,8 +4,8 @@ import sequelize from '../util/database.js';
 export default sequelize.define(
   'OpenDigger',
   {
-    projectId: {
-      type: DataTypes.BIGINT,
+    pId: {
+      type: DataTypes.STRING(32),
       allowNull: false,
       primaryKey: true,
     },

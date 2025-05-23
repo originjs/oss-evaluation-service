@@ -8,8 +8,8 @@ export default sequelize.define(
       type: DataTypes.INTEGER,
       primaryKey: true,
     },
-    githubProjectId: {
-      type: DataTypes.INTEGER,
+    pId: {
+      type: DataTypes.STRING(32),
       allowNull: false,
       defaultValue: -1,
     },
@@ -18,8 +18,8 @@ export default sequelize.define(
       allowNull: false,
       defaultValue: -1,
     },
-    forkGithubId: {
-      type: DataTypes.INTEGER,
+    forkPId: {
+      type: DataTypes.STRING(32),
       allowNull: false,
       defaultValue: -1,
     },
