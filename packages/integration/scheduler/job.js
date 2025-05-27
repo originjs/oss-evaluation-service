@@ -9,7 +9,7 @@ import { projectCodeSizeTimer } from '../controllers/projectCodeSize.js';
 import { projectContributorsTimer } from '../controllers/projectContributors.js';
 import { evaluateTimer } from '../controllers/evaluate.js';
 import { projectHistoryTimer } from '../controllers/projectHistory.js';
-import { githubProjectsDailyTimer, githubProjectsWeeklyTimer } from '../controllers/github.js';
+import { githubProjectsDailyTimer, githubProjectsWeeklyTimer } from '../controllers/project.js';
 import { githubStargazersTrendTimer } from '../controllers/projectStarGazersTrend.js';
 
 function createTimer(name, pattern, timer) {

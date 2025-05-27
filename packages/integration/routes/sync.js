@@ -30,7 +30,7 @@ import {
   searchAndIntegrationGithubProjects,
   syncGithubProjectsDailyHandler,
   syncGithubProjectsWeeklyHandler,
-} from '../controllers/github.js';
+} from '../controllers/project.js';
 import {
   bulkAddBenchmarkHandler,
   getPatchId,

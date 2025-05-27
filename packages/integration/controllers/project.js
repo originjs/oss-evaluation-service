@@ -1,7 +1,12 @@
 import https from 'node:https';
 import * as fs from 'node:fs';
 import { Octokit } from '@octokit/core';
-import { GithubProjectsTable, logger } from '@orginjs/oss-evaluation-data-model';
+import {
+  GithubProjectsTable,
+  GiteeProjectsTable,
+  GitcodeProjectsTable,
+  logger,
+} from '@orginjs/oss-evaluation-data-model';
 import GithubSdk from '@orginjs/github-sdk';
 import { fetchWithRetries } from '../util/fetchWithRetries.js';
 import * as cheerio from 'cheerio';
@@ -49,6 +54,12 @@ const commonLanguages = [
   'Rust',
   'TypeScript',
 ];
+
+const platformTypes = {
+  GITHUB: 1,
+  GITEE: 2,
+  GITCODE: 3,
+};
 
 export async function observeProjectsByStar(req, res) {
   const githubApiUrl = getGithubApiUrl(req);
@@ -127,7 +138,7 @@ function getStarsScope(req) {
 
 async function savaData(projects) {
   let updateOnDuplicate = Object.keys(projects[0]).slice(1);
-  // if data type is not 1, remove 'integratedState' and 'dataType'
+  // if dataType is not 1, remove 'integratedState' and 'dataType'
   if (projects[0].dataType !== 1) {
     updateOnDuplicate = updateOnDuplicate.filter(
       fieldName => fieldName != 'integratedState' && fieldName != 'dataType',
@@ -135,8 +146,12 @@ async function savaData(projects) {
   } else {
     updateOnDuplicate = updateOnDuplicate.filter(fieldName => fieldName != 'integratedState');
   }
-
-  const result = await GithubProjectsTable.bulkCreate(projects, {
+  const tableMap = {
+    [platformTypes.GITHUB]: GithubProjectsTable,
+    [platformTypes.GITEE]: GiteeProjectsTable,
+    [platformTypes.GITCODE]: GitcodeProjectsTable,
+  };
+  const result = await tableMap[projects[0].platformType].bulkCreate(projects, {
     updateOnDuplicate,
   });
   logger.info(`Batch insert/update success,${result.length} rows.`);
@@ -221,56 +236,89 @@ async function pagingQuery(url) {
   });
 }
 
+const getPlatformType = url => {
+  const typeMap = {
+    'github.com': platformTypes.GITHUB,
+    'gitee.com': platformTypes.GITEE,
+    'gitcode.com': platformTypes.GITCODE,
+  };
+  let urlObj;
+  try {
+    urlObj = new URL(url);
+  } catch (e) {
+    logger.error(`Invalid url: ${url}`);
+    return {};
+  }
+  return {
+    platformType: typeMap[urlObj.hostname],
+    hostname: urlObj.hostname,
+  };
+};
+
 function parseProjects(items, dataType) {
-  return items.map(project => ({
-    id: project.id,
-    name: project.name,
-    fullName: project.full_name,
-    htmlUrl: project.html_url,
-    description: project.description?.slice(0, 1001),
-    privateFlag: project.private,
-    ownerName: project.owner.login,
-    forkFlag: project.fork,
-    createdAt: project.created_at,
-    updatedAt: project.updated_at,
-    pushedAt: project.pushed_at,
-    gitUrl: project.git_url,
-    cloneUrl: project.clone_url,
-    size: project.size,
-    stargazersCount: project.stargazers_count,
-    watchersCount: project.watchers_count,
-    language: project.language,
-    hasIssues: project.has_issues,
-    forksCount: project.forks_count,
-    archived: project.archived,
-    disabled: project.disabled,
-    openIssuesCount: project.open_Issues_count,
-    license: project.license?.key,
-    allowForking: project.allow_forking,
-    topics: project.topics?.join('|'),
-    visibility: project.visibility,
-    forks: project.forks,
-    openIssues: project.open_issues,
-    watchers: project.watchers,
-    defaultBranch: project.default_branch,
-    ownerAvatarUrl: project.owner?.avatar_url,
-    ownerType: project.owner?.type,
-    ownerId: project.owner?.id,
-    ownerHtmlUrl: project.owner?.html_url,
-    sshUrl: project.ssh_url,
-    svnUrl: project.svn_url,
-    homePage: project.homepage,
-    hasProjects: project.has_projects,
-    hasDownloads: project.has_downloads,
-    hasWiki: project.has_wiki,
-    hasPages: project.has_pages,
-    hasDiscussions: project.has_discussions,
-    mirrorUrl: project.mirror_url,
-    licenseName: project.license?.name,
-    isTemplate: project.is_template,
-    webCommitSignoffRequired: project.web_commit_signoff_required,
-    dataType: dataType || dataTypes.generalRepo,
-  }));
+  return items.map(project => {
+    const { platformType } = getPlatformType(project.html_url);
+    const result = {
+      id: project.id,
+      platformType,
+      name: project.name,
+      fullName: project.full_name,
+      htmlUrl: project.html_url,
+      description: project.description?.slice(0, 1001),
+      privateFlag: project.private,
+      ownerName: project.owner.login,
+      forkFlag: project.fork,
+      createdAt: project.created_at,
+      updatedAt: project.updated_at,
+      pushedAt: project.pushed_at,
+      gitUrl: project.git_url,
+      cloneUrl: project.clone_url,
+      size: project.size,
+      stargazersCount: project.stargazers_count,
+      watchersCount: project.watchers_count,
+      language: project.language,
+      hasIssues: project.has_issues,
+      forksCount: project.forks_count,
+      archived: project.archived,
+      disabled: project.disabled,
+      openIssuesCount: project.open_issues_count,
+      license: project.license?.key,
+      allowForking: project.allow_forking,
+      topics: project.topics?.join('|'),
+      visibility: project.visibility,
+      forks: project.forks,
+      openIssues: project.open_issues,
+      watchers: project.watchers,
+      defaultBranch: project.default_branch,
+      ownerAvatarUrl: project.owner?.avatar_url,
+      ownerType: project.owner?.type,
+      ownerId: project.owner?.id,
+      ownerHtmlUrl: project.owner?.html_url,
+      sshUrl: project.ssh_url,
+      svnUrl: project.svn_url,
+      homePage: project.homepage,
+      hasProjects: project.has_projects,
+      hasDownloads: project.has_downloads,
+      hasWiki: project.has_wiki,
+      hasPages: project.has_pages,
+      hasDiscussions: project.has_discussions,
+      mirrorUrl: project.mirror_url,
+      licenseName: project.license?.name,
+      isTemplate: project.is_template,
+      webCommitSignoffRequired: project.web_commit_signoff_required,
+      dataType: dataType || dataTypes.generalRepo,
+    };
+    if (platformType === platformTypes.GITEE) {
+      result.htmlUrl = project.html_url?.replace('.git', '');
+      result.license = project.license;
+    }
+    if (platformType === platformTypes.GITCODE) {
+      result.htmlUrl = project.web_url;
+      result.license = project.license;
+      result.sshUrl = project.ssh_url_to_repo;
+    }
+    return result;
+  });
 }
 
 export async function syncProjectByRepo(req, res) {
@@ -299,11 +347,11 @@ export async function syncProjectByRepo(req, res) {
 }
 
 /**
- * Sync single github project by repository url
+ * Sync single project by repository url
  *
  * @param {url:string} options
  */
-export async function syncSingleGithubProject(options) {
+export async function syncSingleProject(options) {
   const project = await queryProjectByRepUrl(options.url);
   if (!project) {
     return null;
@@ -315,24 +363,49 @@ export async function syncSingleGithubProject(options) {
 }
 
 async function queryProjectByRepUrl(url) {
-  const ownerRepo = getOwnerRepo(url);
+  const { platformType, hostname } = getPlatformType(url);
+  const ownerRepo = getOwnerRepo(url, hostname);
   if (!ownerRepo) {
-    logger.info('Url must be the github address,eg:https://github.com/vuejs/core');
+    logger.info('Url must be the GitHub/Gitee/GitCode address, eg: https://github.com/vuejs/core');
     return null;
   }
-
-  const tokens = JSON.parse(process.env.GITHUB_TOKEN);
-  logger.info(`fetch url: https://api.github.com/repos/${ownerRepo[0]}/${ownerRepo[1]}`);
-  try {
-    const response = await fetch(`https://api.github.com/repos/${ownerRepo[0]}/${ownerRepo[1]}`, {
-      // agent,
-      headers: {
-        'User-Agent': 'nodejs/18.19.0',
-        Authorization: `Bearer ${tokens[0]}`,
-        'X-GitHub-Api-Version': '2022-11-28',
-        Accept: 'application/vnd.github+json',
+  const githubTokens = JSON.parse(process.env.GITHUB_TOKEN);
+  const giteeTokens = JSON.parse(process.env.GITEE_TOKEN);
+  const gitcodeTokens = JSON.parse(process.env.GITCODE_TOKEN);
+  const fetchConf = {
+    [platformTypes.GITHUB]: {
+      baseUrl: 'https://api.github.com/repos',
+      config: {
+        headers: {
+          'User-Agent': 'nodejs/18.19.0',
+          Authorization: `Bearer ${githubTokens[0]}`,
+          'X-GitHub-Api-Version': '2022-11-28',
+          Accept: 'application/vnd.github+json',
+        },
       },
-    });
+    },
+    [platformTypes.GITEE]: {
+      baseUrl: 'https://gitee.com/api/v5/repos',
+      config: {
+        headers: {
+          Authorization: `${giteeTokens[0]}`,
+        },
+      },
+    },
+    [platformTypes.GITCODE]: {
+      baseUrl: 'https://api.gitcode.com/api/v5/repos',
+      config: {
+        headers: {
+          Authorization: `${gitcodeTokens[0]}`,
+        },
+      },
+    },
+  };
+  const { baseUrl, config } = fetchConf[platformType];
+  let fetchUrl = `${baseUrl}/${ownerRepo[0]}/${ownerRepo[1]}`;
+  logger.info(`Fetch url: ${fetchUrl}`);
+  try {
+    const response = await fetch(fetchUrl, config);
 
     if (response.ok) {
       return await response.json();
@@ -345,10 +418,12 @@ async function queryProjectByRepUrl(url) {
   }
 }
 
-function getOwnerRepo(url) {
-  const keyWords = 'github.com';
-  const startIndex = url.indexOf(keyWords);
-  const fullName = url.substr(startIndex + keyWords.length);
+function getOwnerRepo(url, hostname) {
+  if (!hostname) {
+    return null;
+  }
+  const startIndex = url.indexOf(hostname);
+  const fullName = url.substr(startIndex + hostname.length);
   const paths = fullName.split('/');
   if (paths.length < 2) {
     return null;
@@ -491,7 +566,7 @@ async function syncGithubProjects(projectList) {
     const options = {
       url: `https://github.com/${project}`,
     };
-    await syncSingleGithubProject(options);
+    await syncSingleProject(options);
   }
 }
 
