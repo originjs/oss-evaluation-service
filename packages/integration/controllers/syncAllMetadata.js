@@ -1,4 +1,4 @@
-import { syncSingleGithubProject } from './github.js';
+import { syncSingleProject } from './project.js';
 import { syncSingleProjectCncfDocumentScore } from './documentScore.js';
 import { syncSingleProjectStargazersTrend } from './projectStarGazersTrend.js';
 import { syncSingleProjectOpendigger } from './opendigger.js';
@@ -87,12 +87,13 @@ export async function syncBatchProjectAllMetadataByPIdsHandler(req, res) {
 
 async function syncSingleProjectAllMetadata(options) {
   const { repoUrl, category, subcategory, packageName } = options;
-  // 1. GitHub Info
-  const project = await syncSingleGithubProject({ url: repoUrl });
+  // 1. Project Info
+  const project = await syncSingleProject({ url: repoUrl });
   if (!project) {
-    logger.error(`[Batch Integrated] get github info by repo:{${repoUrl}} failed!!`);
+    logger.error(`[Batch Integrated] get project info by repo:{${repoUrl}} failed!!`);
     return;
   }
+  project.pId = `${project.platformType}#${project.id}`;
 
   // 2. insert techStack
   if (category && subcategory) {
