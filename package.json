@@ -14,6 +14,7 @@
     "test": "vitest run",
     "dev-integ": "pnpm -C packages/integration dev",
     "dev-server": "pnpm -C packages/api-server dev",
+    "dev-repo-server": "pnpm -C packages/repo-service dev",
     "dev-web": "pnpm -C packages/website dev",
     "dev": "run-p dev-server dev-web",
     "build-util": "pnpm -C packages/util build",

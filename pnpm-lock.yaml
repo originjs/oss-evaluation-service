@@ -285,6 +285,9 @@ importers:
       '@orginjs/oss-evaluation-data-model':
         specifier: workspace:^
         version: link:../data-model
+      '@orginjs/oss-evaluation-util':
+        specifier: workspace:^
+        version: link:../util
       '@orginjs/sonar-cloud-sdk':
         specifier: workspace:^
         version: link:../api-sdk/sonarCloud

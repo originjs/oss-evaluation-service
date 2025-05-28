@@ -7,6 +7,7 @@ import { simpleGit } from 'simple-git';
 import { existsSync, mkdirSync } from 'fs';
 import { Result } from '../utils/result.js';
 import { logger } from '@orginjs/oss-evaluation-data-model';
+import { platformTypes } from '@orginjs/oss-evaluation-util';
 
 function getNotHiddenFileCount(dir: string) {
   const files = fs.readdirSync(dir);
@@ -16,6 +17,7 @@ function getNotHiddenFileCount(dir: string) {
 export async function cloneRepoIfNotExist(cloneInfo: RepoCloneParam): Promise<Result<GitRepoInfo>> {
   const owner = cloneInfo.owner;
   const repoName = cloneInfo.repoName;
+  const platformType = cloneInfo.platformType;
   const pullIfExists = cloneInfo.pullIfExists;
   const dir = `${process.env.REPO_DIR}/${owner}/${repoName}`;
   const options: Partial<SimpleGitOptions> = {
@@ -27,7 +29,7 @@ export async function cloneRepoIfNotExist(cloneInfo: RepoCloneParam): Promise<Re
   // retry 3 times for clone
   for (let i = 0; i < 2; i++) {
     const exists = existsSync(dir);
-    const retryUrl = getCloneUrlByTime(i + 1, owner, repoName);
+    const retryUrl = getCloneUrlByTime(i + 1, owner, repoName, platformType);
     // create folder if dont exists
     if (!exists) {
       mkdirSync(dir, { recursive: true });
@@ -78,14 +80,25 @@ async function pull(cloneInfo: RepoCloneParam, gitClient: SimpleGit) {
   }
 }
 
-function getCloneUrlByTime(time: number, owner: string, repoName: string): string {
+function getCloneUrlByTime(
+  time: number,
+  owner: string,
+  repoName: string,
+  platformType: string = platformTypes.GITHUB,
+): string {
+  const repoBaseUrlMap = {
+    [platformTypes.GITHUB]: 'github.com',
+    [platformTypes.GITEE]: 'gitee.com',
+    [platformTypes.GITCODE]: 'gitcode.com',
+  };
+  const baseUrl = repoBaseUrlMap[platformType];
   //   1: origin url
   //   2: use ssh clone
   switch (time) {
     case 1:
-      return `https://github.com/${owner}/${repoName}.git`;
+      return `https://${baseUrl}/${owner}/${repoName}.git`;
     case 2:
-      return `git@github.com:${owner}/${repoName}.git`;
+      return `git@${baseUrl}:${owner}/${repoName}.git`;
   }
 }
 
