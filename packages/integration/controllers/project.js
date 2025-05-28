@@ -10,6 +10,7 @@ import {
 import GithubSdk from '@orginjs/github-sdk';
 import { fetchWithRetries } from '../util/fetchWithRetries.js';
 import * as cheerio from 'cheerio';
+import { platformTypes } from '@orginjs/oss-evaluation-util';
 
 /**
  *  There are 952 github projects between 1000 and 1130 stars.
@@ -54,12 +55,6 @@ const commonLanguages = [
   'Rust',
   'TypeScript',
 ];
-
-const platformTypes = {
-  GITHUB: 1,
-  GITEE: 2,
-  GITCODE: 3,
-};
 
 export async function observeProjectsByStar(req, res) {
   const githubApiUrl = getGithubApiUrl(req);

@@ -1,6 +1,12 @@
 import type { RepoCloneParam } from '../interfaces/param.js';
 import { gitCloneThreadPool, shellThreadPool } from '../worker/workers.js';
-import { logger, GithubProjectsTable } from '@orginjs/oss-evaluation-data-model';
+import {
+  logger,
+  GithubProjectsTable,
+  GiteeProjectsTable,
+  GitcodeProjectsTable,
+} from '@orginjs/oss-evaluation-data-model';
+import { platformTypes } from '@orginjs/oss-evaluation-util';
 
 export async function getCodeLines(repoInfo: RepoCloneParam) {
   repoInfo.shadowClone = true;
@@ -27,12 +33,18 @@ function getClocCommand(repoInfo: RepoCloneParam): string {
 }
 
 async function updateCodeLinesOfProject(codeLines: number, repoInfo: RepoCloneParam) {
-  if (codeLines > 0 && repoInfo.id) {
-    await GithubProjectsTable.update(
+  if (codeLines > 0 && repoInfo.pId) {
+    const tableMap = {
+      [platformTypes.GITHUB]: GithubProjectsTable,
+      [platformTypes.GITEE]: GiteeProjectsTable,
+      [platformTypes.GITCODE]: GitcodeProjectsTable,
+    };
+    const table = tableMap[repoInfo.platformType || platformTypes.GITHUB];
+    await table.update(
       { codeSize: codeLines },
       {
         where: {
-          id: repoInfo.id,
+          pId: repoInfo.pId,
         },
       },
     );

@@ -10,7 +10,9 @@
     "build": "tsoa spec-and-routes && tsc",
     "start": "node ./dist/app.js",
     "swagger": "tsoa spec-and-routes",
-    "test": "vitest run"
+    "test": "vitest run",
+    "predev": "pnpm --filter @orginjs/oss-evaluation-util build",
+    "prestart": "pnpm --filter @orginjs/oss-evaluation-util build"
   },
   "nodemonConfig": {
     "watch": [
@@ -20,6 +22,7 @@
     "exec": "tsc && node ./dist/app.js"
   },
   "dependencies": {
+    "@orginjs/oss-evaluation-util": "workspace:^",
     "@orginjs/oss-evaluation-data-model": "workspace:^",
     "@orginjs/sonar-cloud-sdk": "workspace:^",
     "@orginjs/github-sdk": "workspace:^",

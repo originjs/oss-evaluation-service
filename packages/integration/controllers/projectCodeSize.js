@@ -31,7 +31,16 @@ async function updateCodeSizeByPId(codeLines, pId) {
 async function syncProjectCodeSize(pIds) {
   logger.info('Sync Project Code Size');
   const projectList = await ViewProjects.findAll({
-    attributes: ['pId', 'size', 'cloneUrl', 'ownerName', 'name', 'codeSize', 'fullName'],
+    attributes: [
+      'pId',
+      'size',
+      'cloneUrl',
+      'ownerName',
+      'name',
+      'codeSize',
+      'fullName',
+      'platformType',
+    ],
     where:
       pIds?.length > 0
         ? {
@@ -85,6 +94,7 @@ async function getCodeSizeUsingCloc(project) {
       pId: project.pId,
       owner: project.ownerName,
       repoName: project.name,
+      platformType: project.platformType,
     }),
   });
   if (!response.ok) {
