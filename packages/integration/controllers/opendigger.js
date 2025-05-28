@@ -3,6 +3,7 @@ import sequelize, { Op } from 'sequelize';
 import { OpenDigger, ViewProjects, logger } from '@orginjs/oss-evaluation-data-model';
 import { ServerError } from '../util/error.js';
 import { getProjectByUrl } from '../util/util.js';
+import { platformTypes } from '@orginjs/oss-evaluation-util';
 
 async function getOpenRank(projectPath, type) {
   const response = await fetch(
@@ -45,7 +46,12 @@ async function getBusFactor(projectPath, type) {
 }
 
 export async function syncSingleProjectOpendigger(project) {
-  const type = project.htmlUrl.startsWith('https://gitte.com/') ? 'gitee' : 'github';
+  const typeMap = {
+    [platformTypes.GITHUB]: 'github',
+    [platformTypes.GITEE]: 'gitee',
+    [platformTypes.GITCODE]: 'gitcode',
+  };
+  const type = typeMap[project.platformType];
   const rank = await getOpenRank(project.fullName, type);
   const bus = await getBusFactor(project.fullName, type);
   // insert a record even if request fails
