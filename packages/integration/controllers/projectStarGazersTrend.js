@@ -8,16 +8,19 @@ import { getProjectByUrl } from '../util/util.js';
 import dayjs from 'dayjs';
 import { addMonitoringToTask } from '../scheduler/schdulerMonitor.js';
 import { Sequelize } from 'sequelize';
+import { platformTypes as platformType } from '@orginjs/oss-evaluation-util';
 
-const starHistoryUrl = 'https://api.ossinsight.io/q/analyze-stars-history?repoId=:pId';
+const starHistoryUrl = 'https://api.ossinsight.io/q/analyze-stars-history?repoId=:id';
 const defaultDate = '1010-01-01';
 
 const QUERY_SQL = `
     select distinct project.p_id,
+                    project.id,
+                    project.platform_type as platformType,
                     project.name,
-                    project.full_name as fullName,
-                    project.html_url  as htmlUrl,
-                    trend.p_id        as pId
+                    project.full_name     as fullName,
+                    project.html_url      as htmlUrl,
+                    trend.p_id            as pId
     from view_projects project
              left join (select *
                         from github_projects_stargazers_trend
@@ -28,10 +31,12 @@ const QUERY_SQL = `
 
 const QUERY_SINGLE_SQL = `
     select distinct project.p_id,
+                    project.id,
+                    project.platform_type as platformType,
                     project.name,
-                    project.full_name as fullName,
-                    project.html_url  as htmlUrl,
-                    trend.p_id        as pId
+                    project.full_name     as fullName,
+                    project.html_url      as htmlUrl,
+                    trend.p_id            as pId
     from view_projects project
              left join (select *
                         from github_projects_stargazers_trend
@@ -105,7 +110,15 @@ async function getStargazersTrend(startDate, pId) {
   });
 
   for (let project of needSyncProject) {
-    const response = await sendRequestByFullName(project.pId);
+    if (project.platformType !== platformType.GITHUB) {
+      logger.info(
+        'Project star trend only support GitHub! Skip current project: ',
+        project.htmlUrl,
+      );
+      continue;
+    }
+
+    const response = await sendRequestByFullName(project.id);
     const trendList = response.data;
     let resTrend = [];
     if (trendList === null || trendList === undefined || trendList.length === 0) {
@@ -159,8 +172,8 @@ async function getProjectMaxDate(fullName) {
   return resTrend[0].dataValues.maxDate == null ? defaultDate : resTrend[0].dataValues.maxDate;
 }
 
-export async function sendRequestByFullName(pId) {
-  const url = starHistoryUrl.replace(':pId', pId);
+export async function sendRequestByFullName(id) {
+  const url = starHistoryUrl.replace(':id', id);
   logger.info(url);
   const response = await fetch(url, {
     retryOptions: {
