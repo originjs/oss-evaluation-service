@@ -252,13 +252,14 @@ const getPlatformType = url => {
 
 function parseProjects(items, dataType) {
   return items.map(project => {
-    const { platformType } = getPlatformType(project.html_url);
-    const result = {
+    const htmlUrl = project.html_url || project.web_url;
+    const { platformType } = getPlatformType(htmlUrl);
+    let result = {
       id: project.id,
       platformType,
       name: project.name,
       fullName: project.full_name,
-      htmlUrl: project.html_url,
+      htmlUrl,
       description: project.description?.slice(0, 1001),
       privateFlag: project.private,
       ownerName: project.owner.login,
@@ -266,51 +267,63 @@ function parseProjects(items, dataType) {
       createdAt: project.created_at,
       updatedAt: project.updated_at,
       pushedAt: project.pushed_at,
-      gitUrl: project.git_url,
       cloneUrl: project.clone_url,
-      size: project.size,
       stargazersCount: project.stargazers_count,
       watchersCount: project.watchers_count,
       language: project.language,
-      hasIssues: project.has_issues,
       forksCount: project.forks_count,
-      archived: project.archived,
-      disabled: project.disabled,
       openIssuesCount: project.open_issues_count,
-      license: project.license?.key,
-      allowForking: project.allow_forking,
-      topics: project.topics?.join('|'),
-      visibility: project.visibility,
-      forks: project.forks,
-      openIssues: project.open_issues,
-      watchers: project.watchers,
       defaultBranch: project.default_branch,
       ownerAvatarUrl: project.owner?.avatar_url,
       ownerType: project.owner?.type,
       ownerId: project.owner?.id,
       ownerHtmlUrl: project.owner?.html_url,
       sshUrl: project.ssh_url,
-      svnUrl: project.svn_url,
       homePage: project.homepage,
-      hasProjects: project.has_projects,
-      hasDownloads: project.has_downloads,
       hasWiki: project.has_wiki,
       hasPages: project.has_pages,
-      hasDiscussions: project.has_discussions,
-      mirrorUrl: project.mirror_url,
-      licenseName: project.license?.name,
-      isTemplate: project.is_template,
-      webCommitSignoffRequired: project.web_commit_signoff_required,
       dataType: dataType || dataTypes.generalRepo,
     };
+    if (platformType === platformTypes.GITHUB) {
+      result = {
+        ...result,
+        license: project.license?.key,
+        licenseName: project.license?.name,
+        gitUrl: project.git_url,
+        size: project.size,
+        hasIssues: project.has_issues,
+        archived: project.archived,
+        disabled: project.disabled,
+        allowForking: project.allow_forking,
+        topics: project.topics?.join('|'),
+        visibility: project.visibility,
+        forks: project.forks,
+        openIssues: project.open_issues,
+        watchers: project.watchers,
+        svnUrl: project.svn_url,
+        hasProjects: project.has_projects,
+        hasDownloads: project.has_downloads,
+        hasDiscussions: project.has_discussions,
+        mirrorUrl: project.mirror_url,
+        isTemplate: project.is_template,
+        webCommitSignoffRequired: project.web_commit_signoff_required,
+      };
+    }
     if (platformType === platformTypes.GITEE) {
-      result.htmlUrl = project.html_url?.replace('.git', '');
-      result.license = project.license;
+      result = {
+        ...result,
+        hasIssues: project.has_issues,
+        license: project.license,
+        htmlUrl: htmlUrl?.replace('.git', ''),
+      };
     }
     if (platformType === platformTypes.GITCODE) {
-      result.htmlUrl = project.web_url;
-      result.license = project.license;
-      result.sshUrl = project.ssh_url_to_repo;
+      result = {
+        ...result,
+        htmlUrl: project.web_url,
+        license: project.license,
+        sshUrl: project.ssh_url_to_repo,
+      };
     }
     return result;
   });
