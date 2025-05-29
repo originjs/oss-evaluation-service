@@ -1,9 +1,16 @@
-import { ViewProjects, GithubProjectsTable, logger } from '@orginjs/oss-evaluation-data-model';
+import {
+  ViewProjects,
+  GithubProjectsTable,
+  logger,
+  GiteeProjectsTable,
+  GitcodeProjectsTable,
+} from '@orginjs/oss-evaluation-data-model';
 import { getProjectByUrl } from '../util/util.js';
 import { fetchWithTimeout } from '../util/fetchWitTimeout.js';
 import { fetchWithRetries } from '../util/fetchWithRetries.js';
 import * as cheerio from 'cheerio';
 import { addMonitoringToTask } from '../scheduler/schdulerMonitor.js';
+import { platformTypes } from '@orginjs/oss-evaluation-util';
 
 export async function syncSingleProjectContributorsHandler(req, res) {
   const { repoUrl: repoUrl } = req.params;
@@ -53,16 +60,23 @@ export default async function syncProjectContributors(pId) {
     logger.info('**Current Progress**: ', `${count}/${sumOfProject}`);
     count += 1;
     // 2. get project contributors
-    let contributors = await getProjectContributors(project.htmlUrl);
-    if (contributors == '' || contributors == undefined) {
-      contributors = await getAlllContributors(project.fullName);
-      logger.info(`GitHub API : contributors of ${project.htmlUrl} is ${contributors}`);
+    let contributors = await getProjectContributors(project);
+    if (!contributors) {
+      contributors = await getAllContributors(project);
+      logger.info(`Project API : contributors of ${project.htmlUrl} is ${contributors}`);
     }
-    if (contributors == '' || contributors == undefined) {
+    if (!contributors) {
       continue;
     }
 
-    await GithubProjectsTable.update(
+    const tableMap = {
+      [platformTypes.GITHUB]: GithubProjectsTable,
+      [platformTypes.GITEE]: GiteeProjectsTable,
+      [platformTypes.GITCODE]: GitcodeProjectsTable,
+    };
+    const projectTable = tableMap[project.platformType];
+
+    await projectTable.update(
       { contributors: contributors === -1 ? null : contributors },
       {
         where: {
@@ -73,7 +87,57 @@ export default async function syncProjectContributors(pId) {
   }
 }
 
-async function getProjectContributors(url) {
+const getGitcodeProjectContributors = async url => {
+  let contributors;
+  try {
+    const response = await fetchWithTimeout(url, 3 * 60 * 1000);
+    if (response.ok) {
+      const text = await response.text();
+      // parse html
+      const $ = cheerio.load(text);
+      contributors = $('.contributors-container').children().length;
+      if (!contributors) {
+        logger.info(`web crawler: ${url} does not provide contributors...`);
+        return contributors;
+      }
+
+      logger.info(`web crawler: contributors of ${url} is ${contributors}`);
+    }
+  } catch (e) {
+    logger.error(`**web crawler: Url get contributors is failed !** :${url}`);
+  }
+  return contributors;
+};
+
+const getGiteeProjectContributors = async url => {
+  let contributors;
+  try {
+    const response = await fetchWithTimeout(url, 3 * 60 * 1000);
+    if (response.ok) {
+      const text = await response.text();
+      // parse html
+      const $ = cheerio.load(text);
+      const content = $('.git-user-twl-col.project-contributors__container>.ui.header').text();
+      if (content.length === 0) {
+        logger.info(`web crawler: ${url} does not provide contributors...`);
+        return contributors;
+      }
+
+      const regex = /.*\((\d+)\)/;
+      const result = content.match(regex);
+      if (result) {
+        contributors = result[1];
+      }
+
+      logger.info(`web crawler: contributors of ${url} is ${contributors}`);
+    }
+  } catch (e) {
+    logger.error(`**web crawler: Url get contributors is failed !** :${url}`);
+  }
+  return contributors;
+};
+
+const getGithubProjectContributors = async url => {
   let contributors;
   try {
     const response = await fetchWithTimeout(url, 3 * 60 * 1000);
@@ -108,26 +172,51 @@ async function getProjectContributors(url) {
     logger.error(`**web crawler: Url get contributors is failed !** :${url}`);
   }
   return contributors;
+};
+
+async function getProjectContributors(project) {
+  let contributors;
+
+  if (project.platformType === platformTypes.GITHUB) {
+    contributors = await getGithubProjectContributors(project.htmlUrl);
+  } else if (project.platformType === platformTypes.GITEE) {
+    contributors = await getGiteeProjectContributors(`${project.htmlUrl}/contributors`);
+  } else if (project.platformType === platformTypes.GITCODE) {
+    contributors = await getGitcodeProjectContributors(`${project.htmlUrl}/contributors`);
+  }
+
+  return contributors;
 }
 
-async function getContributors(repoName, page = 1) {
-  const tokens = JSON.parse(process.env.GITHUB_TOKEN);
-  const header = tokens
-    ? {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${tokens[0]}`,
-      }
-    : {
-        'Content-Type': 'application/json',
-      };
+async function getContributors(project, page = 1) {
+  // only GitHub support page
+  if (project.platformType !== platformTypes.GITHUB && page > 1) {
+    return [];
+  }
 
-  const request = await fetchWithRetries(
-    `https://api.github.com/repos/${repoName}/contributors?per_page=100&page=${page}&anon=true`,
-    {
-      method: 'GET',
-      headers: header,
-    },
-  ).catch(error => {
+  const repoName = project.fullName;
+  const tokenMap = {
+    [platformTypes.GITHUB]: JSON.parse(process.env.GITHUB_TOKEN),
+    [platformTypes.GITEE]: JSON.parse(process.env.GITEE_TOKEN),
+    [platformTypes.GITCODE]: JSON.parse(process.env.GITCODE_TOKEN),
+  };
+  const token = tokenMap[project.platformType][0];
+  const header = {
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    header['Authorization'] = `Bearer ${token}`;
+  }
+  const urlMap = {
+    [platformTypes.GITHUB]: `https://api.github.com/repos/${repoName}/contributors?per_page=100&page=${page}&anon=true`,
+    [platformTypes.GITEE]: `https://gitee.com/api/v5/repos/${repoName}/contributors?type=authors`,
+    [platformTypes.GITCODE]: `https://api.gitcode.com/api/v5/repos/${repoName}/contributors/statistic`,
+  };
+
+  const request = await fetchWithRetries(urlMap[project.platformType], {
+    method: 'GET',
+    headers: header,
+  }).catch(error => {
     logger.error('Error in fetch REST API:', error);
     return -1;
   });
@@ -140,12 +229,12 @@ async function getContributors(repoName, page = 1) {
   }
 }
 
-export async function getAlllContributors(repoName) {
+export async function getAllContributors(project) {
   let contributors = [];
   let page = 1;
   let list;
   do {
-    list = await getContributors(repoName, page);
+    list = await getContributors(project, page);
     // fetch API failed
     if (typeof list === 'number') {
       return -1;
@@ -153,11 +242,15 @@ export async function getAlllContributors(repoName) {
     contributors = contributors.concat(list);
     page++;
   } while (list.length > 0);
-  for (let i = 0; i < contributors.length; i++) {
-    if (Object.prototype.hasOwnProperty.call(contributors[i], 'email')) {
-      contributors.splice(i, 1);
+
+  if (project.platformType === platformTypes.GITHUB) {
+    for (let i = 0; i < contributors.length; i++) {
+      if (Object.hasOwn(contributors[i], 'email')) {
+        contributors.splice(i, 1);
+      }
     }
   }
+
   return contributors.length;
 }
 

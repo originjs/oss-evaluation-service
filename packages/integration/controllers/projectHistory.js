@@ -6,7 +6,7 @@ import {
 } from '@orginjs/oss-evaluation-data-model';
 import { getProjectByUrl, sleep } from '../util/util.js';
 import { fetchWithRetries } from '../util/fetchWithRetries.js';
-import { getAlllContributors } from './projectContributors.js';
+import { getAllContributors } from './projectContributors.js';
 import * as cheerio from 'cheerio';
 import { storeGithubHistory } from './trendHistory.js';
 import { Op } from 'sequelize';
@@ -75,7 +75,7 @@ export async function syncHistoryByProjectList(projectList, currentDate) {
     let [contributors, stars] = await getProjectInformation(project.htmlUrl);
     // API is called only if the GitHub page does not provide contributor information
     if (contributors === -1) {
-      contributors = await getAlllContributors(project.fullName);
+      contributors = await getAllContributors(project);
       logger.info(`GitHub API : contributors of ${project.htmlUrl} is ${contributors}`);
     }
     // check stars
