@@ -2,6 +2,8 @@ import { Octokit } from '@octokit/core';
 import { ViewProjects, CncfDocumentScore, logger } from '@orginjs/oss-evaluation-data-model';
 import { getProjectByUrl, sleep } from '../util/util.js';
 import { addMonitoringToTask } from '../scheduler/schdulerMonitor.js';
+import { platformTypes } from '@orginjs/oss-evaluation-util';
+import { fetchWithRetries } from '../util/fetchWithRetries.js';
 
 // cncf document checks item
 const cncfDocumentChecksSet = {
@@ -78,17 +80,13 @@ export async function syncSingleProjectCncfDocumentScore(project) {
     return;
   }
 
-  const githubToken = await getValidGithubToken();
-  const octokit = new Octokit({
-    auth: githubToken,
-  });
-  const githubInfo = await getGithubMetadata(octokit, project.htmlUrl);
-  if (githubInfo === undefined) {
+  const projectInfo = await getProjectMetadata(project);
+  if (projectInfo === undefined) {
     return;
   }
-  const { readme, filename, website, release } = githubInfo;
+  const { readme, filename, release } = projectInfo;
 
-  runDocumentChecks(readme, filename, website, release);
+  runDocumentChecks(readme, filename, project.homePage, release);
   const score = calculateCncfScore();
   await CncfDocumentScore.upsert({
     pId: project.pId,
@@ -203,11 +201,19 @@ function checkItemInReadme(item, readme) {
   }
 }
 
-async function getGithubMetadata(octokit, repoUrl) {
-  const [owner, repo] = repoUrl.split('/').slice(-2);
-  const website = await getWebsite(octokit, owner, repo);
-  const filenameArray = await getRepoFileContent(octokit, owner, repo);
-  const release = await getRelease(octokit, owner, repo);
+async function getProjectMetadata(project) {
+  const githubToken = await getValidGithubToken();
+  const octokit = new Octokit({ auth: githubToken });
+  const [owner, repo] = project.fullName.split('/');
+  let release;
+
+  if (project.platformType === platformTypes.GITHUB) {
+    release = await getGithubProjectRelease(octokit, owner, repo);
+  } else {
+    release = await getProjectRelease(project);
+  }
+
+  const filenameArray = await getRepoFileContent(project, octokit, owner, repo);
 
   // check if readme file in repo before get readme
   let readme;
@@ -225,14 +231,22 @@ async function getGithubMetadata(octokit, repoUrl) {
     }
   }
   if (cncfDocumentChecksSet.readme.checked) {
-    readme = await getPathContent(octokit, cncfDocumentChecksSet.readme.path, owner, repo);
+    if (project.platformType === platformTypes.GITHUB) {
+      readme = await getGithubRepoPathContent(
+        octokit,
+        cncfDocumentChecksSet.readme.path,
+        owner,
+        repo,
+      );
+    } else {
+      readme = await getRepoPathContent(project, cncfDocumentChecksSet.readme.path);
+    }
   }
 
   // github meta data
   return {
     readme,
     filename: filenameArray,
-    website,
     release,
   };
 }
@@ -271,8 +285,13 @@ function clearDocumentChecks() {
 /*
   Returns the names of all files in the project root and first level directories
  */
-async function getRepoFileContent(octokit, owner, repo) {
-  const repoFilenames = await getRepoContent(octokit, owner, repo);
+async function getRepoFileContent(project, octokit, owner, repo) {
+  let repoFilenames;
+  if (project.platformType === platformTypes.GITHUB) {
+    repoFilenames = await getGithubRepoContent(octokit, owner, repo);
+  } else {
+    repoFilenames = await getRepoContent(project);
+  }
   // Get the file name and directory name in the project root directory
   const firstDirs = [];
   const firstFileName = [];
@@ -288,7 +307,12 @@ async function getRepoFileContent(octokit, owner, repo) {
   // Get the file name in the secondary directory
   const secondDirFileName = [];
   for (const dir of firstDirs) {
-    const fileName = await getPathContent(octokit, dir, owner, repo);
+    let fileName;
+    if (project.platformType === platformTypes.GITHUB) {
+      fileName = await getGithubRepoPathContent(octokit, dir, owner, repo);
+    } else {
+      fileName = await getRepoPathContent(project, dir);
+    }
     secondDirFileName.push(
       ...fileName.filter(file => file.type === 'file').map(file => `${dir}/${file.name}`),
     );
@@ -297,7 +321,7 @@ async function getRepoFileContent(octokit, owner, repo) {
   return firstFileName;
 }
 
-async function getRepoContent(octokit, owner, repo) {
+async function getGithubRepoContent(octokit, owner, repo) {
   const content = await octokit.request(`${BASIC_GITHUB_REPO_API}/contents`, {
     owner,
     repo,
@@ -312,10 +336,42 @@ async function getRepoContent(octokit, owner, repo) {
   return content.data;
 }
 
+async function getRepoContent(project) {
+  const tokenMap = {
+    [platformTypes.GITEE]: JSON.parse(process.env.GITEE_TOKEN),
+    [platformTypes.GITCODE]: JSON.parse(process.env.GITCODE_TOKEN),
+  };
+  const token = tokenMap[project.platformType][0];
+  const header = {
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    header['Authorization'] = `Bearer ${token}`;
+  }
+  const urlMap = {
+    [platformTypes.GITEE]: `https://gitee.com/api/v5/repos/${project.fullName}/contents`,
+    [platformTypes.GITCODE]: `https://api.gitcode.com/api/v5/repos/${project.fullName}/contents`,
+  };
+
+  const request = await fetchWithRetries(urlMap[project.platformType], {
+    method: 'GET',
+    headers: header,
+  }).catch(error => {
+    logger.error('Error in fetch REST API:', error);
+    return -1;
+  });
+  try {
+    return await request.json();
+  } catch (error) {
+    logger.error('The project contents is empty:', error);
+    return [];
+  }
+}
+
 /*
   Get the project root/path metadata, or 404 error if it doesn't exist.
  */
-async function getPathContent(octokit, path, owner, repo) {
+async function getGithubRepoPathContent(octokit, path, owner, repo) {
   const content = await octokit.request(`${BASIC_GITHUB_REPO_API}/contents/{path}`, {
     owner,
     repo,
@@ -332,26 +388,44 @@ async function getPathContent(octokit, path, owner, repo) {
 }
 
 /*
-  Get the project website, or null if it doesn't exist.
+  Get the project root/path metadata, or 404 error if it doesn't exist.
  */
-async function getWebsite(octokit, owner, repo) {
-  const repoContent = await octokit.request(BASIC_GITHUB_REPO_API, {
-    owner,
-    repo,
-    headers: {
-      'X-GitHub-Api-Version': '2022-11-28',
-    },
-  });
-  if (repoContent.headers['x-ratelimit-remaining'] <= 0) {
-    octokit.auth = getValidGithubToken();
+async function getRepoPathContent(project, path) {
+  const tokenMap = {
+    [platformTypes.GITEE]: JSON.parse(process.env.GITEE_TOKEN),
+    [platformTypes.GITCODE]: JSON.parse(process.env.GITCODE_TOKEN),
+  };
+  const token = tokenMap[project.platformType][0];
+  const header = {
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    header['Authorization'] = `Bearer ${token}`;
   }
-  return repoContent.data.homepage;
+  const urlMap = {
+    [platformTypes.GITEE]: `https://gitee.com/api/v5/repos/${project.fullName}/contents/${path}`,
+    [platformTypes.GITCODE]: `https://api.gitcode.com/api/v5/repos/${project.fullName}/contents/${path}`,
+  };
+
+  const request = await fetchWithRetries(urlMap[project.platformType], {
+    method: 'GET',
+    headers: header,
+  }).catch(error => {
+    logger.error('Error in fetch REST API:', error);
+    return -1;
+  });
+  try {
+    return await request.json();
+  } catch (error) {
+    logger.error(`The project contents ${path} is empty:`, error);
+    return [];
+  }
 }
 
 /*
   Get the latest release of the project, or null if it doesn't exist.
  */
-async function getRelease(octokit, owner, repo) {
+async function getGithubProjectRelease(octokit, owner, repo) {
   const release = await octokit.request(`${BASIC_GITHUB_REPO_API}/releases`, {
     owner,
     repo,
@@ -366,6 +440,41 @@ async function getRelease(octokit, owner, repo) {
     return '';
   }
   return release.data[0].body;
+}
+
+/*
+  Get the latest release of the project
+ */
+async function getProjectRelease(project) {
+  const tokenMap = {
+    [platformTypes.GITEE]: JSON.parse(process.env.GITEE_TOKEN),
+    [platformTypes.GITCODE]: JSON.parse(process.env.GITCODE_TOKEN),
+  };
+  const token = tokenMap[project.platformType][0];
+  const header = {
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    header['Authorization'] = `Bearer ${token}`;
+  }
+  const urlMap = {
+    [platformTypes.GITEE]: `https://gitee.com/api/v5/repos/${project.fullName}/releases`,
+    [platformTypes.GITCODE]: `https://api.gitcode.com/api/v5/repos/${project.fullName}/releases`,
+  };
+
+  const request = await fetchWithRetries(urlMap[project.platformType], {
+    method: 'GET',
+    headers: header,
+  }).catch(error => {
+    logger.error('Error in fetch REST API:', error);
+    return -1;
+  });
+  try {
+    return await request.json();
+  } catch (error) {
+    logger.error('The project releases is empty:', error);
+    return [];
+  }
 }
 
 export async function cncfDocumentScoreScheduler(startIndex = 0) {
