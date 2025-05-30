@@ -97,7 +97,7 @@ async function syncSingleProjectAllMetadata(options) {
 
   // 2. insert techStack
   if (category && subcategory) {
-    await createNewTechStack(repoUrl, category, subcategory);
+    await createNewTechStack(project.pId, category, subcategory);
   }
   // try ... catch to avoid break
   const functions = [
@@ -166,10 +166,10 @@ async function syncSingleProjectAllMetadata(options) {
   logger.info(`Project ${repoUrl}: all metadata information integrated`);
 }
 
-async function createNewTechStack(repoUrl, category, subcategory) {
+async function createNewTechStack(pId, category, subcategory) {
   const project = await ViewProjects.findOne({
     where: {
-      html_url: repoUrl,
+      pId,
     },
   });
   if (project === null) {
@@ -181,7 +181,7 @@ async function createNewTechStack(repoUrl, category, subcategory) {
     pId: project.pId,
     name: project.name,
     fullName: project.fullName,
-    htmlUrl: repoUrl,
+    htmlUrl: project.htmlUrl,
     category,
     subcategory,
   });
