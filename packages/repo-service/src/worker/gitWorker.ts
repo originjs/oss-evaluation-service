@@ -84,7 +84,7 @@ function getCloneUrlByTime(
   time: number,
   owner: string,
   repoName: string,
-  platformType: string = platformTypes.GITHUB,
+  platformType: number = platformTypes.GITHUB,
 ): string {
   const repoBaseUrlMap = {
     [platformTypes.GITHUB]: 'github.com',

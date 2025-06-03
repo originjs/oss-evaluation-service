@@ -1,9 +1,9 @@
 export interface GitRepoInfo {
   owner: string;
   repoName: string;
-  platformType?: string;
+  platformType?: number;
   language?: string;
-  pId?: number;
+  pId?: string;
   cloneUrl?: string;
   fullName?: string;
 }
