@@ -15,6 +15,7 @@ export class GithubInfo {
     this.projectId = projectId;
   }
 }
+
 export class createProjectInternalParam {
   constructor(projects, newCodeDefinitionValue, newCodeDefinitionType, organization) {
     this.projects = projects;
@@ -47,7 +48,7 @@ export async function createProjectInternalApi(param, token) {
   formData.append('organization', param.organization);
 
   const installationKeys = param.projects
-    .map(info => `${info.repoName}|${info.projectId}`)
+    .map(info => `${info.repoName}|${info.pId.substring(2)}`)
     .join(',');
   formData.append('installationKeys', installationKeys);
 

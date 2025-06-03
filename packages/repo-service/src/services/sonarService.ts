@@ -6,6 +6,7 @@ import { logger, SonarCloudProject } from '@orginjs/oss-evaluation-data-model';
 import { gitCloneThreadPool, sonarScannerThreadPool } from '../worker/workers.js';
 import GithubSdk from '@orginjs/github-sdk';
 import SonarCloudSdk from '@orginjs/sonar-cloud-sdk';
+import { platformTypes } from '@orginjs/oss-evaluation-util';
 
 const sonarCloudSdk = new SonarCloudSdk();
 const githubSdk = new GithubSdk(process.env.GITHUB_FORK_TOKEN);
@@ -72,7 +73,7 @@ function collectSonarScanData(sonarKey: string) {
 async function createGithubFork(info: SonarScanParam): Promise<GitRepoInfo> {
   const sonarProject = await SonarCloudProject.findOne({
     where: {
-      pId: info.id,
+      pId: info.pId,
     },
   });
   const forkGithubToken = process.env.GITHUB_FORK_TOKEN;
@@ -81,7 +82,7 @@ async function createGithubFork(info: SonarScanParam): Promise<GitRepoInfo> {
   const fullName = `${forkOrgName}/${repoName}`;
   if (sonarProject?.forkGithubId != -1) {
     return {
-      id: sonarProject.forkGithubId,
+      pId: sonarProject.forkGithubId,
       owner: forkOrgName,
       repoName,
       fullName,
@@ -100,10 +101,11 @@ async function createGithubFork(info: SonarScanParam): Promise<GitRepoInfo> {
   });
   if (response.ok) {
     const forkData = await response.json();
+    const forkGithubId = `${platformTypes.GITHUB}#${forkData.id}`;
     // update sonar project info
     await SonarCloudProject.update(
       {
-        forkGithubId: forkData.id,
+        forkGithubId,
         forkGithubFullName: fullName,
         sonarOrg: forkOrgName,
         // remove default branch
@@ -111,12 +113,12 @@ async function createGithubFork(info: SonarScanParam): Promise<GitRepoInfo> {
       },
       {
         where: {
-          pId: info.id,
+          pId: info.pId,
         },
       },
     );
     return {
-      id: forkData.id,
+      pId: forkGithubId,
       owner: forkOrgName,
       repoName: repoName,
       fullName: fullName,
@@ -136,7 +138,7 @@ async function activeAutoSonarScan(repoInfo: GitRepoInfo, sonarScanInfo: SonarSc
     projects: [
       {
         repoName: repoInfo.fullName,
-        projectId: repoInfo.id,
+        pId: repoInfo.pId,
       },
     ],
   };
@@ -150,7 +152,7 @@ async function activeAutoSonarScan(repoInfo: GitRepoInfo, sonarScanInfo: SonarSc
       },
       {
         where: {
-          forkGithubId: repoInfo.id,
+          forkGithubId: repoInfo.pId,
         },
       },
     );
