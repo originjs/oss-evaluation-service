@@ -92,11 +92,17 @@ function getCloneUrlByTime(
     [platformTypes.GITCODE]: 'gitcode.com',
   };
   const baseUrl = repoBaseUrlMap[platformType];
+  const tokenMap = {
+    [platformTypes.GITHUB]: JSON.parse(process.env.GITHUB_TOKEN),
+    [platformTypes.GITEE]: JSON.parse(process.env.GITEE_TOKEN),
+    [platformTypes.GITCODE]: JSON.parse(process.env.GITCODE_TOKEN),
+  };
+  const token = tokenMap[platformType][0];
   //   1: origin url
   //   2: use ssh clone
   switch (time) {
     case 1:
-      return `https://${baseUrl}/${owner}/${repoName}.git`;
+      return `https://:${token}@${baseUrl}/${owner}/${repoName}.git`;
     case 2:
       return `git@${baseUrl}:${owner}/${repoName}.git`;
   }

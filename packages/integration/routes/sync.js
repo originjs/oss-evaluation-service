@@ -1162,7 +1162,7 @@ router.route('/syncProjectCodeSize').get(syncAllProjectCodeSizeHandler);
  *       200:
  *         description: success.
  */
-router.route('/syncProjectCodeSizeByProjectId').post(syncProjectCodeSizeByPIdsHandler);
+router.route('/syncProjectCodeSizeByPIds').post(syncProjectCodeSizeByPIdsHandler);
 
 /**
  * @swagger

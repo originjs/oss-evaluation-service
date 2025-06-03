@@ -84,6 +84,7 @@ async function getCodeSizeUsingCloc(project) {
     logger.warn('no ${REPO_SERVICE_URL} env config, skip local repo cloc');
     return;
   }
+  const [owner, repoName] = project.fullName.split('/');
   const response = await fetch(`${repoServiceUrl}/repo/getCodeSize`, {
     method: 'POST',
     headers: {
@@ -92,8 +93,8 @@ async function getCodeSizeUsingCloc(project) {
     },
     body: JSON.stringify({
       pId: project.pId,
-      owner: project.ownerName,
-      repoName: project.name,
+      owner,
+      repoName,
       platformType: project.platformType,
     }),
   });
