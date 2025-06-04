@@ -10,7 +10,7 @@ import {
 import GithubSdk from '@orginjs/github-sdk';
 import { fetchWithRetries } from '../util/fetchWithRetries.js';
 import * as cheerio from 'cheerio';
-import { platformTypes } from '@orginjs/oss-evaluation-util';
+import { normalizeTime, platformTypes } from '@orginjs/oss-evaluation-util';
 
 /**
  *  There are 952 github projects between 1000 and 1130 stars.
@@ -264,9 +264,9 @@ function parseProjects(items, dataType) {
       privateFlag: project.private,
       ownerName: project.owner.login,
       forkFlag: project.fork,
-      createdAt: project.created_at,
-      updatedAt: project.updated_at,
-      pushedAt: project.pushed_at,
+      createdAt: normalizeTime(project.created_at),
+      updatedAt: normalizeTime(project.updated_at),
+      pushedAt: normalizeTime(project.pushed_at),
       cloneUrl: project.clone_url,
       stargazersCount: project.stargazers_count,
       watchersCount: project.watchers_count,

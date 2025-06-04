@@ -1,7 +1,22 @@
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import weekOfYear from 'dayjs/plugin/weekOfYear.js';
+import utc from 'dayjs/plugin/utc.js';
+import timezone from 'dayjs/plugin/timezone.js';
+
 dayjs.extend(weekOfYear);
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+export function normalizeTime(timeStr: string) {
+  const dt = dayjs(timeStr);
+  if (dt.isValid()) {
+    // 统一输出为 UTC 时间的 ISO 格式：YYYY-MM-DDTHH:mm:ssZ
+    return dt.utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+  } else {
+    return null;
+  }
+}
 
 export function isFirstDayOfMonth(dayParam: Dayjs) {
   return dayParam.date() === 1;
