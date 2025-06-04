@@ -14,6 +14,7 @@ import { dirname, join } from 'path';
 import sonarCloudProject from '@orginjs/oss-evaluation-data-model/models/SonarCloudProject.js';
 import GithubSdk from '@orginjs/github-sdk';
 import SonarCloudSdk from '@orginjs/sonar-cloud-sdk';
+import { platformTypes } from '@orginjs/oss-evaluation-util';
 
 const getRating = rating => {
   switch (rating) {
@@ -329,6 +330,10 @@ export async function sonarScanByProject(project) {
     logger.warn(`no env \${REPO_SERVICE_URL} or \${SONAR_CLOUD_TOKEN},skip sonar!`);
     return;
   }
+  if (project.platformType !== platformTypes.GITHUB) {
+    logger.warn(`project:${project.fullName} is not support, skip sonar!`);
+    return;
+  }
   const pId = project.pId;
   const sonarProject = await SonarCloudProject.findOne({
     where: {
@@ -373,10 +378,12 @@ export async function sonarScanByProject(project) {
     }
   }
   const url = `${sonarScanHost}/sonar/scan`;
+  const [owner, repoName] = project.fullName.split('/');
   const body = {
-    owner: project.ownerName,
-    repoName: project.name,
-    id: pId,
+    owner,
+    repoName,
+    pId,
+    platformType: project.platformType,
     language: project.language,
     sonarOrg: process.env.SONAR_ORG_NAME,
     sonarKey: sonarProjectKey,
@@ -480,8 +487,9 @@ export async function createSonarProjectsFromGithub(req, res) {
           logger.info(
             `success to get github fork project info. fullName:{${process.env.SONAR_GITHUB_FORK_ORG_NAME}/${githubProject.fullName.replace('/', '-')}}`,
           );
+          const forkPId = `${platformTypes.GITHUB}#${infoResult.data.id}`;
           const updateInfo = {
-            forkGithubId: infoResult.data.id,
+            forkPId,
             forkGithubFullName: infoResult.data.full_name,
             sonarProjectKey: `${process.env.SONAR_GITHUB_FORK_ORG_NAME}_${githubProject.fullName.replaceAll('/', '-')}`,
             sonarOrg: process.env.SONAR_GITHUB_FORK_ORG_NAME,
@@ -493,7 +501,7 @@ export async function createSonarProjectsFromGithub(req, res) {
             },
           });
           sonarProject.forkGithubFullName = infoResult.data.full_name;
-          sonarProject.forkGithubId = infoResult.data.id;
+          sonarProject.forkPId = forkPId;
           sonarProject.sonarProjectKey = updateInfo.sonarProjectKey;
         } else {
           logger.error(
@@ -510,7 +518,7 @@ export async function createSonarProjectsFromGithub(req, res) {
         projects: [
           {
             repoName: sonarProject.forkGithubFullName,
-            projectId: sonarProject.forkGithubId,
+            pId: sonarProject.forkPId,
           },
         ],
       };

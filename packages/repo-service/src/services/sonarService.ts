@@ -26,6 +26,7 @@ export async function scan(info: SonarScanParam) {
     .run({
       owner: info.owner,
       repoName: info.repoName,
+      platformType: info.platformType,
       pullIfExists: false,
       shadowClone: true,
     })
@@ -80,9 +81,9 @@ async function createGithubFork(info: SonarScanParam): Promise<GitRepoInfo> {
   const forkOrgName = process.env.GITHUB_FORK_ORG_NAME;
   const repoName = `${info.owner}-${info.repoName}`;
   const fullName = `${forkOrgName}/${repoName}`;
-  if (sonarProject?.forkGithubId != -1) {
+  if (sonarProject?.forkPId != -1) {
     return {
-      pId: sonarProject.forkGithubId,
+      pId: sonarProject.forkPId,
       owner: forkOrgName,
       repoName,
       fullName,
@@ -101,11 +102,11 @@ async function createGithubFork(info: SonarScanParam): Promise<GitRepoInfo> {
   });
   if (response.ok) {
     const forkData = await response.json();
-    const forkGithubId = `${platformTypes.GITHUB}#${forkData.id}`;
+    const forkPId = `${platformTypes.GITHUB}#${forkData.id}`;
     // update sonar project info
     await SonarCloudProject.update(
       {
-        forkGithubId,
+        forkPId,
         forkGithubFullName: fullName,
         sonarOrg: forkOrgName,
         // remove default branch
@@ -118,7 +119,7 @@ async function createGithubFork(info: SonarScanParam): Promise<GitRepoInfo> {
       },
     );
     return {
-      pId: forkGithubId,
+      pId: forkPId,
       owner: forkOrgName,
       repoName: repoName,
       fullName: fullName,
@@ -152,7 +153,7 @@ async function activeAutoSonarScan(repoInfo: GitRepoInfo, sonarScanInfo: SonarSc
       },
       {
         where: {
-          forkGithubId: repoInfo.pId,
+          forkPId: repoInfo.pId,
         },
       },
     );
