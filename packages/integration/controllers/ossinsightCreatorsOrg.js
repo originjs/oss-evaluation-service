@@ -6,6 +6,7 @@ import {
 } from '@orginjs/oss-evaluation-data-model';
 import fetch from '@adobe/node-fetch-retry';
 import { getCurrentDate } from '../util/util.js';
+import { platformTypes } from '@orginjs/oss-evaluation-util';
 
 const prOrganizationsUrl =
   'https://api.ossinsight.io/q/analyze-pull-request-creators-company?repoId=:repoId&limit=50';
@@ -77,7 +78,7 @@ export async function syncSingleProjectCreatorsOrgHandler(req, res) {
     where: {
       htmlUrl: repoUrl,
     },
-    attributes: ['pId', 'fullName'],
+    attributes: ['pId', 'fullName', 'id', 'platformType'],
   });
   await syncSingleProjectCreatorsOrg(project);
 
@@ -91,6 +92,10 @@ export async function syncSingleProjectCreatorsOrgHandler(req, res) {
  * @return {Promise<void>} A promise that resolves when the synchronization is complete.
  */
 export async function syncSingleProjectCreatorsOrg(project) {
+  if (project.platformType !== platformTypes.GITHUB) {
+    logger.warn(`project:${project.fullName} is not support, skip syncSingleProjectCreatorsOrg!`);
+    return;
+  }
   let organizationList = [];
   for (let option of Object.values(integrationInfo)) {
     organizationList = await getCreatorsOrg(project, option);
@@ -124,7 +129,7 @@ export async function syncAllProjectCreatorsOrg(options) {
 
 async function getCreatorsOrg(project, option) {
   const res = [];
-  const result = await sendRequestByFullName(project.pId, option.url);
+  const result = await sendRequestByFullName(project.id, option.url);
   const organizationList = result?.data;
   if (
     organizationList === null ||
