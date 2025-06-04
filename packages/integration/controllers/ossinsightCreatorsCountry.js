@@ -6,6 +6,7 @@ import {
 } from '@orginjs/oss-evaluation-data-model';
 import fetch from '@adobe/node-fetch-retry';
 import { getCurrentDate } from '../util/util.js';
+import { platformTypes } from '@orginjs/oss-evaluation-util';
 
 const prCountriesUrl =
   'https://api.ossinsight.io/q/analyze-pull-request-creators-map?repoId=:repoId';
@@ -76,7 +77,7 @@ export async function syncSingleProjectCreatorsCountriesHandler(req, res) {
     where: {
       htmlUrl: repoUrl,
     },
-    attributes: ['pId', 'fullName'],
+    attributes: ['pId', 'fullName', 'id', 'platformType'],
   });
   await syncSingleProjectCreatorsCountries(project);
   res.status(200).json('ok');
@@ -89,6 +90,12 @@ export async function syncSingleProjectCreatorsCountriesHandler(req, res) {
  * @return {Promise<void>} A promise that resolves when the synchronization is complete.
  */
 export async function syncSingleProjectCreatorsCountries(project) {
+  if (project.platformType !== platformTypes.GITHUB) {
+    logger.warn(
+      `project:${project.fullName} is not support, skip syncSingleProjectCreatorsCountries!`,
+    );
+    return;
+  }
   let countryList = [];
   for (let option of Object.values(integrationInfo)) {
     countryList = await getCreatorsCountries(project, option);
@@ -121,7 +128,7 @@ export async function syncAllProjectCreatorsCountries(options) {
 
 async function getCreatorsCountries(project, option) {
   const res = [];
-  const result = await sendRequestByFullName(project.pId, option.url);
+  const result = await sendRequestByFullName(project.id, option.url);
   const countryList = result?.data;
   if (countryList === null || countryList === undefined || countryList.length === 0) {
     logger.info(
