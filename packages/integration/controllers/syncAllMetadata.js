@@ -67,7 +67,7 @@ export async function syncBatchProjectAllMetadataByPIdsHandler(req, res) {
   const pIds = req.body;
   if (!pIds?.length) {
     res.status(200);
-    res.send('empty projectId');
+    res.send('empty pIds');
   }
   for (let i = 0; i < pIds.length; i++) {
     const pId = pIds[i];
