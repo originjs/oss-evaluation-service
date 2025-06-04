@@ -30,7 +30,7 @@ export async function syncAllProjectHistoryHandler(req, res) {
 
 async function getProjectList(pId) {
   const projectList = await ViewProjects.findAll({
-    attributes: ['pId', 'htmlUrl', 'fullName', 'contributors'],
+    attributes: ['pId', 'htmlUrl', 'fullName', 'contributors', 'id', 'platformType'],
     where: pId
       ? {
           pId,

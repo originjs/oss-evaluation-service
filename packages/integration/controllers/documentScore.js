@@ -111,7 +111,7 @@ export async function syncAllProjectCncfDocumentScore(options) {
   const { startIndex } = options;
   // 1. get all GitHub project
   let projectList = await ViewProjects.findAll({
-    attributes: ['pId', 'htmlUrl'],
+    attributes: ['pId', 'htmlUrl', 'id', 'platformType'],
   });
 
   const projectCount = projectList.length;

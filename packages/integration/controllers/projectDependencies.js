@@ -69,7 +69,7 @@ export async function syncAllProjectDependencies() {
   logger.info('Sync Project Dependent');
   // 1. get all project
   const projectList = await ViewProjects.findAll({
-    attributes: ['pId', 'ownerName', 'name', 'ownerType'],
+    attributes: ['pId', 'ownerName', 'name', 'ownerType', 'id', 'platformType'],
   });
   const sumOfProject = projectList.length;
   logger.info(`The Number of Project : ${sumOfProject}`);
