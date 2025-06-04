@@ -6,6 +6,7 @@ import {
   GithubProjectsDependencies,
   logger,
 } from '@orginjs/oss-evaluation-data-model';
+import { platformTypes } from '@orginjs/oss-evaluation-util';
 
 const graphqlUrl = 'https://api.github.com/graphql';
 
@@ -82,6 +83,10 @@ export async function syncAllProjectDependencies() {
 }
 
 export async function getDependencies(project, seen) {
+  if (project.platformType !== platformTypes.GITHUB) {
+    logger.warn(`project:${project.fullName} is not support, skip integrate dependencies!`);
+    return;
+  }
   let githubSdk = new GithubSdk();
   const headers = authorizationHeader(githubSdk.token);
   headers.append('Accept', 'application/vnd.github.hawkgirl-preview+json');
