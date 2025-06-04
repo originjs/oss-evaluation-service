@@ -73,7 +73,7 @@ export async function syncSingleProjectOpendigger(project) {
 
 export async function syncAllProjectOpendigger() {
   const options = {
-    attributes: ['pId', 'fullName', 'htmlUrl'],
+    attributes: ['pId', 'fullName', 'htmlUrl', 'id', 'platformType'],
     where: {
       pId: {
         [Op.notIn]: sequelize.literal(

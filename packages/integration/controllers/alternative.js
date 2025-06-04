@@ -42,7 +42,7 @@ export async function syncAlternativeHandler(req, res) {
 }
 
 export async function syncAllProjectAlternative() {
-  let sql = `SELECT p.p_id, p.full_name, p.html_url
+  let sql = `SELECT p.p_id, p.full_name, p.html_url, p.id, p.platformType
              from view_projects p
                       LEFT JOIN project_tech_stack t
                                 ON p.p_id = t.p_id

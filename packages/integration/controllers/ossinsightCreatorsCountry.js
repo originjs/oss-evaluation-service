@@ -17,7 +17,9 @@ const issueCountriesUrl = 'https://api.ossinsight.io/q/analyze-issue-creators-ma
 const QUERY_SQL = `
     select distinct project.p_id,
                     project.name,
-                    project.full_name as fullName
+                    project.full_name     as fullName,
+                    project.id,
+                    project.platform_type as platformType
     from view_projects project
              left join (select *
                         from ossinsight_creators_countries
@@ -29,7 +31,9 @@ const QUERY_SQL = `
 const QUERY_SINGLE_SQL = `
     select distinct project.p_id,
                     project.name,
-                    project.full_name as fullName
+                    project.full_name as fullName,
+                    project.id,
+                    project.platform_type as platformType
     from view_projects project
              left join (select *
                         from ossinsight_creators_countries

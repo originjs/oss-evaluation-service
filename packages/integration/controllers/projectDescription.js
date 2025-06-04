@@ -56,7 +56,7 @@ export async function syncSingleProjectDescription(project) {
 }
 
 export async function syncAllProjectDescription() {
-  let sql = `SELECT p.p_id, p.full_name, p.html_url, p.home_page, p.description
+  let sql = `SELECT p.p_id, p.full_name, p.html_url, p.home_page, p.description, p.id, p.platformType
              from view_projects p
              where ai_description is null`;
   const projects = await sequelize.query(sql, {

@@ -120,7 +120,7 @@ export async function syncSingleProjectCompassMetric(project, options) {
 export async function syncAllProjectCompassMetric(options) {
   const { startIndex, beginDate } = options;
   let projectList = await ViewProjects.findAll({
-    attributes: ['pId', 'htmlUrl'],
+    attributes: ['pId', 'htmlUrl', 'id', 'platformType'],
   });
   const projectCount = projectList.length;
 
