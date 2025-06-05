@@ -4,6 +4,9 @@ alter table github_projects_t
 alter table github_projects_t
     add p_id varchar(32) as (concat(platform_type, '#', id)) stored after platform_type;
 
+create index p_id_index
+    on github_projects_t (p_id);
+
 create table gitee_projects_t
 (
     id                       int                                 not null
