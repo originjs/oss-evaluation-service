@@ -9,7 +9,7 @@ import { RegisterRoutes } from './build/routes.js';
 import { logger } from '@orginjs/oss-evaluation-data-model';
 import swaggerConfig from './build/swagger.json' assert { type: 'json' };
 
-const port = process.env.PORT || '3000';
+const port = process.env.PORT || '3002';
 const app = express();
 
 app.use(cors());
