@@ -44,6 +44,7 @@ import {
   getBubbleChartHeightByCount,
   getLevelColor,
   getTagType,
+  platformTypes,
   scorecardProgressColor,
   toKilo,
 } from '@orginjs/oss-evaluation-components-utils';
@@ -218,6 +219,7 @@ watchEffect(async () => {
 });
 
 const softwareDetailsEl = ref();
+
 function renderSoftwareRadarChart() {
   const chartDom = softwareDetailsEl.value?.querySelector('#software-radar-chart');
   if (!chartDom) {
@@ -373,6 +375,7 @@ function renderBubbleChart(container: string, seriesData: SeriesData) {
   }
 
   let displayRoot = stratify();
+
   function stratify() {
     return d3
       .stratify<any>()
@@ -386,6 +389,7 @@ function renderBubbleChart(container: string, seriesData: SeriesData) {
         return b.value! - a.value!;
       });
   }
+
   function overallLayout(params: CustomSeriesRenderItemParams, api: CustomSeriesRenderItemAPI) {
     let context: any = params.context;
     d3
@@ -398,6 +402,7 @@ function renderBubbleChart(container: string, seriesData: SeriesData) {
       context.nodes[node.id as string] = node;
     });
   }
+
   function renderItem(
     params: CustomSeriesRenderItemParams,
     api: CustomSeriesRenderItemAPI,
@@ -466,6 +471,7 @@ function renderBubbleChart(container: string, seriesData: SeriesData) {
       },
     };
   }
+
   const option: EChartsOption = {
     dataset: {
       source: seriesData,
@@ -891,6 +897,7 @@ watchEffect(async () => {
 });
 
 const companiesActiveName = ref('star');
+
 function handleCompaniesActiveClick() {
   const maxOrganizationsNumber = 10;
   const { issueCreators, stargazers, prCreators } = companiesBaseInfo.value!;
@@ -930,6 +937,7 @@ function toBenchmarkPage() {
 }
 
 const compareFavoritesRef = ref<InstanceType<typeof CompareFavorites>>();
+
 function addProjectToCompare(info: CompareProject | undefined) {
   if (!info) {
     info = project.value!;
@@ -937,6 +945,7 @@ function addProjectToCompare(info: CompareProject | undefined) {
   const { repoName, logo, url, description } = info;
   compareFavoritesRef.value?.addProject([{ repoName, logo, url, description }]);
 }
+
 function setProjectsToCompare(projects: Array<CompareProject>) {
   compareFavoritesRef.value?.cleanCompareFavorites();
   projects.forEach(project => {
@@ -1168,7 +1177,12 @@ onBeforeUnmount(() => {
             <InfoFilled />
           </el-icon>
         </el-tooltip>
-        <div id="github-start-chart" h-252px />
+        <el-empty
+          v-if="project?.platformType !== platformTypes.GITHUB"
+          h-252px
+          description="Gitee/GitCode项目暂不支持该评估项"
+        ></el-empty>
+        <div v-else id="github-start-chart" h-252px />
       </el-card>
       <el-card v-if="developerSatisfaction.xAxis.length > 0" mb-6>
         <div flex>
@@ -1311,27 +1325,34 @@ onBeforeUnmount(() => {
             </el-icon>
           </el-tooltip>
         </div>
-        <div font-bold>{{ formatFloat(project?.scorecard?.score) }} / 10</div>
-        <template v-for="item in openSSFScorecard" :key="item.label">
-          <div v-if="Number(item.value) !== -1" flex flex-items-center h-30px>
-            <div w-190px>
-              <span>{{ item.label }}</span>
-              <el-tooltip :content="i18n.global.t(`tips.scorecard.` + item.label)">
-                <el-icon size-5 color-gray-400>
-                  <InfoFilled />
-                </el-icon>
-              </el-tooltip>
-            </div>
+        <el-empty
+          v-if="project?.platformType !== platformTypes.GITHUB"
+          h-252px
+          description="Gitee/GitCode项目暂不支持该评估项"
+        ></el-empty>
+        <template v-else>
+          <div font-bold>{{ formatFloat(project?.scorecard?.score) }} / 10</div>
+          <template v-for="item in openSSFScorecard" :key="item.label">
+            <div v-if="Number(item.value) !== -1" flex flex-items-center h-30px>
+              <div w-190px>
+                <span>{{ item.label }}</span>
+                <el-tooltip :content="i18n.global.t(`tips.scorecard.` + item.label)">
+                  <el-icon size-5 color-gray-400>
+                    <InfoFilled />
+                  </el-icon>
+                </el-tooltip>
+              </div>
 
-            <el-progress
-              :percentage="Math.max(Number(item.value ?? 0), 0) * 10"
-              :stroke-width="10"
-              flex-auto
-              :color="scorecardProgressColor(Math.max(Number(item.value ?? 0), 0))"
-            >
-              <span>{{ formatFloat(item.value) }} / 10</span>
-            </el-progress>
-          </div>
+              <el-progress
+                :percentage="Math.max(Number(item.value ?? 0), 0) * 10"
+                :stroke-width="10"
+                flex-auto
+                :color="scorecardProgressColor(Math.max(Number(item.value ?? 0), 0))"
+              >
+                <span>{{ formatFloat(item.value) }} / 10</span>
+              </el-progress>
+            </div>
+          </template>
         </template>
       </el-card>
       <el-card id="sonar-cloud">
@@ -1354,7 +1375,12 @@ onBeforeUnmount(() => {
           </el-tooltip>
         </div>
 
-        <div h-207px flex flex-wrap justify-between content-between>
+        <el-empty
+          v-if="project?.platformType !== platformTypes.GITHUB"
+          h-252px
+          description="Gitee/GitCode项目暂不支持该评估项"
+        ></el-empty>
+        <div v-else h-207px flex flex-wrap justify-between content-between>
           <div position-relative pt-3 pd-3 pl-4 pr-4 w-607px h-92px bg-coolgray-50>
             <div mb-4 font-bold>
               <span i-ph-bug-beetle-fill font-size-5 mb-3px mr-1 />
@@ -1646,7 +1672,12 @@ onBeforeUnmount(() => {
           <div mb-2 font-size-3 text-gray-500>
             {{ i18n.global.t(`tips.ecology.commitFrequency`) }}
           </div>
-          <div id="code-submit-frequency-chart" h-200px />
+          <el-empty
+            v-if="project?.platformType === platformTypes.GITCODE"
+            h-200px
+            description="GitCode项目暂不支持该评估项"
+          ></el-empty>
+          <div v-else id="code-submit-frequency-chart" h-200px />
         </el-card>
         <el-card mb-6 w-626px>
           <div flex>
@@ -1658,7 +1689,12 @@ onBeforeUnmount(() => {
             </el-tooltip>
           </div>
           <div mb-2 font-size-3 text-gray-500>{{ i18n.global.t(`tips.ecology.orgCount`) }}</div>
-          <div id="organization-count-chart" h-200px />
+          <el-empty
+            v-if="project?.platformType === platformTypes.GITCODE"
+            h-200px
+            description="GitCode项目暂不支持该评估项"
+          ></el-empty>
+          <div v-else id="organization-count-chart" h-200px />
         </el-card>
         <el-card mb-6 w-626px>
           <div flex>
@@ -1672,7 +1708,12 @@ onBeforeUnmount(() => {
           <div mb-2 font-size-3 text-gray-500>
             {{ i18n.global.t(`tips.ecology.commentFrequency`) }}
           </div>
-          <div id="issue-comment-frequency-chart" h-200px />
+          <el-empty
+            v-if="project?.platformType === platformTypes.GITCODE"
+            h-200px
+            description="GitCode项目暂不支持该评估项"
+          ></el-empty>
+          <div v-else id="issue-comment-frequency-chart" h-200px />
         </el-card>
         <el-card mb-6 w-626px>
           <div flex>
@@ -1686,7 +1727,12 @@ onBeforeUnmount(() => {
           <div mb-2 font-size-3 text-gray-500>
             {{ i18n.global.t(`tips.ecology.updatedIssuesCount`) }}
           </div>
-          <div id="update-issue-count-chart" h-200px />
+          <el-empty
+            v-if="project?.platformType === platformTypes.GITCODE"
+            h-200px
+            description="GitCode项目暂不支持该评估项"
+          ></el-empty>
+          <div v-else id="update-issue-count-chart" h-200px />
         </el-card>
         <el-card mb-6 w-626px>
           <div flex>
@@ -1700,7 +1746,12 @@ onBeforeUnmount(() => {
           <div mb-2 font-size-3 text-gray-500>
             {{ i18n.global.t(`tips.ecology.closedIssuesCount`) }}
           </div>
-          <div id="close-issue-count-chart" h-200px />
+          <el-empty
+            v-if="project?.platformType === platformTypes.GITCODE"
+            h-200px
+            description="GitCode项目暂不支持该评估项"
+          ></el-empty>
+          <div v-else id="close-issue-count-chart" h-200px />
         </el-card>
         <el-card mb-6 w-626px>
           <div flex>
@@ -1714,7 +1765,12 @@ onBeforeUnmount(() => {
           <div mb-2 font-size-3 text-gray-500>
             {{ i18n.global.t(`tips.ecology.contributor`) }}
           </div>
-          <div id="contributor-count-chart" h-200px />
+          <el-empty
+            v-if="project?.platformType === platformTypes.GITCODE"
+            h-200px
+            description="GitCode项目暂不支持该评估项"
+          ></el-empty>
+          <div v-else id="contributor-count-chart" h-200px />
         </el-card>
         <el-card mb-6 w-626px>
           <div flex>
@@ -1728,14 +1784,24 @@ onBeforeUnmount(() => {
           <div mb-2 font-size-3 text-gray-500>
             {{ i18n.global.t(`tips.ecology.release`) }}
           </div>
-          <div id="recent-releases-count-chart" h-200px />
+          <el-empty
+            v-if="project?.platformType === platformTypes.GITCODE"
+            h-200px
+            description="GitCode项目暂不支持该评估项"
+          ></el-empty>
+          <div v-else id="recent-releases-count-chart" h-200px />
         </el-card>
         <el-card w-1280px>
           <div mb-2 font-size-5 font-bold>业界使用情况</div>
           <div font-size-3 text-gray-500 class="custom-divide">
             基于 Github 的依赖关系分析得出使用{{ repoName }}的知名开源项目和组织。
           </div>
-          <div flex>
+          <el-empty
+            v-if="project?.platformType !== platformTypes.GITHUB"
+            h-252px
+            description="Gitee/GitCode项目暂不支持该评估项"
+          ></el-empty>
+          <div v-else flex>
             <div w-922px mr-4 position-relative>
               <div flex position-absolute top-21px style="z-index: 1">
                 <div font-size-5 font-bold>知名项目</div>
@@ -1802,7 +1868,12 @@ onBeforeUnmount(() => {
         <span font-size-3 text-gray-500>
           {{ i18n.global.t(`tips.geoDistribution`) }}
         </span>
-        <el-tabs v-model="geoActiveTab" class="companies-tabs-bold">
+        <el-empty
+          v-if="project?.platformType !== platformTypes.GITHUB"
+          h-252px
+          description="Gitee/GitCode项目暂不支持该评估项"
+        ></el-empty>
+        <el-tabs v-else v-model="geoActiveTab" class="companies-tabs-bold">
           <el-tab-pane label="Stargazers" name="star">
             <div flex>
               <div id="star-countries-chart" w-922px h-500px mr-4 />
@@ -1907,7 +1978,13 @@ onBeforeUnmount(() => {
           <span font-size-3 text-gray-500>
             {{ i18n.global.t(`tips.companies.info`) }}
           </span>
+          <el-empty
+            v-if="project?.platformType !== platformTypes.GITHUB"
+            h-252px
+            description="Gitee/GitCode项目暂不支持该评估项"
+          ></el-empty>
           <el-tabs
+            v-else
             v-model="companiesActiveName"
             class="companies-tabs-bold"
             @update:model-value="handleCompaniesActiveClick"
@@ -1964,6 +2041,7 @@ onBeforeUnmount(() => {
 .software-details {
   min-width: 1680px;
   padding-bottom: 50px;
+
   .btn-options-floating {
     position: fixed;
     top: 193px;
@@ -1971,16 +2049,19 @@ onBeforeUnmount(() => {
     display: flex;
     flex-direction: column;
     align-items: center;
+
     :deep(.el-button) {
       margin: 0 0 16px;
       width: 120px;
     }
   }
+
   .software-introduction {
     display: flex;
     align-items: flex-start;
     margin-bottom: 8px;
   }
+
   .btn-add-benchmark {
     cursor: pointer;
     color: var(--el-color-primary);
@@ -2071,6 +2152,7 @@ onBeforeUnmount(() => {
     font-weight: bold;
   }
 }
+
 .custom-divide {
   border-bottom: 2px solid #e4e7ed;
   padding-bottom: 10px;
@@ -2090,6 +2172,7 @@ onBeforeUnmount(() => {
 
   :deep(.benchmark-value-cell .cell) {
     padding: 0px !important;
+
     .header-move-btn {
       color: #0000;
       border-color: #0000;
@@ -2097,6 +2180,7 @@ onBeforeUnmount(() => {
       position: absolute;
       top: calc(50% - 16px);
       left: calc(50% - 16px);
+
       &:hover {
         color: var(--el-button-hover-text-color);
         border-color: var(--el-button-hover-border-color);

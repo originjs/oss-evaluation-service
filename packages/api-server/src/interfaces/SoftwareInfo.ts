@@ -36,6 +36,7 @@ export interface aiDescription {
 }
 
 export interface SoftwareInfo extends SoftwareBaseInfo {
+  platformType: number;
   language: string;
   firstCommit: string;
   lastCommit: string;
