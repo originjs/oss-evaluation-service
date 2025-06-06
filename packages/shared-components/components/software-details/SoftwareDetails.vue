@@ -59,6 +59,8 @@ import type { ColumnData, RowData } from '../benchmark-compare/BenchmarkCompareT
 import BenchmarkCompareTable, { EMPTY_VALUE } from '../benchmark-compare/BenchmarkCompareTable.vue';
 import type { RadarRing } from '../landscape-view/constant';
 import { radarRingColors, radarRingNames } from '../landscape-view/constant';
+import type { Project } from '../landscape-view/type';
+import ProjectThumbnails from '../landscape-view/ProjectThumbnails.vue';
 
 dayjs.extend(relativeTime);
 const props = defineProps<{ repoName: string }>();
@@ -1003,15 +1005,11 @@ onBeforeUnmount(() => {
           </el-button>
         </div>
         <div class="software-introduction">
-          <el-image :src="project?.logo" fit="contain" class="w-96px h-96px mr-14px">
-            <template #error>
-              <div flex flex-justify-center flex-items-center w-full h-full bg-gray-100>
-                <el-icon font-size-7 color-gray-400>
-                  <Picture />
-                </el-icon>
-              </div>
-            </template>
-          </el-image>
+          <project-thumbnails
+            class="mr-14px"
+            :project="project as unknown as Project"
+            :options="{ boxSize: 96, borderColor: '#e5e7eb' }"
+          />
           <div w-1170px>
             <div flex flex-items-center>
               <el-tooltip effect="light" :teleported="false">
