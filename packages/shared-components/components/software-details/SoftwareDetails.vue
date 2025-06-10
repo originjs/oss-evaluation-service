@@ -1006,6 +1006,7 @@ onBeforeUnmount(() => {
         </div>
         <div class="software-introduction">
           <project-thumbnails
+            v-if="project"
             class="mr-14px"
             :project="project as unknown as Project"
             :options="{ boxSize: 96, borderColor: '#e5e7eb' }"
