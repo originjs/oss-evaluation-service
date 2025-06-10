@@ -85,7 +85,7 @@ export class HttpRequest {
 
 const defaultConfig = {
   baseURL: import.meta.env.VITE_BACKEND_SERVICE_URL || 'oss-evaluation-api',
-  timeout: 3000,
+  timeout: 10000,
   withCredentials: false,
   headers: {
     'Access-Control-Allow-Origin': '*',
