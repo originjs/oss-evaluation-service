@@ -1177,7 +1177,10 @@ onBeforeUnmount(() => {
           </el-icon>
         </el-tooltip>
         <el-empty
-          v-if="project?.platformType !== platformTypes.GITHUB"
+          v-if="
+            project?.platformType === platformTypes.GITEE ||
+            project?.platformType === platformTypes.GITCODE
+          "
           h-252px
           description="Gitee/GitCode项目暂不支持该评估项"
         ></el-empty>
@@ -1325,7 +1328,10 @@ onBeforeUnmount(() => {
           </el-tooltip>
         </div>
         <el-empty
-          v-if="project?.platformType !== platformTypes.GITHUB"
+          v-if="
+            project?.platformType === platformTypes.GITEE ||
+            project?.platformType === platformTypes.GITCODE
+          "
           h-252px
           description="Gitee/GitCode项目暂不支持该评估项"
         ></el-empty>
@@ -1375,7 +1381,10 @@ onBeforeUnmount(() => {
         </div>
 
         <el-empty
-          v-if="project?.platformType !== platformTypes.GITHUB"
+          v-if="
+            project?.platformType === platformTypes.GITEE ||
+            project?.platformType === platformTypes.GITCODE
+          "
           h-252px
           description="Gitee/GitCode项目暂不支持该评估项"
         ></el-empty>
@@ -1796,7 +1805,10 @@ onBeforeUnmount(() => {
             基于 Github 的依赖关系分析得出使用{{ repoName }}的知名开源项目和组织。
           </div>
           <el-empty
-            v-if="project?.platformType !== platformTypes.GITHUB"
+            v-if="
+              project?.platformType === platformTypes.GITEE ||
+              project?.platformType === platformTypes.GITCODE
+            "
             h-252px
             description="Gitee/GitCode项目暂不支持该评估项"
           ></el-empty>
@@ -1868,7 +1880,10 @@ onBeforeUnmount(() => {
           {{ i18n.global.t(`tips.geoDistribution`) }}
         </span>
         <el-empty
-          v-if="project?.platformType !== platformTypes.GITHUB"
+          v-if="
+            project?.platformType === platformTypes.GITEE ||
+            project?.platformType === platformTypes.GITCODE
+          "
           h-252px
           description="Gitee/GitCode项目暂不支持该评估项"
         ></el-empty>
@@ -1978,7 +1993,10 @@ onBeforeUnmount(() => {
             {{ i18n.global.t(`tips.companies.info`) }}
           </span>
           <el-empty
-            v-if="project?.platformType !== platformTypes.GITHUB"
+            v-if="
+              project?.platformType === platformTypes.GITEE ||
+              project?.platformType === platformTypes.GITCODE
+            "
             h-252px
             description="Gitee/GitCode项目暂不支持该评估项"
           ></el-empty>
