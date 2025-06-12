@@ -13,6 +13,10 @@ export async function syncProjectDescriptionHandler(req, res) {
   if (repoUrls) {
     for (const repoUrl of repoUrls) {
       const project = await getProjectByUrl(repoUrl);
+      if (!project) {
+        logger.error('syncSingleProjectDescription: project not found', repoUrl);
+        continue;
+      }
       await syncSingleProjectDescription(project);
     }
   } else {

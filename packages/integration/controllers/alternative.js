@@ -14,6 +14,10 @@ export async function syncAlternativeHandler(req, res) {
   if (repoUrls) {
     for (const repoUrl of repoUrls) {
       const project = await getProjectByUrl(repoUrl);
+      if (!project) {
+        logger.error('syncSingleProjectAlternative: project not found', repoUrl);
+        continue;
+      }
       let retryCount = 0;
       while (retryCount !== -1 && retryCount < 5) {
         try {
@@ -154,6 +158,10 @@ export async function syncClassificationHandler(req, res) {
   } else if (pIds) {
     for (const pId of pIds) {
       const project = await ViewProjects.findByPk(pId);
+      if (!project) {
+        logger.error('getSingleProjectClassification: project not found', repoUrl);
+        continue;
+      }
       await getSingleProjectClassification(project);
     }
     await updateProjectId();
