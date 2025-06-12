@@ -266,7 +266,7 @@ export async function importBenchmarkVersionScoreByGetHandler(req, res) {
     envInfo: apply.envInfo,
   });
 
-  res.status(200).json(await randomGithubProject(benchmarkVersion.pId));
+  res.status(200).json(await randomGithubProject(benchmarkVersion.id));
 }
 
 export async function importBenchmarkValueByGetHandler(req, res) {
