@@ -1068,7 +1068,7 @@ onBeforeUnmount(() => {
             <el-descriptions-item label="官网地址">{{ baseInfo.homePage }}</el-descriptions-item>
             <el-descriptions-item label="技术雷达" :span="2">
               <span
-                v-if="typeof projectTechStack?.radarRing === 'number'"
+                v-if="projectTechStack && typeof projectTechStack?.radarRing === 'number'"
                 px-2px
                 font-600
                 rounded
