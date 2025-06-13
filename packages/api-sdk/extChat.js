@@ -6,7 +6,7 @@ export async function chat(data, token) {
   headers.append('Content-Type', 'application/json');
   headers.append('Accept', '*/*');
   headers.append('Connection', 'keep-alive');
-  let response;
+  let response = { ok: false };
   let retryCount = 0;
   while (retryCount !== -1 && retryCount < 5) {
     try {
@@ -22,10 +22,7 @@ export async function chat(data, token) {
       retryCount = -1;
     } catch (e) {
       retryCount++;
-      if (retryCount === 5) {
-        throw e;
-      }
-      logger.error(`Fetch chat failed! Retry count: ${retryCount}\n`, e);
+      logger.error(`Fetch chat failed! Retry count: ${retryCount}\n`, `${data.GithubUrl}\n`, e);
     }
   }
   return response;
