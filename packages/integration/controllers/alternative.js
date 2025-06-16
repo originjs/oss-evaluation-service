@@ -119,6 +119,10 @@ export async function syncSingleProjectAlternative(project) {
     const response = await cozeSdk.chat(project.htmlUrl);
     if (response.ok) {
       const rsp = await response.json();
+      if (rsp.code !== 0) {
+        logger.warn(`Coze alternative project failed: ${rsp.msg}`);
+        return;
+      }
       for (const msg of rsp.messages) {
         if (msg.type === 'answer') {
           const altList = await saveAltList(msg.content, project);
