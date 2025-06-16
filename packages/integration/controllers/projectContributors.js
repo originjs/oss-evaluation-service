@@ -5,7 +5,7 @@ import {
   GiteeProjectsTable,
   GitcodeProjectsTable,
 } from '@orginjs/oss-evaluation-data-model';
-import { getProjectByUrl } from '../util/util.js';
+import { getProjectByUrl, getValidToken, refreshValidToken } from '../util/util.js';
 import { fetchWithTimeout } from '../util/fetchWitTimeout.js';
 import { fetchWithRetries } from '../util/fetchWithRetries.js';
 import * as cheerio from 'cheerio';
@@ -195,12 +195,7 @@ async function getContributors(project, page = 1) {
   }
 
   const repoName = project.fullName;
-  const tokenMap = {
-    [platformTypes.GITHUB]: JSON.parse(process.env.GITHUB_TOKEN),
-    [platformTypes.GITEE]: JSON.parse(process.env.GITEE_TOKEN),
-    [platformTypes.GITCODE]: JSON.parse(process.env.GITCODE_TOKEN),
-  };
-  const token = tokenMap[project.platformType][0];
+  const token = await getValidToken(project.platformType);
   const header = {
     'Content-Type': 'application/json',
   };
@@ -220,6 +215,9 @@ async function getContributors(project, page = 1) {
     logger.error('Error in fetch REST API:', error);
     return -1;
   });
+  if (request.status === 403) {
+    await refreshValidToken(project.platformType);
+  }
   // avoid situations where the project is empty
   try {
     return await request.json();

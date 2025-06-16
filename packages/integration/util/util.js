@@ -1,5 +1,6 @@
 import { ViewProjects, logger } from '@orginjs/oss-evaluation-data-model';
 import { setTimeout } from 'node:timers';
+import { platformTypes } from '@orginjs/oss-evaluation-util';
 
 export const sleep = ms =>
   new Promise(resolve => {
@@ -66,3 +67,53 @@ export function getCurrentDate() {
 
   return formattedDate;
 }
+
+const validToken = {
+  [platformTypes.GITHUB]: JSON.parse(process.env.GITHUB_TOKEN)[0],
+  [platformTypes.GITEE]: JSON.parse(process.env.GITEE_TOKEN)[0],
+  [platformTypes.GITCODE]: JSON.parse(process.env.GITCODE_TOKEN)[0],
+};
+
+export const getValidToken = platformType => {
+  return validToken[platformType];
+};
+
+export const refreshValidToken = async platformType => {
+  const tokenMap = {
+    [platformTypes.GITHUB]: JSON.parse(process.env.GITHUB_TOKEN),
+    [platformTypes.GITEE]: JSON.parse(process.env.GITEE_TOKEN),
+    [platformTypes.GITCODE]: JSON.parse(process.env.GITCODE_TOKEN),
+  };
+  const project = await ViewProjects.findOne({
+    where: {
+      platformType,
+    },
+  });
+  const urlMap = {
+    [platformTypes.GITHUB]: `https://api.github.com/repos/${project.repoName}/contributors?per_page=100&page=1&anon=true`,
+    [platformTypes.GITEE]: `https://gitee.com/api/v5/repos/${project.repoName}/contributors?type=authors`,
+    [platformTypes.GITCODE]: `https://api.gitcode.com/api/v5/repos/${project.repoName}/contributors/statistic`,
+  };
+  const tokens = tokenMap[platformType];
+  const url = urlMap[platformType];
+  for (const token of tokens) {
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.ok && response.status === 200) {
+        validToken[platformType] = token;
+        return token;
+      }
+    } catch (error) {
+      logger.error(`Error fetching repo data with token: ${token}`, error);
+    }
+  }
+  logger.error('No valid token found');
+  validToken[platformType] = null;
+  return null;
+};

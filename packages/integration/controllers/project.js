@@ -11,6 +11,7 @@ import GithubSdk from '@orginjs/github-sdk';
 import { fetchWithRetries } from '../util/fetchWithRetries.js';
 import * as cheerio from 'cheerio';
 import { normalizeTime, platformTypes } from '@orginjs/oss-evaluation-util';
+import { getValidToken, refreshValidToken } from '../util/util.js';
 
 /**
  *  There are 952 github projects between 1000 and 1130 stars.
@@ -377,16 +378,14 @@ async function queryProjectByRepUrl(url) {
     logger.info('Url must be the GitHub/Gitee/GitCode address, eg: https://github.com/vuejs/core');
     return null;
   }
-  const githubTokens = JSON.parse(process.env.GITHUB_TOKEN);
-  const giteeTokens = JSON.parse(process.env.GITEE_TOKEN);
-  const gitcodeTokens = JSON.parse(process.env.GITCODE_TOKEN);
+  const token = await getValidToken(platformType);
   const fetchConf = {
     [platformTypes.GITHUB]: {
       baseUrl: 'https://api.github.com/repos',
       config: {
         headers: {
           'User-Agent': 'nodejs/18.19.0',
-          Authorization: `Bearer ${githubTokens[0]}`,
+          Authorization: `Bearer ${token}`,
           'X-GitHub-Api-Version': '2022-11-28',
           Accept: 'application/vnd.github+json',
         },
@@ -396,7 +395,7 @@ async function queryProjectByRepUrl(url) {
       baseUrl: 'https://gitee.com/api/v5/repos',
       config: {
         headers: {
-          Authorization: `${giteeTokens[0]}`,
+          Authorization: `Bearer ${token}`,
         },
       },
     },
@@ -404,7 +403,7 @@ async function queryProjectByRepUrl(url) {
       baseUrl: 'https://api.gitcode.com/api/v5/repos',
       config: {
         headers: {
-          Authorization: `${gitcodeTokens[0]}`,
+          Authorization: `Bearer ${token}`,
         },
       },
     },
@@ -420,6 +419,9 @@ async function queryProjectByRepUrl(url) {
     } else {
       logger.info(await response.text());
       logger.info(response.status);
+      if (response.status === 403) {
+        await refreshValidToken(platformType);
+      }
     }
   } catch (e) {
     /* empty */
