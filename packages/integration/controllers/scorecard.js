@@ -8,6 +8,7 @@ import {
 import { ServerError, BadRequestError } from '../util/error.js';
 import { parseRepoUrl } from '../util/util.js';
 import shelljs from 'shelljs';
+import { platformTypes } from '@orginjs/oss-evaluation-util';
 
 /**
  * Sync scorecard by id or by tech_stack from table:project_stack
@@ -216,6 +217,12 @@ export async function syncSingleProjectScorecard(projectUrl) {
 }
 
 export async function syncSingleProjectScorecardByProject(project) {
+  if (project.platformType !== platformTypes.GITHUB) {
+    logger.warn(
+      `project:${project.fullName} is not support, skip syncSingleProjectScorecardByProject!`,
+    );
+    return;
+  }
   const { address, owner, repository } = parseRepoUrl(project.htmlUrl);
   await syncScorecard(project.pId, null, address, owner, repository);
 }
