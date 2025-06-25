@@ -14,36 +14,36 @@ const starHistoryUrl = 'https://api.ossinsight.io/q/analyze-stars-history?repoId
 const defaultDate = '1010-01-01';
 
 const QUERY_SQL = `
-    select distinct project.p_id,
+    select distinct project.p_id          as pId,
                     project.id,
                     project.platform_type as platformType,
                     project.name,
                     project.full_name     as fullName,
                     project.html_url      as htmlUrl,
-                    trend.p_id            as pId
+                    trend.p_id            as trendPId
     from view_projects project
              left join (select *
                         from github_projects_stargazers_trend
                         where date >= :startDate) trend on project.p_id = trend.p_id
     where isnull(trend.p_id)
-    order by p_id;
+    order by project.id;
 `;
 
 const QUERY_SINGLE_SQL = `
-    select distinct project.p_id,
+    select distinct project.p_id          as pId,
                     project.id,
                     project.platform_type as platformType,
                     project.name,
                     project.full_name     as fullName,
                     project.html_url      as htmlUrl,
-                    trend.p_id            as pId
+                    trend.p_id            as trendPId
     from view_projects project
              left join (select *
                         from github_projects_stargazers_trend
                         where date >= :startDate) trend on project.p_id = trend.p_id
     where isnull(trend.p_id)
       and project.p_id = :pId
-    order by p_id;
+    order by project.id;
 `;
 
 export async function githubStargazersTrendScheduler() {
