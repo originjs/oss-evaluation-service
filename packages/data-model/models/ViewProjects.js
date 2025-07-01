@@ -23,10 +23,6 @@ export default sequelize.define(
     htmlUrl: {
       type: DataTypes.STRING(512),
     },
-    url: {
-      type: DataTypes.STRING(512),
-      field: 'html_url',
-    },
     description: {
       type: DataTypes.STRING(512),
     },
