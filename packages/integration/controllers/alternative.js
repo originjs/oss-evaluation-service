@@ -109,10 +109,14 @@ export async function syncSingleProjectAlternative(project) {
     );
     if (response.ok) {
       const rsp = await response.json();
-      return await saveAltList(
-        rsp.data.outputs.result.replace(/<think>[\s\S]*?<\/think>(\n*)/, ''),
-        project,
-      );
+      try {
+        return await saveAltList(
+          rsp.data.outputs.result.replace(/<think>[\s\S]*?<\/think>(\n*)/, ''),
+          project,
+        );
+      } catch (e) {
+        logger.error(`Save alternative list failed! \n${e}`);
+      }
     }
   } else {
     const cozeSdk = new CozeSdk(CozeSdk.ALTERNATIVE_BOT);
