@@ -39,21 +39,21 @@ export async function syncSingleProjectDescription(project) {
     );
 
     if (response.ok) {
-      const rsp = await response.json();
-      let json = rsp.data.outputs.result.replace(/<think>[\s\S]*?<\/think>(\n*)/, '');
-      logger.info(json);
-      if (json.startsWith('```')) {
-        // remove markdown block
-        json = json.substring(json.indexOf('\n'), json.lastIndexOf('\n'));
-      }
       try {
+        const rsp = await response.json();
+        let json = rsp.data.outputs.result.replace(/<think>[\s\S]*?<\/think>(\n*)/, '');
+        logger.info(json);
+        if (json.startsWith('```')) {
+          // remove markdown block
+          json = json.substring(json.indexOf('\n'), json.lastIndexOf('\n'));
+        }
         const content = JSON5.parse(json);
         await GithubProjectsTable.update(
           { aiDescription: content },
           { where: { pId: project.pId } },
         );
       } catch (e) {
-        logger.error('Parse json data failed! Skip it.', json, e);
+        logger.error('Update project ai description failed! Skip it.', e);
       }
     }
   }
