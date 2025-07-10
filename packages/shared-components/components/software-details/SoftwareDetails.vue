@@ -61,7 +61,9 @@ import type { RadarRing } from '../landscape-view/constant';
 import { radarRingColors, radarRingNames } from '../landscape-view/constant';
 import type { Project } from '../landscape-view/type';
 import ProjectThumbnails from '../landscape-view/ProjectThumbnails.vue';
+import { createReusableTemplate } from '@vueuse/core';
 
+const [DefineTemplate, ReuseTemplate] = createReusableTemplate();
 dayjs.extend(relativeTime);
 const props = defineProps<{ repoName: string }>();
 
@@ -78,6 +80,7 @@ const projectTechStack = ref<{
   radarRing: RadarRing;
 }>();
 const tagList = ref<string[]>([]);
+const ALTERNATIVE_SIZE = 6;
 const alternatives = ref<AlternativeInfo[]>([]);
 const starTrend = ref<StarTrend>({
   date: [],
@@ -982,9 +985,44 @@ onBeforeUnmount(() => {
   window.removeEventListener('scroll', setbOptionBtnsDomPos);
   window.removeEventListener('resize', setbOptionBtnsDomPos);
 });
+
+const showAllAlternatives = ref(false);
 </script>
 
 <template>
+  <DefineTemplate v-slot="{ data }">
+    <div v-loading="loadingEcology" flex flex-wrap mt-5>
+      <div v-for="item in data" :key="item.id" class="alter-item" flex mb-5>
+        <div flex items-end relative>
+          <el-image :src="item.logo" class="alt-logo"></el-image>
+          <span v-if="item.ai === 1" i-custom:ai class="badge-icon" />
+        </div>
+        <div flex flex-col items-start float-left>
+          <el-tooltip effect="light" :content="item.repoName" placement="top">
+            <div mb-6px w-140px>
+              <el-link
+                style="justify-content: flex-start"
+                class="w-full"
+                :href="'/#/software-details?repoName=' + item.repoName"
+                target="_blank"
+                :underline="false"
+                :title="item.repoName"
+              >
+                {{ item.repoName }}
+              </el-link>
+            </div>
+          </el-tooltip>
+          <el-button type="primary" size="small" round @click="addProjectToCompare(item)">
+            <span style="color: #ffffff" class="add-version-icon"></span>添加对比
+          </el-button>
+        </div>
+      </div>
+      <div v-if="!alternatives.length" class="color-gray">暂无数据</div>
+    </div>
+  </DefineTemplate>
+  <el-dialog v-model="showAllAlternatives" width="1320">
+    <ReuseTemplate :data="alternatives" />
+  </el-dialog>
   <div ref="softwareDetailsEl" class="software-details" bg-coolgray-50>
     <div v-loading="isRequestingProjectInfo" p-20px bg-white shadow-md>
       <div ref="baseInfoDom" w-1280px m-auto>
@@ -1135,33 +1173,16 @@ onBeforeUnmount(() => {
         >
           一键对比
         </el-button>
+        <el-link
+          v-if="alternatives.length > ALTERNATIVE_SIZE"
+          ml-auto
+          type="primary"
+          :underline="false"
+          @click="showAllAlternatives = !showAllAlternatives"
+          >查看全部 »</el-link
+        >
       </div>
-      <div flex my-5>
-        <div v-for="item in alternatives" :key="item.id" class="alter-item" flex>
-          <div flex items-end relative>
-            <el-image :src="item.logo" class="alt-logo"></el-image>
-            <span v-if="item.ai === 1" i-custom:ai class="badge-icon" />
-          </div>
-          <div flex flex-col items-start float-left>
-            <el-tooltip effect="light" :content="item.repoName" placement="top">
-              <div mb-6px w-140px class="text-over">
-                <el-link
-                  :href="'/#/software-details?repoName=' + item.repoName"
-                  target="_blank"
-                  :underline="false"
-                  :title="item.repoName"
-                >
-                  {{ item.repoName }}
-                </el-link>
-              </div>
-            </el-tooltip>
-            <el-button type="primary" size="small" round @click="addProjectToCompare(item)">
-              <span style="color: #ffffff" class="add-version-icon"></span>添加对比
-            </el-button>
-          </div>
-        </div>
-        <div v-if="!alternatives.length" class="color-gray">暂无数据</div>
-      </div>
+      <ReuseTemplate :data="alternatives.slice(0, ALTERNATIVE_SIZE)" />
       <div id="function" mt-4 mb-4 font-size-7 font-bold line-height-normal>
         <span i-custom:function mr-2 />
         <span>功能</span>
@@ -1184,7 +1205,7 @@ onBeforeUnmount(() => {
           h-252px
           description="Gitee/GitCode项目暂不支持该评估项"
         ></el-empty>
-        <div v-else id="github-start-chart" h-252px />
+        <div v-else id="github-start-chart" v-loading="loadingEcology" h-252px />
       </el-card>
       <el-card v-if="developerSatisfaction.xAxis.length > 0" mb-6>
         <div flex>
@@ -2160,8 +2181,15 @@ onBeforeUnmount(() => {
   left: -40px;
 }
 
-.alter-item + .alter-item {
-  margin-left: 8px;
+.alter-item {
+  margin-right: 8px;
+
+  :deep(.el-link__inner) {
+    display: inline;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 .companies-tabs-bold {
