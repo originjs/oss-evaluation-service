@@ -48,10 +48,7 @@ export async function syncAlternativeHandler(req, res) {
 export async function syncAllProjectAlternative() {
   let sql = `SELECT p.p_id, p.full_name, p.html_url, p.id, p.platform_type, p.description, p.topics
              from view_projects p
-                      LEFT JOIN project_tech_stack t
-                                ON p.p_id = t.p_id
-             where subcategory is null
-               and integrated_state & 2 != 0
+             where integrated_state & 2 != 0
                AND p.p_id NOT IN (SELECT DISTINCT p_id FROM alternative_projects)`;
   const projects = await sequelize.query(sql, {
     model: ViewProjects,
