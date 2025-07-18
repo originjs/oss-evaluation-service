@@ -3,10 +3,13 @@ import {
   sequelize,
   logger,
   GithubProjectsTable,
+  GiteeProjectsTable,
+  GitcodeProjectsTable,
 } from '@orginjs/oss-evaluation-data-model';
 import { getProjectByUrl } from '../util/util.js';
 import JSON5 from 'json5';
 import { chat } from '../../api-sdk/extChat.js';
+import { platformTypes } from '@orginjs/oss-evaluation-util';
 
 export async function syncProjectDescriptionHandler(req, res) {
   const { repoUrls } = req.body;
@@ -48,7 +51,12 @@ export async function syncSingleProjectDescription(project) {
           json = json.substring(json.indexOf('\n'), json.lastIndexOf('\n'));
         }
         const content = JSON5.parse(json);
-        await GithubProjectsTable.update(
+        const tableMap = {
+          [platformTypes.GITHUB]: GithubProjectsTable,
+          [platformTypes.GITEE]: GiteeProjectsTable,
+          [platformTypes.GITCODE]: GitcodeProjectsTable,
+        };
+        await tableMap[project.platformType].update(
           { aiDescription: content },
           { where: { pId: project.pId } },
         );
