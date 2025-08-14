@@ -8,7 +8,6 @@ export class OthersLanguageService implements LanguageSonarScannerInterface {
   }
 
   param: SonarScanParam;
-
   sonarCommands(): string[] {
     const owner = this.param.owner;
     const repoName = this.param.repoName;
@@ -29,7 +28,10 @@ export class OthersLanguageService implements LanguageSonarScannerInterface {
       -Dsonar.token=${this.param.sonarToken}`;
     return [scanCommand];
   }
-  restoreCommand(): string {
-    return `echo 'no need to restore'`;
+
+  afterScanCommand(): string {
+    // delete the downloaded project file
+    const dir = `${process.env.REPO_DIR}/${this.param.owner}/${this.param.repoName}`;
+    return `rm -rf ${dir}`;
   }
 }

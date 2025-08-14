@@ -8,24 +8,24 @@ import { getLanguageServiceImpl } from '../services/sonarLanguageService.js';
 function runSonarScanner(info: SonarScanParam): Result<SonarScanParam> {
   // get language service
   const languageService = getLanguageServiceImpl(info);
-  const commands = languageService.sonarCommands();
-  const restoreCommand = languageService.restoreCommand();
-  // run commands
-  for (const command of commands) {
+  const scanCommands = languageService.sonarCommands();
+  const afterScanCommand = languageService.afterScanCommand();
+  // run scan commands
+  for (const command of scanCommands) {
     logger.info(`start execution of command {${command}}`);
     const shellResult = shelljs.exec(command);
     logger.info(`end execution of command {${command}} , code = ${shellResult.code}`);
     if (shellResult?.code !== 0) {
-      // restore changes
-      shelljs.exec(restoreCommand);
       logger.error(
         `${info.owner}/${info.repoName} run command {${command}} failed:${shellResult?.stderr}`,
       );
       throw new Error(`sonar scanner failed ${JSON.stringify(info)}`);
     }
   }
-  // restore changes
-  shelljs.exec(restoreCommand);
+  if (afterScanCommand) {
+    // run after scan command
+    shelljs.exec(afterScanCommand);
+  }
   return Result.ok(info);
 }
 
