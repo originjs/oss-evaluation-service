@@ -25,6 +25,12 @@ export class JavaLanguageService implements LanguageSonarScannerInterface {
     this.configBuildType(param);
   }
 
+  afterScanCommand(): string {
+    // delete the downloaded project file
+    const dir = `${process.env.REPO_DIR}/${this.param.owner}/${this.param.repoName}`;
+    return `rm -rf ${dir}`;
+  }
+
   restoreCommand(): string {
     const dir = `${process.env.REPO_DIR}/${this.param.owner}/${this.param.repoName}`;
     if (this.buildType === JavaBuildType.GRADLE || this.buildType === JavaBuildType.GRADLE_KTS) {

@@ -63,17 +63,15 @@ export async function getAlternativeProjects(fullName: string): Promise<Alternat
       continue; // exclude exist
     }
 
-    if (alternatives.length < ALTERNATIVE_SIZE) {
-      alternatives.push({
-        pId: item.pId,
-        repoName: item.full_name,
-        logo: item.logo,
-        starCount: item.starCount,
-        forksCount: item.forksCount,
-        url: item.html_url,
-        description: item.description,
-      });
-    }
+    alternatives.push({
+      pId: item.pId,
+      repoName: item.full_name,
+      logo: item.logo,
+      starCount: item.starCount,
+      forksCount: item.forksCount,
+      url: item.html_url,
+      description: item.description,
+    });
   }
 
   return alternatives;

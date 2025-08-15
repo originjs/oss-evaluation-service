@@ -3,10 +3,13 @@ import {
   sequelize,
   logger,
   GithubProjectsTable,
+  GiteeProjectsTable,
+  GitcodeProjectsTable,
 } from '@orginjs/oss-evaluation-data-model';
 import { getProjectByUrl } from '../util/util.js';
 import JSON5 from 'json5';
 import { chat } from '../../api-sdk/extChat.js';
+import { platformTypes } from '@orginjs/oss-evaluation-util';
 
 export async function syncProjectDescriptionHandler(req, res) {
   const { repoUrls } = req.body;
@@ -39,21 +42,26 @@ export async function syncSingleProjectDescription(project) {
     );
 
     if (response.ok) {
-      const rsp = await response.json();
-      let json = rsp.data.outputs.result.replace(/<think>[\s\S]*?<\/think>(\n*)/, '');
-      logger.info(json);
-      if (json.startsWith('```')) {
-        // remove markdown block
-        json = json.substring(json.indexOf('\n'), json.lastIndexOf('\n'));
-      }
       try {
+        const rsp = await response.json();
+        let json = rsp.data.outputs.result.replace(/<think>[\s\S]*?<\/think>(\n*)/, '');
+        logger.info(json);
+        if (json.startsWith('```')) {
+          // remove markdown block
+          json = json.substring(json.indexOf('\n'), json.lastIndexOf('\n'));
+        }
         const content = JSON5.parse(json);
-        await GithubProjectsTable.update(
+        const tableMap = {
+          [platformTypes.GITHUB]: GithubProjectsTable,
+          [platformTypes.GITEE]: GiteeProjectsTable,
+          [platformTypes.GITCODE]: GitcodeProjectsTable,
+        };
+        await tableMap[project.platformType].update(
           { aiDescription: content },
           { where: { pId: project.pId } },
         );
       } catch (e) {
-        logger.error('Parse json data failed! Skip it.', json, e);
+        logger.error('Update project ai description failed! Skip it.', e);
       }
     }
   }

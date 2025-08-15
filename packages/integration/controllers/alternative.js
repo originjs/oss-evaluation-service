@@ -46,13 +46,9 @@ export async function syncAlternativeHandler(req, res) {
 }
 
 export async function syncAllProjectAlternative() {
-  let sql = `SELECT p.p_id, p.full_name, p.html_url, p.id, p.platformType
+  let sql = `SELECT p.p_id, p.full_name, p.html_url, p.id, p.platform_type, p.description, p.topics
              from view_projects p
-                      LEFT JOIN project_tech_stack t
-                                ON p.p_id = t.p_id
-             where subcategory is null
-               and integrated_state & 2 != 0
-               AND p.p_id NOT IN (SELECT DISTINCT p_id FROM alternative_projects)`;
+             where p.p_id NOT IN (SELECT DISTINCT p_id FROM alternative_projects)`;
   const projects = await sequelize.query(sql, {
     model: ViewProjects,
     mapToModel: true,
@@ -109,10 +105,14 @@ export async function syncSingleProjectAlternative(project) {
     );
     if (response.ok) {
       const rsp = await response.json();
-      return await saveAltList(
-        rsp.data.outputs.result.replace(/<think>[\s\S]*?<\/think>(\n*)/, ''),
-        project,
-      );
+      try {
+        return await saveAltList(
+          rsp.data.outputs.result.replace(/<think>[\s\S]*?<\/think>(\n*)/, ''),
+          project,
+        );
+      } catch (e) {
+        logger.error(`Save alternative list failed! \n${e}`);
+      }
     }
   } else {
     const cozeSdk = new CozeSdk(CozeSdk.ALTERNATIVE_BOT);

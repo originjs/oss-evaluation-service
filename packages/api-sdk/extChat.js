@@ -19,6 +19,9 @@ export async function chat(data, token) {
           user: 'abc-123',
         }),
       });
+      if (!response.ok) {
+        logger.error(`AI chat response failed! \n${JSON.stringify(await response.json())}`);
+      }
       retryCount = -1;
     } catch (e) {
       retryCount++;

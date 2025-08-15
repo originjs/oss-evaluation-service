@@ -11,7 +11,7 @@ export interface LanguageSonarScannerInterface {
   sonarCommands(): string[];
 
   /**
-   * after run handler(like clean,restore...)
+   * after scan(like rm file and clean)
    */
-  restoreCommand(): string;
+  afterScanCommand(): string;
 }
