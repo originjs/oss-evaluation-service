@@ -144,7 +144,7 @@ async function getStargazersTrend(startDate, pId) {
       sequelize.query(
         `UPDATE oss_evaluation_summary
          SET star_rate = ${addedStars}
-         WHERE p_id = ${project.pId}`,
+         WHERE p_id = '${project.pId}'`,
       );
     }
 
