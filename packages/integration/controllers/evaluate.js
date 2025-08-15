@@ -459,7 +459,7 @@ async function getPerformanceRawValue(pId, field, techStack, bId) {
 async function getGithubStarRate(pId) {
   const sql = `SELECT date, stargazers, LAG(stargazers, 3) OVER (ORDER BY date) AS lastQuote
                FROM github_projects_stargazers_trend
-               WHERE p_id = ${pId}
+               WHERE p_id = '${pId}'
                ORDER BY date DESC
                LIMIT 1`;
   const result = await sequelize.query(sql, { type: sequelize.QueryTypes.SELECT });
