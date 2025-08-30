@@ -8,10 +8,10 @@ import {
 import axios from 'axios';
 import json5 from 'json5';
 import { Op } from 'sequelize';
-import type { RepoInfo } from '../interfaces/SoftwareInfo';
+import type { RepoInfo, RepoList } from '../interfaces/SoftwareInfo';
 
-const apiUrl = process.env.API;
-const apiKey = process.env.APIKEY;
+const apiUrl = process.env.API_TSC;
+const apiKey = process.env.APIKEY_TSC;
 const ossEvalInner =
   process.env.NODE_ENV === 'production' ? 'oss-eval-inner' : 'oss-eval-inner-test';
 const ossEval = process.env.NODE_ENV === 'production' ? 'oss-eval' : 'oss-eval-test';
@@ -75,7 +75,7 @@ async function rateLimitedCall(repoInfoList: any, catagoryRuleStr: string) {
   let results = [];
   const landscape = repoInfoList[0].landscape ? repoInfoList[0].landscape : '';
 
-  if (repoInfoList === undefined) {
+  if (repoInfoList === undefined || repoInfoList.length === 0) {
     return data;
   }
 
@@ -147,7 +147,7 @@ export async function getSoftWareRepoInfoBylandscape(landscape: string) {
 }
 
 //通过repoUrls获取软件信息
-export async function getSoftWareRepoInfoByUrls(repoUrls: string) {
+export async function getSoftWareRepoInfoByUrls(repoUrls: string[]) {
   return await GithubProjectsTable.findAll({
     where: {
       html_url: {
@@ -212,56 +212,30 @@ async function getCategoriesRuleJson(landscape: string) {
   }
 }
 
-export async function getTechnologyClassificationBatch(repoList: any) {
+export async function getTechnologyClassificationBatch(repoList: RepoList) {
+  const landspace = repoList?.landspace;
+  const repoUrls = repoList?.repoUrls;
   if (LandscapeProjects === null || ProjectStackFromAi === null) {
     return 'unsupported aiclassification';
   }
   if (!apiKey || !apiUrl) {
-    logger.error('apiKey or apiUrl not found');
-    return 'apiKey or apiUrl not found';
-  }
-  if (!repoList) {
-    throw new Error('repoList not found');
+    logger.error('API_TSC or APIURL_TSC not found');
+    return 'API_TSC or APIURL_TSC not found';
   }
 
-  if (
-    (!repoList.repoUrls || repoList.repoUrls.length === 0) &&
-    (!repoList.landspace || repoList.landspace === '')
-  ) {
-    throw new Error(
-      `请检查repoUrls或landspace： ${repoList.repoUrls} ${repoList.landspace}不能同时为空。`,
-    );
+  if ((!repoUrls || repoUrls.length === 0) && (!landspace || landspace === '')) {
+    throw new Error(`请检查参数repoUrls或landspace： ${repoUrls} ${landspace}不能同时为空。`);
   }
 
   let projectList;
-  if (repoList.landspace !== '') {
-    projectList = await getSoftWareRepoInfoBylandscape(repoList.landspace);
+  if (repoUrls.length > 0) {
+    projectList = await getSoftWareRepoInfoByUrls(repoUrls);
   } else {
-    projectList = await getSoftWareRepoInfoByUrls(repoList.repoUrls);
+    projectList = await getSoftWareRepoInfoBylandscape(landspace);
   }
   try {
-    const catagoryRuleStr = await getCategoriesRuleJson(repoList.landspace);
+    const catagoryRuleStr = await getCategoriesRuleJson(landspace);
     const data = await rateLimitedCall(projectList, catagoryRuleStr);
-    await insertLandscapeProjects(data);
-    return data;
-  } catch (error) {
-    logger.error(error.message);
-    throw error;
-  }
-}
-
-export async function getTechnologyClassificationSingle(repoInfo: any) {
-  if (LandscapeProjects === null || ProjectStackFromAi === null) {
-    return 'unsupported aiclassification';
-  }
-  if (!apiKey || !apiUrl) {
-    logger.error('apiKey or apiUrl not found');
-    return 'apiKey or apiUrl not found';
-  }
-  try {
-    const project = await getSoftWareRepoInfo(repoInfo);
-    const catagoryRuleStr = await getCategoriesRuleJson(repoInfo.landspace);
-    const data = await rateLimitedCall(project, catagoryRuleStr);
     await insertLandscapeProjects(data);
     return data;
   } catch (error) {
