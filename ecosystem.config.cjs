@@ -1,0 +1,58 @@
+module.exports = {
+  apps: [
+    {
+      name: 'api-server',
+      cwd: '/home/oss-eval-website/oss-evaluation-service/packages/api-server/',
+      script: './dist/app.js',
+      watch: true,
+      env: {
+        PORT: 3000,
+        NODE_ENV: 'development',
+        DATABASE_URL: 'mysql://frontend:7mjAszKi@1104.168.109.144/oss-eval',
+        VITE_BACKEND_SERVICE_URL: 'http://104.168.109.144:3000/',
+        COZE_API_TOKEN: 'pat_rn9yZy6kU9jOvYKVJ3F40FUDe8UqPahoa3vCgDghdeFjxsyKMM5m3V6lx8m5mYyQ',
+        LOG_DIR: '/home/oss-logs/api-server/logs',
+        BASE_DIR: '/home/oss-eval-website',
+      },
+      env_production: {
+        PORT: 3000,
+        NODE_ENV: 'production',
+      },
+    },
+    {
+      name: 'integration',
+      cwd: '/home/oss-eval-website/oss-evaluation-service/packages/integration/',
+      script: './bin/www.js',
+      watch: true,
+      env: {
+        PORT: 3001,
+        NODE_ENV: 'development',
+        DATABASE_URL: 'mysql://frontend:7mjAszKi@1104.168.109.144/oss-eval',
+        VITE_BACKEND_SERVICE_URL: 'http://104.168.109.144:3000/',
+        COZE_API_TOKEN: 'pat_rn9yZy6kU9jOvYKVJ3F40FUDe8UqPahoa3vCgDghdeFjxsyKMM5m3V6lx8m5mYyQ',
+        LOG_DIR: '/home/oss-logs/integration/logs',
+        BASE_DIR: '/home/oss-eval-integration',
+        SONAR_CLOUD_TOKEN: 'b86c03e0c58dfc621e50c76d47758d27ccf0e66c',
+        SONAR_ORG_NAME: 'oss-evaluation',
+        SONAR_GITHUB_FORK_ORG_NAME: 'oss-evaluation-repository',
+        SONAR_SCAN_SERVICE_HOST: 'http://127.0.0.1:3002',
+        REPO_SERVICE_URL: 'http://127.0.0.1:3002',
+        GITHUB_TOKEN: [
+          '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',
+          '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',
+          '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',
+          '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',
+          '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',
+        ],
+        GITEE_TOKEN: ['cc6af6600e7450e0273775f48b0ef44b'],
+        GITCODE_TOKEN: ['zyHdtdzRthBKTJu_ag5yuEPv'],
+        GITHUB_FORK_TOKEN: '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',
+        GITHUB_AUTH_TOKEN: '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',
+      },
+      env_production: {
+        PORT: 3001,
+        NODE_ENV: 'production',
+      },
+    },
+  ],
+};
