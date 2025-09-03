@@ -5,6 +5,7 @@ import {
   logger,
   sequelize,
 } from '@orginjs/oss-evaluation-data-model';
+import https from 'https';
 import axios from 'axios';
 import json5 from 'json5';
 import { Op } from 'sequelize';
@@ -49,7 +50,12 @@ const getDataFromAiUrl = async (repoInfo: any, catagoryRuleStr: string) => {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${apiKey}`,
     };
-    const response = await axios.post(apiUrl, requestBody, { headers });
+    const response = await axios.post(apiUrl, requestBody, {
+      headers,
+      httpsAgent: new https.Agent({
+        rejectUnauthorized: false,
+      }),
+    });
     //解析JSON结果
     const result = parserJson(response.data?.data?.outputs?.result);
     return result;
