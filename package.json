@@ -21,6 +21,8 @@
     "build-share": "pnpm -C packages/shared-components build",
     "build-api-server": "pnpm -C packages/api-server build",
     "build-website": "pnpm -C packages/website build",
+    "build-repo-service": "pnpm -C packages/repo-service build",
+    "build-download-server": "pnpm -C packages/sync-database-service/download-server build",
     "serve-api-server": "pnpm -C packages/api-server start",
     "serve-website": "pnpm -C packages/website preview",
     "postinstall": "simple-git-hooks"
