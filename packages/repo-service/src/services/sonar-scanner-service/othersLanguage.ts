@@ -12,7 +12,7 @@ export class OthersLanguageService implements LanguageSonarScannerInterface {
     const owner = this.param.owner;
     const repoName = this.param.repoName;
     const dir = `${process.env.REPO_DIR}/${owner}/${repoName}`;
-    const sonarCommand = 'sonar-scanner';
+    const sonarCommand = process.env.SONAR_SCANNER_PATH || 'sonar-scanner';
     // run sonar
     const scanCommand = `
       cd ${dir} &&\
