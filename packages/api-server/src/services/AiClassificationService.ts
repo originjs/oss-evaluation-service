@@ -5,6 +5,7 @@ import {
   logger,
   sequelize,
 } from '@orginjs/oss-evaluation-data-model';
+import https from 'https';
 import axios from 'axios';
 import json5 from 'json5';
 import { Op } from 'sequelize';
@@ -12,6 +13,7 @@ import type { RepoInfo, RepoList } from '../interfaces/SoftwareInfo';
 
 const apiUrl = process.env.API_TSC;
 const apiKey = process.env.APIKEY_TSC;
+const concurrencyLimit = 3;
 const ossEvalInner =
   process.env.NODE_ENV === 'production' ? 'oss-eval-inner' : 'oss-eval-inner-test';
 const ossEval = process.env.NODE_ENV === 'production' ? 'oss-eval' : 'oss-eval-test';
@@ -19,14 +21,14 @@ const ossEval = process.env.NODE_ENV === 'production' ? 'oss-eval' : 'oss-eval-t
 const parserJson = (data: any) => {
   try {
     const start = data.indexOf('{');
-    const end = data.indexOf('}') + 1;
+    const end = data.lastIndexOf('}') + 1;
     if (start === -1 || end === -1) {
       throw new Error('Invalid JSON');
     }
     return json5.parse(data.substring(start, end));
   } catch (error) {
     logger.error('Error parsing json:', error.message);
-    return null;
+    return { error: error.message };
   }
 };
 
@@ -49,69 +51,61 @@ const getDataFromAiUrl = async (repoInfo: any, catagoryRuleStr: string) => {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${apiKey}`,
     };
-    const response = await axios.post(apiUrl, requestBody, { headers });
+    const response = await axios.post(apiUrl, requestBody, {
+      headers,
+      httpsAgent: new https.Agent({
+        rejectUnauthorized: false,
+      }),
+    });
     //解析JSON结果
-    const result = parserJson(response.data?.data?.outputs?.result);
-    return result;
+    const result = response.data?.data?.outputs?.result;
+    if (!result) {
+      logger.error('AI接口调用失败', response.data?.data?.error, repoInfo.htmlUrl);
+    }
+    return parserJson(result || {});
   } catch (error) {
     logger.error('Error calling API:', error.message, repoInfo.htmlUrl);
     throw error;
   }
 };
 
-//工具函数，获取时间
-const getDate = async () => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
 //控制AI接口调用频率的函数
-async function rateLimitedCall(repoInfoList: any, catagoryRuleStr: string) {
+async function rateLimitedCall(repoInfoList: any[], catagoryRuleStr: string) {
   const data = [];
   const delay = 2000;
-  let results = [];
-  const landscape = repoInfoList[0].landscape ? repoInfoList[0].landscape : '';
+  const landscape = repoInfoList[0].landscape || '';
 
-  if (repoInfoList === undefined || repoInfoList.length === 0) {
+  if (!repoInfoList === undefined || repoInfoList.length === 0) {
     return data;
   }
 
-  const htmlUrls = repoInfoList.map(repInfo => repInfo.htmlUrl);
-
-  for (let i = 0; i < htmlUrls.length; i++) {
-    logger.info('fetch start:', getDate());
-    const result = getDataFromAiUrl(repoInfoList[i], catagoryRuleStr);
-    logger.info('fetch end:', getDate());
-    results.push(result);
-
-    if (i < htmlUrls.length - 1) {
+  for (let i = 0; i < repoInfoList.length; i += concurrencyLimit) {
+    const batch = repoInfoList.slice(i, i + concurrencyLimit);
+    const batchPromise = batch.map(repoInfo => getDataFromAiUrl(repoInfo, catagoryRuleStr));
+    const batchResult = await Promise.all(batchPromise);
+    batchResult.forEach((result, index) => {
+      if (result instanceof Error || !result.GithubUrl) {
+        logger.error(`处理${repoInfoList[i + index].htmlUrl}时出错：${result.message}`);
+      } else {
+        data.push({
+          landscape: landscape,
+          category: result.category,
+          subcategory: result.subcategory,
+          name: '',
+          description: '',
+          reasons: result.reasons,
+          html_url: result.GithubUrl,
+          github_id: -1,
+          label: '',
+          language: '',
+        });
+      }
+    });
+    if (i + concurrencyLimit < repoInfoList.length) {
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
 
-  results = await Promise.all(results.map(result => result.catch(error => error)));
-
-  results.forEach((result, index) => {
-    if (result instanceof Error) {
-      logger.error(`处理${repoInfoList[index].htmlUrl}时出错：${result.message}`);
-    } else {
-      data.push({
-        landscape: landscape,
-        category: result.category,
-        subcategory: result.subcategory,
-        name: '',
-        description: '',
-        reasons: result.reasons,
-        html_url: result.GithubUrl,
-        github_id: -1,
-        label: '',
-        language: '',
-      });
-    }
-  });
   return data;
 }
 
