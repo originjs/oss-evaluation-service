@@ -18,7 +18,14 @@ export async function getCodeLines(repoInfo: RepoCloneParam) {
     .then(command => shellThreadPool.run(command))
     .then(result => (result.ok ? Promise.resolve(result.data) : Promise.reject(result.msg)))
     .then(stdout => updateCodeLinesOfProject(Number(stdout.trim()), repoInfo))
+    .then(() => getCleanupCommand(repoInfo))
+    .then(command => shellThreadPool.run(command))
     .catch(err => logger.error(err));
+}
+
+function getCleanupCommand(repoInfo: RepoCloneParam): string {
+  const dir = `${process.env.REPO_DIR}/${repoInfo.owner}/${repoInfo.repoName}`;
+  return `rm -rf ${dir}`;
 }
 
 function getClocCommand(repoInfo: RepoCloneParam): string {
