@@ -3,7 +3,7 @@ import process from 'node:process';
 import type { SimpleGitOptions } from 'simple-git';
 import { simpleGit } from 'simple-git';
 import { logger, SonarCloudProject } from '@orginjs/oss-evaluation-data-model';
-import { gitCloneThreadPool, sonarScannerThreadPool } from '../worker/workers.js';
+import { sonarScannerThreadPool } from '../worker/workers.js';
 import GithubSdk from '@orginjs/github-sdk';
 import SonarCloudSdk from '@orginjs/sonar-cloud-sdk';
 import { platformTypes } from '@orginjs/oss-evaluation-util';
@@ -22,18 +22,10 @@ export async function scan(info: SonarScanParam) {
     logger.warn(`sonar dont support for ${language} of ${info.fullName}`);
     return;
   }
-  gitCloneThreadPool
-    .run({
-      owner: info.owner,
-      repoName: info.repoName,
-      platformType: info.platformType,
-      pullIfExists: false,
-      shadowClone: true,
-    })
-    .then(result => (result.ok ? Promise.resolve(result.data) : Promise.reject(result.msg)))
-    .then(data => getDefaultBranchName(`${process.env.REPO_DIR}/${data.owner}/${data.repoName}`))
-    .then(branchName => updateDefaultBranch(info.sonarKey, branchName))
-    .then(() => sonarScannerThreadPool.run(info))
+
+  // 直接运行sonar scanner，git clone已经内嵌在worker中
+  sonarScannerThreadPool
+    .run(info)
     .then(async result => {
       if (result.ok) {
         // sonar scan success
@@ -181,16 +173,6 @@ async function activeAutoSonarScan(repoInfo: GitRepoInfo, sonarScanInfo: SonarSc
   }
 }
 
-export async function getDefaultBranch(sonarScanParam: SonarScanParam) {
-  gitCloneThreadPool
-    .run(sonarScanParam)
-    .then(result => (result.ok ? Promise.resolve(result.data) : Promise.reject(result.msg)))
-    .then(data => getDefaultBranchName(`${process.env.REPO_DIR}/${data.owner}/${data.repoName}`))
-    .then(branchName => updateDefaultBranch(sonarScanParam.sonarKey, branchName))
-    .catch(e => {
-      logger.error(e);
-    });
-}
 
 async function getDefaultBranchName(dir: string) {
   const options: Partial<SimpleGitOptions> = {
