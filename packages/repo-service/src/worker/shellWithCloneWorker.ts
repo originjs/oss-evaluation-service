@@ -2,7 +2,7 @@ import { parentPort } from 'worker_threads';
 import shelljs from 'shelljs';
 import { Result } from '../utils/result.js';
 import { logger } from '@orginjs/oss-evaluation-data-model';
-import { cloneRepoIfNotExist } from './gitWorker.js';
+import { cloneRepoIfNotExist } from '../utils/git/gitClone.js';
 
 interface ShellWithCloneParam {
     // Git clone参数

@@ -4,7 +4,7 @@ import shelljs from 'shelljs';
 import { Result } from '../utils/result.js';
 import { logger } from '@orginjs/oss-evaluation-data-model';
 import { getLanguageServiceImpl } from '../services/sonarLanguageService.js';
-import { cloneRepoIfNotExist } from './gitWorker.js';
+import { cloneRepoIfNotExist } from '../utils/git/gitClone.js';
 
 async function runSonarScannerWithClone(info: SonarScanParam): Promise<Result<SonarScanParam>> {
   const cloneParam = {
