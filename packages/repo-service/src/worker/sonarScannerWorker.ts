@@ -51,9 +51,9 @@ function runSonarScanner(info: SonarScanParam): Result<SonarScanParam> {
   try {
     // run scan commands
     for (const command of scanCommands) {
-      logger.info(`start execution of command {${command}}`);
+      logger.info(`${info.owner}/${info.repoName}: Starting SonarQube scan execution, exec:{\n  ${command}\n  }`);
       const shellResult = shelljs.exec(command);
-      logger.info(`end execution of command {${command}} , code = ${shellResult.code}`);
+      logger.info(`${info.owner}/${info.repoName}: SonarQube scan command completed, exit code = ${shellResult.code}`);
       if (shellResult?.code !== 0) {
         logger.error(
           `${info.owner}/${info.repoName} run command {${command}} failed:${shellResult?.stderr}`,
@@ -66,7 +66,7 @@ function runSonarScanner(info: SonarScanParam): Result<SonarScanParam> {
   } finally {
     // 无论成功失败，都要执行清理
     if (afterScanCommand) {
-      logger.info(`${info.owner}/${info.repoName}: Executing cleanup command: ${afterScanCommand}`);
+      logger.info(`${info.owner}/${info.repoName}: Executing post-scan command :{\n  ${afterScanCommand}\n  }`);
       shelljs.exec(afterScanCommand);
     }
   }

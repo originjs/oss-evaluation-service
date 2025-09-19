@@ -58,5 +58,17 @@ async function updateCodeLinesOfProject(codeLines: number, repoInfo: RepoClonePa
     logger.info(
       `${repoInfo.owner}/${repoInfo.repoName} cloc codeLines success,codeLines=${codeLines}`,
     );
+  } else {
+    // 处理不满足更新条件的情况
+    if (!codeLines || codeLines <= 0) {
+      logger.warn(
+        `${repoInfo.owner}/${repoInfo.repoName} cloc returned invalid codeLines: ${codeLines}`,
+      );
+    }
+    if (!repoInfo.pId) {
+      logger.warn(
+        `${repoInfo.owner}/${repoInfo.repoName} missing pId, cannot update database`,
+      );
+    }
   }
 }

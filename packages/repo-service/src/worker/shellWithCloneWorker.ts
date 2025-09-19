@@ -34,7 +34,7 @@ async function execCommandWithClone(param: ShellWithCloneParam): Promise<Result<
         }
 
         // 2. 执行shell命令
-        logger.info(`${param.owner}/${param.repoName}: Executing shell command: ${param.command}`);
+        logger.info(`${param.owner}/${param.repoName}: Executing shell command:{\n  ${param.command}\n  }`);
         const commandResult = execCommand(param.command);
 
         return commandResult;
@@ -45,7 +45,7 @@ async function execCommandWithClone(param: ShellWithCloneParam): Promise<Result<
         // 3. 如果需要清理，执行清理
         if (param.cleanupAfter) {
             const cleanupCommand = `rm -rf ${process.env.REPO_DIR}/${param.owner}/${param.repoName}`;
-            logger.info(`${param.owner}/${param.repoName}: Executing cleanup: ${cleanupCommand}`);
+            logger.info(`${param.owner}/${param.repoName}: Executing cleanup:{\n  ${cleanupCommand}\n  }`);
             shelljs.exec(cleanupCommand);
         }
     }
