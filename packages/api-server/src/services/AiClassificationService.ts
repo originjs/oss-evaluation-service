@@ -13,7 +13,7 @@ import type { RepoInfo, RepoList } from '../interfaces/SoftwareInfo';
 
 const apiUrl = process.env.API_TSC;
 const apiKey = process.env.APIKEY_TSC;
-const concurrencyLimit = 3;
+const concurrencyLimit = 2;
 const ossEvalInner =
   process.env.NODE_ENV === 'production' ? 'oss-eval-inner' : 'oss-eval-inner-test';
 const ossEval = process.env.NODE_ENV === 'production' ? 'oss-eval' : 'oss-eval-test';
@@ -37,7 +37,7 @@ const getDataFromAiUrl = async (repoInfo: any, catagoryRuleStr: string) => {
   try {
     const requestBody = {
       inputs: {
-        GithubUrl: repoInfo.htmlUrl || '',
+        GithubUrl: repoInfo.htmlUrl || repoInfo || '',
         topics: repoInfo.topics || '',
         description: repoInfo.description || '',
         readme: repoInfo.readme || '',
@@ -70,10 +70,10 @@ const getDataFromAiUrl = async (repoInfo: any, catagoryRuleStr: string) => {
 };
 
 //控制AI接口调用频率的函数
-async function rateLimitedCall(repoInfoList: any[], catagoryRuleStr: string) {
+async function rateLimitedCall(repoInfoList: any[], landscape: string) {
   const data = [];
   const delay = 2000;
-  const landscape = repoInfoList[0].landscape || '';
+  const catagoryRuleStr = await getCategoriesRuleJson(landscape);
 
   if (!repoInfoList === undefined || repoInfoList.length === 0) {
     return data;
@@ -207,9 +207,10 @@ async function getCategoriesRuleJson(landscape: string) {
 }
 
 export async function getTechnologyClassificationBatch(repoList: RepoList) {
-  const landspace = repoList?.landspace;
+  const landscape = repoList?.landscape;
   const repoUrls = repoList?.repoUrls;
   if (LandscapeProjects === null || ProjectStackFromAi === null) {
+    logger.info('unsupported aiclassification');
     return 'unsupported aiclassification';
   }
   if (!apiKey || !apiUrl) {
@@ -217,21 +218,24 @@ export async function getTechnologyClassificationBatch(repoList: RepoList) {
     return 'API_TSC or APIURL_TSC not found';
   }
 
-  if ((!repoUrls || repoUrls.length === 0) && (!landspace || landspace === '')) {
-    throw new Error(`请检查参数repoUrls或landspace： ${repoUrls} ${landspace}不能同时为空。`);
+  if ((!repoUrls || repoUrls.length === 0) && (!landscape || landscape === '')) {
+    throw new Error(`请检查参数repoUrls或landscape： ${repoUrls} ${landscape}不能同时为空。`);
   }
 
   let projectList;
   if (repoUrls.length > 0) {
-    projectList = await getSoftWareRepoInfoByUrls(repoUrls);
+    projectList = await repoUrls;
   } else {
-    projectList = await getSoftWareRepoInfoBylandscape(landspace);
+    projectList = await getSoftWareRepoInfoBylandscape(landscape);
   }
   try {
-    const catagoryRuleStr = await getCategoriesRuleJson(landspace);
-    const data = await rateLimitedCall(projectList, catagoryRuleStr);
+    const data = await rateLimitedCall(projectList, landscape);
     await insertLandscapeProjects(data);
-    return data;
+    return {
+      data: data,
+      success: data.length,
+      failed: projectList.length - data.length,
+    };
   } catch (error) {
     logger.error(error.message);
     throw error;
