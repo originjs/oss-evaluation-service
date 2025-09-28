@@ -293,5 +293,5 @@ export interface RepoInfo {
 
 export interface RepoList {
   repoUrls: string[];
-  landspace?: string;
+  landscape?: string;
 }
