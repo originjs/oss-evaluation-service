@@ -318,6 +318,9 @@ export async function createAndScanSonarProjectByProjectIdHandler(req, res) {
         pId,
       },
     });
+    if (!project) {
+      continue;
+    }
     await sonarScanByProject(project);
   }
   res.status(200);

@@ -26,39 +26,46 @@ export async function cloneRepoIfNotExist(cloneInfo: RepoCloneParam): Promise<Re
     maxConcurrentProcesses: 6,
     trimmed: false,
   };
-  // retry 3 times for clone
-  for (let i = 0; i < 2; i++) {
-    const exists = existsSync(dir);
-    const retryUrl = getCloneUrlByTime(i + 1, owner, repoName, platformType);
-    // create folder if dont exists
-    if (!exists) {
-      mkdirSync(dir, { recursive: true });
-    }
-    // skip ask username and password , avoid hang
-    const gitClient: SimpleGit = simpleGit(options).env('GIT_TERMINAL_PROMPT', '0');
-    const isRepo = await gitClient.checkIsRepo();
-    if (isRepo) {
-      logger.info(`${owner}/${repoName} exists`);
-      if (pullIfExists) {
-        await pull(cloneInfo, gitClient);
-      }
-    } else {
-      logger.info(`${owner}/${repoName} dont exists,git clone`);
-      await clone(cloneInfo, retryUrl, gitClient);
-    }
 
-    // check valid after clone/pull
-    const notHiddenFileCount = getNotHiddenFileCount(dir);
-    if (notHiddenFileCount === 0) {
-      //   git clone failed , delete the dir
-      logger.info(`clone/pull ${dir} failed , retry count: ${i + 1}`);
-      fs.rmSync(dir, { recursive: true, force: true });
-    } else {
-      logger.info(`${owner}/${repoName}:${retryUrl} clone success`);
-      return Result.ok(cloneInfo);
+  try {
+    // retry 3 times for clone
+    for (let i = 0; i < 2; i++) {
+      const exists = existsSync(dir);
+      const retryUrl = getCloneUrlByTime(i + 1, owner, repoName, platformType);
+      // create folder if dont exists
+      if (!exists) {
+        mkdirSync(dir, { recursive: true });
+      }
+      // skip ask username and password , avoid hang
+      const gitClient: SimpleGit = simpleGit(options).env('GIT_TERMINAL_PROMPT', '0');
+      const isRepo = await gitClient.checkIsRepo();
+      if (isRepo) {
+        logger.info(`${owner}/${repoName} exists`);
+        if (pullIfExists) {
+          await pull(cloneInfo, gitClient);
+        }
+      } else {
+        logger.info(`${owner}/${repoName} dont exists,git clone`);
+        await clone(cloneInfo, retryUrl, gitClient);
+      }
+
+      // check valid after clone/pull
+      const notHiddenFileCount = getNotHiddenFileCount(dir);
+      if (notHiddenFileCount === 0) {
+        //   git clone failed , delete the dir
+        logger.info(`clone/pull ${dir} failed , retry count: ${i + 1}`);
+        fs.rmSync(dir, { recursive: true, force: true });
+      } else {
+        logger.info(`${owner}/${repoName}:${retryUrl} clone success`);
+        return Result.ok(cloneInfo);
+      }
     }
+    return Result.fail(`clone repo failed:${JSON.stringify(cloneInfo)}`);
+  } catch (error) {
+    // 捕获任何同步错误（如 JSON 解析错误），并返回失败结果而不是抛出异常
+    logger.error(`${owner}/${repoName}: Clone failed with error:`, error);
+    return Result.fail(`Clone error: ${error.message}`);
   }
-  throw new Error(`clone repo failed:${JSON.stringify(cloneInfo)}`);
 }
 
 async function clone(cloneInfo: RepoCloneParam, retryUrl: string, gitClient: SimpleGit) {
