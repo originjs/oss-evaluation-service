@@ -37,15 +37,7 @@ const projects: Array<CompareProject> = reactive(
   })(),
 );
 
-const getPanelState = () => {
-  const state = localStorage.getItem('oss-evaluation-compare-panel-state');
-  if (state) {
-    return Number(state);
-  }
-  return PanelState.expand;
-};
-
-let panelState = ref<PanelState>(getPanelState());
+let panelState = ref<PanelState>(PanelState.collapse);
 
 function removeProject(project: CompareProject) {
   let index = projects.findIndex(item => item.url === project.url);
@@ -97,12 +89,10 @@ const onClickProject = async (software: SoftwareBaseInfo) => {
 
 function collapsePanel() {
   panelState.value = PanelState.collapse;
-  localStorage.setItem('oss-evaluation-compare-panel-state', String(PanelState.collapse));
 }
 
 function expandPanel() {
   panelState.value = PanelState.expand;
-  localStorage.setItem('oss-evaluation-compare-panel-state', String(PanelState.expand));
 }
 
 function compare() {
