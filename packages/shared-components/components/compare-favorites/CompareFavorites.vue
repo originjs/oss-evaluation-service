@@ -121,25 +121,13 @@ defineExpose({
 <template>
   <div class="main">
     <div class="title-main">
-      <div class="title-name-div">
-        <span class="title">待对比软件</span>
-        <el-button
-          v-if="panelState == PanelState.expand"
-          text
-          :icon="ArrowDown"
-          size="small"
-          @click="collapsePanel"
-          >隐藏</el-button
-        >
-        <el-button
-          v-if="panelState == PanelState.collapse"
-          text
-          :icon="ArrowUp"
-          size="small"
-          @click="expandPanel"
-          >显示</el-button
-        >
-      </div>
+      <span class="title" @click="togglePanelVisible()">
+        <span>待对比软件</span>
+        <el-icon>
+          <ArrowDown v-if="panelState == PanelState.collapse" />
+          <ArrowUp v-else />
+        </el-icon>
+      </span>
     </div>
     <div v-if="panelState == PanelState.expand" class="projects-main">
       <div class="projects">
@@ -194,33 +182,38 @@ defineExpose({
 <style scoped lang="less">
 .main {
   width: 100vw;
-  background-color: white;
-  border-top: 2px solid #79bbff;
-  flex-direction: column;
   display: flex;
+  flex-direction: column;
   overflow: hidden;
 
   .title-main {
-    height: 30px;
-    background-color: #dfe2e5;
+    height: 32px;
     width: 100%;
-    display: flex;
-    justify-content: center;
+    border-bottom: 2px solid #79bbff;
 
-    .title-name-div {
-      width: 1280px;
+    &:hover {
+      border-color: #409eff;
+    }
+
+    .title {
+      margin-left: 24px;
+      padding: 2px 0 0 4px;
+      width: 160px;
       height: 100%;
-      display: flex;
+      display: inline-flex;
       align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: white;
+      background-color: #79bbff;
+      clip-path: path('M 0 30 Q 20 30 25 15 Q 30 0 50 0 L 110 0 Q 130 0 135 15 Q 140 30 160 30');
 
-      .title {
-        height: 100%;
-        line-height: 30px;
-        padding: 0px 15px;
-        background-color: #79bbff;
-        display: inline-block;
-        color: white;
-        margin-right: 5px;
+      &:hover {
+        background-color: #409eff;
+      }
+
+      .el-icon {
+        margin-left: 4px;
       }
     }
   }
@@ -229,6 +222,7 @@ defineExpose({
     display: flex;
     justify-content: center;
     height: 120px;
+    background-color: white;
 
     .projects {
       display: flex;
