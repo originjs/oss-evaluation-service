@@ -266,6 +266,6 @@ export async function projectContributorsScheduler() {
 // Add monitoring to all task functions in your scheduled task
 export const projectContributorsTimer = addMonitoringToTask(
   projectContributorsScheduler,
-  'projectContributorsScheduler',
-  'projectContributorsScheduler',
+  'projectContributorsTimer',
+  'projectContributorsTimer',
 );
