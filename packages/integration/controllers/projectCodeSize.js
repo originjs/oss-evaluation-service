@@ -72,9 +72,11 @@ export async function getCodeSizeByProject(project) {
 
   if (codeLines) {
     await updateCodeSizeByPId(codeLines, project.pId);
-  } else {
+  } else if (numOfM < 1024) {
     // api failed , try to use cloc to get the codeLines
     await getCodeSizeUsingCloc(project);
+  } else {
+    logger.warn(`project ${project.fullName} code size is too large, skip`);
   }
 }
 
