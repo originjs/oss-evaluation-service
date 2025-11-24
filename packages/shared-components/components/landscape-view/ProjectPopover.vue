@@ -4,6 +4,22 @@ import { toKilo } from '@orginjs/oss-evaluation-components-utils';
 import ProjectThumbnails from './ProjectThumbnails.vue';
 import { radarRingColors, radarRingNames } from './constant';
 
+// 衰退期告警级别
+enum RecessionRiskLevel {
+  PENDING = 'PENDING',
+  HIGH = '高',
+  MID = '中',
+  LOW = '低',
+}
+
+// 供应风险等级
+enum SupplyRiskLevel {
+  UNKNOWN = '未知',
+  HIGH = '高',
+  MID = '中',
+  LOW = '低',
+}
+
 const props = defineProps<{
   project: Project;
   options?: {
@@ -15,6 +31,13 @@ const props = defineProps<{
 }>();
 
 const { project, options } = toRefs(props);
+
+const getRiskTagType = (level?: string): 'success' | 'warning' | 'danger' | undefined => {
+  if (level === RecessionRiskLevel.HIGH || level === SupplyRiskLevel.HIGH) return 'danger';
+  if (level === RecessionRiskLevel.MID || level === SupplyRiskLevel.MID) return 'warning';
+  if (level === RecessionRiskLevel.LOW || level === SupplyRiskLevel.LOW) return 'success';
+  return; // 默认样式
+};
 </script>
 
 <template>
@@ -112,6 +135,20 @@ const { project, options } = toRefs(props);
       <el-text line-clamp="3">
         {{ project.description }}
       </el-text>
+      <div v-if="project?.recessionRiskLevel || project?.supplyRiskLevel">
+        <el-divider style="margin: 0 0 8px 0" />
+        <div class="flex items-center space-x-4">
+          <el-tag
+            v-if="project?.recessionRiskLevel"
+            :type="getRiskTagType(project.recessionRiskLevel)"
+          >
+            衰退风险预警：{{ project.recessionRiskLevel }}
+          </el-tag>
+          <el-tag v-if="project?.supplyRiskLevel" :type="getRiskTagType(project.supplyRiskLevel)">
+            供应风险：{{ project.supplyRiskLevel }}
+          </el-tag>
+        </div>
+      </div>
     </div>
   </el-popover>
 </template>
