@@ -34,7 +34,7 @@ const parserJson = (data: any) => {
 };
 
 //访问API接口
-const getDataFromAiUrl = async (repoInfo: any, catagoryRuleStr: string) => {
+const getDataFromAiUrl = async (repoInfo: any, categoryRuleStr: string) => {
   try {
     const requestBody = {
       inputs: {
@@ -42,7 +42,7 @@ const getDataFromAiUrl = async (repoInfo: any, catagoryRuleStr: string) => {
         topics: repoInfo.topics || '',
         description: repoInfo.description || '',
         readme: repoInfo.readme || '',
-        catagoryRules: catagoryRuleStr || '',
+        categoryRules: categoryRuleStr || '',
       },
       response_mode: 'blocking',
       user: 'abc-123',
@@ -70,10 +70,9 @@ const getDataFromAiUrl = async (repoInfo: any, catagoryRuleStr: string) => {
 };
 
 //控制AI接口调用频率的函数
-async function rateLimitedCall(repoInfoList: any[], landscape: string) {
+async function rateLimitedCall(repoInfoList: any[], landscape: string, categoryRuleStr: string) {
   const data = [];
   const delay = 2000;
-  const catagoryRuleStr = await getCategoriesRuleJson(landscape);
 
   if (!repoInfoList === undefined || repoInfoList.length === 0) {
     return data;
@@ -81,7 +80,7 @@ async function rateLimitedCall(repoInfoList: any[], landscape: string) {
 
   for (let i = 0; i < repoInfoList.length; i += concurrencyLimit) {
     const batch = repoInfoList.slice(i, i + concurrencyLimit);
-    const batchPromise = batch.map(repoInfo => getDataFromAiUrl(repoInfo, catagoryRuleStr));
+    const batchPromise = batch.map(repoInfo => getDataFromAiUrl(repoInfo, categoryRuleStr));
     const batchResult = await Promise.all(batchPromise);
     batchResult.forEach((result, index) => {
       if (result instanceof Error || !result.GithubUrl) {
@@ -197,18 +196,19 @@ export async function insertLandscapeProjects(data: any) {
 }
 
 async function getCategoriesRuleJson(landscape: string) {
-  const catagoryRules = await getCategoriesRule(landscape);
-  if (!catagoryRules || catagoryRules.length === 0) {
+  const categoryRules = await getCategoriesRule(landscape);
+  if (!categoryRules || categoryRules.length === 0) {
     return '';
   } else {
-    const catagoryRuleStr = JSON.stringify(catagoryRules);
-    return catagoryRuleStr;
+    const categoryRuleStr = JSON.stringify(categoryRules);
+    return categoryRuleStr;
   }
 }
 
 export async function getTechnologyClassificationBatch(repoList: RepoList) {
   const landscape = repoList?.landscape;
   const repoUrls = repoList?.repoUrls;
+  const categoryRuleStr = await getCategoriesRuleJson(landscape);
   if (LandscapeProjects === null || ProjectStackFromAi === null) {
     logger.info('unsupported aiclassification');
     return 'unsupported aiclassification';
@@ -234,7 +234,7 @@ export async function getTechnologyClassificationBatch(repoList: RepoList) {
     );
     const mergeData = [];
     for (const batch of batches) {
-      const data = await rateLimitedCall(batch, landscape);
+      const data = await rateLimitedCall(batch, landscape, categoryRuleStr);
       await insertLandscapeProjects(data);
       mergeData.push(data);
     }
