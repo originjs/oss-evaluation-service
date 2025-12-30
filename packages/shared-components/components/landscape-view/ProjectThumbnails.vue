@@ -114,7 +114,7 @@ const getRiskBgColor = computed(() => {
   // 定义风险等级的优先级，'高' > '中' > '低'，'PENDING' 和 '未知' 视为 '低'
   const getRiskPriority = (level: string | undefined): number => {
     if (level === RecessionRiskLevel.HIGH || level === SupplyRiskLevel.HIGH) return 3;
-    if (level === RecessionRiskLevel.MID || level === SupplyRiskLevel.MID) return 1; // 中风险暂不显示
+    if (level === SupplyRiskLevel.MID) return 2; // 仅显示供应风险中风险
     return 1; // 默认视为低风险
   };
 
