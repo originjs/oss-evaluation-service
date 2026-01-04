@@ -42,9 +42,10 @@ jobs:
       - name: Test
         run: pnpm run test
 
+      - name: Upgrade npm
+        run: npm install -g npm@latest
+
       - name: Publish to NPM Registry
         run: |
           cd packages/shared-components
           npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
