@@ -25,7 +25,7 @@ jobs:
       - name: Set node version to 20
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           registry-url: 'https://registry.npmjs.org'
           cache: 'pnpm'
 
@@ -41,9 +41,6 @@ jobs:
           pnpm run build-util
       - name: Test
         run: pnpm run test
-
-      - name: Upgrade npm
-        run: npm install -g npm@latest
 
       - name: Publish to NPM Registry
         run: |
