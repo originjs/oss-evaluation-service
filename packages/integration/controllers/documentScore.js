@@ -1,6 +1,6 @@
 import { Octokit } from '@octokit/core';
 import { ViewProjects, CncfDocumentScore, logger } from '@orginjs/oss-evaluation-data-model';
-import { getProjectByUrl, sleep } from '../util/util.js';
+import { getProjectByUrl, sleep, getValidToken } from '../util/util.js';
 import { addMonitoringToTask } from '../scheduler/schdulerMonitor.js';
 import { platformTypes } from '@orginjs/oss-evaluation-util';
 import { fetchWithRetries } from '../util/fetchWithRetries.js';
@@ -133,24 +133,6 @@ export async function syncAllProjectCncfDocumentScore(options) {
   }
 }
 
-async function getValidGithubToken() {
-  const tokenArray = JSON.parse(process.env.GITHUB_TOKEN);
-  for (const token of tokenArray) {
-    const octokit = new Octokit({
-      auth: token,
-    });
-    const result = await octokit.request('GET /rate_limit', {
-      headers: {
-        'X-GitHub-Api-Version': '2022-11-28',
-      },
-    });
-    if (result.data.rate.remaining > 50) {
-      return token;
-    }
-  }
-  return null;
-}
-
 function runDocumentChecks(readme, filename, website, release) {
   // Check if there is a website
   cncfDocumentChecksSet.website.checked =
@@ -202,7 +184,7 @@ function checkItemInReadme(item, readme) {
 }
 
 async function getProjectMetadata(project) {
-  const githubToken = await getValidGithubToken();
+  const githubToken = await getValidToken(platformTypes.GITHUB);
   const octokit = new Octokit({ auth: githubToken });
   const [owner, repo] = project.fullName.split('/');
   let release;
@@ -331,23 +313,17 @@ async function getGithubRepoContent(octokit, owner, repo) {
     },
   });
   if (content.headers['x-ratelimit-remaining'] <= 0) {
-    octokit.auth = getValidGithubToken();
+    octokit.auth = await getValidToken(platformTypes.GITHUB);
   }
   return content.data;
 }
 
 async function getRepoContent(project) {
-  const tokenMap = {
-    [platformTypes.GITEE]: JSON.parse(process.env.GITEE_TOKEN),
-    [platformTypes.GITCODE]: JSON.parse(process.env.GITCODE_TOKEN),
-  };
-  const token = tokenMap[project.platformType][0];
+  const token = await getValidToken(project.platformType);
   const header = {
     'Content-Type': 'application/json',
+    ...(token && { Authorization: `Bearer ${token}` }),
   };
-  if (token) {
-    header['Authorization'] = `Bearer ${token}`;
-  }
   const urlMap = {
     [platformTypes.GITEE]: `https://gitee.com/api/v5/repos/${project.fullName}/contents`,
     [platformTypes.GITCODE]: `https://api.gitcode.com/api/v5/repos/${project.fullName}/contents`,
@@ -382,7 +358,7 @@ async function getGithubRepoPathContent(octokit, path, owner, repo) {
     },
   });
   if (content.headers['x-ratelimit-remaining'] <= 0) {
-    octokit.auth = getValidGithubToken();
+    octokit.auth = await getValidToken(platformTypes.GITHUB);
   }
   return content.data;
 }
@@ -391,17 +367,11 @@ async function getGithubRepoPathContent(octokit, path, owner, repo) {
   Get the project root/path metadata, or 404 error if it doesn't exist.
  */
 async function getRepoPathContent(project, path) {
-  const tokenMap = {
-    [platformTypes.GITEE]: JSON.parse(process.env.GITEE_TOKEN),
-    [platformTypes.GITCODE]: JSON.parse(process.env.GITCODE_TOKEN),
-  };
-  const token = tokenMap[project.platformType][0];
+  const token = await getValidToken(project.platformType);
   const header = {
     'Content-Type': 'application/json',
+    ...(token && { Authorization: `Bearer ${token}` }),
   };
-  if (token) {
-    header['Authorization'] = `Bearer ${token}`;
-  }
   const urlMap = {
     [platformTypes.GITEE]: `https://gitee.com/api/v5/repos/${project.fullName}/contents/${path}`,
     [platformTypes.GITCODE]: `https://api.gitcode.com/api/v5/repos/${project.fullName}/contents/${path}`,
@@ -434,7 +404,7 @@ async function getGithubProjectRelease(octokit, owner, repo) {
     },
   });
   if (release.headers['x-ratelimit-remaining'] <= 0) {
-    octokit.auth = getValidGithubToken();
+    octokit.auth = await getValidToken(platformTypes.GITHUB);
   }
   if (release.data.length === 0) {
     return '';
@@ -446,17 +416,11 @@ async function getGithubProjectRelease(octokit, owner, repo) {
   Get the latest release of the project
  */
 async function getProjectRelease(project) {
-  const tokenMap = {
-    [platformTypes.GITEE]: JSON.parse(process.env.GITEE_TOKEN),
-    [platformTypes.GITCODE]: JSON.parse(process.env.GITCODE_TOKEN),
-  };
-  const token = tokenMap[project.platformType][0];
+  const token = await getValidToken(project.platformType);
   const header = {
     'Content-Type': 'application/json',
+    ...(token && { Authorization: `Bearer ${token}` }),
   };
-  if (token) {
-    header['Authorization'] = `Bearer ${token}`;
-  }
   const urlMap = {
     [platformTypes.GITEE]: `https://gitee.com/api/v5/repos/${project.fullName}/releases`,
     [platformTypes.GITCODE]: `https://api.gitcode.com/api/v5/repos/${project.fullName}/releases`,

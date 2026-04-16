@@ -4,13 +4,13 @@ import {
   GithubProjectsTable,
   logger,
 } from '@orginjs/oss-evaluation-data-model';
-import { getProjectByUrl, sleep } from '../util/util.js';
+import { getProjectByUrl, sleep, getValidToken } from '../util/util.js';
 import { fetchWithRetries } from '../util/fetchWithRetries.js';
 import { getAllContributors } from './projectContributors.js';
 import * as cheerio from 'cheerio';
 import { storeGithubHistory } from './trendHistory.js';
 import { Op } from 'sequelize';
-import { isFirstDayOfMonth, isFirstDayOfWeek } from '@orginjs/oss-evaluation-util';
+import { isFirstDayOfMonth, isFirstDayOfWeek, platformTypes } from '@orginjs/oss-evaluation-util';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 
@@ -183,15 +183,11 @@ async function getProjectInformation(url) {
 }
 
 async function getStars(repoName) {
-  const tokens = JSON.parse(process.env.GITHUB_TOKEN);
-  const header = tokens
-    ? {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${tokens[0]}`,
-      }
-    : {
-        'Content-Type': 'application/json',
-      };
+  const token = await getValidToken(platformTypes.GITHUB);
+  const header = {
+    'Content-Type': 'application/json',
+    ...(token && { Authorization: `Bearer ${token}` }),
+  };
 
   const request = await fetchWithRetries(`https://api.github.com/repos/${repoName}`, {
     method: 'GET',
