@@ -181,13 +181,15 @@ function saveCSVFile(projects, fileName) {
 }
 
 async function pagingQuery(url) {
-  const headers = { 'User-Agent': 'nodejs/18.19.0' };
-  if (process.env.GITHUB_TOKEN) {
-    const tokens = JSON.parse(process.env.GITHUB_TOKEN);
-    [headers.Authorization] = tokens;
-    headers['X-GitHub-Api-Version'] = '2022-11-28';
-    headers.Accept = 'application/vnd.github+json';
-  }
+  const token = await getValidToken(platformTypes.GITHUB);
+  const headers = {
+    'User-Agent': 'nodejs/18.19.0',
+    ...(token && {
+      Authorization: `Bearer ${token}`,
+      'X-GitHub-Api-Version': '2022-11-28',
+      Accept: 'application/vnd.github+json',
+    }),
+  };
 
   return new Promise(resolve => {
     https
@@ -200,6 +202,7 @@ async function pagingQuery(url) {
         res.on('end', () => {
           if (res.statusCode === 403) {
             logger.error(`Integrate github project records error 403: ${url}`);
+            refreshValidToken(platformTypes.GITHUB);
             resolve({ hasNext: false, nextPageUrl: '', data: [] });
           }
           if (res.statusCode !== 200) {
@@ -385,7 +388,7 @@ async function queryProjectByRepUrl(url) {
       config: {
         headers: {
           'User-Agent': 'nodejs/18.19.0',
-          Authorization: `Bearer ${token}`,
+          ...(token && { Authorization: `Bearer ${token}` }),
           'X-GitHub-Api-Version': '2022-11-28',
           Accept: 'application/vnd.github+json',
         },
@@ -395,7 +398,7 @@ async function queryProjectByRepUrl(url) {
       baseUrl: 'https://gitee.com/api/v5/repos',
       config: {
         headers: {
-          Authorization: `Bearer ${token}`,
+          ...(token && { Authorization: `Bearer ${token}` }),
         },
       },
     },
@@ -403,7 +406,7 @@ async function queryProjectByRepUrl(url) {
       baseUrl: 'https://api.gitcode.com/api/v5/repos',
       config: {
         headers: {
-          Authorization: `Bearer ${token}`,
+          ...(token && { Authorization: `Bearer ${token}` }),
         },
       },
     },

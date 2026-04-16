@@ -5,6 +5,22 @@ export enum RadarRing {
   Hold = 3,
 }
 
+// 衰退期告警级别
+enum RecessionRiskLevel {
+  PENDING = 'PENDING',
+  HIGH = '高',
+  MID = '中',
+  LOW = '低',
+}
+
+// 供应风险等级
+enum SupplyRiskLevel {
+  UNKNOWN = '未知',
+  HIGH = '高',
+  MID = '中',
+  LOW = '低',
+}
+
 export interface Project {
   category: string;
   subcategory: string;
@@ -18,6 +34,8 @@ export interface Project {
   labels: string[];
   language: string;
   radarRing?: RadarRing;
+  recessionRiskLevel?: RecessionRiskLevel;
+  supplyRiskLevel?: SupplyRiskLevel;
 }
 
 export interface Subcategory {

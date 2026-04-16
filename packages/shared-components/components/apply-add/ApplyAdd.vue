@@ -91,8 +91,8 @@ const formRules = reactive({
   repoUrl: [
     {
       required: true,
-      pattern: /^https?:\/\/(github|gitee).com/,
-      message: '请输入 github 或 gitee 社区源码仓地址',
+      pattern: /^https?:\/\/(github|gitee|gitcode).com/,
+      message: '请输入 github|gitee|gitcode 社区源码仓地址',
       trigger: 'blur',
     },
   ],

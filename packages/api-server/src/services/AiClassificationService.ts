@@ -13,7 +13,7 @@ import type { RepoInfo, RepoList } from '../interfaces/SoftwareInfo';
 
 const apiUrl = process.env.API_TSC;
 const apiKey = process.env.APIKEY_TSC;
-const concurrencyLimit = 2;
+const concurrencyLimit = parseInt(process.env.API_TSC_LIMIT) || 2;
 const ossEvalInner =
   process.env.NODE_ENV === 'production' ? 'oss-eval-inner' : 'oss-eval-inner-test';
 const ossEval = process.env.NODE_ENV === 'production' ? 'oss-eval' : 'oss-eval-test';
@@ -23,17 +23,18 @@ const parserJson = (data: any) => {
     const start = data.indexOf('{');
     const end = data.lastIndexOf('}') + 1;
     if (start === -1 || end === -1) {
+      logger.error(`Invalid JSON:${data}`);
       throw new Error('Invalid JSON');
     }
     return json5.parse(data.substring(start, end));
   } catch (error) {
     logger.error('Error parsing json:', error.message);
-    return { error: error.message };
+    return {};
   }
 };
 
 //访问API接口
-const getDataFromAiUrl = async (repoInfo: any, catagoryRuleStr: string) => {
+const getDataFromAiUrl = async (repoInfo: any, categoryRuleStr: string) => {
   try {
     const requestBody = {
       inputs: {
@@ -41,7 +42,7 @@ const getDataFromAiUrl = async (repoInfo: any, catagoryRuleStr: string) => {
         topics: repoInfo.topics || '',
         description: repoInfo.description || '',
         readme: repoInfo.readme || '',
-        catagoryRules: catagoryRuleStr || '',
+        categoryRules: categoryRuleStr || '',
       },
       response_mode: 'blocking',
       user: 'abc-123',
@@ -65,15 +66,13 @@ const getDataFromAiUrl = async (repoInfo: any, catagoryRuleStr: string) => {
     return parserJson(result || {});
   } catch (error) {
     logger.error('Error calling API:', error.message, repoInfo.htmlUrl);
-    throw error;
   }
 };
 
 //控制AI接口调用频率的函数
-async function rateLimitedCall(repoInfoList: any[], landscape: string) {
+async function rateLimitedCall(repoInfoList: any[], landscape: string, categoryRuleStr: string) {
   const data = [];
   const delay = 2000;
-  const catagoryRuleStr = await getCategoriesRuleJson(landscape);
 
   if (!repoInfoList === undefined || repoInfoList.length === 0) {
     return data;
@@ -81,20 +80,20 @@ async function rateLimitedCall(repoInfoList: any[], landscape: string) {
 
   for (let i = 0; i < repoInfoList.length; i += concurrencyLimit) {
     const batch = repoInfoList.slice(i, i + concurrencyLimit);
-    const batchPromise = batch.map(repoInfo => getDataFromAiUrl(repoInfo, catagoryRuleStr));
+    const batchPromise = batch.map(repoInfo => getDataFromAiUrl(repoInfo, categoryRuleStr));
     const batchResult = await Promise.all(batchPromise);
     batchResult.forEach((result, index) => {
       if (result instanceof Error || !result.GithubUrl) {
         logger.error(`处理${repoInfoList[i + index].htmlUrl}时出错：${result.message}`);
       } else {
         data.push({
-          landscape: landscape,
-          category: result.category,
-          subcategory: result.subcategory,
+          landscape: landscape || '',
+          category: result.category || '',
+          subcategory: result.subcategory || '',
           name: '',
           description: '',
-          reasons: result.reasons,
-          html_url: result.GithubUrl,
+          reasons: result.reasons || '',
+          html_url: result.GithubUrl || '',
           github_id: -1,
           label: '',
           language: '',
@@ -197,18 +196,19 @@ export async function insertLandscapeProjects(data: any) {
 }
 
 async function getCategoriesRuleJson(landscape: string) {
-  const catagoryRules = await getCategoriesRule(landscape);
-  if (!catagoryRules || catagoryRules.length === 0) {
+  const categoryRules = await getCategoriesRule(landscape);
+  if (!categoryRules || categoryRules.length === 0) {
     return '';
   } else {
-    const catagoryRuleStr = JSON.stringify(catagoryRules);
-    return catagoryRuleStr;
+    const categoryRuleStr = JSON.stringify(categoryRules);
+    return categoryRuleStr;
   }
 }
 
 export async function getTechnologyClassificationBatch(repoList: RepoList) {
   const landscape = repoList?.landscape;
   const repoUrls = repoList?.repoUrls;
+  const categoryRuleStr = await getCategoriesRuleJson(landscape);
   if (LandscapeProjects === null || ProjectStackFromAi === null) {
     logger.info('unsupported aiclassification');
     return 'unsupported aiclassification';
@@ -224,20 +224,27 @@ export async function getTechnologyClassificationBatch(repoList: RepoList) {
 
   let projectList;
   if (repoUrls.length > 0) {
-    projectList = await repoUrls;
+    projectList = repoUrls;
   } else {
     projectList = await getSoftWareRepoInfoBylandscape(landscape);
   }
   try {
-    const data = await rateLimitedCall(projectList, landscape);
-    await insertLandscapeProjects(data);
+    const batches = Array.from({ length: Math.ceil(projectList.length / 10) }, (_, i) =>
+      projectList.slice(i * 10, (i + 1) * 10),
+    );
+    const mergeData = [];
+    for (const batch of batches) {
+      const data = await rateLimitedCall(batch, landscape, categoryRuleStr);
+      await insertLandscapeProjects(data);
+      mergeData.push(data);
+    }
     return {
-      data: data,
-      success: data.length,
-      failed: projectList.length - data.length,
+      data: mergeData,
+      success: mergeData.length,
+      failed: projectList.length - mergeData.length,
     };
   } catch (error) {
-    logger.error(error.message);
+    logger.error(`Error processing project list: ${error.message}`);
     throw error;
   }
 }
