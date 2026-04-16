@@ -68,52 +68,94 @@ export function getCurrentDate() {
   return formattedDate;
 }
 
-const validToken = {
-  [platformTypes.GITHUB]: JSON.parse(process.env.GITHUB_TOKEN)[0],
-  [platformTypes.GITEE]: JSON.parse(process.env.GITEE_TOKEN)[0],
-  [platformTypes.GITCODE]: JSON.parse(process.env.GITCODE_TOKEN)[0],
+const tokenCache = {
+  [platformTypes.GITHUB]: {
+    token: null,
+    isValid: false,
+    refreshing: null,
+  },
+  [platformTypes.GITEE]: {
+    token: null,
+    isValid: false,
+    refreshing: null,
+  },
+  [platformTypes.GITCODE]: {
+    token: null,
+    isValid: false,
+    refreshing: null,
+  },
 };
 
-export const getValidToken = platformType => {
-  return validToken[platformType];
-};
+async function refreshAndValidateToken(tokenArray, validationUrl, platformType) {
+  logger.info(`Validating ${platformType} token`);
+  for (const token of tokenArray) {
+    try {
+      const response = await fetch(validationUrl, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.ok && response.status === 200) {
+        logger.info(`${platformType} token validated successfully`);
+        return token;
+      }
+    } catch (error) {
+      logger.error(`${platformType} token validation error: ${error}`);
+    }
+  }
+  logger.error(
+    `All ${platformType} tokens are invalid. Please add new tokens to environment variables.`,
+  );
+  return null;
+}
 
-export const refreshValidToken = async platformType => {
+export const getValidToken = async platformType => {
+  const cache = tokenCache[platformType];
+  if (cache.isValid && cache.token) {
+    logger.info(`Using cached ${platformType} token`);
+    return cache.token;
+  }
+  if (cache.refreshing) {
+    logger.info(`${platformType} token is being refreshed, waiting...`);
+    return cache.refreshing;
+  }
   const tokenMap = {
     [platformTypes.GITHUB]: JSON.parse(process.env.GITHUB_TOKEN),
     [platformTypes.GITEE]: JSON.parse(process.env.GITEE_TOKEN),
     [platformTypes.GITCODE]: JSON.parse(process.env.GITCODE_TOKEN),
   };
-  const project = await ViewProjects.findOne({
-    where: {
-      platformType,
-    },
-  });
-  const urlMap = {
-    [platformTypes.GITHUB]: `https://api.github.com/repos/${project.repoName}/contributors?per_page=100&page=1&anon=true`,
-    [platformTypes.GITEE]: `https://gitee.com/api/v5/repos/${project.repoName}/contributors?type=authors`,
-    [platformTypes.GITCODE]: `https://api.gitcode.com/api/v5/repos/${project.repoName}/contributors/statistic`,
+  const validationUrlMap = {
+    [platformTypes.GITHUB]: 'https://api.github.com/user',
+    [platformTypes.GITEE]: 'https://gitee.com/api/v5/user',
+    [platformTypes.GITCODE]: 'https://api.gitcode.com/api/v5/user',
   };
-  const tokens = tokenMap[platformType];
-  const url = urlMap[platformType];
-  for (const token of tokens) {
-    try {
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (response.ok && response.status === 200) {
-        validToken[platformType] = token;
-        return token;
-      }
-    } catch (error) {
-      logger.error(`Error fetching repo data with token: ${token}`, error);
+  cache.refreshing = (async () => {
+    const validToken = await refreshAndValidateToken(
+      tokenMap[platformType],
+      validationUrlMap[platformType],
+      platformType,
+    );
+    if (validToken) {
+      cache.token = validToken;
+      cache.isValid = true;
+    } else {
+      cache.token = null;
+      cache.isValid = false;
     }
-  }
-  logger.error('No valid token found');
-  validToken[platformType] = null;
-  return null;
+    cache.refreshing = null;
+    return validToken;
+  })();
+  return cache.refreshing;
+};
+
+export const invalidateToken = platformType => {
+  const cache = tokenCache[platformType];
+  cache.token = null;
+  cache.isValid = false;
+  logger.info(`${platformType} token invalidated`);
+};
+
+export const refreshValidToken = async platformType => {
+  invalidateToken(platformType);
+  return await getValidToken(platformType);
 };
