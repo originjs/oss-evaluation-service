@@ -3,7 +3,7 @@
   "version": "0.0.42",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/orginjs/oss-evaluation-service.git"
+    "url": "git+https://github.com/originjs/oss-evaluation-service.git"
   },
   "files": [
     "dist"
