@@ -10,9 +10,9 @@ import type {
   CustomSeriesRenderItemReturn,
   TooltipComponentOption,
 } from 'echarts';
-import { saveAs } from 'file-saver';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import { saveFile } from '@orginjs/oss-evaluation-components-utils';
 import type {
   AlternativeInfo,
   BenchmarkData,
@@ -50,7 +50,6 @@ import {
 } from '@orginjs/oss-evaluation-components-utils';
 import i18n from '../../i18n';
 import * as d3 from 'd3';
-import { max } from '@popperjs/core/lib/utils/math';
 import worldMap from '../../assets/json/worldMap.json';
 import countriesNameMap from '../../assets/json/countriesNameMap.json';
 import countriesInfo from '../../assets/json/countriesInfo.json';
@@ -877,12 +876,12 @@ watchEffect(async () => {
     .slice(0, maxOrganizationsNumber)
     .map(item => ({ label: item.ownerName, value: item.star }));
 
-  dependentProjectHeight.value = max(
+  dependentProjectHeight.value = Math.max(
     getBubbleChartHeightByCount(dependentProject.length),
     organizationInfoTable.value.length * 50,
   );
   // handle companies info
-  let maxCompaniesSize = max(
+  let maxCompaniesSize = Math.max(
     companiesInfo.stargazers.length,
     companiesInfo.prCreators.length,
     companiesInfo.issueCreators.length,
@@ -930,7 +929,7 @@ function handleCompaniesActiveClick() {
 async function exportToExcel() {
   try {
     const data = await exportFileApi(encodedRepoName.value);
-    saveAs(data, `${props.repoName}.xlsx`);
+    saveFile(data, `${props.repoName}.xlsx`);
     ElMessage.success('导出成功');
   } catch (e) {
     ElMessage.error('导出失败');

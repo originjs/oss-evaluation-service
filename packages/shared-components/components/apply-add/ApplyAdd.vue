@@ -6,8 +6,8 @@ import {
 import { ElMessage } from 'element-plus';
 import type { UploadFile, UploadRawFile, UploadInstance, MessageOptions } from 'element-plus';
 import { createReusableTemplate } from '@vueuse/core';
-import { saveAs } from 'file-saver';
 import type { BenchmarkTechStack } from '@orginjs/oss-evaluation-api-server';
+import { saveFile } from '@orginjs/oss-evaluation-components-utils';
 
 enum ApplicationType {
   Evaluation = 1,
@@ -229,7 +229,7 @@ function handleFileRemove() {
 
 async function downloadExcel() {
   const blob = await downloadExcelTemplate();
-  saveAs(blob as unknown as Blob, 'benchmark_template.xlsx');
+  saveFile(blob as unknown as Blob, 'benchmark_template.xlsx');
 }
 
 const subTechStacks = computed(() => {

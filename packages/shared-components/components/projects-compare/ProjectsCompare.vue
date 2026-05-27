@@ -18,7 +18,7 @@ import { get as _get } from 'lodash-es';
 import { SearchSoftware } from '../search-software';
 import BenchmarkCompare from '../benchmark-compare/BenchmarkCompare.vue';
 import i18n from '../../i18n';
-import { saveAs } from 'file-saver';
+import { saveFile } from '@orginjs/oss-evaluation-components-utils';
 
 const emit = defineEmits<{
   removeRepo: [repoName: string];
@@ -187,7 +187,7 @@ async function exportSoftwareCompareToExcel() {
   }
   try {
     const data = await exportSoftwareCompareFileApi(repoNameList);
-    saveAs(data, '开源软件对比导出报告.xlsx');
+    saveFile(data, '开源软件对比导出报告.xlsx');
     ElMessage.success('导出成功');
   } catch (e) {
     ElMessage.error('导出失败');
