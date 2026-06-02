@@ -101,9 +101,6 @@ export default sequelize.define(
     npmDownloads: {
       type: DataTypes.INTEGER,
     },
-    sonarcloudScore: {
-      type: DataTypes.INTEGER,
-    },
     createTime: {
       type: DataTypes.DOUBLE,
     },

@@ -23,11 +23,6 @@ export default sequelize.define(
     name: {
       type: DataTypes.STRING(512),
     },
-    hasSonarPipeline: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-      defaultValue: false,
-    },
     defaultBranch: {
       type: DataTypes.STRING(128),
       allowNull: false,

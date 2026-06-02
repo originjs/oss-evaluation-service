@@ -179,13 +179,6 @@ async function updateAllEvaluationSummary() {
       ON t1.p_id = t2.p_id
                          SET t1.scorecard_score= t2.score
                          WHERE t2.score IS NOT NULL`);
-  // update sonar cloud score
-  await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN sonar_cloud_project t2
-      ON t1.p_id = t2.p_id
-                         SET t1.sonarcloud_score =
-                                 ASCII('F') * 4 - ASCII(maintainability_rating) - ASCII(reliability_rating) -
-                                 ASCII(security_rating) - ASCII(security_review_rating)
-                         WHERE t2.analysis_date IS NOT NULL`);
 
   // 3. ecology metrics
   // update openrank and bus factor

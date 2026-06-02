@@ -149,3 +149,4 @@ build
 logos
 github_projects
 components.d.ts
+.codegraph/

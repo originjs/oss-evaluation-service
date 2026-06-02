@@ -22,7 +22,6 @@ import { syncSingleProjectCompassMetric } from './compass.js';
 import { syncSingleProjectDependencies } from './projectDependencies.js';
 import { syncSingleProjectCreatorsCountries } from './ossinsightCreatorsCountry.js';
 import { syncSingleProjectCreatorsOrg } from './ossinsightCreatorsOrg.js';
-import { sonarScanByProject } from './sonarCloud.js';
 import { syncSingleProjectAlternative, updateProjectId } from './alternative.js';
 import { syncSingleProjectDescription } from './projectDescription.js';
 
@@ -115,21 +114,18 @@ async function syncSingleProjectAllMetadata(options) {
     createNewCriticalityScore,
     // 8. scorecard
     syncSingleProjectScorecardByProject,
-    // 9. sonar
-    sonarScanByProject,
-    // 10. compass  -> manual
+    // 9. compass -> manual
     syncSingleProjectCompassMetric,
-    // 11. sonarCloud -> manual
-    // 12. sync project dependency graph
+    // 10. sync project dependency graph
     syncSingleProjectDependencies,
-    // 13. oss-insight geology/companies data
+    // 11. oss-insight geology/companies data
     syncSingleProjectCreatorsCountries,
     syncSingleProjectCreatorsOrg,
-    // 14. Evaluate the score
+    // 12. Evaluate the score
     syncSingleProjectEvaluation,
-    // 15. AI project alternative
+    // 13. AI project alternative
     syncSingleProjectAlternative,
-    // 16. AI project description
+    // 14. AI project description
     syncSingleProjectDescription,
   ];
 

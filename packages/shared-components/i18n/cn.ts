@@ -30,20 +30,6 @@ export default {
       'Pinned-Dependencies':
         'Determines if the project has declared and pinned the dependencies of its build process.',
     },
-    sonarCloud: {
-      reliability:
-        'Issues in this domain mark code where you will get behavior other than what was expected.',
-      maintainability:
-        'Issues in this domain mark code that will be more difficult to update competently than it should.',
-      security: 'Issues in this domain mark potential weaknesses to hackers.',
-      securityReview:
-        'This domain represents potential security risks in the form of hotspots and their review status.',
-      bugs: '编码错误会破坏您的代码并且需要立即修复。',
-      codeSmells: '代码混乱且难以维护。',
-      vulnerabilities: '可以被黑客利用的代码。',
-      securityHotspots: '需要手动检查以评估是否存在漏洞的安全敏感代码。',
-      languageSupportTips: '当前支持JS/TS/Java/C/C++/Go/Python等语言，Rust语言SonarCloud暂不支持。',
-    },
     ecology: {
       busFactor:
         '项目失去多少贡献者会导致停滞（例如 “被巴士撞了”）。这里的贡献统计近一年的代码和Issue贡献，巴士系数越低，对少数核心人员的依赖越大，风险越高。当前先进性系统中位数为6。',
