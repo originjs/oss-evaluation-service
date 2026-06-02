@@ -18,7 +18,6 @@ import dayjs from 'dayjs';
 import { syncSingleProjectPackageSize } from './packageSize.js';
 import { syncSingleProjectEvaluation } from './evaluate.js';
 import { syncSingleProjectScorecardByProject } from './scorecard.js';
-import { syncSingleProjectCompassMetric } from './compass.js';
 import { syncSingleProjectDependencies } from './projectDependencies.js';
 import { syncSingleProjectCreatorsCountries } from './ossinsightCreatorsCountry.js';
 import { syncSingleProjectCreatorsOrg } from './ossinsightCreatorsOrg.js';
@@ -114,18 +113,16 @@ async function syncSingleProjectAllMetadata(options) {
     createNewCriticalityScore,
     // 8. scorecard
     syncSingleProjectScorecardByProject,
-    // 9. compass -> manual
-    syncSingleProjectCompassMetric,
-    // 10. sync project dependency graph
+    // 12. sync project dependency graph
     syncSingleProjectDependencies,
-    // 11. oss-insight geology/companies data
+    // 13. oss-insight geology/companies data
     syncSingleProjectCreatorsCountries,
     syncSingleProjectCreatorsOrg,
-    // 12. Evaluate the score
+    // 14. Evaluate the score
     syncSingleProjectEvaluation,
-    // 13. AI project alternative
+    // 15. AI project alternative
     syncSingleProjectAlternative,
-    // 14. AI project description
+    // 16. AI project description
     syncSingleProjectDescription,
   ];
 

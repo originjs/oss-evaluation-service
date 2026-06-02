@@ -9,11 +9,6 @@ export const JobConfig = {
       enabled: isProduction,
     },
     {
-      name: 'compassTimer',
-      cronScheduleTime: '0 0 2,16 * *', // 周二 00:00
-      enabled: isProduction, // only start in production environment
-    },
-    {
       name: 'packageDownloadCountTimer',
       cronScheduleTime: '0 0 * * 3', // 周三 00:00
       enabled: isProduction, // only start in production environment

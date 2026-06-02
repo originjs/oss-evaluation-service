@@ -9,7 +9,6 @@ import {
   Scorecard,
   CriticalityScore,
   OpenDigger,
-  CompassActivity,
   ViewProjects,
   CncfDocumentScoreOnly,
   sequelize,
@@ -52,48 +51,6 @@ const DataSource = Object.freeze([
     scoreName: 'busFactor',
     isDesc: true,
     saveTo: 'busFactor',
-  },
-  {
-    model: CompassActivity,
-    scoreName: 'contributorCount',
-    isDesc: true,
-    saveTo: 'contributorCount',
-  },
-  {
-    model: CompassActivity,
-    scoreName: 'orgCount',
-    isDesc: true,
-    saveTo: 'orgCount',
-  },
-  {
-    model: CompassActivity,
-    scoreName: 'commentFrequency',
-    isDesc: true,
-    saveTo: 'commentFrequency',
-  },
-  {
-    model: CompassActivity,
-    scoreName: 'codeReviewCount',
-    isDesc: true,
-    saveTo: 'codeReviewCount',
-  },
-  {
-    model: CompassActivity,
-    scoreName: 'updatedIssuesCount',
-    isDesc: true,
-    saveTo: 'updatedIssuesCount',
-  },
-  {
-    model: CompassActivity,
-    scoreName: 'closedIssuesCount',
-    isDesc: true,
-    saveTo: 'closedIssuesCount',
-  },
-  {
-    model: CompassActivity,
-    scoreName: 'recentReleasesCount',
-    isDesc: true,
-    saveTo: 'recentReleasesCount',
   },
   {
     model: ViewProjects,
@@ -192,24 +149,6 @@ async function updateAllEvaluationSummary() {
       ON t1.p_id = t2.p_id
                          SET t1.criticality_score= t2.score
                          WHERE t2.score IS NOT NULL`);
-  // update compass
-  await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN
-      (SELECT a.*
-       from compass_activity_detail a,
-            (SELECT p_id, MAX(grimoire_creation_date) grimoire_creation_date
-             FROM compass_activity_detail
-             GROUP BY p_id) b
-       WHERE a.p_id = b.p_id
-         AND a.grimoire_creation_date = b.grimoire_creation_date) t2
-      ON t1.p_id = t2.p_id
-                         SET t1.contributor_count= t2.contributor_count,
-                             t1.closed_issues_count= t2.closed_issues_count,
-                             t1.commit_frequency= t2.commit_frequency,
-                             t1.comment_frequency= t2.comment_frequency,
-                             t1.code_review_count= t2.code_review_count,
-                             t1.org_count= t2.org_count,
-                             t1.updated_issues_count= t2.updated_issues_count,
-                             t1.recent_releases_count= t2.recent_releases_count`);
   // update github star, fork, create/update time
   await sequelize.query(`UPDATE oss_evaluation_summary t1 INNER JOIN view_projects t2
       ON t1.p_id = t2.p_id

@@ -6,7 +6,7 @@ This directory contains files that are no longer actively used in the current ar
 
 ### gitWorker.ts
 - **Status**: Deprecated
-- **Reason**: Git clone functionality has been integrated directly into `shellWithCloneWorker`
+- **Reason**: Git clone functionality has been integrated directly into `shellWithCloneWorker` and `sonarScannerWorker`
 - **Migration**: The `cloneRepoIfNotExist` function has been moved to `src/utils/git/gitClone.ts`
 
 ### shellWorker.ts  
@@ -17,12 +17,14 @@ This directory contains files that are no longer actively used in the current ar
 ## Current Active Workers
 
 - `shellWithCloneWorker.ts` - Executes shell commands with automatic git clone
+- `sonarScannerWorker.ts` - Runs SonarQube analysis with integrated git clone
 
 ## Architecture Changes
 
 The worker architecture has been simplified from:
 ```
 gitWorker + shellWorker → shellWithCloneWorker
+gitWorker + sonarWorker → sonarScannerWorker  
 ```
 
-To a more integrated approach where the active worker handles its own git operations internally.
+To a more integrated approach where each worker handles its own git operations internally.
