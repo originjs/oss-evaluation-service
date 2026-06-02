@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "npm run build & nodemon",
     "tsc": "vue-tsc --noEmit",
-    "build": "tsoa spec-and-routes && tsc",
+    "build": "tsoa spec-and-routes && tsc && node -e \"const f=require('fs');['dist/app.js','dist/build/routes.js'].forEach(p=>{if(f.existsSync(p))f.writeFileSync(p,f.readFileSync(p,'utf8').replace(/assert \\{ type: 'json' \\}/g,'with { type: \\'json\\' }'))})\"",
     "start": "node ./dist/app.js",
     "swagger": "tsoa spec-and-routes",
     "test": "vitest run",
