@@ -15,11 +15,6 @@ import {
   syncPackageSizeHandler,
   syncSingleProjectPackageSizeHandler,
 } from '../controllers/packageSize.js';
-import {
-  compassSchedulerHandler,
-  syncAllProjectCompassSubstituteHandler,
-  syncProjectCompassMetricHandler,
-} from '../controllers/compass.js';
 import { syncStateOfJsData } from '../controllers/stateofjs.js';
 import { syncStackOverFlowResultData } from '../controllers/stackoverflow.js';
 import {
@@ -233,73 +228,6 @@ router
  */
 router.route('/CNCFDocumentScore').post(syncProjectCncfDocumentScoreHandler);
 
-/**
- * @swagger
- * /sync/compass:
- *   post:
- *     summary: Synchronize Compass activity metric
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               repoUrl:
- *                 type: string
- *                 description: Passing a project URL like 'https://github.com/vuejs/router' indicates integration of
- *                              a single project compass metric; otherwise, it represents full-scale compass activity
- *                              metric integration.
- *                 example: ""
- *               beginDate:
- *                 type: string
- *                 description: begin date
- *                 example: "2023-12-25"
- *               startIndex:
- *                 type: int
- *                 example: 0
- *     responses:
- *       200:
- *         description: Compass activity metric synchronized
- */
-router.route('/compass').post(syncProjectCompassMetricHandler);
-
-/**
- * @swagger
- * /sync/compass/timer:
- *   get:
- *     summary: compassSchedulerHandler
- *     parameters:
- *       - name: startIndex
- *         in: query
- *         description: startIndex
- *         required: false
- *         schema:
- *           type: integer
- *           example: 0
- *       - name: maxRetries
- *         in: query
- *         description: maxRetries
- *         required: false
- *         schema:
- *           type: integer
- *           example: 3
- *     responses:
- *       200:
- *         description: Compass activity metric synchronized
- */
-router.route('/compass/timer').get(compassSchedulerHandler);
-
-/**
- * @swagger
- * /sync/substitute:
- *   get:
- *     summary: syncAllProjectCompassSubstituteHandler
- *     responses:
- *       200:
- *         description: success.
- */
-router.route('/substitute').get(syncAllProjectCompassSubstituteHandler);
 
 /**
  * @swagger

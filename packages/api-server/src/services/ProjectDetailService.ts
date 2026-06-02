@@ -4,7 +4,6 @@ import {
   Scorecard,
   Benchmark,
   sequelize,
-  sequelizeExt,
   CncfDocumentScoreMin,
   StateOfJsMin,
   EvaluationSummary,
@@ -234,92 +233,6 @@ PackageDownloadCount.belongsTo(ProjectPackage, {
  * @returns softwareCompassActivity
  */
 export async function getSoftwareActivity(repoName: string): Promise<EcologyActivityCategory> {
-  const sql = `
-      select project.p_id,
-             commit_frequency,
-             comment_frequency,
-             updated_issues_count,
-             closed_issues_count,
-             org_count,
-             contributor_count,
-             recent_releases_count,
-             date_format(grimoire_creation_date, '%Y-%m-%d') as grimoire_creation_date
-      from view_projects project
-               inner join compass_activity_detail compass on project.p_id = compass.p_id
-      where full_name = :repoName
-      order by grimoire_creation_date desc
-      limit 52
-  `;
-  let softwareActivity = await sequelize.query(sql, {
-    replacements: { repoName },
-    type: sequelize.QueryTypes.SELECT,
-  });
-  if (
-    process.env.DATABASE_EXT_URL &&
-    sequelizeExt &&
-    softwareActivity &&
-    softwareActivity.length === 0
-  ) {
-    const sql = `
-        select p_id,
-               commit_frequency,
-               comment_frequency,
-               updated_issues_count,
-               closed_issues_count,
-               org_count,
-               contributor_count,
-               recent_releases_count,
-               date_format(grimoire_creation_date, '%Y-%m-%d') as grimoire_creation_date
-        from compass_activity_detail_substitute
-        where full_name = :repoName
-        order by grimoire_creation_date desc
-        limit 52
-    `;
-    softwareActivity = await sequelizeExt.query(sql, {
-      replacements: { repoName },
-      type: sequelize.QueryTypes.SELECT,
-    });
-  }
-  softwareActivity = _.sortBy(softwareActivity, ['grimoire_creation_date']);
-  const commitFrequency = [];
-  const commentFrequency = [];
-  const updatedIssuesCount = [];
-  const closedIssuesCount = [];
-  const orgCount = [];
-  const contributorCount = [];
-  const recentReleasesCount = [];
-
-  for (const activity of softwareActivity || []) {
-    commitFrequency.push({
-      value: fixedRound(activity.commit_frequency, 2),
-      date: activity.grimoire_creation_date,
-    });
-    commentFrequency.push({
-      value: fixedRound(activity.comment_frequency, 2),
-      date: activity.grimoire_creation_date,
-    });
-    updatedIssuesCount.push({
-      value: activity.updated_issues_count,
-      date: activity.grimoire_creation_date,
-    });
-    closedIssuesCount.push({
-      value: activity.closed_issues_count,
-      date: activity.grimoire_creation_date,
-    });
-    orgCount.push({
-      value: activity.org_count,
-      date: activity.grimoire_creation_date,
-    });
-    contributorCount.push({
-      value: activity.contributor_count,
-      date: activity.grimoire_creation_date,
-    });
-    recentReleasesCount.push({
-      value: activity.recent_releases_count,
-      date: activity.grimoire_creation_date,
-    });
-  }
-
   const results = await Promise.all([
     queryDowloadCount(repoName),
     queryStarsTrend(repoName),
@@ -327,18 +240,17 @@ export async function getSoftwareActivity(repoName: string): Promise<EcologyActi
   ]);
   return {
     packageDownload: results[0],
-    commitFrequency,
-    commentFrequency,
-    updatedIssuesCount,
-    closedIssuesCount,
-    orgCount,
-    contributorCount,
+    commitFrequency: [],
+    commentFrequency: [],
+    updatedIssuesCount: [],
+    closedIssuesCount: [],
+    orgCount: [],
+    contributorCount: [],
     starTrend: results[1],
-    recentReleasesCount,
+    recentReleasesCount: [],
     alternatives: results[2],
   };
 }
-
 async function queryDowloadCount(repoName: string): Promise<EcologyActivity[]> {
   const downloadList = await PackageDownloadCount.findAll({
     attributes: ['end_date', 'downloads'],

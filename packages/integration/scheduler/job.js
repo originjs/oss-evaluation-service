@@ -2,7 +2,6 @@ import { JobConfig } from './config.js';
 import { logger } from '@orginjs/oss-evaluation-data-model';
 import { cncfDocumentScoreTimer } from '../controllers/documentScore.js';
 import Cron from 'croner';
-import { compassTimer } from '../controllers/compass.js';
 import { packageDownloadCountTimer } from '../controllers/downloadCount.js';
 import { projectDependentCountTimer } from '../controllers/projectDependentCount.js';
 import { projectCodeSizeTimer } from '../controllers/projectCodeSize.js';
@@ -36,7 +35,6 @@ function createTimer(name, pattern, timer) {
 const taskFactory = {
   // To add a timed task, add the timed function name below and in the configuration file
   cncfDocumentScoreTimer,
-  compassTimer,
   packageDownloadCountTimer,
   projectCodeSizeTimer,
   projectDependentCountTimer,
