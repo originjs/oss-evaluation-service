@@ -86,18 +86,6 @@ export interface SoftwareInfo extends SoftwareBaseInfo {
     sast: number;
     vulnerabilities: number;
   };
-  sonarCloudScan: {
-    bugs: number;
-    codeSmells: number;
-    vulnerabilities: number;
-    securityHotspots: number;
-    reviewed: string;
-    reliabilityRating: string;
-    maintainabilityRating: string;
-    securityRating: string;
-    securityReviewRating: string;
-    sonarProjectKey: string;
-  };
   document: {
     documentScore: number;
     hasReadme: boolean;

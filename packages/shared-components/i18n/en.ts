@@ -30,19 +30,6 @@ export default {
       'Pinned-Dependencies':
         'Determines if the project has declared and pinned the dependencies of its build process.',
     },
-    SonarCloud: {
-      Reliability:
-        'Issues in this domain mark code where you will get behavior other than what was expected.',
-      Maintainability:
-        'Issues in this domain mark code that will be more difficult to update competently than it should.',
-      Security: 'Issues in this domain mark potential weaknesses to hackers.',
-      'Security Review':
-        'This domain represents potential security risks in the form of hotspots and their review status.',
-      Bugs: '编码错误会破坏您的代码并且需要立即修复。',
-      'Code Smells': '代码混乱且难以维护。',
-      Vulnerabilities: '可以被黑客利用的代码。',
-      'Security Hotspots': '需要手动检查以评估是否存在漏洞的安全敏感代码。',
-    },
     生态: {
       巴士系数: '一个项目失去多少贡献者参与（“被巴士撞了”）即导致项目停滞的成员数量',
       OpenRank得分: 'X-lab提出的一种基于全域开发者协作网络的项目影响力评估方法',

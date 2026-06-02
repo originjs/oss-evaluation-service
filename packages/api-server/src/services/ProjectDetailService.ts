@@ -7,7 +7,6 @@ import {
   sequelizeExt,
   CncfDocumentScoreMin,
   StateOfJsMin,
-  SonarCloudProjectMin,
   EvaluationSummary,
   ViewProjects,
   GithubProjectsStargazersTrend,
@@ -35,10 +34,6 @@ import _ from 'underscore';
 import dayjs from 'dayjs';
 
 ViewProjects.hasOne(Scorecard, { foreignKey: 'p_id', as: 'scorecard' });
-ViewProjects.hasOne(SonarCloudProjectMin, {
-  foreignKey: 'p_id',
-  as: 'sonarCloudScan',
-});
 ViewProjects.hasOne(EvaluationSummary, { foreignKey: 'p_id', as: 'evaluation' });
 ViewProjects.hasMany(StateOfJsMin, { foreignKey: 'p_id', as: 'satisfaction' });
 ViewProjects.hasOne(CncfDocumentScoreMin, { foreignKey: 'p_id', as: 'document' });
@@ -55,16 +50,6 @@ export async function getProjectDetailInfo(repoName: string): Promise<SoftwareIn
       {
         model: Scorecard,
         as: 'scorecard',
-      },
-      {
-        model: SonarCloudProjectMin,
-        as: 'sonarCloudScan',
-        required: false,
-        where: {
-          analysisDate: {
-            [Op.ne]: null,
-          },
-        },
       },
       {
         model: CncfDocumentScoreMin,
@@ -747,16 +732,10 @@ export async function getSummaryHighlightInfo(repoName: string) {
     .filter((obj: { orgName: string }) => !filterCharacter.includes(obj.orgName))
     .slice(0, COMPANIES_SIZE);
 
-  const sonarData = await SonarCloudProjectMin.findOne({
-    where: {
-      githubFullName: repoName,
-    },
-    attributes: ['reliabilityRating', 'bugs', 'maintainabilityRating', 'codeSmells'],
-  });
 
   return {
     alternativeProjects,
     topPrCompanies,
-    sonar: sonarData,
+
   };
 }

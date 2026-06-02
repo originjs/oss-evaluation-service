@@ -11,7 +11,7 @@ please visit https://v2raya.org/docs/prologue/introduction/
    -v /home/xxxxx/cache/maven:/root/.m2 \
    -v /home/xxxxx/cache/gradle:/root/.gradle \
    -v /home/xxxxx/git-projects:/root/projects \
-   -v /home/xxxxx/projects/oss-evaluation-service/packages/sonar-scanner-service:/repo-service \
+   -v /home/xxxxx/projects/oss-evaluation-service/packages/repo-service:/repo-service \
    -p 3000:3000 \
    -p 2017:2017 \
    repo-service:v0.0.1
