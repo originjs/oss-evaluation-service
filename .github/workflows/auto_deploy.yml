@@ -37,7 +37,6 @@ jobs:
           pnpm build-api-server
           pnpm build-website
           pnpm build-repo-service
-          pnpm build-download-server
 
       - name: Deploy Website 🚀
         uses: easingthemes/ssh-deploy@main
@@ -80,17 +79,3 @@ jobs:
           REMOTE_PORT: ${{ secrets.BT_PORT }}  # 如果不是默认的22端口，需要更改
           SCRIPT_BEFORE: ls
           SCRIPT_AFTER: bash /home/ci_deploy_repo_service.sh
-
-      - name: Deploy Download Server 🚀
-        uses: easingthemes/ssh-deploy@main
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.BT_SSH_PRIVATE_KEY }}
-          ARGS: "-avz --delete"
-          SOURCE: "./"  # 更改为你要部署的文件夹
-          TARGET: "/home/oss-eval-download-server/oss-evaluation-service/"
-          EXCLUDE: "/node_modules/"
-          REMOTE_HOST: ${{ secrets.BT_HOST }}
-          REMOTE_USER: ${{ secrets.BT_USER }}
-          REMOTE_PORT: ${{ secrets.BT_PORT }}  # 如果不是默认的22端口，需要更改
-          SCRIPT_BEFORE: ls
-          SCRIPT_AFTER: bash /home/ci_deploy_download_server.sh
