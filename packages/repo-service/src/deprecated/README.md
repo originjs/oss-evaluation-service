@@ -1,30 +1,33 @@
-# Deprecated Files
+# 已弃用文件说明
 
-This directory contains files that are no longer actively used in the current architecture but are kept for reference.
+该目录保存的是当前架构中已经不再主动使用、但暂时保留作参考的旧实现。
 
-## Workers
+## 已弃用 worker
 
-### gitWorker.ts
-- **Status**: Deprecated
-- **Reason**: Git clone functionality has been integrated directly into `shellWithCloneWorker` and `sonarScannerWorker`
-- **Migration**: The `cloneRepoIfNotExist` function has been moved to `src/utils/git/gitClone.ts`
+### `gitWorker.ts`
 
-### shellWorker.ts  
-- **Status**: Deprecated
-- **Reason**: Replaced by `shellWithCloneWorker.ts` which includes integrated git clone functionality
-- **Migration**: Use `shellWithCloneWorker` for shell commands that need git repositories
+- 状态：已弃用
+- 原因：Git clone 逻辑已经合并进新的 worker 中，不再单独拆分
+- 迁移去向：`cloneRepoIfNotExist` 已迁移到 `src/utils/git/gitClone.ts`
 
-## Current Active Workers
+### `shellWorker.ts`
 
-- `shellWithCloneWorker.ts` - Executes shell commands with automatic git clone
-- `sonarScannerWorker.ts` - Runs SonarQube analysis with integrated git clone
+- 状态：已弃用
+- 原因：已被 `shellWithCloneWorker.ts` 替代
+- 替代方式：凡是需要依赖 Git 仓库的 shell 命令，改用 `shellWithCloneWorker`
 
-## Architecture Changes
+## 当前仍在使用的 worker
 
-The worker architecture has been simplified from:
+- `shellWithCloneWorker.ts`：执行 shell 命令，并在内部完成仓库克隆
+- `sonarScannerWorker.ts`：执行 SonarQube 分析，并在内部完成仓库克隆
+
+## 架构变化
+
+旧结构：
+
+```text
+gitWorker + shellWorker -> shellWithCloneWorker
+gitWorker + sonarWorker -> sonarScannerWorker
 ```
-gitWorker + shellWorker → shellWithCloneWorker
-gitWorker + sonarWorker → sonarScannerWorker  
-```
 
-To a more integrated approach where each worker handles its own git operations internally.
+现在改为每个 worker 自己负责所需的 Git 操作，减少跨 worker 协调成本。
