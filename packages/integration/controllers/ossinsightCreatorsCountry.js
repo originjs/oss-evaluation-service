@@ -205,7 +205,7 @@ async function bulkInsertData(data) {
       await OssinsightCreatorsCountries.destroy(
         {
           where: {
-            p_id: data[0]?.pId,
+            pId: data[0]?.pId,
             type: data[0]?.type,
           },
         },
@@ -215,7 +215,7 @@ async function bulkInsertData(data) {
         data,
         {
           updateOnDuplicate: [
-            'p_id',
+            'pId',
             'org_name',
             'creators_num',
             'percentage',

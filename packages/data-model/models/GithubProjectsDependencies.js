@@ -8,7 +8,7 @@ export default sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true,
-      autoincrement: true,
+      autoIncrement: true,
     },
     pId: {
       type: DataTypes.STRING(32),

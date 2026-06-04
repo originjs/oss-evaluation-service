@@ -10,11 +10,10 @@ export default sequelize.define(
       autoIncrement: true,
       primaryKey: true,
     },
-    p_id: {
+    pId: {
       type: DataTypes.STRING(32),
       allowNull: true,
       comment: 'project id',
-      unique: true,
     },
     country_code: {
       type: DataTypes.STRING(10),
@@ -50,5 +49,6 @@ export default sequelize.define(
     timestamps: true,
     createdAt: 'created_at',
     updatedAt: 'updated_at',
+    underscored: true,
   },
 );
