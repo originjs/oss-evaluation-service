@@ -782,46 +782,6 @@ function processBenchmarkData(benchmarkData?: BenchmarkData) {
   benchmarkCompareColumns.value = Object.values(columnMap);
 }
 
-function renderLineChart(container: string, data: EcologyActivity[]) {
-  const chartDom = softwareDetailsEl.value?.querySelector(container);
-  if (!chartDom) {
-    return;
-  }
-  const chart = echarts.init(chartDom);
-  const option: echarts.EChartsOption = {
-    tooltip: {
-      show: true,
-      trigger: 'axis',
-    },
-    xAxis: {
-      type: 'category',
-      data: data?.map(item => item.date),
-      axisLabel: {
-        showMaxLabel: true,
-      },
-      axisTick: {
-        alignWithLabel: true,
-      },
-    },
-    yAxis: {
-      type: 'value',
-    },
-    series: [
-      {
-        data: data?.map(item => item.value),
-        type: 'line',
-      },
-    ],
-    grid: {
-      left: '5%',
-      right: '5%',
-      top: '8%',
-      bottom: '2%',
-      containLabel: true,
-    },
-  };
-  chart.setOption(option);
-}
 
 const loadingEcology = ref(false);
 watchEffect(async () => {
@@ -829,7 +789,6 @@ watchEffect(async () => {
   const { data } = await getEcologyActivityCategoryApi(encodedRepoName.value);
   starTrend.value = data.starTrend;
   alternatives.value = data.alternatives;
-  renderLineChart('#week-package-downloads-chart', data.packageDownload);
   renderGithubStartChart();
   loadingEcology.value = false;
 });
@@ -1508,20 +1467,6 @@ const showAllAlternatives = ref(false);
               </div>
             </div>
           </div>
-        </el-card>
-        <el-card mb-6 w-626px>
-          <div flex>
-            <div mb-2 font-size-5 font-bold>包下载量</div>
-            <el-tooltip :content="i18n.global.t(`tips.ecology.packageDownloads`)">
-              <el-icon size-5 color-gray-400>
-                <InfoFilled />
-              </el-icon>
-            </el-tooltip>
-          </div>
-          <div mb-2 font-size-3 text-gray-500>
-            {{ i18n.global.t(`tips.ecology.packageDownloads`) }}
-          </div>
-          <div id="week-package-downloads-chart" h-200px />
         </el-card>
 
         <el-card w-1280px>
