@@ -200,7 +200,7 @@ async function saveDate(dependenciesList) {
 
 async function getProjectInfoByUrl(repoUrl) {
   const project = await ViewProjects.findOne({
-    attributes: ['pId', 'ownerName', 'name', 'ownerType'],
+    attributes: ['pId', 'ownerName', 'name', 'ownerType', 'platformType'],
     where: {
       htmlUrl: repoUrl,
     },
