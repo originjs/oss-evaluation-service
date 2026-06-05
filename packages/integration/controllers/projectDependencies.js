@@ -88,7 +88,7 @@ export async function getDependencies(project, seen) {
     return;
   }
   let githubSdk = new GithubSdk();
-  const headers = authorizationHeader(githubSdk.token);
+  const headers = authorizationHeader(await githubSdk.getToken());
   headers.append('Accept', 'application/vnd.github.hawkgirl-preview+json');
 
   const dependenciesData = await request(

@@ -94,6 +94,26 @@ GITEE_TOKEN=["gitee_xxx"]
 GITCODE_TOKEN=["gitcode_xxx"]
 ```
 
+### 环境变量用途
+
+- `DATABASE_URL`：integration 连接主 MySQL，必填
+- `NODE_ENV`：`production` 才会启用 scheduler；`development` 只跑 API
+- `DISABLE_SCHEDULE_JOB`：只要非空，就强制禁用 scheduler
+- `GITHUB_TOKEN`：JSON 数组字符串，按顺序从主到备；GitHub 代码会验证并使用第一个有效 token
+- `GITEE_TOKEN` / `GITCODE_TOKEN`：JSON 数组字符串；保留现有接入方式，按当前代码路径使用
+- `DATABASE_EXT_URL`：少数扩展数据库查询路径使用，不配不影响主链路
+- `LOG_DIR`：日志目录
+- `REPO_SERVICE_URL`：仓库代码体积统计的可选外部服务，不配则跳过这条本地 cloc 路径
+- `COZE_API_TOKEN`：只给 Coze AI 路径用；当没配 `EXT_AI_SERVICE_URL` 时，`/sync/alternative` 和 `/sync/aiClassification` 会走 Coze
+- `EXT_AI_SERVICE_URL`：如果配置，`/sync/alternative` 和 `/sync/projectDescription` 会向这个外部 AI 服务发请求
+- `EXT_ALTERNATIVE_BOT`：发给 `EXT_AI_SERVICE_URL` 的 alternative bot/token
+- `EXT_PROJECT_DESCRIPTION_BOT`：发给 `EXT_AI_SERVICE_URL` 的 projectDescription bot/token
+
+注意：
+
+- 当前没有 scheduler 自动触发 AI 路径；AI 请求只会在调用相关 API 时发生
+- `projectDescription` 只有外部 AI 路径，没有 Coze fallback
+
 ### 3. 启动 integration
 
 从仓库根目录执行：

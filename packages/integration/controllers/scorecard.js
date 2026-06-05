@@ -6,7 +6,7 @@ import {
   logger,
 } from '@orginjs/oss-evaluation-data-model';
 import { ServerError, BadRequestError } from '../util/error.js';
-import { parseRepoUrl } from '../util/util.js';
+import { getValidToken, parseRepoUrl } from '../util/util.js';
 import shelljs from 'shelljs';
 import { platformTypes } from '@orginjs/oss-evaluation-util';
 
@@ -155,8 +155,9 @@ export async function getScorecard(url) {
         command = `${scorecardPath} --repo=${url} --format=json`;
       }
       logger.info(`try to run command: ${command}`);
+      const githubToken = await getValidToken(platformTypes.GITHUB);
       const commandResult = shelljs.exec(command, {
-        env: { GITHUB_AUTH_TOKEN: process.env.GITHUB_AUTH_TOKEN },
+        env: githubToken ? { GITHUB_AUTH_TOKEN: githubToken } : {},
       });
       if (commandResult.code === 0) {
         buffer = commandResult.stdout;

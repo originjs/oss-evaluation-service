@@ -12,7 +12,7 @@ GitHub API 封装包。
 - 搜索项目
 - 获取仓库跳转地址
 
-默认会优先使用环境变量中的 GitHub token；也可以在实例化时手动传入 token。
+默认会优先使用 `GITHUB_TOKEN` 环境变量里按顺序配置的 token，验证后选择第一个有效 token；也可以在实例化时手动传入 token。
 
 ## 包名
 

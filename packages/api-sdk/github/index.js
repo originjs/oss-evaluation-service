@@ -2,11 +2,72 @@ import { createFork, deleteFork } from './src/fork.js';
 import { getProjectInfo, searchProjects } from './src/project.js';
 import { fetchRedirectUrl } from './src/repo.js';
 
+const GITHUB_USER_API = 'https://api.github.com/user';
+
+const tokenCache = {
+  token: null,
+  refreshing: null,
+};
+
+const parseGitHubTokens = () => {
+  const raw = process.env.GITHUB_TOKEN;
+  if (!raw) {
+    return [];
+  }
+  try {
+    const tokens = JSON.parse(raw);
+    return Array.isArray(tokens) ? tokens.filter(token => typeof token === 'string' && token.length > 0) : [];
+  } catch {
+    return [];
+  }
+};
+
+const validateToken = async token => {
+  const response = await fetch(GITHUB_USER_API, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'X-GitHub-Api-Version': '2022-11-28',
+      Accept: 'application/vnd.github+json',
+    },
+  });
+  return response.ok && response.status === 200;
+};
+
+const getValidGitHubToken = async () => {
+  if (tokenCache.token) {
+    return tokenCache.token;
+  }
+  if (tokenCache.refreshing) {
+    return tokenCache.refreshing;
+  }
+  tokenCache.refreshing = (async () => {
+    for (const token of parseGitHubTokens()) {
+      try {
+        if (await validateToken(token)) {
+          tokenCache.token = token;
+          return token;
+        }
+      } catch {
+        // ignore validation errors and continue to the next token
+      }
+    }
+    return undefined;
+  })();
+  try {
+    return await tokenCache.refreshing;
+  } finally {
+    tokenCache.refreshing = null;
+  }
+};
+
 export default class GithubSdk {
   constructor(token) {
-    token = token || process.env.GITHUB_FORK_TOKEN;
-    this.token = token;
+    this.token = token || null;
   }
+
+  getToken = async () => {
+    return this.token || (await getValidGitHubToken());
+  };
 
   /**
    * @typedef {Object} ForkBody
@@ -20,16 +81,16 @@ export default class GithubSdk {
    * @param {string} repo - repoName
    * @param {ForkBody} forkBody - fork body param
    */
-  createFork = (owner, repo, forkBody) => {
-    return createFork(owner, repo, forkBody, this.token);
+  createFork = async (owner, repo, forkBody) => {
+    return createFork(owner, repo, forkBody, await this.getToken());
   };
 
-  deleteFork = (owner, repo) => {
-    return deleteFork(owner, repo, this.token);
+  deleteFork = async (owner, repo) => {
+    return deleteFork(owner, repo, await this.getToken());
   };
 
-  projectInfo = (owner, repo) => {
-    return getProjectInfo(owner, repo, this.token);
+  projectInfo = async (owner, repo) => {
+    return getProjectInfo(owner, repo, await this.getToken());
   };
 
   /**
@@ -48,7 +109,7 @@ export default class GithubSdk {
    @throws {Error} - request Error
   */
   searchProjects = async (condition, count) => {
-    return searchProjects(condition, count, this.token);
+    return searchProjects(condition, count, await this.getToken());
   };
 
   /**
