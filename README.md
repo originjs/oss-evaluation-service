@@ -2,33 +2,92 @@
 
 开源项目评估平台 monorepo。
 
-## 本地开发
+## Docker 生产部署
 
-### 前置依赖
+### 1. 数据库前置条件
 
-- Node.js 20+
-- pnpm
-- Docker / Docker Compose
+生产环境的 MySQL 部署在物理机或独立数据库服务上，`docker-compose.yml` **不会** 默认启动 MySQL。
 
-### 启动本地 MySQL
+`integration` 启动前，目标 MySQL 里必须已经有 `sql/init.sql` 对应的 schema。
+
+如果是全新数据库，由 DBA 或部署脚本在物理机 MySQL 上执行一次：
 
 ```bash
-docker compose up -d
+mysql -h <mysql-host> -u <user> -p <database> < sql/init.sql
 ```
 
-当前 `docker-compose.yml` 只负责启动 MySQL。
+`sql/init.sql` 是初始化脚本，不是 integration 容器每次启动都会执行的东西。
 
-### 环境变量
+### 2. 配置环境变量
 
-按需为不同服务准备各自的 `.env` 文件。
+推荐使用根目录 `.env`：
 
-最少需要为 `packages/api-server` 提供数据库连接，例如：
+```bash
+cp .env.example .env
+```
+
+然后编辑 `.env`，至少改 `DATABASE_URL`：
 
 ```env
-DATABASE_URL='mysql://your_db_user:your_password@your_db_server/your_dev_db_name'
+DATABASE_URL=mysql://oss_eval_user:password@mysql-host.example.com:3306/oss-eval
+INTEGRATION_PORT=3001
+NODE_ENV=development
+DISABLE_SCHEDULE_JOB=true
+GITHUB_TOKEN=[]
+GITEE_TOKEN=[]
+GITCODE_TOKEN=[]
 ```
 
-`packages/integration` 与 `packages/repo-service` 还需要各自的数据源令牌、任务配置和运行参数。
+说明：
+
+- `DATABASE_URL` 指向生产/物理机 MySQL
+- `GITHUB_TOKEN` / `GITEE_TOKEN` / `GITCODE_TOKEN` 必须是 JSON 数组字符串，因为代码会 `JSON.parse()`
+- 开发或冒烟测试保留 `DISABLE_SCHEDULE_JOB=true`
+- 生产要跑定时任务时，设置 `NODE_ENV=production`，并把 `DISABLE_SCHEDULE_JOB` 设为空
+
+真实同步外部数据时：
+
+```env
+GITHUB_TOKEN=["ghp_xxx"]
+GITEE_TOKEN=["gitee_xxx"]
+GITCODE_TOKEN=["gitcode_xxx"]
+```
+
+### 3. 启动 integration
+
+```bash
+docker compose up --build -d integration
+```
+
+这只会构建并启动 integration 容器。MySQL 不会被 compose 默认启动。
+
+### 4. 验证
+
+```bash
+curl http://localhost:3001/
+curl http://localhost:3001/api-docs/
+```
+
+预期：
+
+- `/` 返回 `{"ok":"200"}`
+- `/api-docs/` 返回 Swagger UI HTML
+
+### 本地测试 MySQL（非生产）
+
+如果只是本机测试，没有物理机 MySQL，可以临时启动测试 MySQL：
+
+```bash
+docker compose --profile local-mysql up -d mysql
+```
+
+这个测试 MySQL 才会在数据卷为空时导入 `sql/init.sql`。它不是生产部署路径。
+
+本地测试时 `.env` 里的数据库地址可写：
+
+```env
+DATABASE_URL=mysql://root:oss-eval-root@mysql:3306/oss-eval
+```
 
 ### 启动默认开发链路
 

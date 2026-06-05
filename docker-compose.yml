@@ -1,27 +1,53 @@
-version: "3.8"
-
 services:
+  integration:
+    build:
+      context: .
+      dockerfile: packages/integration/Dockerfile
+    image: oss-evaluation-integration
+    container_name: oss-eval-integration
+    restart: unless-stopped
+    ports:
+      - "${INTEGRATION_PORT:-3001}:3001"
+    environment:
+      NODE_ENV: "${NODE_ENV:-development}"
+      PORT: "3001"
+      DISABLE_SCHEDULE_JOB: "${DISABLE_SCHEDULE_JOB-true}"
+      DATABASE_URL: "${DATABASE_URL:?DATABASE_URL is required. Set it in .env, for example mysql://user:password@mysql-host:3306/oss-eval}"
+      DATABASE_EXT_URL: "${DATABASE_EXT_URL:-}"
+      LOG_DIR: "${LOG_DIR:-logs}"
+      GITHUB_TOKEN: "${GITHUB_TOKEN:-[]}"
+      GITEE_TOKEN: "${GITEE_TOKEN:-[]}"
+      GITCODE_TOKEN: "${GITCODE_TOKEN:-[]}"
+      GITHUB_FORK_TOKEN: "${GITHUB_FORK_TOKEN:-}"
+      GITHUB_AUTH_TOKEN: "${GITHUB_AUTH_TOKEN:-}"
+      COZE_API_TOKEN: "${COZE_API_TOKEN:-}"
+      EXT_AI_SERVICE_URL: "${EXT_AI_SERVICE_URL:-}"
+      EXT_ALTERNATIVE_BOT: "${EXT_ALTERNATIVE_BOT:-}"
+      EXT_PROJECT_DESCRIPTION_BOT: "${EXT_PROJECT_DESCRIPTION_BOT:-}"
+      REPO_SERVICE_URL: "${REPO_SERVICE_URL:-}"
+
   mysql:
-    image: mysql:9.0
+    profiles:
+      - local-mysql
+    image: mysql:8.0
     container_name: oss-eval-mysql
     restart: unless-stopped
     ports:
-      - "3306:3306"
+      - "${MYSQL_PORT:-3306}:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: oss-eval-root
-      MYSQL_DATABASE: oss-eval
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-oss-eval-root}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE:-oss-eval}"
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
-      - --default-authentication-plugin=mysql_native_password
     volumes:
       - mysql-data:/var/lib/mysql
       - ./sql/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
       interval: 5s
       timeout: 3s
-      retries: 10
+      retries: 20
 
 volumes:
   mysql-data:
