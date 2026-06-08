@@ -20,6 +20,27 @@
 
 可通过 `PORT` 环境变量覆盖。
 
+## 环境变量
+
+环境变量示例见：
+
+```bash
+packages/api-server/.env.example
+```
+
+这个文件只适用于 `api-server`。部署其他服务时，不要共用这里的 `PORT`。
+
+最小配置：
+
+```env
+DATABASE_URL=mysql://oss_eval_user:password@mysql-host.example.com:3306/oss-eval
+PORT=3000
+NODE_ENV=development
+UPLOAD_PATH=/root/upload
+```
+
+如果需要调用 integration 的 benchmark 同步路径，再配置 `INTEGRATION_URL`。
+
 ## 常用命令
 
 ```bash

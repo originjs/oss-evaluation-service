@@ -37,13 +37,26 @@
 
 ## 运行所需环境变量
 
-- `PORT`：可选，默认 `3002`
-- `REPO_DIR`：临时克隆目录
-- `GITHUB_TOKEN`
-- `GITEE_TOKEN`
-- `GITCODE_TOKEN`
+环境变量示例见：
 
-注意：当前实现会把上述 token 环境变量按 JSON 数组解析。
+```bash
+packages/repo-service/.env.example
+```
+
+这个文件只适用于 `repo-service`。部署其他服务时，不要共用这里的 `PORT`。
+
+最小配置：
+
+```env
+DATABASE_URL=mysql://oss_eval_user:password@mysql-host.example.com:3306/oss-eval
+PORT=3002
+REPO_DIR=/tmp/oss-evaluation-repos
+GITHUB_TOKEN=[]
+GITEE_TOKEN=[]
+GITCODE_TOKEN=[]
+```
+
+注意：`GITHUB_TOKEN` / `GITEE_TOKEN` / `GITCODE_TOKEN` 必须是 JSON 数组字符串。
 
 ## 本地启动
 

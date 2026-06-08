@@ -7,10 +7,10 @@ services:
     container_name: oss-eval-integration
     restart: unless-stopped
     ports:
-      - "${INTEGRATION_PORT:-3001}:3001"
+      - "${INTEGRATION_PORT:-3001}:${INTEGRATION_PORT:-3001}"
     environment:
       NODE_ENV: "${NODE_ENV:-development}"
-      PORT: "3001"
+      PORT: "${INTEGRATION_PORT:-3001}"
       DISABLE_SCHEDULE_JOB: "${DISABLE_SCHEDULE_JOB-true}"
       DATABASE_URL: "${DATABASE_URL:?DATABASE_URL is required. Set it in .env, for example mysql://user:password@mysql-host:3306/oss-eval}"
       DATABASE_EXT_URL: "${DATABASE_EXT_URL:-}"

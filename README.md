@@ -20,13 +20,20 @@ mysql -h <mysql-host> -u <user> -p <database> < sql/init.sql
 
 ### 2. 配置环境变量
 
-推荐使用根目录 `.env`：
+根目录 `.env.example` 是全仓库 / docker compose 部署参考：
 
 ```bash
 cp .env.example .env
 ```
 
-然后编辑 `.env`，至少改 `DATABASE_URL`：
+单独部署某个服务时，优先看对应服务目录里的 `.env.example`，例如：
+
+- `packages/integration/.env.example`
+- `packages/api-server/.env.example`
+- `packages/repo-service/.env.example`
+- `packages/landscape/.env.example`
+
+如果只启动当前 compose 里的 integration，至少改根目录 `.env` 里的 `DATABASE_URL`：
 
 ```env
 DATABASE_URL=mysql://oss_eval_user:password@mysql-host.example.com:3306/oss-eval

@@ -12,6 +12,21 @@
 powershell -c "irm https://github.com/cncf/landscape2/releases/download/v0.8.1/landscape2-installer.ps1 | iex"
 ```
 
+## 环境变量
+
+环境变量示例见：
+
+```bash
+packages/landscape/.env.example
+```
+
+这个文件只适用于执行 `packages/landscape update`。最小配置：
+
+```env
+DATABASE_URL=mysql://oss_eval_user:password@mysql-host.example.com:3306/oss-eval
+NODE_ENV=development
+```
+
 ## 常用流程
 
 1. 更新 `data.yml`

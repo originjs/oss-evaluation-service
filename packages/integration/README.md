@@ -66,19 +66,25 @@ pnpm -C packages/integration test
 mysql -h <mysql-host> -u <user> -p <database> < sql/init.sql
 ```
 
-### 2. 配置环境变量
+### 2. 配置 integration 环境变量
 
-环境变量配置在仓库根目录 `.env`，不是 `packages/integration/.env`：
+单独部署 integration 时，只看这个文件：
 
 ```bash
-cp .env.example .env
+packages/integration/.env.example
 ```
 
-最小生产/部署配置：
+复制一份：
+
+```bash
+cp packages/integration/.env.example packages/integration/.env
+```
+
+然后编辑 `packages/integration/.env`，至少改 `DATABASE_URL`：
 
 ```env
 DATABASE_URL=mysql://oss_eval_user:password@mysql-host.example.com:3306/oss-eval
-INTEGRATION_PORT=3001
+PORT=3001
 NODE_ENV=development
 DISABLE_SCHEDULE_JOB=true
 GITHUB_TOKEN=[]
@@ -86,66 +92,56 @@ GITEE_TOKEN=[]
 GITCODE_TOKEN=[]
 ```
 
-真实同步数据时，把 token 填成 JSON 数组字符串：
+说明：
+
+- `PORT=3001` 是 integration 容器内部监听端口
+- 不要管 `INTEGRATION_PORT`；那只给根目录 docker compose 用
+- 生产可以不用 `.env` 文件，直接把这些变量设置到容器环境变量里
+- token 必须是 JSON 数组字符串；没有 token 就写 `[]`
+
+正式跑定时任务时这样配：
 
 ```env
-GITHUB_TOKEN=["ghp_xxx"]
-GITEE_TOKEN=["gitee_xxx"]
-GITCODE_TOKEN=["gitcode_xxx"]
+NODE_ENV=production
+DISABLE_SCHEDULE_JOB=
 ```
 
-### 环境变量用途
-
-- `DATABASE_URL`：integration 连接主 MySQL，必填
-- `NODE_ENV`：`production` 才会启用 scheduler；`development` 只跑 API
-- `DISABLE_SCHEDULE_JOB`：只要非空，就强制禁用 scheduler
-- `GITHUB_TOKEN`：JSON 数组字符串，按顺序从主到备；GitHub 代码会验证并使用第一个有效 token
-- `GITEE_TOKEN` / `GITCODE_TOKEN`：JSON 数组字符串；保留现有接入方式，按当前代码路径使用
-- `DATABASE_EXT_URL`：少数扩展数据库查询路径使用，不配不影响主链路
-- `LOG_DIR`：日志目录
-- `REPO_SERVICE_URL`：仓库代码体积统计的可选外部服务，不配则跳过这条本地 cloc 路径
-- `COZE_API_TOKEN`：只给 Coze AI 路径用；当没配 `EXT_AI_SERVICE_URL` 时，`/sync/alternative` 和 `/sync/aiClassification` 会走 Coze
-- `EXT_AI_SERVICE_URL`：如果配置，`/sync/alternative` 和 `/sync/projectDescription` 会向这个外部 AI 服务发请求
-- `EXT_ALTERNATIVE_BOT`：发给 `EXT_AI_SERVICE_URL` 的 alternative bot/token
-- `EXT_PROJECT_DESCRIPTION_BOT`：发给 `EXT_AI_SERVICE_URL` 的 projectDescription bot/token
-
-注意：
-
-- 当前没有 scheduler 自动触发 AI 路径；AI 请求只会在调用相关 API 时发生
-- `projectDescription` 只有外部 AI 路径，没有 Coze fallback
-
-### 3. 启动 integration
+### 3. 构建 integration 镜像
 
 从仓库根目录执行：
 
 ```bash
+podman build -f packages/integration/Dockerfile -t oss-evaluation-integration .
+```
+
+注意最后的 `.` 不能省，它表示构建上下文是仓库根目录。
+
+### 4. 启动 integration 容器
+
+```bash
+podman run -d --replace \
+  --name oss-eval-integration \
+  --env-file packages/integration/.env \
+  -p 3001:3001 \
+  oss-evaluation-integration
+```
+
+这条命令里：
+
+- `--env-file packages/integration/.env`：把 integration 的环境变量注入容器
+- `-p 3001:3001`：宿主机 `3001` 端口映射到容器 `3001` 端口
+- 镜像不会 COPY `.env`，`.env` 只是运行容器时注入变量
+
+### docker compose（可选）
+
+如果你明确要用根目录 `docker-compose.yml`，才看根目录 `.env.example`：
+
+```bash
+cp .env.example .env
 docker compose up --build -d integration
 ```
 
-这不会启动 MySQL，也不会重新初始化数据库。
-
-### 本地测试 MySQL（非生产）
-
-如果没有物理机 MySQL，只是本地冒烟测试，可以临时启动测试 MySQL：
-
-```bash
-docker compose --profile local-mysql up -d mysql
-```
-
-这个测试 MySQL 才会在 `mysql-data` 数据卷为空时导入 `sql/init.sql`。
-
-本地测试时 `.env` 里的数据库地址可写：
-
-```env
-DATABASE_URL=mysql://root:oss-eval-root@mysql:3306/oss-eval
-```
-
-说明：
-
-- 构建上下文必须是仓库根目录，因为镜像需要 workspace 根配置和内部依赖包
-- `sql/init.sql` 是初始化脚本；生产应在物理机 MySQL 上手动/脚本执行一次
-- 默认 `NODE_ENV=development` 且 `DISABLE_SCHEDULE_JOB=true`，定时任务不会跑
-- 生产启用定时任务时，设置 `NODE_ENV=production`，并让 `DISABLE_SCHEDULE_JOB` 为空
+否则部署 integration 不需要管根目录 `.env.example` 里的 `INTEGRATION_PORT`。
 
 ## 文档地址
 
