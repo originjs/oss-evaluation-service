@@ -22,6 +22,14 @@ const parseGitHubTokens = () => {
   }
 };
 
+const hasRequiredScope = response => {
+  const scopes = response.headers.get('x-oauth-scopes') || '';
+  return scopes
+    .split(',')
+    .map(scope => scope.trim())
+    .some(scope => scope === 'repo' || scope === 'public_repo');
+};
+
 const validateToken = async token => {
   const response = await fetch(GITHUB_USER_API, {
     headers: {
@@ -30,7 +38,7 @@ const validateToken = async token => {
       Accept: 'application/vnd.github+json',
     },
   });
-  return response.ok && response.status === 200;
+  return response.ok && response.status === 200 && hasRequiredScope(response);
 };
 
 const getValidGitHubToken = async () => {

@@ -86,27 +86,79 @@ const tokenCache = {
   },
 };
 
+const platformNameMap = {
+  [platformTypes.GITHUB]: 'GitHub',
+  [platformTypes.GITEE]: 'Gitee',
+  [platformTypes.GITCODE]: 'GitCode',
+};
+
+function tokenFingerprint(token) {
+  if (!token) {
+    return '<empty>';
+  }
+  if (token.length <= 10) {
+    return `${token.slice(0, 2)}...${token.slice(-2)}`;
+  }
+  return `${token.slice(0, 6)}...${token.slice(-4)}`;
+}
+
+function isGitHubTokenScopeUsable(response) {
+  const scopes = response.headers.get('x-oauth-scopes') || '';
+  return scopes
+    .split(',')
+    .map(scope => scope.trim())
+    .some(scope => scope === 'repo' || scope === 'public_repo');
+}
+
+async function validateSingleToken(token, validationUrl, platformType) {
+  const response = await fetch(validationUrl, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!response.ok || response.status !== 200) {
+    return { valid: false, reason: `HTTP ${response.status}` };
+  }
+  if (platformType === platformTypes.GITHUB && !isGitHubTokenScopeUsable(response)) {
+    return { valid: false, reason: 'missing repo/public_repo scope' };
+  }
+  return { valid: true };
+}
+
 async function refreshAndValidateToken(tokenArray, validationUrl, platformType) {
-  logger.info(`Validating ${platformType} token`);
+  const platformName = platformNameMap[platformType] || `platform ${platformType}`;
+  const validTokenResults = [];
+  const invalidTokens = [];
   for (const token of tokenArray) {
+    const fingerprint = tokenFingerprint(token);
     try {
-      const response = await fetch(validationUrl, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (response.ok && response.status === 200) {
-        logger.info(`${platformType} token validated successfully`);
-        return token;
+      const result = await validateSingleToken(token, validationUrl, platformType);
+      if (result.valid) {
+        validTokenResults.push({ token, fingerprint });
+        continue;
       }
+      invalidTokens.push(`${fingerprint} (${result.reason})`);
     } catch (error) {
-      logger.error(`${platformType} token validation error: ${error}`);
+      invalidTokens.push(`${fingerprint} (${error.message})`);
     }
   }
-  logger.error(
-    `All ${platformType} tokens are invalid. Please add new tokens to environment variables.`,
-  );
-  return null;
+  const validTokens = validTokenResults.map(result => result.fingerprint);
+  const summary = [
+    `${platformName} token validation: ${validTokenResults.length}/${tokenArray.length} usable`,
+    `${invalidTokens.length} invalid`,
+    `usable=[${validTokens.join(', ')}]`,
+    `invalid=[${invalidTokens.join(', ')}]`,
+  ].join(', ');
+  if (validTokenResults.length === 0) {
+    logger.error(summary);
+    return null;
+  }
+  if (invalidTokens.length > 0) {
+    logger.warn(summary);
+  } else {
+    logger.info(summary);
+  }
+  return validTokenResults[0].token;
 }
 
 export const getValidToken = async platformType => {
