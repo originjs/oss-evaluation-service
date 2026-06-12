@@ -1,4 +1,57 @@
+# ============================================================
+# OSS Evaluation Service — docker compose
+#
+# 默认 `docker compose up -d` 启动:
+#   - api-server   (后端 API,  http://localhost:3000)
+#   - website      (前端,      http://localhost:8080)
+#   - integration  (数据集成,  http://localhost:3001)
+#
+# 可选 profile:
+#   - local-mysql   本机测试用 MySQL(自动导入 sql/init.sql)
+#                   docker compose --profile local-mysql up -d
+#   - repo-service  代码体积统计兜底服务
+#                   docker compose --profile repo-service up -d repo-service
+#
+# 部署文档见 docs/DEPLOYMENT.md,服务说明见 docs/ARCHITECTURE.md
+# ============================================================
+
 services:
+  api-server:
+    build:
+      context: .
+      dockerfile: packages/api-server/Dockerfile
+    image: oss-evaluation-api-server
+    container_name: oss-eval-api-server
+    restart: unless-stopped
+    ports:
+      - "${API_SERVER_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: "${NODE_ENV:-development}"
+      PORT: "3000"
+      DATABASE_URL: "${DATABASE_URL:?DATABASE_URL is required. Set it in .env, for example mysql://user:password@mysql-host:3306/oss-eval}"
+      DATABASE_EXT_URL: "${DATABASE_EXT_URL:-}"
+      LOG_DIR: "${LOG_DIR:-logs}"
+      UPLOAD_PATH: "${UPLOAD_PATH:-/app/upload}"
+      INTEGRATION_URL: "${INTEGRATION_URL:-http://integration:3001}"
+      PROXY_URL: "${PROXY_URL:-}"
+      API_TSC: "${API_TSC:-}"
+      APIKEY_TSC: "${APIKEY_TSC:-}"
+      API_TSC_LIMIT: "${API_TSC_LIMIT:-2}"
+
+  website:
+    build:
+      context: .
+      dockerfile: packages/website/Dockerfile
+      args:
+        VITE_BACKEND_SERVICE_URL: "${VITE_BACKEND_SERVICE_URL:-/oss-evaluation-api}"
+    image: oss-evaluation-website
+    container_name: oss-eval-website
+    restart: unless-stopped
+    ports:
+      - "${WEBSITE_PORT:-8080}:80"
+    depends_on:
+      - api-server
+
   integration:
     build:
       context: .
@@ -7,10 +60,10 @@ services:
     container_name: oss-eval-integration
     restart: unless-stopped
     ports:
-      - "${INTEGRATION_PORT:-3001}:${INTEGRATION_PORT:-3001}"
+      - "${INTEGRATION_PORT:-3001}:3001"
     environment:
       NODE_ENV: "${NODE_ENV:-development}"
-      PORT: "${INTEGRATION_PORT:-3001}"
+      PORT: "3001"
       DISABLE_SCHEDULE_JOB: "${DISABLE_SCHEDULE_JOB-true}"
       DATABASE_URL: "${DATABASE_URL:?DATABASE_URL is required. Set it in .env, for example mysql://user:password@mysql-host:3306/oss-eval}"
       DATABASE_EXT_URL: "${DATABASE_EXT_URL:-}"
@@ -23,6 +76,28 @@ services:
       EXT_ALTERNATIVE_BOT: "${EXT_ALTERNATIVE_BOT:-}"
       EXT_PROJECT_DESCRIPTION_BOT: "${EXT_PROJECT_DESCRIPTION_BOT:-}"
       REPO_SERVICE_URL: "${REPO_SERVICE_URL:-}"
+
+  repo-service:
+    profiles:
+      - repo-service
+    build:
+      context: .
+      dockerfile: packages/repo-service/Dockerfile
+    image: oss-evaluation-repo-service
+    container_name: oss-eval-repo-service
+    restart: unless-stopped
+    ports:
+      - "${REPO_SERVICE_PORT:-3002}:3002"
+    environment:
+      NODE_ENV: "${NODE_ENV:-development}"
+      PORT: "3002"
+      DATABASE_URL: "${DATABASE_URL:?DATABASE_URL is required}"
+      DATABASE_EXT_URL: "${DATABASE_EXT_URL:-}"
+      LOG_DIR: "${LOG_DIR:-logs}"
+      REPO_DIR: "${REPO_DIR:-/tmp/oss-evaluation-repos}"
+      GITHUB_TOKEN: "${GITHUB_TOKEN:-[]}"
+      GITEE_TOKEN: "${GITEE_TOKEN:-[]}"
+      GITCODE_TOKEN: "${GITCODE_TOKEN:-[]}"
 
   mysql:
     profiles:

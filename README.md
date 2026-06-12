@@ -2,6 +2,28 @@
 
 开源项目评估平台 monorepo。
 
+## 文档
+
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — 每个服务/包是干什么的、服务间依赖、数据流
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — 完整部署指南(一键 compose、生产部署、单服务部署、常见失败原因)
+- [docs/DATABASE.md](docs/DATABASE.md) — 数据库 schema 维护:改字段时如何同步 `sql/init.sql` 与增量脚本
+
+## 快速启动(本机一键,含测试 MySQL)
+
+```bash
+cp .env.example .env
+# .env 里设置: DATABASE_URL=mysql://root:oss-eval-root@mysql:3306/oss-eval
+docker compose --profile local-mysql up --build -d
+```
+
+启动后:
+
+- 前端: http://localhost:8080
+- api-server: http://localhost:3000/api-docs
+- integration: http://localhost:3001/api-docs
+
+`docker compose up -d`(不带 profile)默认启动 website + api-server + integration,连接 `.env` 里配置的外部 MySQL。详见 [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)。
+
 ## Docker 生产部署
 
 ### 1. 数据库前置条件
