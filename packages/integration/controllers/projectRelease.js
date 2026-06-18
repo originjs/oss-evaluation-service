@@ -30,11 +30,15 @@ async function genericFetch(url, platformType, retried = false) {
   if (RETRYABLE_STATUS.has(response.status) && !retried) {
     await refreshValidToken(platformType);
     const newToken = await getValidToken(platformType);
+    if (!newToken) return response;
     const separator = url.includes('?') ? '&' : '?';
     const prefix = url.split('#')[0];
     const hasTokenParam = /[?&]access_token=/.test(url);
     const rebuilt = hasTokenParam
-      ? prefix.replace(/([?&])access_token=[^&]*/, `$1access_token=${encodeURIComponent(newToken || '')}`)
+      ? prefix.replace(
+          /([?&])access_token=[^&]*/,
+          `$1access_token=${encodeURIComponent(newToken || '')}`,
+        )
       : `${prefix}${separator}access_token=${encodeURIComponent(newToken || '')}`;
     return genericFetch(rebuilt, platformType, true);
   }
@@ -58,13 +62,7 @@ async function fetchGithubLatestRelease(owner, repo) {
     );
     if (latestResp.ok) {
       const latest = await latestResp.json();
-      if (
-        latest &&
-        !latest.prerelease &&
-        !latest.draft &&
-        latest.tag_name &&
-        latest.published_at
-      ) {
+      if (latest && !latest.prerelease && !latest.draft && latest.tag_name && latest.published_at) {
         return { tagName: latest.tag_name, publishedAt: latest.published_at };
       }
     }
@@ -75,18 +73,12 @@ async function fetchGithubLatestRelease(owner, repo) {
       platformTypes.GITHUB,
     );
     if (!listResp.ok) {
-      logger.warn(
-        `[Release] GitHub fetch failed ${owner}/${repo}: status=${listResp.status}`,
-      );
+      logger.warn(`[Release] GitHub fetch failed ${owner}/${repo}: status=${listResp.status}`);
       return null;
     }
     const releases = await listResp.json();
-    const stable = releases.find(
-      r => !r.prerelease && !r.draft && r.tag_name && r.published_at,
-    );
-    return stable
-      ? { tagName: stable.tag_name, publishedAt: stable.published_at }
-      : null;
+    const stable = releases.find(r => !r.prerelease && !r.draft && r.tag_name && r.published_at);
+    return stable ? { tagName: stable.tag_name, publishedAt: stable.published_at } : null;
   } catch (e) {
     logger.warn(`[Release] GitHub fetch error ${owner}/${repo}: ${e.message}`);
     return null;
@@ -110,9 +102,7 @@ async function fetchGiteeLatestRelease(owner, repo) {
   try {
     const response = await genericFetch(url, platformTypes.GITEE);
     if (!response.ok) {
-      logger.warn(
-        `[Release] Gitee fetch failed ${owner}/${repo}: status=${response.status}`,
-      );
+      logger.warn(`[Release] Gitee fetch failed ${owner}/${repo}: status=${response.status}`);
       return null;
     }
     const releases = await response.json();
@@ -122,9 +112,7 @@ async function fetchGiteeLatestRelease(owner, repo) {
       const tb = new Date(giteePublishedAt(b)).getTime() || 0;
       return tb - ta;
     });
-    const stable = sorted.find(
-      r => !r.prerelease && (r.tag_name || r.tag) && giteePublishedAt(r),
-    );
+    const stable = sorted.find(r => !r.prerelease && (r.tag_name || r.tag) && giteePublishedAt(r));
     return stable
       ? {
           tagName: stable.tag_name || stable.tag || '',
@@ -150,9 +138,7 @@ async function fetchGitcodeLatestRelease(owner, repo) {
   try {
     const response = await genericFetch(url, platformTypes.GITCODE);
     if (!response.ok) {
-      logger.warn(
-        `[Release] GitCode fetch failed ${owner}/${repo}: status=${response.status}`,
-      );
+      logger.warn(`[Release] GitCode fetch failed ${owner}/${repo}: status=${response.status}`);
       return null;
     }
     const releases = await response.json();
@@ -162,9 +148,7 @@ async function fetchGitcodeLatestRelease(owner, repo) {
       const tb = new Date(giteePublishedAt(b)).getTime() || 0;
       return tb - ta;
     });
-    const stable = sorted.find(
-      r => !r.prerelease && (r.tag_name || r.tag) && giteePublishedAt(r),
-    );
+    const stable = sorted.find(r => !r.prerelease && (r.tag_name || r.tag) && giteePublishedAt(r));
     return stable
       ? {
           tagName: stable.tag_name || stable.tag || '',
@@ -224,7 +208,7 @@ export async function syncSingleProjectRelease(project) {
   }
 
   const Model = tableMap[platformType];
-  const affectedRows = await Model.update(
+  const [affectedRows] = await Model.update(
     {
       latestReleaseTagName: info.tagName,
       latestReleasePublishedAt: info.publishedAt,
@@ -233,9 +217,7 @@ export async function syncSingleProjectRelease(project) {
   );
 
   if (!affectedRows) {
-    logger.warn(
-      `[Release] no row updated for ${fullName} (pId=${project.pId})`,
-    );
+    logger.warn(`[Release] no row updated for ${fullName} (pId=${project.pId})`);
     return RELEASE_SYNC_STATUS.FAILED;
   }
 
@@ -280,9 +262,7 @@ export async function syncAllProjectReleaseHandler(req, res) {
     order: [['pId', 'ASC']],
   });
 
-  logger.info(
-    `[Release] batch sync start: count=${projects.length}, onlyNull=${onlyNull}`,
-  );
+  logger.info(`[Release] batch sync start: count=${projects.length}, onlyNull=${onlyNull}`);
 
   let okCount = 0;
   let skipCount = 0;
@@ -303,7 +283,5 @@ export async function syncAllProjectReleaseHandler(req, res) {
   logger.info(
     `[Release] batch sync done: updated=${okCount}, skipped=${skipCount}, failed=${failCount}, total=${projects.length}`,
   );
-  res
-    .status(200)
-    .json({ ok: true, total: projects.length, okCount, skipCount, failCount });
+  res.status(200).json({ ok: true, total: projects.length, okCount, skipCount, failCount });
 }
