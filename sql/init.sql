@@ -211,6 +211,8 @@ CREATE TABLE `gitcode_projects_t` (
   `record_desc` VARCHAR(255) NULL,
   `data_type` TINYINT NULL,
   `ai_description` JSON NULL,
+  `latest_release_tag_name` VARCHAR(255) NULL,
+  `latest_release_published_at` VARCHAR(512) NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -276,6 +278,8 @@ CREATE TABLE `gitee_projects_t` (
   `record_desc` VARCHAR(255) NULL,
   `data_type` TINYINT NULL,
   `ai_description` JSON NULL,
+  `latest_release_tag_name` VARCHAR(255) NULL,
+  `latest_release_published_at` VARCHAR(512) NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -458,6 +462,8 @@ CREATE TABLE `github_projects_t` (
   `record_desc` VARCHAR(255) NULL,
   `data_type` TINYINT NULL,
   `ai_description` JSON NULL,
+  `latest_release_tag_name` VARCHAR(255) NULL,
+  `latest_release_published_at` VARCHAR(512) NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -903,7 +909,8 @@ SELECT g.p_id, g.platform_type, g.id, g.name, g.full_name, g.html_url, g.descrip
        g.is_template, g.web_commit_signoff_required,
        g.open_ai_remark, g.open_ai_recommend_remark, g.question_info, g.prompt,
        g.integrated_state, g.contributors, g.dependent_repositories, g.dependent_packages,
-       g.record_desc, g.data_type, g.ai_description, g.code_size
+       g.record_desc, g.data_type, g.ai_description, g.code_size,
+       g.latest_release_tag_name, g.latest_release_published_at
 FROM github_projects_t g WHERE g.data_type = 1
 UNION ALL
 SELECT e.p_id, e.platform_type, e.id, e.name, e.full_name, e.html_url, e.description,
@@ -916,7 +923,8 @@ SELECT e.p_id, e.platform_type, e.id, e.name, e.full_name, e.html_url, e.descrip
        NULL, NULL,
        e.open_ai_remark, e.open_ai_recommend_remark, e.question_info, e.prompt,
        e.integrated_state, e.contributors, e.dependent_repositories, e.dependent_packages,
-       e.record_desc, e.data_type, e.ai_description, e.code_size
+       e.record_desc, e.data_type, e.ai_description, e.code_size,
+       e.latest_release_tag_name, e.latest_release_published_at
 FROM gitee_projects_t e WHERE e.data_type = 1
 UNION ALL
 SELECT c.p_id, c.platform_type, c.id, c.name, c.full_name, c.html_url, c.description,
@@ -929,7 +937,8 @@ SELECT c.p_id, c.platform_type, c.id, c.name, c.full_name, c.html_url, c.descrip
        NULL, NULL,
        c.open_ai_remark, c.open_ai_recommend_remark, c.question_info, c.prompt,
        c.integrated_state, c.contributors, c.dependent_repositories, c.dependent_packages,
-       c.record_desc, c.data_type, c.ai_description, c.code_size
+       c.record_desc, c.data_type, c.ai_description, c.code_size,
+       c.latest_release_tag_name, c.latest_release_published_at
 FROM gitcode_projects_t c WHERE c.data_type = 1;
 
 DROP TABLE IF EXISTS `criticality_score_20240401`;

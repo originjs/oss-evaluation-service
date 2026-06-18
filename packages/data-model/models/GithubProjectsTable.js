@@ -185,6 +185,12 @@ export default sequelize.define(
     aiDescription: {
       type: DataTypes.JSON,
     },
+    latestReleaseTagName: {
+      type: DataTypes.STRING(255),
+    },
+    latestReleasePublishedAt: {
+      type: DataTypes.STRING(512),
+    },
   },
   {
     tableName: 'github_projects_t',

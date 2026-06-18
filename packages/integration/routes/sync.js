@@ -83,6 +83,10 @@ import {
 } from '../controllers/trendHistory.js';
 import { storeTrendRankHistoryHandler } from '../controllers/trendRankHistory.js';
 import { syncProjectDescriptionHandler } from '../controllers/projectDescription.js';
+import {
+  syncSingleProjectReleaseHandler,
+  syncAllProjectReleaseHandler,
+} from '../controllers/projectRelease.js';
 
 const router = express.Router();
 
@@ -1344,5 +1348,56 @@ router.route('/syncGithubProjectsDaily').get(syncGithubProjectsDailyHandler);
  *         description: success.
  */
 router.route('/syncGithubProjectsWeekly').get(syncGithubProjectsWeeklyHandler);
+
+/**
+ * @swagger
+ * /sync/release/syncSingleProjectRelease:
+ *   post:
+ *     summary: sync latest stable release for a single project
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               repoUrl:
+ *                 type: string
+ *                 example: "https://github.com/vuejs/vue"
+ *               pId:
+ *                 type: string
+ *                 example: "1#137078487"
+ *     responses:
+ *       200:
+ *         description: Success
+ */
+router.route('/release/syncSingleProjectRelease').post(syncSingleProjectReleaseHandler);
+
+/**
+ * @swagger
+ * /sync/release/syncAllProjectRelease:
+ *   post:
+ *     summary: batch sync latest stable release for all projects
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               limit:
+ *                 type: number
+ *                 example: 500
+ *               offset:
+ *                 type: number
+ *                 example: 0
+ *               onlyNull:
+ *                 type: boolean
+ *                 example: true
+ *     responses:
+ *       200:
+ *         description: Success
+ */
+router.route('/release/syncAllProjectRelease').post(syncAllProjectReleaseHandler);
 
 export default router;

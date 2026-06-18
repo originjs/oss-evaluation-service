@@ -23,6 +23,7 @@ import { syncSingleProjectCreatorsCountries } from './ossinsightCreatorsCountry.
 import { syncSingleProjectCreatorsOrg } from './ossinsightCreatorsOrg.js';
 import { syncSingleProjectAlternative, updateProjectId } from './alternative.js';
 import { syncSingleProjectDescription } from './projectDescription.js';
+import { syncSingleProjectRelease } from './projectRelease.js';
 
 export default async function syncSingleProjectAllMetadataHandler(req, res) {
   const options = req.body;
@@ -124,6 +125,8 @@ async function syncSingleProjectAllMetadata(options) {
     syncSingleProjectAlternative,
     // 16. AI project description
     syncSingleProjectDescription,
+    // 17. latest stable release
+    syncSingleProjectRelease,
   ];
 
   for (const _function of functions) {
