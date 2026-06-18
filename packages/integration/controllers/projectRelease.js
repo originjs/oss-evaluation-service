@@ -8,8 +8,6 @@ import {
 import { platformTypes } from '@orginjs/oss-evaluation-util';
 import { getValidToken, refreshValidToken } from '../util/util.js';
 
-const nonPreReleasePredicate = release => !release.prerelease && !release.draft;
-
 async function fetchGithubLatestRelease(owner, repo) {
   const token = await getValidToken(platformTypes.GITHUB);
   const url = `https://api.github.com/repos/${owner}/${repo}/releases`;
@@ -32,7 +30,9 @@ async function fetchGithubLatestRelease(owner, repo) {
       return null;
     }
     const releases = await response.json();
-    const stable = releases.find(nonPreReleasePredicate);
+    const stable = releases.find(
+      r => !r.prerelease && !r.draft && r.tag_name && r.published_at,
+    );
     return stable
       ? {
           tagName: stable.tag_name,
@@ -67,12 +67,15 @@ async function fetchGiteeLatestRelease(owner, repo) {
     }
     const releases = await response.json();
     if (!Array.isArray(releases) || releases.length === 0) return null;
-    const stable = releases.find(r => !r.prerelease);
-    const picked = stable || releases[0];
-    return {
-      tagName: picked.tag_name || picked.tag || '',
-      publishedAt: picked.created_at || picked.updated_at || '',
-    };
+    const stable = releases.find(
+      r => !r.prerelease && (r.tag_name || r.tag) && (r.created_at || r.updated_at),
+    );
+    return stable
+      ? {
+          tagName: stable.tag_name || stable.tag || '',
+          publishedAt: stable.created_at || stable.updated_at || '',
+        }
+      : null;
   } catch (e) {
     logger.warn(`[Release] Gitee fetch error ${owner}/${repo}: ${e.message}`);
     return null;
@@ -86,7 +89,7 @@ async function fetchGitcodeLatestRelease(owner, repo) {
     page: '1',
   });
   if (token) params.set('access_token', token);
-  const url = `https://api.gitcode.com/api/v5/projects/${owner}/${repo}/releases?${params.toString()}`;
+  const url = `https://api.gitcode.com/api/v5/repos/${owner}/${repo}/releases?${params.toString()}`;
 
   try {
     const response = await fetch(url);
@@ -101,12 +104,15 @@ async function fetchGitcodeLatestRelease(owner, repo) {
     }
     const releases = await response.json();
     if (!Array.isArray(releases) || releases.length === 0) return null;
-    const stable = releases.find(r => !r.prerelease);
-    const picked = stable || releases[0];
-    return {
-      tagName: picked.tag_name || picked.tag || '',
-      publishedAt: picked.created_at || picked.updated_at || '',
-    };
+    const stable = releases.find(
+      r => !r.prerelease && (r.tag_name || r.tag) && (r.created_at || r.updated_at),
+    );
+    return stable
+      ? {
+          tagName: stable.tag_name || stable.tag || '',
+          publishedAt: stable.created_at || stable.updated_at || '',
+        }
+      : null;
   } catch (e) {
     logger.warn(`[Release] GitCode fetch error ${owner}/${repo}: ${e.message}`);
     return null;
@@ -125,43 +131,61 @@ const tableMap = {
   [platformTypes.GITCODE]: GitcodeProjectsTable,
 };
 
-async function syncSingleProjectRelease(project) {
+export const RELEASE_SYNC_STATUS = Object.freeze({
+  UPDATED: 'updated',
+  SKIPPED: 'skipped',
+  FAILED: 'failed',
+});
+
+export async function syncSingleProjectRelease(project) {
   const platformType = project.platformType;
   const fullName = project.fullName;
+
   if (!fullName) {
     logger.warn(`[Release] project missing fullName, pId=${project.pId}`);
-    return;
+    return RELEASE_SYNC_STATUS.FAILED;
   }
+
   const parts = fullName.split('/');
   if (parts.length < 2) {
     logger.warn(`[Release] invalid fullName "${fullName}", pId=${project.pId}`);
-    return;
+    return RELEASE_SYNC_STATUS.FAILED;
   }
   const [owner, repo] = parts;
+
   const fetcher = fetchers[platformType];
   if (!fetcher) {
     logger.warn(`[Release] unsupported platformType=${platformType}`);
-    return;
+    return RELEASE_SYNC_STATUS.SKIPPED;
   }
 
   const info = await fetcher(owner, repo);
   if (!info) {
-    logger.info(`[Release] no release for ${fullName}`);
-    return;
+    logger.info(`[Release] no stable release for ${fullName}`);
+    return RELEASE_SYNC_STATUS.SKIPPED;
   }
 
   const Model = tableMap[platformType];
   const [platformRaw, idRaw] = project.pId.split('#');
-  await Model.update(
+  const [affectedRows] = await Model.update(
     {
       latestReleaseTagName: info.tagName,
       latestReleasePublishedAt: info.publishedAt,
     },
     { where: { platformType: Number(platformRaw), id: Number(idRaw) } },
   );
+
+  if (!affectedRows) {
+    logger.warn(
+      `[Release] no row updated for ${fullName} (pId=${project.pId})`,
+    );
+    return RELEASE_SYNC_STATUS.FAILED;
+  }
+
   logger.info(
     `[Release] synced ${fullName}: tag=${info.tagName}, published_at=${info.publishedAt}`,
   );
+  return RELEASE_SYNC_STATUS.UPDATED;
 }
 
 export async function syncSingleProjectReleaseHandler(req, res) {
@@ -173,11 +197,12 @@ export async function syncSingleProjectReleaseHandler(req, res) {
     project = await ViewProjects.findOne({ where: { pId: req.body.pId } });
   }
   if (!project) {
-    res.status(404).json({ error: 'Project not found' });
+    res.status(404).json({ ok: false, error: 'Project not found' });
     return;
   }
-  await syncSingleProjectRelease(project);
-  res.status(200).json({ ok: true, pId: project.pId });
+  const status = await syncSingleProjectRelease(project);
+  const ok = status === RELEASE_SYNC_STATUS.UPDATED;
+  res.status(200).json({ ok, pId: project.pId, status });
 }
 
 export async function syncAllProjectReleaseHandler(req, res) {
@@ -204,20 +229,24 @@ export async function syncAllProjectReleaseHandler(req, res) {
 
   let okCount = 0;
   let skipCount = 0;
+  let failCount = 0;
   for (const p of projects) {
     try {
-      await syncSingleProjectRelease(p);
-      okCount += 1;
+      const status = await syncSingleProjectRelease(p);
+      if (status === RELEASE_SYNC_STATUS.UPDATED) okCount += 1;
+      else if (status === RELEASE_SYNC_STATUS.SKIPPED) skipCount += 1;
+      else failCount += 1;
     } catch (e) {
-      skipCount += 1;
+      failCount += 1;
       logger.error(`[Release] batch error ${p.pId}: ${e.message}`);
     }
   }
 
   logger.info(
-    `[Release] batch sync done: ok=${okCount}, skip=${skipCount}, total=${projects.length}`,
+    `[Release] batch sync done: updated=${okCount}, skipped=${skipCount}, failed=${failCount}, total=${projects.length}`,
   );
-  res.status(200).json({ ok: true, total: projects.length, okCount, skipCount });
+  res
+    .status(200)
+    .json({ ok: true, total: projects.length, okCount, skipCount, failCount });
 }
 
-export { syncSingleProjectRelease };
