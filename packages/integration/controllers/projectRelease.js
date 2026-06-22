@@ -249,13 +249,8 @@ export async function syncAllProjectReleaseHandler(req, res) {
   const offset = Number(req.body?.offset) || 0;
   const onlyNull = req.body?.onlyNull !== false;
 
-  const where = { dataType: 1 };
-  if (onlyNull) {
-    where.latestReleasePublishedAt = null;
-  }
-
   const projects = await ViewProjects.findAll({
-    where,
+    where: onlyNull ? { latestReleasePublishedAt: null } : undefined,
     attributes: ['id', 'pId', 'platformType', 'fullName', 'htmlUrl'],
     limit,
     offset,
