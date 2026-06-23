@@ -1,12 +1,13 @@
 import { GitcodeProjectsTable, logger } from '@orginjs/oss-evaluation-data-model';
 import { platformTypes } from '@orginjs/oss-evaluation-util';
-import { sleep } from '../util/util.js';
+import { sleep, getValidToken } from '../util/util.js';
 import { addMonitoringToTask } from '../scheduler/schdulerMonitor.js';
 import { syncGitcodeOrgProjects } from './gitcodeOrg.js';
 
 const GITCODE_API = 'https://api.gitcode.com/api/v5';
-// 每个仓库 tags 请求之间的间隔，避免触发频控
+// 每个仓库 tags 请求之间的间隔，避免触发频控；有 token 时限频更宽，可显著缩短
 const REQUEST_INTERVAL_MS = 200;
+const REQUEST_INTERVAL_WITH_TOKEN_MS = 30;
 // tags 接口单页数量
 const TAGS_PER_PAGE = 100;
 // 单仓库 tags 翻页安全上限，避免分页异常时无限循环
@@ -71,18 +72,25 @@ export function collectMajorVersions(tags, includePreRelease = false) {
 }
 
 /**
- * 拉取单个仓库的全部 tags（翻页）。tags 接口公开，无需 token。
+ * 拉取单个仓库的全部 tags（翻页）。tags 接口公开，无需 token；
+ * 但带 token 时限频更宽，可去掉翻页间隔、加快抓取。
  *
  * GitCode tags 接口分页（默认单页较小），且返回顺序不保证按时间倒序，
  * 必须翻完所有页才能收集到全部 >= v6.0 的 release tag，否则会漏版本。
+ *
+ * @param {string} owner
+ * @param {string} repo
+ * @param {string|null} [token] 有 token 时附带 private-token 头并跳过翻页间隔
  */
-async function fetchRepoTags(owner, repo) {
+async function fetchRepoTags(owner, repo, token = null) {
+  const headers = { 'User-Agent': 'oss-evaluation-integration' };
+  if (token) {
+    headers['private-token'] = token;
+  }
   const all = [];
   for (let page = 1; page <= TAGS_MAX_PAGES; page += 1) {
     const url = `${GITCODE_API}/repos/${owner}/${repo}/tags?page=${page}&per_page=${TAGS_PER_PAGE}`;
-    const response = await fetch(url, {
-      headers: { 'User-Agent': 'oss-evaluation-integration' },
-    });
+    const response = await fetch(url, { headers });
     if (!response.ok) {
       logger.info(`GitCode tags ${owner}/${repo} page=${page} -> ${response.status}, 跳过`);
       break;
@@ -95,8 +103,8 @@ async function fetchRepoTags(owner, repo) {
     if (tags.length < TAGS_PER_PAGE) {
       break;
     }
-    // 翻页之间也加间隔，避免触发频控
-    if (page < TAGS_MAX_PAGES) {
+    // 翻页之间加间隔避免频控；有 token 时限频更宽，无需等待
+    if (page < TAGS_MAX_PAGES && !token) {
       await sleep(REQUEST_INTERVAL_MS);
     }
   }
@@ -110,13 +118,13 @@ async function fetchRepoTags(owner, repo) {
  *
  * @returns {Promise<string[]>} 写入的版本数组
  */
-async function syncSingleRepo(repo, includePreRelease) {
+async function syncSingleRepo(repo, includePreRelease, token = null) {
   const owner = repo.ownerName;
   const name = repo.name;
   if (!owner || !name) {
     return [];
   }
-  const tags = await fetchRepoTags(owner, name);
+  const tags = await fetchRepoTags(owner, name, token);
   const versions = collectMajorVersions(tags, includePreRelease);
 
   await GitcodeProjectsTable.update(
@@ -159,11 +167,20 @@ export async function syncOpenHarmonyCompatibility(options = {}) {
   }
   const repos = await GitcodeProjectsTable.findAll(queryOptions);
 
+  // 解析一次 GitCode token（无 token 不影响功能，仅会更慢）；有 token 时限频更宽，缩短间隔
+  let token = null;
+  try {
+    token = await getValidToken(platformTypes.GITCODE);
+  } catch (e) {
+    logger.warn(`[OHVersion] 获取 GitCode token 失败，按无 token 处理: ${e.message}`);
+  }
+  const intervalMs = token ? REQUEST_INTERVAL_WITH_TOKEN_MS : REQUEST_INTERVAL_MS;
+
   let matched = 0;
   let processed = 0;
   for (const repo of repos) {
     try {
-      const versions = await syncSingleRepo(repo, includePreRelease);
+      const versions = await syncSingleRepo(repo, includePreRelease, token);
       if (versions.length) {
         matched += 1;
         logger.info(`[OHVersion] ${repo.fullName} -> ${versions.join(',')}`);
@@ -173,13 +190,14 @@ export async function syncOpenHarmonyCompatibility(options = {}) {
     }
     processed += 1;
     if (processed < repos.length) {
-      await sleep(REQUEST_INTERVAL_MS);
+      await sleep(intervalMs);
     }
   }
 
   return {
     repos: repos.length,
     matched,
+    hasToken: Boolean(token),
     includePreRelease: Boolean(includePreRelease),
   };
 }
