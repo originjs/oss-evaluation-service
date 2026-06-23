@@ -18,6 +18,3 @@ create index gitee_projects_t_latest_release_published_at_idx
 
 create index gitcode_projects_t_latest_release_published_at_idx
     on gitcode_projects_t (latest_release_published_at);
-
-alter table gitcode_projects_t
-    add openharmony_version json null comment 'OpenHarmony 适配的鸿蒙大版本列表（仅 >= v6.0 的 release），JSON 数组，如 ["v6.1-release","v6.0-release"]' after latest_release_published_at;

@@ -7,6 +7,10 @@ import { syncGitcodeOrgProjects } from './gitcodeOrg.js';
 const GITCODE_API = 'https://api.gitcode.com/api/v5';
 // 每个仓库 tags 请求之间的间隔，避免触发频控
 const REQUEST_INTERVAL_MS = 200;
+// tags 接口单页数量
+const TAGS_PER_PAGE = 100;
+// 单仓库 tags 翻页安全上限，避免分页异常时无限循环
+const TAGS_MAX_PAGES = 100;
 // 只记录 >= 该大版本的鸿蒙 release（v6.0 及以后）
 const MIN_MAJOR_VERSION = 6;
 
@@ -67,19 +71,36 @@ export function collectMajorVersions(tags, includePreRelease = false) {
 }
 
 /**
- * 拉取单个仓库的 tags。tags 接口公开，无需 token。
+ * 拉取单个仓库的全部 tags（翻页）。tags 接口公开，无需 token。
+ *
+ * GitCode tags 接口分页（默认单页较小），且返回顺序不保证按时间倒序，
+ * 必须翻完所有页才能收集到全部 >= v6.0 的 release tag，否则会漏版本。
  */
 async function fetchRepoTags(owner, repo) {
-  const url = `${GITCODE_API}/repos/${owner}/${repo}/tags`;
-  const response = await fetch(url, {
-    headers: { 'User-Agent': 'oss-evaluation-integration' },
-  });
-  if (!response.ok) {
-    logger.info(`GitCode tags ${owner}/${repo} -> ${response.status}, 跳过`);
-    return [];
+  const all = [];
+  for (let page = 1; page <= TAGS_MAX_PAGES; page += 1) {
+    const url = `${GITCODE_API}/repos/${owner}/${repo}/tags?page=${page}&per_page=${TAGS_PER_PAGE}`;
+    const response = await fetch(url, {
+      headers: { 'User-Agent': 'oss-evaluation-integration' },
+    });
+    if (!response.ok) {
+      logger.info(`GitCode tags ${owner}/${repo} page=${page} -> ${response.status}, 跳过`);
+      break;
+    }
+    const tags = await response.json();
+    if (!Array.isArray(tags) || tags.length === 0) {
+      break;
+    }
+    all.push(...tags);
+    if (tags.length < TAGS_PER_PAGE) {
+      break;
+    }
+    // 翻页之间也加间隔，避免触发频控
+    if (page < TAGS_MAX_PAGES) {
+      await sleep(REQUEST_INTERVAL_MS);
+    }
   }
-  const tags = await response.json();
-  return Array.isArray(tags) ? tags : [];
+  return all;
 }
 
 /**
