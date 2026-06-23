@@ -213,6 +213,7 @@ CREATE TABLE `gitcode_projects_t` (
   `ai_description` JSON NULL,
   `latest_release_tag_name` VARCHAR(255) NULL,
   `latest_release_published_at` VARCHAR(512) NULL,
+  `openharmony_version` JSON NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

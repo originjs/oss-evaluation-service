@@ -53,5 +53,15 @@ export const JobConfig = {
       cronScheduleTime: '0 12 5 * *', // 每月5号 12:00
       enabled: isProduction, // only start in production environment
     },
+    {
+      name: 'gitcodeOrgProjectsTimer',
+      cronScheduleTime: '0 2 * * 1', // 周一 02:00 同步 OpenHarmony 组织仓库
+      enabled: isProduction, // only start in production environment
+    },
+    {
+      name: 'openharmonyCompatibilityTimer',
+      cronScheduleTime: '0 4 * * 1', // 周一 04:00 解析 OpenHarmony 适配大版本（在仓库同步之后）
+      enabled: isProduction, // only start in production environment
+    },
   ],
 };
