@@ -2,6 +2,7 @@ import { GitcodeProjectsTable, logger } from '@orginjs/oss-evaluation-data-model
 import { platformTypes } from '@orginjs/oss-evaluation-util';
 import { sleep } from '../util/util.js';
 import { addMonitoringToTask } from '../scheduler/schdulerMonitor.js';
+import { syncGitcodeOrgProjects } from './gitcodeOrg.js';
 
 const GITCODE_API = 'https://api.gitcode.com/api/v5';
 // 每个仓库 tags 请求之间的间隔，避免触发频控
@@ -155,22 +156,31 @@ export async function syncOpenHarmonyCompatibility(options = {}) {
 }
 
 /**
- * 定时任务调度入口：全量解析 OpenHarmony 适配版本。
+ * 定时任务调度入口（单任务）：
+ *  1. 同步 OpenHarmony 组织仓库到 gitcode_projects_t；
+ *  2. 解析各仓库 tags，写回适配的鸿蒙大版本。
+ * 两步顺序执行，保证版本解析基于最新的仓库列表。
  */
-async function openharmonyCompatibilityScheduler() {
+async function openharmonyScheduler() {
   const startTime = process.hrtime();
-  logger.info('[Integration][OHVersion] Integration Job start');
-  const result = await syncOpenHarmonyCompatibility({});
+  logger.info('[Integration][OpenHarmony] Integration Job start');
+
+  const orgResult = await syncGitcodeOrgProjects({ org: 'openharmony' });
+  logger.info(
+    `[Integration][OpenHarmony] org synced org=${orgResult.org} fetched=${orgResult.total} saved=${orgResult.saved}`,
+  );
+
+  const versionResult = await syncOpenHarmonyCompatibility({});
   const endTime = process.hrtime(startTime);
   logger.info(
-    `[Integration][OHVersion] done repos=${result.repos} matched=${result.matched}, cost ${endTime[0]}s ${endTime[1] / 1e6}ms`,
+    `[Integration][OpenHarmony] done repos=${versionResult.repos} matched=${versionResult.matched}, cost ${endTime[0]}s ${endTime[1] / 1e6}ms`,
   );
 }
 
-export const openharmonyCompatibilityTimer = addMonitoringToTask(
-  openharmonyCompatibilityScheduler,
-  'openharmonyCompatibilityTimer',
-  'openharmonyCompatibilityTimer',
+export const openharmonyTimer = addMonitoringToTask(
+  openharmonyScheduler,
+  'openharmonyTimer',
+  'openharmonyTimer',
 );
 
 export async function syncOpenHarmonyCompatibilityHandler(req, res) {

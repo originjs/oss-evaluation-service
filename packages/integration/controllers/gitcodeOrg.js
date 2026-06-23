@@ -1,6 +1,5 @@
 import { GitcodeProjectsTable, logger } from '@orginjs/oss-evaluation-data-model';
 import { normalizeTime, platformTypes } from '@orginjs/oss-evaluation-util';
-import { addMonitoringToTask } from '../scheduler/schdulerMonitor.js';
 
 // GitCode REST API (Gitee v5 兼容)
 const GITCODE_API = 'https://api.gitcode.com/api/v5';
@@ -189,27 +188,6 @@ export async function syncGitcodeOrgProjects(options = {}) {
     detailEnriched: Boolean(token),
   };
 }
-
-/**
- * 定时任务调度入口：默认同步 OpenHarmony 组织。
- * 不带 detail（详情接口需要 GITCODE_TOKEN），定时跑只取列表里的基础信息。
- */
-async function gitcodeOrgProjectsScheduler() {
-  const startTime = process.hrtime();
-  logger.info('[Integration][GitcodeOrg] Integration Job start');
-  const result = await syncGitcodeOrgProjects({ org: 'openharmony' });
-  const endTime = process.hrtime(startTime);
-  logger.info(
-    `[Integration][GitcodeOrg] done org=${result.org} fetched=${result.total} saved=${result.saved}, cost ${endTime[0]}s ${endTime[1] / 1e6}ms`,
-  );
-}
-
-// 接入定时任务监控（写入 schedule_task_monitor 表）
-export const gitcodeOrgProjectsTimer = addMonitoringToTask(
-  gitcodeOrgProjectsScheduler,
-  'gitcodeOrgProjectsTimer',
-  'gitcodeOrgProjectsTimer',
-);
 
 export async function syncGitcodeOrgProjectsHandler(req, res) {
   const { org, perPage, withDetail } = req.body || {};
