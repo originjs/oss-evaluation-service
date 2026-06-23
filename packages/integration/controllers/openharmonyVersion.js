@@ -108,18 +108,26 @@ async function syncSingleRepo(repo, includePreRelease) {
 /**
  * 批量解析 OpenHarmony 仓库适配的最新鸿蒙大版本，写回 gitcode_projects_t。
  *
+ * 默认只处理 OpenHarmony 组织（ownerName='openharmony'）下的仓库，
+ * 避免把 gitcode_projects_t 里其他来源的 GitCode 仓库也拿来请求 tags、
+ * 并在无匹配时误把它们的 openharmonyVersion 清成 null。
+ *
  * @param {object} options
+ * @param {string} [options.org] 组织 path，默认 openharmony；传 repoFullName 时忽略
  * @param {string} [options.repoFullName] 只处理单个仓库（owner/repo），用于测试
  * @param {number} [options.limit] 最多处理多少个仓库（不传则全量）
  * @param {boolean} [options.includePreRelease] 是否纳入 Beta/RC 预发布版本
  * @returns {Promise<{repos: number, matched: number, includePreRelease: boolean}>}
  */
 export async function syncOpenHarmonyCompatibility(options = {}) {
-  const { repoFullName, limit, includePreRelease = false } = options;
+  const { org = 'openharmony', repoFullName, limit, includePreRelease = false } = options;
 
   const where = { platformType: platformTypes.GITCODE };
   if (repoFullName) {
     where.fullName = repoFullName;
+  } else {
+    // 只限定在 OpenHarmony 组织内的仓库
+    where.ownerName = org;
   }
   const queryOptions = {
     where,
@@ -170,7 +178,7 @@ async function openharmonyScheduler() {
     `[Integration][OpenHarmony] org synced org=${orgResult.org} fetched=${orgResult.total} saved=${orgResult.saved}`,
   );
 
-  const versionResult = await syncOpenHarmonyCompatibility({});
+  const versionResult = await syncOpenHarmonyCompatibility({ org: 'openharmony' });
   const endTime = process.hrtime(startTime);
   logger.info(
     `[Integration][OpenHarmony] done repos=${versionResult.repos} matched=${versionResult.matched}, cost ${endTime[0]}s ${endTime[1] / 1e6}ms`,
@@ -184,9 +192,9 @@ export const openharmonyTimer = addMonitoringToTask(
 );
 
 export async function syncOpenHarmonyCompatibilityHandler(req, res) {
-  const { repoFullName, limit, includePreRelease } = req.body || {};
+  const { org, repoFullName, limit, includePreRelease } = req.body || {};
   try {
-    const result = await syncOpenHarmonyCompatibility({ repoFullName, limit, includePreRelease });
+    const result = await syncOpenHarmonyCompatibility({ org, repoFullName, limit, includePreRelease });
     res.status(200).json(result);
   } catch (e) {
     logger.error(`syncOpenHarmonyCompatibility failed: ${e.stack || e.message}`);
