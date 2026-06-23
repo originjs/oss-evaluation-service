@@ -87,6 +87,8 @@ import {
   syncSingleProjectReleaseHandler,
   syncAllProjectReleaseHandler,
 } from '../controllers/projectRelease.js';
+import { syncGitcodeOrgProjectsHandler } from '../controllers/gitcodeOrg.js';
+import { syncOpenHarmonyCompatibilityHandler } from '../controllers/openharmonyVersion.js';
 
 const router = express.Router();
 
@@ -1399,5 +1401,75 @@ router.route('/release/syncSingleProjectRelease').post(syncSingleProjectReleaseH
  *         description: Success
  */
 router.route('/release/syncAllProjectRelease').post(syncAllProjectReleaseHandler);
+
+/**
+ * @swagger
+ * tags:
+ *   name: GitCode
+ * /sync/gitcode/org/projects:
+ *   post:
+ *     summary: 抓取 GitCode 组织（如 OpenHarmony）下的全部仓库并入库到 gitcode_projects_t
+ *     tags: [GitCode]
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               org:
+ *                 type: string
+ *                 description: 组织 path，默认 openharmony
+ *                 example: "openharmony"
+ *               perPage:
+ *                 type: integer
+ *                 description: 每页数量，默认 100
+ *                 example: 100
+ *               withDetail:
+ *                 type: boolean
+ *                 description: 是否调用单仓详情接口补充 license/clone_url 等字段（需要 GITCODE_TOKEN）
+ *                 example: false
+ *     responses:
+ *       200:
+ *         description: Success
+ *       500:
+ *         description: Bad Request
+ */
+router.route('/gitcode/org/projects').post(syncGitcodeOrgProjectsHandler);
+
+/**
+ * @swagger
+ * tags:
+ *   name: GitCode
+ * /sync/gitcode/openharmony/compatibility:
+ *   post:
+ *     summary: 解析 OpenHarmony 仓库 tags，收集所有 >= v6.0 的 release 大版本（格式 vX.Y-release），以 JSON 数组写回 gitcode_projects_t.openharmony_version
+ *     tags: [GitCode]
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               repoFullName:
+ *                 type: string
+ *                 description: 只处理单个仓库（owner/repo），用于测试，不传则按 limit/全量
+ *                 example: "openharmony/arkui_ace_engine"
+ *               limit:
+ *                 type: integer
+ *                 description: 最多处理多少个仓库，不传为全量
+ *                 example: 20
+ *               includePreRelease:
+ *                 type: boolean
+ *                 description: 是否纳入 Beta/RC 预发布版本，默认 false（只取 -Release）
+ *                 example: false
+ *     responses:
+ *       200:
+ *         description: Success
+ *       500:
+ *         description: Bad Request
+ */
+router.route('/gitcode/openharmony/compatibility').post(syncOpenHarmonyCompatibilityHandler);
 
 export default router;

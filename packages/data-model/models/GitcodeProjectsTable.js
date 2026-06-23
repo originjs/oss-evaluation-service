@@ -191,6 +191,10 @@ export default sequelize.define(
     latestReleasePublishedAt: {
       type: DataTypes.STRING(512),
     },
+    // OpenHarmony 适配的鸿蒙大版本列表（仅 >= v6.0 的 release），JSON 数组，如 ["v6.1-release","v6.0-release"]
+    openharmonyVersion: {
+      type: DataTypes.JSON,
+    },
   },
   {
     tableName: 'gitcode_projects_t',
