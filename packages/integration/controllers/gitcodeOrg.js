@@ -1,31 +1,38 @@
 import { GitcodeProjectsTable, logger } from '@orginjs/oss-evaluation-data-model';
 import { normalizeTime, platformTypes } from '@orginjs/oss-evaluation-util';
+import { getValidToken } from '../util/util.js';
 
 // GitCode REST API (Gitee v5 兼容)
 const GITCODE_API = 'https://api.gitcode.com/api/v5';
 // 整合的数据类型：1 = 用于先进性评估的来源软件（与 view_projects 的 data_type = 1 对齐）
 const DATA_TYPE_GENERAL = 1;
 const DEFAULT_PER_PAGE = 100;
+// GitCode/Gitee per_page 上限
+const MAX_PER_PAGE = 100;
 // 安全上限，避免分页逻辑异常时无限循环
 const MAX_PAGES = 200;
+// 合法组织 path 格式（字母数字、-、_、.）
+const ORG_PATTERN = /^[\w.-]+$/;
+// description 列为 STRING(512)，按模型长度截断
+const DESCRIPTION_MAX_LEN = 512;
 
 /**
- * 读取第一个可用的 GitCode token（GITCODE_TOKEN 是 JSON 数组字符串）。
- * GitCode 详情接口要求 `private-token` 头，没有 token 时返回 null。
+ * GitCode/Gitee v5 详情接口的 license 多为字符串 key；
+ * 若返回 GitHub 风格对象（{key,name,spdx_id}），取其中的标识，避免写成 "[object Object]"。
  */
-function getGitcodeToken() {
-  try {
-    const tokens = JSON.parse(process.env.GITCODE_TOKEN || '[]');
-    return Array.isArray(tokens) && tokens.length > 0 ? tokens[0] : null;
-  } catch (e) {
-    logger.warn(`GITCODE_TOKEN 解析失败，按无 token 处理: ${e.message}`);
-    return null;
+function normalizeLicense(license) {
+  if (license && typeof license === 'object') {
+    return license.key || license.spdx_id || license.name || null;
   }
+  return license;
 }
 
 /**
  * 拉取某个组织下的一页仓库列表。
  * 组织列表接口公开，无需 token。
+ *
+ * 注：total_page 是 Gitee/GitCode 的非标准响应头，接口不一定返回；
+ * 拿不到时 totalPage 为 0，分页主要依赖 repos.length < perPage 兜底。
  *
  * @param {string} org 组织 path，例如 openharmony
  * @param {number} page 页码，从 1 开始
@@ -42,7 +49,10 @@ async function fetchOrgReposPage(org, page, perPage) {
     return { repos: [], totalPage: 0 };
   }
   const repos = await response.json();
-  const totalPage = Number(response.headers.get('total_page')) || 0;
+  // 兼容可能的不同大小写/命名
+  const totalPageHeader =
+    response.headers.get('total_page') || response.headers.get('Total-Page');
+  const totalPage = Number(totalPageHeader) || 0;
   return { repos: Array.isArray(repos) ? repos : [], totalPage };
 }
 
@@ -61,7 +71,7 @@ function parseOrgRepo(item) {
     name: item.path || item.name,
     fullName,
     htmlUrl: item.html_url,
-    description: item.description?.slice(0, 500),
+    description: item.description?.slice(0, DESCRIPTION_MAX_LEN),
     privateFlag: String(item.private),
     ownerName: ownerPath || item.namespace?.name,
     forkFlag: String(item.fork),
@@ -103,7 +113,7 @@ async function fetchRepoDetail(ownerName, name, token) {
     }
     const detail = await response.json();
     return {
-      license: detail.license,
+      license: normalizeLicense(detail.license),
       gitUrl: detail.git_url,
       cloneUrl: detail.clone_url,
       sshUrl: detail.ssh_url || detail.ssh_url_to_repo,
@@ -143,7 +153,8 @@ export async function syncGitcodeOrgProjects(options = {}) {
   const org = options.org || 'openharmony';
   const perPage = options.perPage || DEFAULT_PER_PAGE;
   const withDetail = Boolean(options.withDetail);
-  const token = withDetail ? getGitcodeToken() : null;
+  // 复用统一的 token 管理（带缓存、有效性校验、多 token 轮换）
+  const token = withDetail ? await getValidToken(platformTypes.GITCODE) : null;
   if (withDetail && !token) {
     logger.warn('withDetail=true 但没有可用的 GITCODE_TOKEN，将跳过详情补充');
   }
@@ -190,7 +201,29 @@ export async function syncGitcodeOrgProjects(options = {}) {
 }
 
 export async function syncGitcodeOrgProjectsHandler(req, res) {
-  const { org, perPage, withDetail } = req.body || {};
+  const body = req.body || {};
+  // 在系统边界做输入校验，避免异常值触发大量请求
+  let org = 'openharmony';
+  if (body.org !== undefined) {
+    if (typeof body.org !== 'string' || !ORG_PATTERN.test(body.org)) {
+      res.status(400).json({ message: 'invalid org' });
+      return;
+    }
+    org = body.org;
+  }
+
+  let perPage = DEFAULT_PER_PAGE;
+  if (body.perPage !== undefined) {
+    const parsed = Number(body.perPage);
+    if (!Number.isInteger(parsed) || parsed < 1) {
+      res.status(400).json({ message: 'invalid perPage' });
+      return;
+    }
+    perPage = Math.min(parsed, MAX_PER_PAGE);
+  }
+
+  const withDetail = Boolean(body.withDetail);
+
   try {
     const result = await syncGitcodeOrgProjects({ org, perPage, withDetail });
     res.status(200).json(result);
