@@ -12,6 +12,8 @@ const REQUEST_INTERVAL_WITH_TOKEN_MS = 30;
 const TAGS_PER_PAGE = 100;
 // 单仓库 tags 翻页安全上限，避免分页异常时无限循环
 const TAGS_MAX_PAGES = 100;
+// 数据库分批游标大小：每次只 load 这么多仓库进内存
+const DB_BATCH_SIZE = 200;
 // 只记录 >= 该大版本的鸿蒙 release（v6.0 及以后）
 const MIN_MAJOR_VERSION = 6;
 
@@ -88,11 +90,21 @@ async function fetchRepoTags(owner, repo, token = null) {
     headers['private-token'] = token;
   }
   const all = [];
+  let failed = false;
   for (let page = 1; page <= TAGS_MAX_PAGES; page += 1) {
-    const url = `${GITCODE_API}/repos/${owner}/${repo}/tags?page=${page}&per_page=${TAGS_PER_PAGE}`;
-    const response = await fetch(url, { headers });
+    let response;
+    try {
+      const url = `${GITCODE_API}/repos/${owner}/${repo}/tags?page=${page}&per_page=${TAGS_PER_PAGE}`;
+      response = await fetch(url, { headers });
+    } catch (e) {
+      logger.info(`GitCode tags ${owner}/${repo} page=${page} 请求异常: ${e.message}`);
+      failed = true;
+      break;
+    }
     if (!response.ok) {
       logger.info(`GitCode tags ${owner}/${repo} page=${page} -> ${response.status}, 跳过`);
+      // 非 2xx 视为抓取失败（可能限频/出错），标记后停止，避免误判“无匹配版本”
+      failed = true;
       break;
     }
     const tags = await response.json();
@@ -108,13 +120,15 @@ async function fetchRepoTags(owner, repo, token = null) {
       await sleep(REQUEST_INTERVAL_MS);
     }
   }
-  return all;
+  return { tags: all, failed };
 }
 
 /**
  * 处理单个仓库：拉 tags -> 收集 >= v6.0 的 release 大版本 -> 以 JSON 数组写回
  * gitcode_projects_t.openharmony_version（OH 专用字段）。
- * 没有符合条件的版本时写 null（清掉旧值，保证幂等）。
+ *
+ * 幂等清空只在“成功抓取且确实无匹配版本”时执行（写 null）；
+ * 若抓取失败（限频/网络/接口错误），保留旧值不更新，避免把已有版本误清成 null。
  *
  * @returns {Promise<string[]>} 写入的版本数组
  */
@@ -124,13 +138,25 @@ async function syncSingleRepo(repo, includePreRelease, token = null) {
   if (!owner || !name) {
     return [];
   }
-  const tags = await fetchRepoTags(owner, name, token);
+  const { tags, failed } = await fetchRepoTags(owner, name, token);
   const versions = collectMajorVersions(tags, includePreRelease);
 
-  await GitcodeProjectsTable.update(
-    { openharmonyVersion: versions.length ? versions : null },
-    { where: { id: Number(repo.id) } },
-  );
+  if (versions.length) {
+    // 拿到匹配版本，正常写回
+    await GitcodeProjectsTable.update(
+      { openharmonyVersion: versions },
+      { where: { id: Number(repo.id) } },
+    );
+  } else if (!failed) {
+    // 成功抓取但无匹配版本，清空旧值
+    await GitcodeProjectsTable.update(
+      { openharmonyVersion: null },
+      { where: { id: Number(repo.id) } },
+    );
+  } else {
+    // 抓取失败，保留旧值
+    logger.info(`[OHVersion] ${repo.fullName || name} tags 抓取失败，保留原值`);
+  }
   return versions;
 }
 
@@ -158,14 +184,6 @@ export async function syncOpenHarmonyCompatibility(options = {}) {
     // 只限定在 OpenHarmony 组织内的仓库
     where.ownerName = org;
   }
-  const queryOptions = {
-    where,
-    attributes: ['id', 'pId', 'fullName', 'name', 'ownerName'],
-  };
-  if (limit) {
-    queryOptions.limit = limit;
-  }
-  const repos = await GitcodeProjectsTable.findAll(queryOptions);
 
   // 解析一次 GitCode token（无 token 不影响功能，仅会更慢）；有 token 时限频更宽，缩短间隔
   let token = null;
@@ -176,26 +194,50 @@ export async function syncOpenHarmonyCompatibility(options = {}) {
   }
   const intervalMs = token ? REQUEST_INTERVAL_WITH_TOKEN_MS : REQUEST_INTERVAL_MS;
 
+  // 分批游标遍历，避免一次性把整个组织（可能上千仓库）load 进内存
   let matched = 0;
   let processed = 0;
-  for (const repo of repos) {
-    try {
-      const versions = await syncSingleRepo(repo, includePreRelease, token);
-      if (versions.length) {
-        matched += 1;
-        logger.info(`[OHVersion] ${repo.fullName} -> ${versions.join(',')}`);
-      }
-    } catch (e) {
-      logger.error(`[OHVersion] ${repo.fullName} 处理失败: ${e.message}`);
+  let offset = 0;
+  for (;;) {
+    const remaining = limit ? limit - processed : Number.POSITIVE_INFINITY;
+    if (remaining <= 0) {
+      break;
     }
-    processed += 1;
-    if (processed < repos.length) {
-      await sleep(intervalMs);
+    const batchSize = Math.min(DB_BATCH_SIZE, remaining);
+    const repos = await GitcodeProjectsTable.findAll({
+      where,
+      attributes: ['id', 'pId', 'fullName', 'name', 'ownerName'],
+      order: [['id', 'ASC']],
+      limit: batchSize,
+      offset,
+    });
+    if (repos.length === 0) {
+      break;
+    }
+    for (const repo of repos) {
+      if (processed > 0) {
+        // 控制请求节奏，避免触发频控
+        await sleep(intervalMs);
+      }
+      try {
+        const versions = await syncSingleRepo(repo, includePreRelease, token);
+        if (versions.length) {
+          matched += 1;
+          logger.info(`[OHVersion] ${repo.fullName} -> ${versions.join(',')}`);
+        }
+      } catch (e) {
+        logger.error(`[OHVersion] ${repo.fullName} 处理失败: ${e.message}`);
+      }
+      processed += 1;
+    }
+    offset += repos.length;
+    if (repos.length < batchSize) {
+      break;
     }
   }
 
   return {
-    repos: repos.length,
+    repos: processed,
     matched,
     hasToken: Boolean(token),
     includePreRelease: Boolean(includePreRelease),
