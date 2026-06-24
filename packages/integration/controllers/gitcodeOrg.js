@@ -85,7 +85,6 @@ function parseOrgRepo(item) {
     openIssuesCount: item.open_issues_count,
     defaultBranch: item.default_branch,
     ownerHtmlUrl: item.namespace?.html_url,
-    visibility: item.public ? 'public' : 'private',
     dataType: DATA_TYPE_GENERAL,
     recordDesc: 'gitcodeOrg',
   };

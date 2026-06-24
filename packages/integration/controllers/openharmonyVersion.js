@@ -74,17 +74,45 @@ export function collectMajorVersions(tags, includePreRelease = false) {
 }
 
 /**
+ * 从一条仓库记录解析出 GitCode 请求路径（owner/repo）。
+ *
+ * 优先用 full_name：它和查询条件 where.fullName 同源，能避免 owner_name / name
+ * 等列与 full_name 不一致（历史脏数据）时请求到错误甚至不存在的仓库。
+ * full_name 缺失或不含 '/' 时回退到 owner_name/name 拼接。
+ *
+ * 兼容历史数据里 "owner / repo"（带空格）的写法，统一去空格。
+ *
+ * @param {{fullName?: string, ownerName?: string, name?: string}} repo
+ * @returns {string|null} 形如 "openharmony/arkui_ace_engine"，无法解析返回 null
+ */
+function resolveRepoPath(repo) {
+  const fullName = (repo.fullName || '').trim();
+  if (fullName.includes('/')) {
+    const segments = fullName
+      .split('/')
+      .map(s => s.trim())
+      .filter(Boolean);
+    if (segments.length >= 2) {
+      return segments.join('/');
+    }
+  }
+  if (repo.ownerName && repo.name) {
+    return `${repo.ownerName}/${repo.name}`;
+  }
+  return null;
+}
+
+/**
  * 拉取单个仓库的全部 tags（翻页）。tags 接口公开，无需 token；
  * 但带 token 时限频更宽，可去掉翻页间隔、加快抓取。
  *
  * GitCode tags 接口分页（默认单页较小），且返回顺序不保证按时间倒序，
  * 必须翻完所有页才能收集到全部 >= v6.0 的 release tag，否则会漏版本。
  *
- * @param {string} owner
- * @param {string} repo
+ * @param {string} repoPath 仓库路径（owner/repo），来自 full_name
  * @param {string|null} [token] 有 token 时附带 private-token 头并跳过翻页间隔
  */
-async function fetchRepoTags(owner, repo, token = null) {
+async function fetchRepoTags(repoPath, token = null) {
   const headers = { 'User-Agent': 'oss-evaluation-integration' };
   if (token) {
     headers['private-token'] = token;
@@ -94,15 +122,15 @@ async function fetchRepoTags(owner, repo, token = null) {
   for (let page = 1; page <= TAGS_MAX_PAGES; page += 1) {
     let response;
     try {
-      const url = `${GITCODE_API}/repos/${owner}/${repo}/tags?page=${page}&per_page=${TAGS_PER_PAGE}`;
+      const url = `${GITCODE_API}/repos/${repoPath}/tags?page=${page}&per_page=${TAGS_PER_PAGE}`;
       response = await fetch(url, { headers });
     } catch (e) {
-      logger.info(`GitCode tags ${owner}/${repo} page=${page} 请求异常: ${e.message}`);
+      logger.info(`GitCode tags ${repoPath} page=${page} 请求异常: ${e.message}`);
       failed = true;
       break;
     }
     if (!response.ok) {
-      logger.info(`GitCode tags ${owner}/${repo} page=${page} -> ${response.status}, 跳过`);
+      logger.info(`GitCode tags ${repoPath} page=${page} -> ${response.status}, 跳过`);
       // 非 2xx 视为抓取失败（可能限频/出错），标记后停止，避免误判“无匹配版本”
       failed = true;
       break;
@@ -133,12 +161,12 @@ async function fetchRepoTags(owner, repo, token = null) {
  * @returns {Promise<string[]>} 写入的版本数组
  */
 async function syncSingleRepo(repo, includePreRelease, token = null) {
-  const owner = repo.ownerName;
-  const name = repo.name;
-  if (!owner || !name) {
+  // 用 full_name 解析请求路径，避免 owner_name 脏数据导致请求错仓库
+  const repoPath = resolveRepoPath(repo);
+  if (!repoPath) {
     return [];
   }
-  const { tags, failed } = await fetchRepoTags(owner, name, token);
+  const { tags, failed } = await fetchRepoTags(repoPath, token);
   const versions = collectMajorVersions(tags, includePreRelease);
 
   if (versions.length) {
@@ -155,7 +183,7 @@ async function syncSingleRepo(repo, includePreRelease, token = null) {
     );
   } else {
     // 抓取失败，保留旧值
-    logger.info(`[OHVersion] ${repo.fullName || name} tags 抓取失败，保留原值`);
+    logger.info(`[OHVersion] ${repoPath} tags 抓取失败，保留原值`);
   }
   return versions;
 }
