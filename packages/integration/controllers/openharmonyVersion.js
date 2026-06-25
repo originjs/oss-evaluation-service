@@ -77,7 +77,6 @@ export function collectMajorVersions(tags, includePreRelease = false) {
  * 从一条仓库记录解析出 GitCode 请求路径（owner/repo）。
  *
  * 优先用 full_name：它和查询条件 where.fullName 同源，能避免 owner_name / name
- * 等列与 full_name 不一致（历史脏数据）时请求到错误甚至不存在的仓库。
  * full_name 缺失或不含 '/' 时回退到 owner_name/name 拼接。
  *
  * 兼容历史数据里 "owner / repo"（带空格）的写法，统一去空格。
@@ -176,9 +175,12 @@ async function syncSingleRepo(repo, includePreRelease, token = null) {
       { where: { id: Number(repo.id) } },
     );
   } else if (!failed) {
-    // 成功抓取但无匹配版本，清空旧值
+    // 成功抓取但无匹配版本：写空数组而非 null。
+    // 全量时 null 与数组共用同一条预处理语句，会触发 MySQL 8（<8.0.39）JSON 列
+    // "Cannot create a JSON value from a string with CHARACTER SET 'binary'" 的 bug；
+    // 统一写非空 JSON（[] 表示“已处理但无 >=v6 版本”）即可规避。
     await GitcodeProjectsTable.update(
-      { openharmonyVersion: null },
+      { openharmonyVersion: [] },
       { where: { id: Number(repo.id) } },
     );
   } else {
