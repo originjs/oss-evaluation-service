@@ -1,3 +1,6 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   ProjectTechStack,
   Scorecard,
@@ -9,6 +12,49 @@ import { ServerError, BadRequestError } from '../util/error.js';
 import { getValidToken, parseRepoUrl } from '../util/util.js';
 import shelljs from 'shelljs';
 import { platformTypes } from '@orginjs/oss-evaluation-util';
+
+const currentDir = path.dirname(fileURLToPath(import.meta.url));
+
+function shellQuote(value) {
+  return `'${String(value).replaceAll("'", "'\\''")}'`;
+}
+
+function getBundledScorecardPath() {
+  if (process.platform !== 'linux') {
+    return null;
+  }
+
+  const binaryNameByArch = {
+    arm64: 'scorecard-linux-arm64',
+    x64: 'scorecard-linux-amd64',
+  };
+  const binaryName = binaryNameByArch[process.arch];
+  if (!binaryName) {
+    return null;
+  }
+
+  const binaryPath = path.resolve(currentDir, '..', 'bin', binaryName);
+  try {
+    fs.accessSync(binaryPath, fs.constants.X_OK);
+    return binaryPath;
+  } catch {
+    return null;
+  }
+}
+
+function getScorecardCommand(url) {
+  if (process.platform === 'win32') {
+    return `${shellQuote('./scorecard-windows-amd64.exe')} --repo=${shellQuote(url)} --format=json`;
+  }
+
+  const scorecardPath = getBundledScorecardPath() || shelljs.which('scorecard')?.stdout?.trim();
+  if (!scorecardPath) {
+    logger.error(`scorecard not found for ${process.platform}/${process.arch}`);
+    return null;
+  }
+
+  return `${shellQuote(scorecardPath)} --repo=${shellQuote(url)} --format=json`;
+}
 
 /**
  * Sync scorecard by id or by tech_stack from table:project_stack
@@ -143,16 +189,9 @@ export async function getScorecard(url) {
     } else {
       logger.info(`Fetching data of project ${url} failed! Running scorecard locally...`);
       let buffer;
-      let command;
-      if (process.platform === 'win32') {
-        command = `./scorecard-windows-amd64.exe --repo=${url} --format=json`;
-      } else {
-        // I don't see why it needs to be `WHICH` first or the command won't be found.
-        const scorecardPath = shelljs.which('scorecard')?.stdout;
-        if (!scorecardPath) {
-          logger.error(`scorecard not found in PATH of ${process.platform}`);
-        }
-        command = `${scorecardPath} --repo=${url} --format=json`;
+      const command = getScorecardCommand(url);
+      if (!command) {
+        throw new ServerError(`scorecard not found for ${process.platform}/${process.arch}`);
       }
       logger.info(`try to run command: ${command}`);
       const githubToken = await getValidToken(platformTypes.GITHUB);
