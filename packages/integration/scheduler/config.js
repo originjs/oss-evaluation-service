@@ -60,7 +60,7 @@ export const JobConfig = {
     },
     {
       name: 'projectReleaseTimer',
-      cronScheduleTime: '0 0 * * 2', // 周二 00:00 全量同步 Release 信息，每项目间隔 500ms 防限流
+      cronScheduleTime: '0 0 * * 3', // 周三 00:00 全量同步 Release 信息，每项目间隔 500ms 防限流
       enabled: isProduction,
     },
     {

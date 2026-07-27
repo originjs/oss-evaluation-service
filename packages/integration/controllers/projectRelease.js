@@ -320,5 +320,5 @@ export const projectReleaseTimer = addMonitoringToTask(
     logger.info(`[Integration][ProjectRelease] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`);
   },
   'projectReleaseTimer',
-  '周二 00:00 全量同步 Release 信息',
+  '周三 00:00 全量同步 Release 信息',
 );
