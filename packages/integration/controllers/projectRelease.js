@@ -315,13 +315,9 @@ export const projectReleaseTimer = addMonitoringToTask(
       offset += limit;
     }
 
-    logger.info(
-      `[Integration][ProjectRelease] Integration Job end, total updated: ${totalOk}`,
-    );
+    logger.info(`[Integration][ProjectRelease] Integration Job end, total updated: ${totalOk}`);
     const endTime = process.hrtime(startTime);
-    logger.info(
-      `[Integration][ProjectRelease] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
-    );
+    logger.info(`[Integration][ProjectRelease] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`);
   },
   'projectReleaseTimer',
   '周二 00:00 全量同步 Release 信息',
