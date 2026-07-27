@@ -10,6 +10,7 @@ import { getProjectByUrl } from '../util/util.js';
 import JSON5 from 'json5';
 import { chat } from '../../api-sdk/extChat.js';
 import { platformTypes } from '@orginjs/oss-evaluation-util';
+import { addMonitoringToTask } from '../scheduler/schdulerMonitor.js';
 
 export async function syncProjectDescriptionHandler(req, res) {
   const { repoUrls } = req.body;
@@ -80,3 +81,18 @@ export async function syncAllProjectDescription() {
     await syncSingleProjectDescription(project);
   }
 }
+
+export const projectDescriptionTimer = addMonitoringToTask(
+  async function () {
+    const startTime = process.hrtime();
+    logger.info('[Integration][ProjectDescription] Integration Job start');
+    await syncAllProjectDescription();
+    logger.info('[Integration][ProjectDescription] Integration Job end');
+    const endTime = process.hrtime(startTime);
+    logger.info(
+      `[Integration][ProjectDescription] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
+    );
+  },
+  'projectDescriptionTimer',
+  '周三 04:00 同步 AI 项目描述',
+);

@@ -7,6 +7,7 @@ import {
 } from '@orginjs/oss-evaluation-data-model';
 import { platformTypes } from '@orginjs/oss-evaluation-util';
 import { getValidToken, refreshValidToken, sleep } from '../util/util.js';
+import { addMonitoringToTask } from '../scheduler/schdulerMonitor.js';
 
 const RETRYABLE_STATUS = new Set([401, 403]);
 const RELEASE_PER_PAGE = 30;
@@ -280,3 +281,48 @@ export async function syncAllProjectReleaseHandler(req, res) {
   );
   res.status(200).json({ ok: true, total: projects.length, okCount, skipCount, failCount });
 }
+
+export const projectReleaseTimer = addMonitoringToTask(
+  async function () {
+    const startTime = process.hrtime();
+    logger.info('[Integration][ProjectRelease] Integration Job start');
+
+    const limit = 500;
+    let offset = 0;
+    let totalOk = 0;
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const projects = await ViewProjects.findAll({
+        attributes: ['id', 'pId', 'platformType', 'fullName', 'htmlUrl'],
+        limit,
+        offset,
+        order: [['pId', 'ASC']],
+      });
+
+      if (projects.length === 0) break;
+
+      for (const p of projects) {
+        try {
+          const status = await syncSingleProjectRelease(p);
+          if (status === RELEASE_SYNC_STATUS.UPDATED) totalOk += 1;
+        } catch (e) {
+          logger.error(`[Integration][ProjectRelease] error ${p.pId}: ${e.message}`);
+        }
+        await sleep(500);
+      }
+
+      offset += limit;
+    }
+
+    logger.info(
+      `[Integration][ProjectRelease] Integration Job end, total updated: ${totalOk}`,
+    );
+    const endTime = process.hrtime(startTime);
+    logger.info(
+      `[Integration][ProjectRelease] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
+    );
+  },
+  'projectReleaseTimer',
+  '周二 00:00 全量同步 Release 信息',
+);

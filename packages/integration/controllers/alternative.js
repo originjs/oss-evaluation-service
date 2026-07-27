@@ -8,6 +8,7 @@ import { getProjectByUrl } from '../util/util.js';
 import JSON5 from 'json5';
 import CozeSdk from '@orginjs/coze-sdk';
 import { chat } from '../../api-sdk/extChat.js';
+import { addMonitoringToTask } from '../scheduler/schdulerMonitor.js';
 
 export async function syncAlternativeHandler(req, res) {
   const { repoUrls, pIds } = req.body;
@@ -151,6 +152,21 @@ export async function updateProjectId() {
   await sequelize.query(approvedSql);
   await sequelize.query(notApprovedSql);
 }
+
+export const projectAlternativeTimer = addMonitoringToTask(
+  async function () {
+    const startTime = process.hrtime();
+    logger.info('[Integration][ProjectAlternative] Integration Job start');
+    await syncAllProjectAlternative();
+    logger.info('[Integration][ProjectAlternative] Integration Job end');
+    const endTime = process.hrtime(startTime);
+    logger.info(
+      `[Integration][ProjectAlternative] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
+    );
+  },
+  'projectAlternativeTimer',
+  '周二 04:00 同步 AI 相似软件推荐',
+);
 
 export async function syncClassificationHandler(req, res) {
   const { repoUrl, pIds } = req.body;

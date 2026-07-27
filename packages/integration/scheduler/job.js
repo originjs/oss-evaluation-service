@@ -11,6 +11,9 @@ import { projectHistoryTimer } from '../controllers/projectHistory.js';
 import { githubProjectsDailyTimer, githubProjectsWeeklyTimer } from '../controllers/project.js';
 import { githubStargazersTrendTimer } from '../controllers/projectStarGazersTrend.js';
 import { openharmonyTimer } from '../controllers/openharmonyVersion.js';
+import { projectReleaseTimer } from '../controllers/projectRelease.js';
+import { projectAlternativeTimer } from '../controllers/alternative.js';
+import { projectDescriptionTimer } from '../controllers/projectDescription.js';
 
 function createTimer(name, pattern, timer) {
   if (!pattern) {
@@ -46,6 +49,9 @@ const taskFactory = {
   githubProjectsWeeklyTimer,
   githubStargazersTrendTimer,
   openharmonyTimer,
+  projectReleaseTimer,
+  projectAlternativeTimer,
+  projectDescriptionTimer,
   createTask: function (taskName) {
     if (!this[taskName]) {
       throw new Error(`Task ${taskName} not found`);
