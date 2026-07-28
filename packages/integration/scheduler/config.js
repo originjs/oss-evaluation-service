@@ -58,5 +58,20 @@ export const JobConfig = {
       cronScheduleTime: '0 2 * * 1', // 周一 02:00 同步 OpenHarmony 组织仓库并解析适配大版本
       enabled: isProduction, // only start in production environment
     },
+    {
+      name: 'projectReleaseTimer',
+      cronScheduleTime: '0 0 * * 3', // 周三 00:00 全量同步 Release 信息，每项目间隔 500ms 防限流
+      enabled: isProduction,
+    },
+    {
+      name: 'projectAlternativeTimer',
+      cronScheduleTime: '0 4 * * 2', // 周二 04:00 同步 AI 相似软件推荐（只处理 null）
+      enabled: isProduction,
+    },
+    {
+      name: 'projectDescriptionTimer',
+      cronScheduleTime: '0 4 * * 3', // 周三 04:00 同步 AI 项目描述（只处理 null）
+      enabled: isProduction,
+    },
   ],
 };

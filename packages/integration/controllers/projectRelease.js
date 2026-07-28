@@ -7,13 +7,67 @@ import {
 } from '@orginjs/oss-evaluation-data-model';
 import { platformTypes } from '@orginjs/oss-evaluation-util';
 import { getValidToken, refreshValidToken, sleep } from '../util/util.js';
+import { addMonitoringToTask } from '../scheduler/schdulerMonitor.js';
 
 const RETRYABLE_STATUS = new Set([401, 403]);
 const RELEASE_PER_PAGE = 30;
 
 async function githubFetch(url, headers, platformType, retried = false) {
   const response = await fetch(url, { headers });
-  if (RETRYABLE_STATUS.has(response.status) && !retried) {
+
+  // Handle rate limiting (429)
+  if (response.status === 429 && !retried) {
+    const retryAfter = response.headers.get('Retry-After');
+    let waitSeconds = 60;
+    if (retryAfter) {
+      const parsed = parseInt(retryAfter, 10);
+      if (!isNaN(parsed)) {
+        waitSeconds = parsed;
+      } else {
+        // HTTP-date format, e.g. "Wed, 21 Oct 2026 07:28:00 GMT"
+        const retryDate = new Date(retryAfter);
+        if (!isNaN(retryDate.getTime())) {
+          waitSeconds = Math.max((retryDate.getTime() - Date.now()) / 1000, 0) + 1;
+        }
+      }
+    }
+    logger.warn(`[Release] GitHub rate limited (429) for ${url}, waiting ${waitSeconds}s`);
+    await sleep(waitSeconds * 1000);
+    return githubFetch(url, headers, platformType, true);
+  }
+
+  // Handle 403: distinguish rate-limit-exhausted from other auth errors
+  if (response.status === 403) {
+    const remaining = response.headers.get('X-RateLimit-Remaining');
+    if (remaining === '0') {
+      if (retried) {
+        // Already waited once but still rate limited, return response to avoid infinite recursion
+        return response;
+      }
+      const resetTime = response.headers.get('X-RateLimit-Reset');
+      const waitSeconds = resetTime
+        ? Math.max(parseInt(resetTime, 10) - Math.floor(Date.now() / 1000), 0) + 1
+        : 60;
+      logger.warn(
+        `[Release] GitHub rate limit exhausted for ${url}, waiting ${waitSeconds}s until reset`,
+      );
+      await sleep(waitSeconds * 1000);
+      return githubFetch(url, headers, platformType, true);
+    }
+    // Non-rate-limit 403: try token refresh once
+    if (!retried) {
+      await refreshValidToken(platformType);
+      const newToken = await getValidToken(platformType);
+      const newHeaders = {
+        ...headers,
+        ...(newToken && { Authorization: `Bearer ${newToken}` }),
+      };
+      return githubFetch(url, newHeaders, platformType, true);
+    }
+  }
+
+  // Handle 401: token refresh once
+  if (response.status === 401 && !retried) {
     await refreshValidToken(platformType);
     const newToken = await getValidToken(platformType);
     const newHeaders = {
@@ -22,6 +76,7 @@ async function githubFetch(url, headers, platformType, retried = false) {
     };
     return githubFetch(url, newHeaders, platformType, true);
   }
+
   return response;
 }
 
@@ -73,15 +128,14 @@ async function fetchGithubLatestRelease(owner, repo) {
       platformTypes.GITHUB,
     );
     if (!listResp.ok) {
-      logger.warn(`[Release] GitHub fetch failed ${owner}/${repo}: status=${listResp.status}`);
-      return null;
+      throw new Error(`GitHub API failed ${owner}/${repo}: status=${listResp.status}`);
     }
     const releases = await listResp.json();
     const stable = releases.find(r => !r.prerelease && !r.draft && r.tag_name && r.published_at);
     return stable ? { tagName: stable.tag_name, publishedAt: stable.published_at } : null;
   } catch (e) {
     logger.warn(`[Release] GitHub fetch error ${owner}/${repo}: ${e.message}`);
-    return null;
+    throw e;
   }
 }
 
@@ -102,8 +156,7 @@ async function fetchGiteeLatestRelease(owner, repo) {
   try {
     const response = await genericFetch(url, platformTypes.GITEE);
     if (!response.ok) {
-      logger.warn(`[Release] Gitee fetch failed ${owner}/${repo}: status=${response.status}`);
-      return null;
+      throw new Error(`Gitee API failed ${owner}/${repo}: status=${response.status}`);
     }
     const releases = await response.json();
     if (!Array.isArray(releases) || releases.length === 0) return null;
@@ -121,7 +174,7 @@ async function fetchGiteeLatestRelease(owner, repo) {
       : null;
   } catch (e) {
     logger.warn(`[Release] Gitee fetch error ${owner}/${repo}: ${e.message}`);
-    return null;
+    throw e;
   }
 }
 
@@ -138,8 +191,7 @@ async function fetchGitcodeLatestRelease(owner, repo) {
   try {
     const response = await genericFetch(url, platformTypes.GITCODE);
     if (!response.ok) {
-      logger.warn(`[Release] GitCode fetch failed ${owner}/${repo}: status=${response.status}`);
-      return null;
+      throw new Error(`GitCode API failed ${owner}/${repo}: status=${response.status}`);
     }
     const releases = await response.json();
     if (!Array.isArray(releases) || releases.length === 0) return null;
@@ -157,7 +209,7 @@ async function fetchGitcodeLatestRelease(owner, repo) {
       : null;
   } catch (e) {
     logger.warn(`[Release] GitCode fetch error ${owner}/${repo}: ${e.message}`);
-    return null;
+    throw e;
   }
 }
 
@@ -201,7 +253,13 @@ export async function syncSingleProjectRelease(project) {
     return RELEASE_SYNC_STATUS.SKIPPED;
   }
 
-  const info = await fetcher(owner, repo);
+  let info;
+  try {
+    info = await fetcher(owner, repo);
+  } catch (e) {
+    logger.warn(`[Release] fetch release failed for ${fullName}: ${e.message}`);
+    return RELEASE_SYNC_STATUS.FAILED;
+  }
   if (!info) {
     logger.info(`[Release] no stable release for ${fullName}`);
     return RELEASE_SYNC_STATUS.SKIPPED;
@@ -280,3 +338,61 @@ export async function syncAllProjectReleaseHandler(req, res) {
   );
   res.status(200).json({ ok: true, total: projects.length, okCount, skipCount, failCount });
 }
+
+export const projectReleaseTimer = addMonitoringToTask(
+  async function () {
+    const startTime = process.hrtime();
+    logger.info('[Integration][ProjectRelease] Integration Job start');
+
+    const limit = 500;
+    let offset = 0;
+    let totalOk = 0;
+    let totalFail = 0;
+    let totalSkip = 0;
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const projects = await ViewProjects.findAll({
+        attributes: ['id', 'pId', 'platformType', 'fullName', 'htmlUrl'],
+        limit,
+        offset,
+        order: [['pId', 'ASC']],
+      });
+
+      if (projects.length === 0) break;
+
+      for (const p of projects) {
+        try {
+          const status = await syncSingleProjectRelease(p);
+          if (status === RELEASE_SYNC_STATUS.UPDATED) totalOk += 1;
+          else if (status === RELEASE_SYNC_STATUS.SKIPPED) totalSkip += 1;
+          else totalFail += 1;
+        } catch (e) {
+          totalFail += 1;
+          logger.error(`[Integration][ProjectRelease] error ${p.pId}: ${e.message}`);
+        }
+        await sleep(500);
+      }
+
+      offset += limit;
+    }
+
+    const totalProcessed = totalOk + totalFail + totalSkip;
+    logger.info(
+      `[Integration][ProjectRelease] Integration Job end: updated=${totalOk}, skipped=${totalSkip}, failed=${totalFail}, total=${totalProcessed}`,
+    );
+
+    if (totalFail > 0) {
+      throw new Error(
+        `ProjectRelease sync failed: ${totalFail} failed, ${totalSkip} skipped, ${totalOk} ok`,
+      );
+    }
+
+    const endTime = process.hrtime(startTime);
+    logger.info(
+      `[Integration][ProjectRelease] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
+    );
+  },
+  'projectReleaseTimer',
+  '周三 00:00 全量同步 Release 信息',
+);
