@@ -14,7 +14,54 @@ const RELEASE_PER_PAGE = 30;
 
 async function githubFetch(url, headers, platformType, retried = false) {
   const response = await fetch(url, { headers });
-  if (RETRYABLE_STATUS.has(response.status) && !retried) {
+
+  // Handle rate limiting (429)
+  if (response.status === 429 && !retried) {
+    const retryAfter = response.headers.get('Retry-After');
+    let waitSeconds = 60;
+    if (retryAfter) {
+      const parsed = parseInt(retryAfter, 10);
+      if (!isNaN(parsed)) {
+        waitSeconds = parsed;
+      } else {
+        // HTTP-date format, e.g. "Wed, 21 Oct 2026 07:28:00 GMT"
+        const retryDate = new Date(retryAfter);
+        if (!isNaN(retryDate.getTime())) {
+          waitSeconds = Math.max((retryDate.getTime() - Date.now()) / 1000, 0) + 1;
+        }
+      }
+    }
+    logger.warn(`[Release] GitHub rate limited (429) for ${url}, waiting ${waitSeconds}s`);
+    await sleep(waitSeconds * 1000);
+    return githubFetch(url, headers, platformType, true);
+  }
+
+  // Handle 403: distinguish rate-limit-exhausted from other auth errors
+  if (response.status === 403) {
+    const remaining = response.headers.get('X-RateLimit-Remaining');
+    if (remaining === '0') {
+      const resetTime = response.headers.get('X-RateLimit-Reset');
+      const waitSeconds = resetTime
+        ? Math.max(parseInt(resetTime, 10) - Math.floor(Date.now() / 1000), 0) + 1
+        : 60;
+      logger.warn(`[Release] GitHub rate limit exhausted for ${url}, waiting ${waitSeconds}s until reset`);
+      await sleep(waitSeconds * 1000);
+      return githubFetch(url, headers, platformType, true);
+    }
+    // Non-rate-limit 403: try token refresh once
+    if (!retried) {
+      await refreshValidToken(platformType);
+      const newToken = await getValidToken(platformType);
+      const newHeaders = {
+        ...headers,
+        ...(newToken && { Authorization: `Bearer ${newToken}` }),
+      };
+      return githubFetch(url, newHeaders, platformType, true);
+    }
+  }
+
+  // Handle 401: token refresh once
+  if (response.status === 401 && !retried) {
     await refreshValidToken(platformType);
     const newToken = await getValidToken(platformType);
     const newHeaders = {
@@ -23,6 +70,7 @@ async function githubFetch(url, headers, platformType, retried = false) {
     };
     return githubFetch(url, newHeaders, platformType, true);
   }
+
   return response;
 }
 
@@ -290,6 +338,8 @@ export const projectReleaseTimer = addMonitoringToTask(
     const limit = 500;
     let offset = 0;
     let totalOk = 0;
+    let totalFail = 0;
+    let totalSkip = 0;
 
     // eslint-disable-next-line no-constant-condition
     while (true) {
@@ -306,7 +356,10 @@ export const projectReleaseTimer = addMonitoringToTask(
         try {
           const status = await syncSingleProjectRelease(p);
           if (status === RELEASE_SYNC_STATUS.UPDATED) totalOk += 1;
+          else if (status === RELEASE_SYNC_STATUS.SKIPPED) totalSkip += 1;
+          else totalFail += 1;
         } catch (e) {
+          totalFail += 1;
           logger.error(`[Integration][ProjectRelease] error ${p.pId}: ${e.message}`);
         }
         await sleep(500);
@@ -315,7 +368,17 @@ export const projectReleaseTimer = addMonitoringToTask(
       offset += limit;
     }
 
-    logger.info(`[Integration][ProjectRelease] Integration Job end, total updated: ${totalOk}`);
+    const totalProcessed = totalOk + totalFail + totalSkip;
+    logger.info(
+      `[Integration][ProjectRelease] Integration Job end: updated=${totalOk}, skipped=${totalSkip}, failed=${totalFail}, total=${totalProcessed}`,
+    );
+
+    if (totalProcessed > 0 && totalOk === 0 && totalFail > 0) {
+      throw new Error(
+        `All projects failed to sync release (${totalFail} failed, ${totalSkip} skipped), GitHub API may be rate limited`,
+      );
+    }
+
     const endTime = process.hrtime(startTime);
     logger.info(`[Integration][ProjectRelease] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`);
   },
