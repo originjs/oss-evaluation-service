@@ -6,8 +6,8 @@ import {
 } from '@orginjs/oss-evaluation-data-model';
 import { getProjectByUrl } from '../util/util.js';
 import JSON5 from 'json5';
-import CozeSdk from '@orginjs/coze-sdk';
 import { chat } from '../../api-sdk/extChat.js';
+import CozeSdk from '@orginjs/coze-sdk';
 import { addMonitoringToTask } from '../scheduler/schdulerMonitor.js';
 
 export async function syncAlternativeHandler(req, res) {
@@ -95,8 +95,26 @@ const saveAltList = async (json, project) => {
         source: 'ai',
       });
     }
-    await AlternativeProjects.bulkCreate(altList, {
-      updateOnDuplicate: ['distance'],
+    if (altList.length > 0) {
+      await AlternativeProjects.bulkCreate(altList, {
+        updateOnDuplicate: ['distance'],
+      });
+    } else {
+      // All candidates filtered, write sentinel to mark completion
+      await AlternativeProjects.upsert({
+        pId: project.pId,
+        fullName: project.fullName,
+        alternativeUrl: '__NO_ALTERNATIVE__',
+        source: 'ai_skip',
+      });
+    }
+  } else {
+    // AI returned empty list, write sentinel to mark completion
+    await AlternativeProjects.upsert({
+      pId: project.pId,
+      fullName: project.fullName,
+      alternativeUrl: '__NO_ALTERNATIVE__',
+      source: 'ai_skip',
     });
   }
   // AI responded successfully, empty result is valid (no alternatives found)
@@ -105,8 +123,10 @@ const saveAltList = async (json, project) => {
 
 export async function syncSingleProjectAlternative(project) {
   logger.info('syncSingleProjectAlternative: ' + project.fullName);
+
+  let response;
   if (process.env.EXT_AI_SERVICE_URL) {
-    const response = await chat(
+    response = await chat(
       {
         GithubUrl: project.htmlUrl,
         topics: project.topics || '',
@@ -116,7 +136,9 @@ export async function syncSingleProjectAlternative(project) {
       process.env.EXT_ALTERNATIVE_BOT,
     );
     if (!response.ok) {
-      logger.error(`syncSingleProjectAlternative: AI service returned ${response.status} for ${project.fullName}`);
+      logger.error(
+        `syncSingleProjectAlternative: AI service returned ${response.status} for ${project.fullName}`,
+      );
       return ALTERNATIVE_SYNC_STATUS.FAILED;
     }
     const rsp = await response.json();
@@ -130,11 +152,13 @@ export async function syncSingleProjectAlternative(project) {
       logger.error(`Save alternative list failed! \n${e}`);
       return ALTERNATIVE_SYNC_STATUS.FAILED;
     }
-  } else {
+  } else if (process.env.COZE_API_TOKEN) {
     const cozeSdk = new CozeSdk(CozeSdk.ALTERNATIVE_BOT);
-    const response = await cozeSdk.chat(project.htmlUrl);
+    response = await cozeSdk.chat(project.htmlUrl);
     if (!response.ok) {
-      logger.error(`syncSingleProjectAlternative: Coze returned ${response.status} for ${project.fullName}`);
+      logger.error(
+        `syncSingleProjectAlternative: Coze returned ${response.status} for ${project.fullName}`,
+      );
       return ALTERNATIVE_SYNC_STATUS.FAILED;
     }
     const rsp = await response.json();
@@ -155,6 +179,9 @@ export async function syncSingleProjectAlternative(project) {
     }
     return ALTERNATIVE_SYNC_STATUS.FAILED;
   }
+
+  logger.warn('[Integration][ProjectAlternative] No AI provider configured');
+  return ALTERNATIVE_SYNC_STATUS.FAILED;
 }
 
 export async function updateProjectId() {
@@ -188,9 +215,9 @@ export const projectAlternativeTimer = addMonitoringToTask(
     logger.info(
       `[Integration][ProjectAlternative] Integration Job end: updated=${result.updated}, failed=${result.failed}, total=${result.total}`,
     );
-    if (result.total > 0 && result.updated === 0) {
+    if (result.failed > 0) {
       throw new Error(
-        `All ${result.total} projects failed to sync alternative, provider may be unavailable`,
+        `AI sync alternative failed: ${result.failed}/${result.total} projects failed, provider may be unavailable`,
       );
     }
     const endTime = process.hrtime(startTime);

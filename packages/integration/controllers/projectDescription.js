@@ -51,7 +51,9 @@ export async function syncSingleProjectDescription(project) {
   );
 
   if (!response.ok) {
-    logger.error(`syncSingleProjectDescription: AI service returned ${response.status} for ${project.fullName}`);
+    logger.error(
+      `syncSingleProjectDescription: AI service returned ${response.status} for ${project.fullName}`,
+    );
     return DESCRIPTION_SYNC_STATUS.FAILED;
   }
 
@@ -111,9 +113,9 @@ export const projectDescriptionTimer = addMonitoringToTask(
     logger.info(
       `[Integration][ProjectDescription] Integration Job end: updated=${result.updated}, failed=${result.failed}, total=${result.total}`,
     );
-    if (result.total > 0 && result.updated === 0) {
+    if (result.failed > 0) {
       throw new Error(
-        `All ${result.total} projects failed to sync AI description, provider may be unavailable`,
+        `AI sync description failed: ${result.failed}/${result.total} projects failed, provider may be unavailable`,
       );
     }
     const endTime = process.hrtime(startTime);

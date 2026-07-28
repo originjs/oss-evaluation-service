@@ -40,11 +40,17 @@ async function githubFetch(url, headers, platformType, retried = false) {
   if (response.status === 403) {
     const remaining = response.headers.get('X-RateLimit-Remaining');
     if (remaining === '0') {
+      if (retried) {
+        // Already waited once but still rate limited, return response to avoid infinite recursion
+        return response;
+      }
       const resetTime = response.headers.get('X-RateLimit-Reset');
       const waitSeconds = resetTime
         ? Math.max(parseInt(resetTime, 10) - Math.floor(Date.now() / 1000), 0) + 1
         : 60;
-      logger.warn(`[Release] GitHub rate limit exhausted for ${url}, waiting ${waitSeconds}s until reset`);
+      logger.warn(
+        `[Release] GitHub rate limit exhausted for ${url}, waiting ${waitSeconds}s until reset`,
+      );
       await sleep(waitSeconds * 1000);
       return githubFetch(url, headers, platformType, true);
     }
@@ -122,15 +128,14 @@ async function fetchGithubLatestRelease(owner, repo) {
       platformTypes.GITHUB,
     );
     if (!listResp.ok) {
-      logger.warn(`[Release] GitHub fetch failed ${owner}/${repo}: status=${listResp.status}`);
-      return null;
+      throw new Error(`GitHub API failed ${owner}/${repo}: status=${listResp.status}`);
     }
     const releases = await listResp.json();
     const stable = releases.find(r => !r.prerelease && !r.draft && r.tag_name && r.published_at);
     return stable ? { tagName: stable.tag_name, publishedAt: stable.published_at } : null;
   } catch (e) {
     logger.warn(`[Release] GitHub fetch error ${owner}/${repo}: ${e.message}`);
-    return null;
+    throw e;
   }
 }
 
@@ -151,8 +156,7 @@ async function fetchGiteeLatestRelease(owner, repo) {
   try {
     const response = await genericFetch(url, platformTypes.GITEE);
     if (!response.ok) {
-      logger.warn(`[Release] Gitee fetch failed ${owner}/${repo}: status=${response.status}`);
-      return null;
+      throw new Error(`Gitee API failed ${owner}/${repo}: status=${response.status}`);
     }
     const releases = await response.json();
     if (!Array.isArray(releases) || releases.length === 0) return null;
@@ -170,7 +174,7 @@ async function fetchGiteeLatestRelease(owner, repo) {
       : null;
   } catch (e) {
     logger.warn(`[Release] Gitee fetch error ${owner}/${repo}: ${e.message}`);
-    return null;
+    throw e;
   }
 }
 
@@ -187,8 +191,7 @@ async function fetchGitcodeLatestRelease(owner, repo) {
   try {
     const response = await genericFetch(url, platformTypes.GITCODE);
     if (!response.ok) {
-      logger.warn(`[Release] GitCode fetch failed ${owner}/${repo}: status=${response.status}`);
-      return null;
+      throw new Error(`GitCode API failed ${owner}/${repo}: status=${response.status}`);
     }
     const releases = await response.json();
     if (!Array.isArray(releases) || releases.length === 0) return null;
@@ -206,7 +209,7 @@ async function fetchGitcodeLatestRelease(owner, repo) {
       : null;
   } catch (e) {
     logger.warn(`[Release] GitCode fetch error ${owner}/${repo}: ${e.message}`);
-    return null;
+    throw e;
   }
 }
 
@@ -250,7 +253,13 @@ export async function syncSingleProjectRelease(project) {
     return RELEASE_SYNC_STATUS.SKIPPED;
   }
 
-  const info = await fetcher(owner, repo);
+  let info;
+  try {
+    info = await fetcher(owner, repo);
+  } catch (e) {
+    logger.warn(`[Release] fetch release failed for ${fullName}: ${e.message}`);
+    return RELEASE_SYNC_STATUS.FAILED;
+  }
   if (!info) {
     logger.info(`[Release] no stable release for ${fullName}`);
     return RELEASE_SYNC_STATUS.SKIPPED;
@@ -373,14 +382,16 @@ export const projectReleaseTimer = addMonitoringToTask(
       `[Integration][ProjectRelease] Integration Job end: updated=${totalOk}, skipped=${totalSkip}, failed=${totalFail}, total=${totalProcessed}`,
     );
 
-    if (totalProcessed > 0 && totalOk === 0 && totalFail > 0) {
+    if (totalFail > 0) {
       throw new Error(
-        `All projects failed to sync release (${totalFail} failed, ${totalSkip} skipped), GitHub API may be rate limited`,
+        `ProjectRelease sync failed: ${totalFail} failed, ${totalSkip} skipped, ${totalOk} ok`,
       );
     }
 
     const endTime = process.hrtime(startTime);
-    logger.info(`[Integration][ProjectRelease] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`);
+    logger.info(
+      `[Integration][ProjectRelease] The total time spent on integration : ${endTime[0]}s ${endTime[1] / 1e6}ms`,
+    );
   },
   'projectReleaseTimer',
   '周三 00:00 全量同步 Release 信息',
