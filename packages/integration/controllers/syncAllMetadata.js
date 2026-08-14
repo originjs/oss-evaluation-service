@@ -92,7 +92,6 @@ async function syncSingleProjectAllMetadata(options) {
     logger.error(`[Batch Integrated] get project info by repo:{${repoUrl}} failed!!`);
     return;
   }
-  project.pId = `${project.platformType}#${project.id}`;
 
   // 2. insert techStack
   if (category && subcategory) {

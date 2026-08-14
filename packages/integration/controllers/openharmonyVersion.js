@@ -1,4 +1,4 @@
-import { GitcodeProjectsTable, logger } from '@orginjs/oss-evaluation-data-model';
+import { GitcodeProjectsTable, logger, UnifiedProjects } from '@orginjs/oss-evaluation-data-model';
 import { platformTypes } from '@orginjs/oss-evaluation-util';
 import { sleep, getValidToken } from '../util/util.js';
 import { addMonitoringToTask } from '../scheduler/schdulerMonitor.js';
@@ -170,18 +170,18 @@ async function syncSingleRepo(repo, includePreRelease, token = null) {
 
   if (versions.length) {
     // 拿到匹配版本，正常写回
-    await GitcodeProjectsTable.update(
+    await UnifiedProjects.update(
       { openharmonyVersion: versions },
-      { where: { id: Number(repo.id) } },
+      { where: { pId: repo.pId } },
     );
   } else if (!failed) {
     // 成功抓取但无匹配版本：写空数组而非 null。
     // 全量时 null 与数组共用同一条预处理语句，会触发 MySQL 8（<8.0.39）JSON 列
     // "Cannot create a JSON value from a string with CHARACTER SET 'binary'" 的 bug；
     // 统一写非空 JSON（[] 表示“已处理但无 >=v6 版本”）即可规避。
-    await GitcodeProjectsTable.update(
+    await UnifiedProjects.update(
       { openharmonyVersion: [] },
-      { where: { id: Number(repo.id) } },
+      { where: { pId: repo.pId } },
     );
   } else {
     // 抓取失败，保留旧值

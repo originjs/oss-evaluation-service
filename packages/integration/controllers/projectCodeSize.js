@@ -1,4 +1,4 @@
-import { ViewProjects, GithubProjectsTable, logger } from '@orginjs/oss-evaluation-data-model';
+import { ViewProjects, UnifiedProjects, logger } from '@orginjs/oss-evaluation-data-model';
 import * as cheerio from 'cheerio';
 import { Op } from 'sequelize';
 import { fetchWithTimeout } from '../util/fetchWitTimeout.js';
@@ -17,7 +17,7 @@ export async function syncAllProjectCodeSizeHandler(req, res) {
 
 async function updateCodeSizeByPId(codeLines, pId) {
   if (codeLines && pId) {
-    await GithubProjectsTable.update(
+    await UnifiedProjects.update(
       { codeSize: codeLines },
       {
         where: {

@@ -1,6 +1,6 @@
 import {
   ViewProjects,
-  GithubProjectsTable,
+  UnifiedProjects,
   logger,
   ProjectPackage,
 } from '@orginjs/oss-evaluation-data-model';
@@ -78,7 +78,7 @@ export default async function syncProjectDependentCount(pId) {
       dependentCount.repositories != '' &&
       dependentCount.packages != ''
     ) {
-      await GithubProjectsTable.update(
+      await UnifiedProjects.update(
         {
           dependentRepositories: dependentCount.repositories,
           dependentPackages: dependentCount.packages,

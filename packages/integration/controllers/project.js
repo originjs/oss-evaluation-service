@@ -3,8 +3,7 @@ import * as fs from 'node:fs';
 import { Octokit } from '@octokit/core';
 import {
   GithubProjectsTable,
-  GiteeProjectsTable,
-  GitcodeProjectsTable,
+  UnifiedProjects,
   logger,
 } from '@orginjs/oss-evaluation-data-model';
 import GithubSdk from '@orginjs/github-sdk';
@@ -133,7 +132,12 @@ function getStarsScope(req) {
 }
 
 async function savaData(projects) {
-  let updateOnDuplicate = Object.keys(projects[0]).slice(1);
+  if (!projects || !projects.length) {
+    logger.warn('No projects to save');
+    return 0;
+  }
+
+  let updateOnDuplicate = Object.keys(projects[0]).filter(field => field !== 'pId');
   // if dataType is not 1, remove 'integratedState' and 'dataType'
   if (projects[0].dataType !== 1) {
     updateOnDuplicate = updateOnDuplicate.filter(
@@ -142,15 +146,11 @@ async function savaData(projects) {
   } else {
     updateOnDuplicate = updateOnDuplicate.filter(fieldName => fieldName != 'integratedState');
   }
-  const tableMap = {
-    [platformTypes.GITHUB]: GithubProjectsTable,
-    [platformTypes.GITEE]: GiteeProjectsTable,
-    [platformTypes.GITCODE]: GitcodeProjectsTable,
-  };
-  const result = await tableMap[projects[0].platformType].bulkCreate(projects, {
+  const result = await UnifiedProjects.bulkCreate(projects, {
     updateOnDuplicate,
   });
   logger.info(`Batch insert/update success,${result.length} rows.`);
+  return result.length;
 }
 
 export async function searchAndIntegrationGithubProjects(req, res) {
@@ -246,19 +246,30 @@ const getPlatformType = url => {
     urlObj = new URL(url);
   } catch (e) {
     logger.error(`Invalid url: ${url}`);
-    return {};
+    return { platformType: null, hostname: null };
+  }
+  const platformType = typeMap[urlObj.hostname];
+  if (!platformType) {
+    logger.error(`Unsupported platform hostname: ${urlObj.hostname}, url: ${url}`);
   }
   return {
-    platformType: typeMap[urlObj.hostname],
+    platformType,
     hostname: urlObj.hostname,
   };
 };
 
 function parseProjects(items, dataType) {
-  return items.map(project => {
+  return items.flatMap(project => {
     const htmlUrl = project.html_url || project.web_url;
     const { platformType } = getPlatformType(htmlUrl);
+
+    if (!platformType) {
+      logger.error(`Invalid platform type for project: ${htmlUrl}, skipping this project`);
+      return [];
+    }
+
     let result = {
+      pId: `${platformType}#${project.id}`,
       id: project.id,
       platformType,
       name: project.name,
@@ -370,12 +381,19 @@ export async function syncSingleProject(options) {
   }
 
   const projects = parseProjects([project]);
+  if (!projects.length) {
+    return null;
+  }
   await savaData(projects);
   return projects[0];
 }
 
 async function queryProjectByRepUrl(url) {
   const { platformType, hostname } = getPlatformType(url);
+  if (!platformType || !hostname) {
+    logger.info(`Invalid platform type or hostname for url: ${url}`);
+    return null;
+  }
   const ownerRepo = getOwnerRepo(url, hostname);
   if (!ownerRepo) {
     logger.info('Url must be the GitHub/Gitee/GitCode address, eg: https://github.com/vuejs/core');

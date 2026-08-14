@@ -2,6 +2,7 @@ export { default as logger } from './util/logger.js';
 export { sequelize, sequelizeExt } from './util/database.js';
 export { default as AlternativeProjects } from './models/AlternativeProjects.js';
 export { default as GithubProjects } from './models/GithubProjects.js';
+export { default as UnifiedProjects } from './models/UnifiedProjects.js';
 export { default as ViewProjects } from './models/ViewProjects.js';
 export { default as GithubProjectsTable } from './models/GithubProjectsTable.js';
 export { default as GiteeProjectsTable } from './models/GiteeProjectsTable.js';
@@ -43,3 +44,4 @@ export { default as BenchmarkTechStacks } from './models/BenchmarkTechStacks.js'
 export { default as BenchmarkVersionScore } from './models/BenchmarkVersionScore.js';
 export { default as LandscapeProjects } from './models/LandscapeProjects.js';
 export { default as ProjectStackFromAi } from './models/ProjectStackFromAi.js';
+

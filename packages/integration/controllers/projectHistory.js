@@ -1,7 +1,7 @@
 import {
   ViewProjects,
   GithubProjectsHistory,
-  GithubProjectsTable,
+  UnifiedProjects,
   logger,
 } from '@orginjs/oss-evaluation-data-model';
 import { getProjectByUrl, sleep, getValidToken } from '../util/util.js';
@@ -59,7 +59,7 @@ async function getExistRecord(currentDate) {
 
 /**
  * Synchronizes the history of multiple projects by fetching their contributors and stars.
- * Updates the GithubProjectsTable and stores the history in GithubProjectsHistory.
+ * Updates the UnifiedProjects and stores the history in GithubProjectsHistory.
  *
  * @param {Array} projectList - The list of projects to synchronize.
  * @param {Date} currentDate - The date for which the history is being synchronized.
@@ -87,8 +87,8 @@ export async function syncHistoryByProjectList(projectList, currentDate) {
     if (!contributors || !stars) {
       continue;
     }
-    // refresh github_projects_t
-    await GithubProjectsTable.update(
+    // refresh unified_projects_t
+    await UnifiedProjects.update(
       { contributors: contributors === -1 ? null : contributors, stargazersCount: stars },
       {
         where: {
