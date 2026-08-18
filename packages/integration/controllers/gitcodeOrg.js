@@ -134,8 +134,10 @@ async function saveProjects(projects) {
   if (!projects.length) {
     return 0;
   }
-  // 除主键 pId 外的字段都允许在重复时更新
-  const updateOnDuplicate = Object.keys(projects[0]).filter(field => field !== 'pId');
+  const excludedFields = ['pId', 'id', 'platformType'];
+  const updateOnDuplicate = Object.keys(projects[0]).filter(
+    field => !excludedFields.includes(field),
+  );
   const result = await UnifiedProjects.bulkCreate(projects, { updateOnDuplicate });
   return result.length;
 }

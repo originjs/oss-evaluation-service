@@ -261,6 +261,10 @@ export default sequelize.define(
       type: DataTypes.STRING(512),
       field: 'latest_release_published_at',
     },
+    openharmonyVersion: {
+      type: DataTypes.JSON,
+      field: 'openharmony_version',
+    },
   },
   {
     tableName: 'unified_projects_t',

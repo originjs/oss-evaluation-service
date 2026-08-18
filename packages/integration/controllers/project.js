@@ -137,14 +137,14 @@ async function savaData(projects) {
     return 0;
   }
 
-  let updateOnDuplicate = Object.keys(projects[0]).filter(field => field !== 'pId');
-  // if dataType is not 1, remove 'integratedState' and 'dataType'
+  const excludedFields = ['pId', 'id', 'platformType'];
+  let updateOnDuplicate = Object.keys(projects[0]).filter(field => !excludedFields.includes(field));
   if (projects[0].dataType !== 1) {
     updateOnDuplicate = updateOnDuplicate.filter(
-      fieldName => fieldName != 'integratedState' && fieldName != 'dataType',
+      fieldName => !['integratedState', 'dataType'].includes(fieldName),
     );
   } else {
-    updateOnDuplicate = updateOnDuplicate.filter(fieldName => fieldName != 'integratedState');
+    updateOnDuplicate = updateOnDuplicate.filter(fieldName => fieldName !== 'integratedState');
   }
   const result = await UnifiedProjects.bulkCreate(projects, {
     updateOnDuplicate,

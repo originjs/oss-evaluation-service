@@ -3,7 +3,16 @@
 -- ==================================================================
 
 -- ==================================================================
--- 第一步：清理已存在的统一表
+-- 第一步：检查是否已完成迁移
+-- ==================================================================
+
+-- 检查是否已存在备份表（已完成迁移的标志）
+IF EXISTS (SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'github_projects_t_backup_20260810') THEN
+    SELECT '迁移已完成或正在进行中，请检查备份表状态' as result;
+END IF;
+
+-- ==================================================================
+-- 第二步：清理已存在的统一表
 -- ==================================================================
 
 -- 删除已存在的统一表（如果存在）
@@ -12,15 +21,10 @@ DROP TABLE IF EXISTS unified_projects_t;
 SELECT '清理已存在的表完成' as result;
 
 -- ==================================================================
--- 第二步：重命名原表为备份表
+-- 第三步：重命名原表为备份表
 -- ==================================================================
 
--- 检查备份表是否已存在，如果存在则先删除（避免重复重命名）
-DROP TABLE IF EXISTS github_projects_t_backup_20260810;
-DROP TABLE IF EXISTS gitee_projects_t_backup_20260810;
-DROP TABLE IF EXISTS gitcode_projects_t_backup_20260810;
-
--- 重命名原表为备份表（如果原表不存在的则跳过错误）
+-- 重命名原表为备份表
 RENAME TABLE github_projects_t TO github_projects_t_backup_20260810;
 RENAME TABLE gitee_projects_t TO gitee_projects_t_backup_20260810;
 RENAME TABLE gitcode_projects_t TO gitcode_projects_t_backup_20260810;
@@ -112,13 +116,13 @@ CREATE TABLE unified_projects_t (
     latest_release_tag_name VARCHAR(255) COMMENT '最新标签',
     latest_release_published_at VARCHAR(512) COMMENT '最新发布时间',
     last_updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最后更新',
+    openharmony_version JSON COMMENT 'OpenHarmony 适配的鸿蒙大版本列表（仅 >= v6.0 的 release），JSON 数组，如 ["v6.1-release","v6.0-release"]',
     
     PRIMARY KEY (p_id),
     UNIQUE KEY uk_platform_id (platform_type, id),
     INDEX idx_platform_type (platform_type),
     INDEX idx_html_url (html_url),
     INDEX idx_latest_release (latest_release_published_at),
-    INDEX idx_p_id (p_id),
     INDEX idx_full_name (full_name),
     INDEX idx_id (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -213,7 +217,7 @@ INSERT INTO unified_projects_t (
     open_ai_remark, open_ai_recommend_remark, question_info,
     prompt, integrated_state, contributors,
     dependent_repositories, dependent_packages, record_desc, data_type,
-    ai_description, latest_release_tag_name, latest_release_published_at, last_updated_date,
+    ai_description, latest_release_tag_name, latest_release_published_at, last_updated_date, openharmony_version,
     -- GitHub/Gitee特有字段
     git_url, size, has_issues, archived, disabled, allow_forking, topics, visibility,
     forks, open_issues, watchers, svn_url, has_projects, has_downloads,
@@ -230,7 +234,7 @@ SELECT
     prompt, integrated_state, contributors,
     dependent_repositories, dependent_packages, record_desc, 
     CASE WHEN data_type IS NULL THEN 1 ELSE data_type END as data_type,
-    ai_description, latest_release_tag_name, latest_release_published_at, last_updated_date,
+    ai_description, latest_release_tag_name, latest_release_published_at, last_updated_date, openharmony_version,
     -- GitHub/Gitee特有字段设为NULL
     NULL as git_url, NULL as size, NULL as has_issues, NULL as archived,
     NULL as disabled, NULL as allow_forking, NULL as topics, NULL as visibility,
