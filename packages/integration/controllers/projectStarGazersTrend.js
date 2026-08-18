@@ -166,7 +166,7 @@ async function getProjectMaxDate(pId) {
   const resTrend = await GithubProjectsStargazersTrend.findAll({
     attributes: [[Sequelize.fn('MAX', Sequelize.col('date')), 'maxDate']],
     where: {
-      p_id: pId,
+      pId: pId,
     },
   });
   return resTrend[0].dataValues.maxDate == null ? defaultDate : resTrend[0].dataValues.maxDate;

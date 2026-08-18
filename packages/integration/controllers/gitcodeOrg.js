@@ -134,7 +134,7 @@ async function saveProjects(projects) {
   if (!projects.length) {
     return 0;
   }
-  const excludedFields = ['pId', 'id', 'platformType'];
+  const excludedFields = ['pId', 'id', 'platformType', 'lastUpdatedDate'];
   const updateOnDuplicate = Object.keys(projects[0]).filter(
     field => !excludedFields.includes(field),
   );

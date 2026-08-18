@@ -137,7 +137,7 @@ async function savaData(projects) {
     return 0;
   }
 
-  const excludedFields = ['pId', 'id', 'platformType'];
+  const excludedFields = ['pId', 'id', 'platformType', 'lastUpdatedDate'];
   let updateOnDuplicate = Object.keys(projects[0]).filter(field => !excludedFields.includes(field));
   if (projects[0].dataType !== 1) {
     updateOnDuplicate = updateOnDuplicate.filter(
