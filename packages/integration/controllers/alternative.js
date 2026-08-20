@@ -86,7 +86,7 @@ const saveAltList = async (json, project) => {
       // exclude duplicate
       if (altList.find(e => e.alternativeUrl === line[0])) continue;
       // exclude self
-      if (line[0] === 'https://github.com/' + project.fullName) continue;
+      if (line[0] === project.htmlUrl) continue;
       altList.push({
         pId: project.pId,
         fullName: project.fullName,

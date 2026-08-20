@@ -1,9 +1,7 @@
 import {
-  GithubProjectsTable,
-  GiteeProjectsTable,
-  GitcodeProjectsTable,
+  UnifiedProjects,
   ViewProjects,
-  logger,
+  logger
 } from '@orginjs/oss-evaluation-data-model';
 import { platformTypes } from '@orginjs/oss-evaluation-util';
 import { getValidToken, refreshValidToken, sleep } from '../util/util.js';
@@ -219,12 +217,6 @@ const fetchers = {
   [platformTypes.GITCODE]: fetchGitcodeLatestRelease,
 };
 
-const tableMap = {
-  [platformTypes.GITHUB]: GithubProjectsTable,
-  [platformTypes.GITEE]: GiteeProjectsTable,
-  [platformTypes.GITCODE]: GitcodeProjectsTable,
-};
-
 export const RELEASE_SYNC_STATUS = Object.freeze({
   UPDATED: 'updated',
   SKIPPED: 'skipped',
@@ -265,13 +257,12 @@ export async function syncSingleProjectRelease(project) {
     return RELEASE_SYNC_STATUS.SKIPPED;
   }
 
-  const Model = tableMap[platformType];
-  const [affectedRows] = await Model.update(
+  const [affectedRows] = await UnifiedProjects.update(
     {
       latestReleaseTagName: info.tagName,
       latestReleasePublishedAt: info.publishedAt,
     },
-    { where: { id: Number(project.id) } },
+    { where: { pId: project.pId } },
   );
 
   if (!affectedRows) {

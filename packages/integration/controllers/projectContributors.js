@@ -1,10 +1,4 @@
-import {
-  ViewProjects,
-  GithubProjectsTable,
-  logger,
-  GiteeProjectsTable,
-  GitcodeProjectsTable,
-} from '@orginjs/oss-evaluation-data-model';
+import { ViewProjects, logger, UnifiedProjects } from '@orginjs/oss-evaluation-data-model';
 import { getProjectByUrl, getValidToken, refreshValidToken } from '../util/util.js';
 import { fetchWithTimeout } from '../util/fetchWitTimeout.js';
 import { fetchWithRetries } from '../util/fetchWithRetries.js';
@@ -69,14 +63,7 @@ export default async function syncProjectContributors(pId) {
       continue;
     }
 
-    const tableMap = {
-      [platformTypes.GITHUB]: GithubProjectsTable,
-      [platformTypes.GITEE]: GiteeProjectsTable,
-      [platformTypes.GITCODE]: GitcodeProjectsTable,
-    };
-    const projectTable = tableMap[project.platformType];
-
-    await projectTable.update(
+    await UnifiedProjects.update(
       { contributors: contributors === -1 ? null : contributors },
       {
         where: {

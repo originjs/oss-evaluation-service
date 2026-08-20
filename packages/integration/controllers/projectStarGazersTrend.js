@@ -125,7 +125,7 @@ async function getStargazersTrend(startDate, pId) {
       logger.info('sync error! project:{}  fullName{}', project.pId, project.fullName);
       continue;
     }
-    let maxDate = await getProjectMaxDate(project.fullName);
+    let maxDate = await getProjectMaxDate(project.pId);
     for (let trend of trendList) {
       if (trend.event_month > maxDate) {
         resTrend.push({
@@ -162,11 +162,11 @@ async function getStargazersTrend(startDate, pId) {
   }
 }
 
-async function getProjectMaxDate(fullName) {
+async function getProjectMaxDate(pId) {
   const resTrend = await GithubProjectsStargazersTrend.findAll({
     attributes: [[Sequelize.fn('MAX', Sequelize.col('date')), 'maxDate']],
     where: {
-      full_name: fullName,
+      pId: pId,
     },
   });
   return resTrend[0].dataValues.maxDate == null ? defaultDate : resTrend[0].dataValues.maxDate;

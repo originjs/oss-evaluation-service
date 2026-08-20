@@ -6,13 +6,13 @@ export default sequelize.define(
   {
     pId: {
       type: DataTypes.STRING(32),
+      primaryKey: true,
     },
     platformType: {
       type: DataTypes.INTEGER,
     },
     id: {
       type: DataTypes.INTEGER,
-      primaryKey: true,
     },
     name: {
       type: DataTypes.STRING(512),

@@ -1,4 +1,4 @@
-import { GitcodeProjectsTable, logger } from '@orginjs/oss-evaluation-data-model';
+import { UnifiedProjects, logger } from '@orginjs/oss-evaluation-data-model';
 import { normalizeTime, platformTypes } from '@orginjs/oss-evaluation-util';
 import { getValidToken } from '../util/util.js';
 
@@ -66,6 +66,7 @@ function parseOrgRepo(item) {
   // 统一改为与 html_url 一致的 "owner/repo" 形式。
   const fullName = ownerPath ? `${ownerPath}/${item.path}` : item.path;
   return {
+    pId: `${platformTypes.GITCODE}#${item.id}`,
     id: item.id,
     platformType: platformTypes.GITCODE,
     name: item.path || item.name,
@@ -127,15 +128,17 @@ async function fetchRepoDetail(ownerName, name, token) {
 }
 
 /**
- * 批量写入 / 更新 gitcode_projects_t。
+ * 批量写入 / 更新 UnifiedProjects。
  */
 async function saveProjects(projects) {
   if (!projects.length) {
     return 0;
   }
-  // 除主键 id 外的字段都允许在重复时更新
-  const updateOnDuplicate = Object.keys(projects[0]).filter(field => field !== 'id');
-  const result = await GitcodeProjectsTable.bulkCreate(projects, { updateOnDuplicate });
+  const excludedFields = ['pId', 'id', 'platformType', 'lastUpdatedDate'];
+  const updateOnDuplicate = Object.keys(projects[0]).filter(
+    field => !excludedFields.includes(field),
+  );
+  const result = await UnifiedProjects.bulkCreate(projects, { updateOnDuplicate });
   return result.length;
 }
 
